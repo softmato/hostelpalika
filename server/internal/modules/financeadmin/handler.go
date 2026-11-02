@@ -51,6 +51,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	h.registerConcessions(v1)
 	h.registerFeeSchedules(v1)
 	h.registerInvoices(v1)
+	h.registerBillingRuns(v1)
 }
 
 func scopeOf(p *authz.Principal) bson.A {

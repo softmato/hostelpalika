@@ -1,0 +1,741 @@
+[
+  {
+    "name": "summary resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/billing-runs?period=2083-06",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "summary no period",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "period": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "period"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "summary bad period",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/billing-runs?period=2083-6",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "period": [
+              "Period must be YYYY-MM."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Period must be YYYY-MM.",
+              "path": "period"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "summary 2083-06",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/billing-runs?period=2083-06",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing period summary",
+        "data": {
+          "invoiceCount": 1,
+          "notBilledResidentIds": [
+            "6d09000000000000000000b0",
+            "6d09000000000000000000b1",
+            "6d09000000000000000000b2",
+            "6d09000000000000000000b3"
+          ],
+          "period": "2083-06",
+          "totalBilled": 1000
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-09"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-13",
+        "dueDate": "nope",
+        "residentIds": [
+          1
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "dueDate": [
+              "Invalid input: expected date, received Date"
+            ],
+            "period": [
+              "Period must be YYYY-MM."
+            ],
+            "residentIds": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "dueDate"
+            },
+            {
+              "message": "Period must be YYYY-MM.",
+              "path": "period"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "residentIds.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run bad resident id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-09",
+        "residentIds": [
+          "nope"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run 2083-06",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-06"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billed 2 residents",
+        "data": {
+          "billed": [
+            {
+              "amount": 9000,
+              "creditApplied": 0,
+              "dueDate": "2026-10-17T00:00:00.000Z",
+              "invoiceId": "6ae857405e205a5564095e56",
+              "referenceCode": "REP-0001-F",
+              "residentId": "6d09000000000000000000b0"
+            },
+            {
+              "amount": 7000,
+              "creditApplied": 0,
+              "dueDate": "2026-10-26T00:00:00.000Z",
+              "invoiceId": "6ae857405e205a5564095e57",
+              "referenceCode": "REP-0002-P",
+              "residentId": "6d09000000000000000000b1"
+            }
+          ],
+          "failures": [
+            {
+              "errorCode": "BED_TYPE_NOT_PRICED",
+              "message": "The rate card has no rate for room type \"Penthouse\", and it has no listed rent.",
+              "residentId": "6d09000000000000000000b2"
+            }
+          ],
+          "period": "2083-06",
+          "skipped": [
+            {
+              "reason": "PAID_BEFORE_JOINING",
+              "residentId": "6d09000000000000000000b3"
+            },
+            {
+              "reason": "ALREADY_BILLED",
+              "residentId": "6d090000000000000000000a"
+            }
+          ],
+          "totalBilled": 16000
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run 2083-09 one",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-09",
+        "residentIds": [
+          "6d09000000000000000000b3"
+        ],
+        "dueDate": "2027-01-10"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billed 1 residents",
+        "data": {
+          "billed": [
+            {
+              "amount": 9000,
+              "creditApplied": 0,
+              "dueDate": "2027-01-10T00:00:00.000Z",
+              "invoiceId": "6ae857405e205a5564095e59",
+              "referenceCode": "REP-0003-X",
+              "residentId": "6d09000000000000000000b3"
+            }
+          ],
+          "failures": [],
+          "period": "2083-09",
+          "skipped": [],
+          "totalBilled": 9000
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run 2083-09",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-09"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billed 2 residents",
+        "data": {
+          "billed": [
+            {
+              "amount": 9000,
+              "creditApplied": 0,
+              "dueDate": "2027-01-14T00:00:00.000Z",
+              "invoiceId": "6ae857405e205a5564095e5b",
+              "referenceCode": "REP-0004-5",
+              "residentId": "6d090000000000000000000a"
+            },
+            {
+              "amount": 9000,
+              "creditApplied": 0,
+              "dueDate": "2027-01-14T00:00:00.000Z",
+              "invoiceId": "6ae857405e205a5564095e5c",
+              "referenceCode": "REP-0005-C",
+              "residentId": "6d09000000000000000000b0"
+            }
+          ],
+          "failures": [
+            {
+              "errorCode": "BED_TYPE_NOT_PRICED",
+              "message": "The rate card has no rate for room type \"Penthouse\", and it has no listed rent.",
+              "residentId": "6d09000000000000000000b2"
+            }
+          ],
+          "period": "2083-09",
+          "skipped": [
+            {
+              "reason": "NOT_YET_DUE",
+              "residentId": "6d09000000000000000000b1"
+            },
+            {
+              "reason": "ALREADY_BILLED",
+              "residentId": "6d09000000000000000000b3"
+            }
+          ],
+          "totalBilled": 18000
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "run 2083-09 again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/billing-runs",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "period": "2083-09"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billed 0 residents",
+        "data": {
+          "billed": [],
+          "failures": [
+            {
+              "errorCode": "BED_TYPE_NOT_PRICED",
+              "message": "The rate card has no rate for room type \"Penthouse\", and it has no listed rent.",
+              "residentId": "6d09000000000000000000b2"
+            }
+          ],
+          "period": "2083-09",
+          "skipped": [
+            {
+              "reason": "NOT_YET_DUE",
+              "residentId": "6d09000000000000000000b1"
+            },
+            {
+              "reason": "ALREADY_BILLED",
+              "residentId": "6d090000000000000000000a"
+            },
+            {
+              "reason": "ALREADY_BILLED",
+              "residentId": "6d09000000000000000000b0"
+            },
+            {
+              "reason": "ALREADY_BILLED",
+              "residentId": "6d09000000000000000000b3"
+            }
+          ],
+          "totalBilled": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "summary 2083-09",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/billing-runs?period=2083-09",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing period summary",
+        "data": {
+          "invoiceCount": 3,
+          "notBilledResidentIds": [
+            "6d09000000000000000000b2"
+          ],
+          "period": "2083-09",
+          "totalBilled": 27000
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "invoices 2083-09",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?period=2083-09",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-09",
+          "rows": [
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 9000,
+                "dueDate": "2027-01-14T00:00:00.000Z",
+                "id": "6ae857405e205a5564095e5b",
+                "month": "2083-09",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 9000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent — Poush 2083 BS"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Asha Report",
+                "id": "6d090000000000000000000a",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000100",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 9000,
+                "dueDate": "2027-01-14T00:00:00.000Z",
+                "id": "6ae857405e205a5564095e5c",
+                "month": "2083-09",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 9000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent — Poush 2083 BS"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Card Ledger",
+                "id": "6d09000000000000000000b0",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "phone": "9800000200",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 9000,
+                "dueDate": "2027-01-10T00:00:00.000Z",
+                "id": "6ae857405e205a5564095e59",
+                "month": "2083-09",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 9000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent — Poush 2083 BS"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Early Ledger",
+                "id": "6d09000000000000000000b3",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "BED_TYPE_NOT_PRICED"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Odd Ledger",
+                "id": "6d09000000000000000000b2",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Penthouse"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 7000,
+                "reason": "NOT_YET_DUE"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Own Ledger",
+                "id": "6d09000000000000000000b1",
+                "image": null,
+                "moveInDate": "2026-08-26T00:00:00.000Z",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 0,
+            "due": 27000,
+            "notBilled": 2,
+            "overdue": 0,
+            "paid": 0,
+            "partial": 0,
+            "unpaid": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  },
+  {
+    "name": "ledger after run",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/residents/6d090000000000000000000a/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident payment history",
+        "data": {
+          "months": [
+            {
+              "dueAmount": 700,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "invoiceId": "6d0900000000000000000019",
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-07",
+              "status": "UNPAID"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-11T06:00:00.000Z",
+              "invoiceId": "6d09000000000000000000a1",
+              "lines": [
+                {
+                  "amount": 1000,
+                  "basis": "SCHEDULE",
+                  "description": "Monthly rent"
+                }
+              ],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-06",
+              "status": "UNPAID"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "invoiceId": "6d0900000000000000000014",
+              "lines": [],
+              "paidAmount": 250,
+              "payments": [
+                {
+                  "amount": 250,
+                  "method": "ESEWA",
+                  "occurredAt": "2026-09-01T06:00:00.000Z",
+                  "receiptNumber": null,
+                  "settledAt": "2026-09-02T18:00:00.000Z",
+                  "transactionCode": null
+                }
+              ],
+              "period": "2083-05",
+              "status": "PARTIAL"
+            }
+          ],
+          "resident": {
+            "fullName": "Asha Report",
+            "id": "6d090000000000000000000a",
+            "moveInDate": "2026-09-01T06:00:00.000Z",
+            "phone": "9800000100",
+            "roomType": "Single"
+          },
+          "totals": {
+            "monthsBilled": 3,
+            "monthsPaid": 0,
+            "outstanding": 2450,
+            "paid": 250
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8f099132"
+  }
+]
