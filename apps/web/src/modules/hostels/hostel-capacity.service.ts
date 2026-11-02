@@ -112,7 +112,8 @@ export async function listAllRoomTypes(hostelId: Types.ObjectId) {
   return configurations
     .map((config) => ({
       monthlyRent: config.monthlyRent ?? 0,
-      roomType: config.roomType,
+      // A legacy row can lack its name; sorting it used to throw and 500 the rate card (FIN-8).
+      roomType: config.roomType ?? "",
     }))
     .sort((a, b) => a.roomType.localeCompare(b.roomType));
 }
@@ -125,7 +126,7 @@ export async function listAvailableRoomTypes(hostelId: Types.ObjectId) {
     .filter((config) => (config.vacantBeds ?? 0) > 0)
     .map((config) => ({
       monthlyRent: config.monthlyRent ?? 0,
-      roomType: config.roomType,
+      roomType: config.roomType ?? "",
       vacantBeds: config.vacantBeds ?? 0,
     }))
     .sort((a, b) => a.roomType.localeCompare(b.roomType));

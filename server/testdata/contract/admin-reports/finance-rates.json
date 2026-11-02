@@ -1,0 +1,1490 @@
+[
+  {
+    "name": "concessions resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concessions list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discounts",
+        "data": {
+          "concessions": [
+            {
+              "_id": "6d09000000000000000000a0",
+              "label": "Kartik 2083 BS",
+              "percentOff": 50,
+              "period": "2083-07",
+              "reason": "Dashain",
+              "standing": "current"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "percentOff": 0,
+        "period": "2083-13",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "percentOff": [
+              "Use at least 1%. Delete the discount to charge full rent."
+            ],
+            "period": [
+              "Period must be YYYY-MM."
+            ],
+            "reason": [
+              "Too big: expected string to have \u003c=60 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Use at least 1%. Delete the discount to charge full rent.",
+              "path": "percentOff"
+            },
+            {
+              "message": "Period must be YYYY-MM.",
+              "path": "period"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=60 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession fraction",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "percentOff": 12.5,
+        "period": "2083-06"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "percentOff": [
+              "Use a whole percent."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Use a whole percent.",
+              "path": "percentOff"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession open bill",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "percentOff": 20,
+        "period": "2083-06",
+        "reason": " Tihar "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "tihar": "data.concession._id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discount saved",
+        "data": {
+          "concession": {
+            "_id": "6ae852c2e87b32a4a6cd6dab",
+            "label": "Aswin 2083 BS",
+            "percentOff": 20,
+            "period": "2083-06",
+            "reason": "Tihar",
+            "standing": "past",
+            "applied": {
+              "discounted": 200,
+              "invoicesChanged": 1,
+              "invoicesKept": 0,
+              "refundedAsCredit": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession paid bill",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "percentOff": 50,
+        "period": "2083-08"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discount saved",
+        "data": {
+          "concession": {
+            "_id": "6ae852c2e87b32a4a6cd6dad",
+            "label": "Mangsir 2083 BS",
+            "percentOff": 50,
+            "period": "2083-08",
+            "reason": null,
+            "standing": "upcoming",
+            "applied": {
+              "discounted": 500,
+              "invoicesChanged": 1,
+              "invoicesKept": 0,
+              "refundedAsCredit": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession rerun",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "percentOff": 30,
+        "period": "2083-06"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discount saved",
+        "data": {
+          "concession": {
+            "_id": "6ae852c2e87b32a4a6cd6dab",
+            "label": "Aswin 2083 BS",
+            "percentOff": 30,
+            "period": "2083-06",
+            "reason": null,
+            "standing": "past",
+            "applied": {
+              "discounted": 100,
+              "invoicesChanged": 1,
+              "invoicesKept": 0,
+              "refundedAsCredit": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession delete bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession delete missing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions/6d09000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That discount was not found.",
+        "errorCode": "RENT_CONCESSION_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concessions after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discounts",
+        "data": {
+          "concessions": [
+            {
+              "_id": "6ae852c2e87b32a4a6cd6dad",
+              "label": "Mangsir 2083 BS",
+              "percentOff": 50,
+              "period": "2083-08",
+              "reason": null,
+              "standing": "upcoming"
+            },
+            {
+              "_id": "6d09000000000000000000a0",
+              "label": "Kartik 2083 BS",
+              "percentOff": 50,
+              "period": "2083-07",
+              "reason": "Dashain",
+              "standing": "current"
+            },
+            {
+              "_id": "6ae852c2e87b32a4a6cd6dab",
+              "label": "Aswin 2083 BS",
+              "percentOff": 30,
+              "period": "2083-06",
+              "reason": null,
+              "standing": "past"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession delete tihar",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions/{{tihar}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discount removed",
+        "data": {
+          "deletedId": "6ae852c2e87b32a4a6cd6dab",
+          "restored": {
+            "discounted": 0,
+            "invoicesChanged": 1,
+            "invoicesKept": 0,
+            "refundedAsCredit": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "concession delete dashain",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/rent-concessions/6d09000000000000000000a0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Month discount removed",
+        "data": {
+          "deletedId": "6d09000000000000000000a0",
+          "restored": {
+            "discounted": 0,
+            "invoicesChanged": 0,
+            "invoicesKept": 0,
+            "refundedAsCredit": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedules resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedules list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Fee schedules",
+        "data": {
+          "roomTypes": [
+            {
+              "monthlyRent": 0,
+              "roomType": ""
+            },
+            {
+              "monthlyRent": 0,
+              "roomType": "Single"
+            }
+          ],
+          "schedules": [
+            {
+              "_id": "6d09000000000000000000a5",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-09-01T06:00:00.000Z",
+              "__v": 0,
+              "effectiveFrom": "2026-07-17T00:00:00.000Z",
+              "effectiveTo": null,
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "current"
+            },
+            {
+              "_id": "6d09000000000000000000a4",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-09-01T06:00:00.000Z",
+              "__v": 0,
+              "effectiveFrom": "2026-04-14T00:00:00.000Z",
+              "effectiveTo": "2026-07-16T00:00:00.000Z",
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "past"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78",
+    "corrected": "FIN-8"
+  },
+  {
+    "name": "schedule empty rates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-12-20",
+        "rates": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rates": [
+              "A schedule needs at least one rate."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A schedule needs at least one rate.",
+              "path": "rates"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule bad rates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "nope",
+        "rates": [
+          {
+            "monthlyAmount": 1.5
+          },
+          {
+            "roomType": "single",
+            "monthlyAmount": 1
+          },
+          {
+            "roomType": "SINGLE",
+            "monthlyAmount": 2
+          }
+        ],
+        "admissionFee": -1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "admissionFee": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "effectiveFrom": [
+              "Invalid input: expected date, received Date"
+            ],
+            "rates": [
+              "Amount must be a whole number of rupees."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "admissionFee"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "effectiveFrom"
+            },
+            {
+              "message": "Amount must be a whole number of rupees.",
+              "path": "rates.0.monthlyAmount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule dup rates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-12-20",
+        "rates": [
+          {
+            "roomType": "single",
+            "monthlyAmount": 1
+          },
+          {
+            "roomType": "S-ingle",
+            "monthlyAmount": 2
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rates": [
+              "Each room type may appear once."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Each room type may appear once.",
+              "path": "rates"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule referral over fee",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-12-20",
+        "admissionFee": 100,
+        "referralAdmissionDiscount": 200,
+        "rates": [
+          {
+            "roomType": "Single",
+            "monthlyAmount": 1
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "referralAdmissionDiscount": [
+              "A referral discount cannot exceed the admission fee."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A referral discount cannot exceed the admission fee.",
+              "path": "referralAdmissionDiscount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule this month",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-10-20",
+        "rates": [
+          {
+            "roomType": "Single",
+            "monthlyAmount": 9500
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Rates can only change from the start of a future month. This month's residents are already being billed at the current rates.",
+        "errorCode": "FEE_SCHEDULE_MONTH_LOCKED"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule next",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-12-20",
+        "admissionFee": 2000,
+        "rates": [
+          {
+            "roomType": "Single",
+            "monthlyAmount": 9500
+          },
+          {
+            "bedType": "DORMITORY",
+            "monthlyAmount": 4000,
+            "currency": "NPR"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rate card updated",
+        "data": {
+          "schedule": {
+            "hostelId": "6d0900000000000000000002",
+            "effectiveFrom": "2026-12-16T00:00:00.000Z",
+            "effectiveTo": null,
+            "rates": [
+              {
+                "roomType": "Single",
+                "bedType": "SINGLE",
+                "monthlyAmount": 9500,
+                "currency": "NPR"
+              },
+              {
+                "bedType": "DORMITORY",
+                "monthlyAmount": 4000,
+                "currency": "NPR"
+              }
+            ],
+            "admissionFee": 2000,
+            "formFee": 0,
+            "createdBy": "6c0000000000000000000005",
+            "_id": "6ae852c55e205a5564095e46",
+            "createdAt": "2026-11-02T09:07:17.202Z",
+            "updatedAt": "2026-11-02T09:07:17.202Z",
+            "__v": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule replace",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-12-25",
+        "rates": [
+          {
+            "roomType": "Single",
+            "monthlyAmount": 9700
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "upcoming": "data.schedule._id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rate card updated",
+        "data": {
+          "schedule": {
+            "hostelId": "6d0900000000000000000002",
+            "effectiveFrom": "2026-12-16T00:00:00.000Z",
+            "effectiveTo": null,
+            "rates": [
+              {
+                "roomType": "Single",
+                "bedType": "SINGLE",
+                "monthlyAmount": 9700,
+                "currency": "NPR"
+              }
+            ],
+            "formFee": 0,
+            "createdBy": "6c0000000000000000000005",
+            "_id": "6ae852c55e205a5564095e4a",
+            "createdAt": "2026-11-02T09:07:17.285Z",
+            "updatedAt": "2026-11-02T09:07:17.285Z",
+            "__v": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule earlier",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveFrom": "2026-11-20",
+        "rates": [
+          {
+            "roomType": "Single",
+            "monthlyAmount": 9600
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The rate card already changes in Poush 2083 BS. Replace that one, or pick a later month.",
+        "errorCode": "FEE_SCHEDULE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedules after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Fee schedules",
+        "data": {
+          "roomTypes": [
+            {
+              "monthlyRent": 0,
+              "roomType": ""
+            },
+            {
+              "monthlyRent": 9700,
+              "roomType": "Single"
+            }
+          ],
+          "schedules": [
+            {
+              "_id": "6ae852c55e205a5564095e4a",
+              "hostelId": "6d0900000000000000000002",
+              "effectiveFrom": "2026-12-16T00:00:00.000Z",
+              "effectiveTo": null,
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9700,
+                  "currency": "NPR"
+                }
+              ],
+              "formFee": 0,
+              "createdBy": "6c0000000000000000000005",
+              "createdAt": "2026-11-02T09:07:17.285Z",
+              "updatedAt": "2026-11-02T09:07:17.285Z",
+              "__v": 0,
+              "standing": "upcoming"
+            },
+            {
+              "_id": "6d09000000000000000000a5",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-11-02T09:07:17.193Z",
+              "__v": 0,
+              "effectiveFrom": "2026-07-17T00:00:00.000Z",
+              "effectiveTo": "2026-12-15T00:00:00.000Z",
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "current"
+            },
+            {
+              "_id": "6d09000000000000000000a4",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-09-01T06:00:00.000Z",
+              "__v": 0,
+              "effectiveFrom": "2026-04-14T00:00:00.000Z",
+              "effectiveTo": "2026-07-16T00:00:00.000Z",
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "past"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78",
+    "corrected": "FIN-8"
+  },
+  {
+    "name": "schedule delete past",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/6d09000000000000000000a4",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only rates that have not started yet can be deleted. These are already billing residents.",
+        "errorCode": "FEE_SCHEDULE_MONTH_LOCKED"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule delete bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule delete upcoming",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/{{upcoming}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Upcoming rates deleted",
+        "data": {
+          "deletedId": "6ae852c55e205a5564095e4a",
+          "restoredId": "6d09000000000000000000a5"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule close invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/6d09000000000000000000a5/close",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveTo": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "effectiveTo": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "effectiveTo"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule close early",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/6d09000000000000000000a5/close",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveTo": "2020-01-01"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "A schedule cannot close before it starts.",
+        "errorCode": "FEE_SCHEDULE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule close missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/6d09000000000000000000ff/close",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveTo": "2027-01-01"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fee schedule was not found.",
+        "errorCode": "FEE_SCHEDULE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedule close",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/6d09000000000000000000a5/close",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "effectiveTo": "2027-01-01T00:00:00.000Z"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rate card closed",
+        "data": {
+          "schedule": {
+            "_id": "6d09000000000000000000a5",
+            "hostelId": "6d0900000000000000000002",
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "updatedAt": "2026-11-02T09:07:18.171Z",
+            "__v": 0,
+            "effectiveFrom": "2026-07-17T00:00:00.000Z",
+            "effectiveTo": "2027-01-01T00:00:00.000Z",
+            "rates": [
+              {
+                "roomType": "Single",
+                "bedType": "SINGLE",
+                "monthlyAmount": 9000,
+                "currency": "NPR"
+              }
+            ],
+            "fees": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "kyc invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "rates": [
+          {
+            "monthlyAmount": 0,
+            "roomType": " "
+          },
+          {
+            "monthlyAmount": -2,
+            "roomType": "Double"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rates": [
+              "Enter a rent above 0.",
+              "Too small: expected string to have \u003e=1 characters",
+              "Too small: expected number to be \u003e=0",
+              "Enter a rent above 0."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a rent above 0.",
+              "path": "rates.0.monthlyAmount"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "rates.0.roomType"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "rates.1.monthlyAmount"
+            },
+            {
+              "message": "Enter a rent above 0.",
+              "path": "rates.1.monthlyAmount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "kyc empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "rates": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rates": [
+              "Enter at least one rent."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter at least one rent.",
+              "path": "rates"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "kyc upcoming replaces",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "admissionFee": 1500,
+        "rates": [
+          {
+            "monthlyAmount": 8000,
+            "roomType": "Double"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rents saved",
+        "data": {
+          "nextMonth": false,
+          "schedule": {
+            "hostelId": "6d0900000000000000000002",
+            "effectiveFrom": "2026-10-18T00:00:00.000Z",
+            "effectiveTo": null,
+            "rates": [
+              {
+                "roomType": "Double",
+                "bedType": "DOUBLE_SHARING",
+                "monthlyAmount": 8000,
+                "currency": "NPR"
+              }
+            ],
+            "admissionFee": 1500,
+            "formFee": 0,
+            "createdBy": "6c0000000000000000000005",
+            "_id": "6ae852c85e205a5564095e52",
+            "createdAt": "2026-11-02T09:07:20.294Z",
+            "updatedAt": "2026-11-02T09:07:20.294Z",
+            "__v": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78"
+  },
+  {
+    "name": "schedules final",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/fee-schedules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Fee schedules",
+        "data": {
+          "roomTypes": [
+            {
+              "monthlyRent": 0,
+              "roomType": ""
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Single"
+            }
+          ],
+          "schedules": [
+            {
+              "_id": "6ae852c85e205a5564095e52",
+              "hostelId": "6d0900000000000000000002",
+              "effectiveFrom": "2026-10-18T00:00:00.000Z",
+              "effectiveTo": null,
+              "rates": [
+                {
+                  "roomType": "Double",
+                  "bedType": "DOUBLE_SHARING",
+                  "monthlyAmount": 8000,
+                  "currency": "NPR"
+                }
+              ],
+              "admissionFee": 1500,
+              "formFee": 0,
+              "createdBy": "6c0000000000000000000005",
+              "createdAt": "2026-11-02T09:07:20.294Z",
+              "updatedAt": "2026-11-02T09:07:20.294Z",
+              "__v": 0,
+              "standing": "current"
+            },
+            {
+              "_id": "6d09000000000000000000a5",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-11-02T09:07:19.135Z",
+              "__v": 0,
+              "effectiveFrom": "2026-07-17T00:00:00.000Z",
+              "effectiveTo": "2027-01-01T00:00:00.000Z",
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "past"
+            },
+            {
+              "_id": "6d09000000000000000000a4",
+              "hostelId": "6d0900000000000000000002",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "updatedAt": "2026-09-01T06:00:00.000Z",
+              "__v": 0,
+              "effectiveFrom": "2026-04-14T00:00:00.000Z",
+              "effectiveTo": "2026-07-16T00:00:00.000Z",
+              "rates": [
+                {
+                  "roomType": "Single",
+                  "bedType": "SINGLE",
+                  "monthlyAmount": 9000,
+                  "currency": "NPR"
+                }
+              ],
+              "fees": [],
+              "standing": "past"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1cf36f78",
+    "corrected": "FIN-8"
+  }
+]

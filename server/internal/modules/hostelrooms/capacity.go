@@ -219,3 +219,23 @@ func (k *Capacity) Move(ctx context.Context, hostel bson.ObjectID, from, to stri
 	}
 	return k.Release(ctx, hostel, from)
 }
+
+// Listed is one row of listAllRoomTypes.
+type Listed struct {
+	MonthlyRent float64 `json:"monthlyRent"`
+	RoomType    string  `json:"roomType"`
+}
+
+// ListAll is listAllRoomTypes: every room type, vacant or not, by name.
+func (k *Capacity) ListAll(ctx context.Context, hostel bson.ObjectID) ([]Listed, error) {
+	cs, err := k.Load(ctx, hostel)
+	if err != nil {
+		return nil, err
+	}
+	out := []Listed{}
+	for _, c := range cs {
+		out = append(out, Listed{c.num("monthlyRent"), c.RoomType()})
+	}
+	sort.SliceStable(out, func(i, j int) bool { return jsLess(out[i].RoomType, out[j].RoomType) })
+	return out, nil
+}

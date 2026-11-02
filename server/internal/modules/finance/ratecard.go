@@ -49,6 +49,9 @@ func EffectiveSchedule(ctx context.Context, db *mongo.Database, hostelID bson.Ob
 
 var nonAlnum = regexp.MustCompile(`[^A-Z0-9]`)
 
+// Key is the room-type match key: upper case, letters and digits only.
+func Key(s string) string { return key(s) }
+
 func key(s string) string { return nonAlnum.ReplaceAllString(strings.ToUpper(s), "") }
 
 // SameRoomType is case- and punctuation-insensitive: a room type is text a human typed.

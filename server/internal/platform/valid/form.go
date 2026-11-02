@@ -157,8 +157,8 @@ type N struct {
 	Coerce bool
 	// Default is `.default(n)` (undefined only).
 	Default *float64
-	// IntMsg replaces the .int() message.
-	IntMsg string
+	// IntMsg replaces the .int() message; MinMsg/MaxMsg the bound messages.
+	IntMsg, MinMsg, MaxMsg string
 }
 
 func P(v float64) *float64 { return &v }
@@ -199,10 +199,18 @@ func (f *Form) Num(key string, o N) (float64, bool) {
 		return 0, false
 	}
 	if o.Min != nil && n < *o.Min {
-		f.Is.Add(key, TooSmall("number", *o.Min, true))
+		msg := o.MinMsg
+		if msg == "" {
+			msg = TooSmall("number", *o.Min, true)
+		}
+		f.Is.Add(key, msg)
 	}
 	if o.Max != nil && n > *o.Max {
-		f.Is.Add(key, TooBig("number", *o.Max, true))
+		msg := o.MaxMsg
+		if msg == "" {
+			msg = TooBig("number", *o.Max, true)
+		}
+		f.Is.Add(key, msg)
 	}
 	return n, true
 }
