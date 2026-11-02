@@ -30,7 +30,7 @@ import (
 const (
 	categoryNameMax = 32
 	categoryLimit   = 20
-	dayMS           = 24 * time.Hour
+	oneDay           = 24 * time.Hour
 )
 
 // Admin is the hostel's side of the money-out book.
@@ -185,7 +185,7 @@ func (h *Handler) moneyIn(ctx context.Context, hostel bson.ObjectID, period stri
 	if err != nil {
 		return 0, err
 	}
-	cur, err := h.DB.Collection("paymentevents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "settledAt", Value: bson.D{{Key: "$gte", Value: bounds.Start.Add(-dayMS)}, {Key: "$lte", Value: bounds.End.Add(dayMS)}}}, {Key: "status", Value: "SETTLED"}},
+	cur, err := h.DB.Collection("paymentevents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "settledAt", Value: bson.D{{Key: "$gte", Value: bounds.Start.Add(-oneDay)}, {Key: "$lte", Value: bounds.End.Add(oneDay)}}}, {Key: "status", Value: "SETTLED"}},
 		options.Find().SetProjection(bson.D{{Key: "amount", Value: 1}, {Key: "direction", Value: 1}, {Key: "settledAt", Value: 1}}))
 	if err != nil {
 		return 0, err

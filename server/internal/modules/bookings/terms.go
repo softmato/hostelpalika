@@ -17,8 +17,8 @@ import (
 // booking-terms.ts + short-stay.ts: the money of a booking. Pure.
 
 const (
-	hourMs = time.Hour
-	dayMs  = 24 * time.Hour
+	oneHour = time.Hour
+	oneDay  = 24 * time.Hour
 )
 
 // Terms is what a booking was sold under, frozen on the row.
@@ -100,7 +100,7 @@ func holdDayAt(confirmedAt, at time.Time) float64 {
 	if elapsed < 0 {
 		return 1
 	}
-	return math.Floor(float64(elapsed.Milliseconds())/float64(dayMs.Milliseconds())) + 1
+	return math.Floor(float64(elapsed.Milliseconds())/float64(oneDay.Milliseconds())) + 1
 }
 
 func cancelRefundPercent(t Terms, confirmedAt, at time.Time) float64 {
@@ -188,7 +188,7 @@ func policySummary(t Terms, fee int64) PolicySummary {
 func millis(f float64) time.Duration { return time.Duration(f * float64(time.Millisecond)) }
 
 func addDays(t time.Time, days float64) time.Time {
-	return t.Add(millis(days * float64(dayMs.Milliseconds())))
+	return t.Add(millis(days * float64(oneDay.Milliseconds())))
 }
 
 var dayShape = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})$`)
@@ -219,7 +219,7 @@ func quoteStay(dailyRate int64, holdDays, sharePercent, maxAdvanceDays, maxNight
 	if moveIn.Before(today) || moveIn.After(addDays(today, maxAdvanceDays)) {
 		return nil, httpx.NewError(422, "SHORT_STAY_DATES_INVALID", "Pick a move-in date between today and "+jsNum(maxAdvanceDays)+" days from now.", nil)
 	}
-	nights := int64(moveOut.Sub(*moveIn) / dayMs)
+	nights := int64(moveOut.Sub(*moveIn) / oneDay)
 	if float64(nights) < minNights {
 		return nil, httpx.NewError(422, "SHORT_STAY_TOO_SHORT", "This hostel takes stays of at least "+jsNum(minNights)+" nights.", nil)
 	}

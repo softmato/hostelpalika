@@ -112,7 +112,7 @@ func normalizeFilters(p map[string]any, query string) Filters {
 		Set("roomType", oneOf(p["roomType"], RoomTypes)).Set("minPrice", price(p["minPrice"])).Set("maxPrice", price(p["maxPrice"]))
 	// `q` is only useful as a short proper noun; echoing the sentence matches nothing.
 	if s, ok := p["q"].(string); ok {
-		if c := valid.Trim(s); c != "" && valid.JSLen(c) <= 60 && strings.ToLower(c) != strings.ToLower(valid.Trim(query)) {
+		if c := valid.Trim(s); c != "" && valid.JSLen(c) <= 60 && !strings.EqualFold(c, valid.Trim(query)) {
 			f = f.Set("q", c)
 		}
 	}

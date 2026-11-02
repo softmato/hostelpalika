@@ -107,15 +107,13 @@ var (
 	emailShape  = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 	bsSuffix    = regexp.MustCompile(`\s*BS$`)
 	nonDigit    = regexp.MustCompile(`\D`)
-	roomTypeKey = map[string]string{"double sharing": "Double Sharing Room", "four sharing": "Four Sharing Room", "single": "Single Sitter Room",
-		"single room": "Single Sitter Room", "triple sharing": "Triple Sharing Room"}
 )
 
 // RoomTypeLabel is roomTypeLabel; the table lives with the templates that print it.
 func RoomTypeLabel(roomType string) string { return email.RoomTypeLabel(roomType) }
 
 func SameRoomType(a, b string) bool {
-	return strings.ToLower(strings.TrimSpace(a)) == strings.ToLower(strings.TrimSpace(b))
+	return strings.EqualFold(strings.TrimSpace(a), strings.TrimSpace(b))
 }
 
 // SplitFullName is splitFullName's yes/no: a first and a last name.

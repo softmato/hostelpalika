@@ -273,7 +273,6 @@ func EvidenceTextFlags(text string, f ClaimFacts) []string {
 
 var (
 	codeJunk     = jsre("", `[\s\-_/.]`)
-	notLetters   = regexp.MustCompile(`[^A-Z]`)
 	placeholders = map[string]bool{"ABC": true, "ASDF": true, "DEMO": true, "DUMMY": true, "FAKE": true, "NA": true, "NIL": true, "NONE": true, "NOTHING": true, "PAID": true, "QWERTY": true, "SAMPLE": true, "TEST": true, "TESTING": true, "UNKNOWN": true, "XXX": true, "YES": true}
 	esewaShape   = regexp.MustCompile(`^[0-9A-Z]{7}$`)
 )

@@ -303,7 +303,7 @@ func (s *Service) adminStatus(c *gin.Context) {
 	if response != "" {
 		set = append(set, bson.E{Key: "adminResponse", Value: response})
 	}
-	unset := bson.D{}
+	var unset bson.D
 	switch status {
 	case "RESOLVED":
 		set = append(set, bson.E{Key: "resolvedAt", Value: now})

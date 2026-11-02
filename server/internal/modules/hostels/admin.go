@@ -2,7 +2,6 @@ package hostels
 
 import (
 	"context"
-	"errors"
 	"regexp"
 	"time"
 
@@ -206,4 +205,3 @@ func (a *Admin) communityPatch(c *gin.Context) {
 
 var errHostelMissing = httpx.NewError(404, "HOSTEL_NOT_FOUND", "Hostel not found.", nil)
 
-func notFound(err error) bool { return errors.Is(err, mongo.ErrNoDocuments) }

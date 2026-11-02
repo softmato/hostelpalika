@@ -689,7 +689,7 @@ func (a *Admin) home2(ctx context.Context, s *storeActor, requested string) (ord
 		days = max(1, int(math.Floor(bs.Today(now).Sub(bounds.Start).Hours()/24))+1)
 	}
 	spentValue := usedValue + wastedValue + missingValue
-	summary := ordered.Map{}
+	var summary ordered.Map
 	var costPer, boughtOut, dueOut, missingOut, spentOut, stockOut, usedOut, wastedOut any
 	byCategory, bySupplier := []ordered.Map{}, []supplierTotal{}
 	if money {

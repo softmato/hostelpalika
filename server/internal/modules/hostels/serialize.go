@@ -130,7 +130,7 @@ func SerializeHostel(h bson.Raw, now time.Time) ordered.Map {
 		kyc = ordered.Map{{Key: "note", Value: kynote}, {Key: "status", Value: rawStr(h.Lookup("kyc", "status"), "DRAFT")}, {Key: "submittedAt", Value: rawDate(h.Lookup("kyc", "submittedAt"))}}
 	}
 	loc := ordered.Undefined
-	var location any = loc
+	location := loc
 	if v := h.Lookup("location"); v.Type == bson.TypeEmbeddedDocument {
 		location = ordered.FromBSON(v)
 	}

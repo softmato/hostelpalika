@@ -137,7 +137,6 @@ type checked struct {
 	Rent     *int64
 }
 
-func jsonOrNull(v any) any { return v }
 
 func (r joinRequest) view(c checked, current string) ordered.Map {
 	var bills any
