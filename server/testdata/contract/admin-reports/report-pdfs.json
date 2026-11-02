@@ -1,0 +1,326 @@
+[
+  {
+    "name": "statement resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement default",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement bad from",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?from=2083-13",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "from": [
+              "Use a BS month, YYYY-MM."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Use a BS month, YYYY-MM.",
+              "path": "from"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement bad to",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?from=2083-05\u0026to=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "to": [
+              "Use a BS month, YYYY-MM."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Use a BS month, YYYY-MM.",
+              "path": "to"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement one month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?from=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement range",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?from=2083-04\u0026to=2083-06",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement reversed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?from=2083-06\u0026to=2083-04",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "statement bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/statement/pdf?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall report",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall statement",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf?kind=statement\u0026month=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall bad kind",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf?kind=csv",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "kind": [
+              "Invalid option: expected one of \"report\"|\"statement\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"report\"|\"statement\"",
+              "path": "kind"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall future month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf?month=2099-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  },
+  {
+    "name": "overall bad month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overall/pdf?kind=statement\u0026month=junk",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 daa82d6f"
+  }
+]

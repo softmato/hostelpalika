@@ -1532,3 +1532,13 @@ func (a *Admin) buildExport(ctx context.Context, p *authz.Principal, hostel, rep
 func sortStable[T any](rows []T, less func(a, b T) bool) {
 	sort.SliceStable(rows, func(i, j int) bool { return less(rows[i], rows[j]) })
 }
+
+// PerformanceFor is getHostelPerformanceReport for a principal already narrowed to one
+// hostel, as the all-branches document builds it.
+func (a *Admin) PerformanceFor(ctx context.Context, p *authz.Principal, month string) (ordered.Map, error) {
+	s, err := hostelScope(p, "")
+	if err != nil {
+		return nil, err
+	}
+	return a.Performance(ctx, p, s, month)
+}

@@ -15,9 +15,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
+	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
 	"github.com/softmato/hostelpalika/server/internal/modules/ledger"
 	"github.com/softmato/hostelpalika/server/internal/modules/opsscope"
 	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
+	"github.com/softmato/hostelpalika/server/internal/modules/reports"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
@@ -41,6 +43,9 @@ type Handler struct {
 	Production              bool
 	R2                      *storage.R2
 	Reader                  *finance.Reader
+	// The all-branches document reads the branch summary and the performance report.
+	Branches *hostels.Admin
+	Reports  *reports.Admin
 }
 
 // Register mounts the claim review, cash and void routes; the other groups add theirs.
@@ -60,6 +65,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	h.registerBillingRuns(v1)
 	h.registerGateways(v1)
 	h.registerStatements(v1)
+	h.registerReportPDFs(v1)
 }
 
 func scopeOf(p *authz.Principal) bson.A {

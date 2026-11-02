@@ -454,8 +454,7 @@ func (a *Admin) totalsBy(ctx context.Context, ids []bson.ObjectID, period string
 	return out, nil
 }
 
-func (a *Admin) branchSummary(c *gin.Context) {
-	p := authz.From(c)
+func (a *Admin) summary(c context.Context, p *authz.Principal) (summaryOut, error) {
 	all := p.AllHostelIDs
 	if all == nil {
 		all = p.HostelIDs
@@ -463,24 +462,20 @@ func (a *Admin) branchSummary(c *gin.Context) {
 	ids := objectIDs(all)
 	period, err := bs.CurrentPeriod(time.Now())
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return summaryOut{}, err
 	}
 	if len(ids) == 0 {
-		httpx.OK(c, summaryOut{[]summaryRow{}, period}, "Branches summary loaded")
-		return
+		return summaryOut{[]summaryRow{}, period}, nil
 	}
 	cur, err := a.DB.Collection("hostels").Find(c, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
 		options.Find().SetProjection(bson.D{{Key: "capacitySummary", Value: 1}, {Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1},
 			{Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}, {Key: "slug", Value: 1}, {Key: "status", Value: 1}}))
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return summaryOut{}, err
 	}
 	var hostels []bson.Raw
 	if err := cur.All(c, &hostels); err != nil {
-		httpx.Fail(c, err)
-		return
+		return summaryOut{}, err
 	}
 	found := make([]bson.ObjectID, 0, len(hostels))
 	exterior := map[bson.ObjectID]any{}
@@ -499,8 +494,7 @@ func (a *Admin) branchSummary(c *gin.Context) {
 		money, err = a.totalsBy(c, found, period)
 	}
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return summaryOut{}, err
 	}
 	rows := make([]summaryRow, 0, len(hostels))
 	for _, h := range hostels {
@@ -530,7 +524,36 @@ func (a *Admin) branchSummary(c *gin.Context) {
 		}
 		return order[rows[i].ID] < order[rows[j].ID]
 	})
-	httpx.OK(c, summaryOut{rows, period}, "Branches summary loaded")
+	return summaryOut{rows, period}, nil
+}
+
+func (a *Admin) branchSummary(c *gin.Context) {
+	out, err := a.summary(c, authz.From(c))
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	httpx.OK(c, out, "Branches summary loaded")
+}
+
+// BranchFigure is one branch of the all-branches summary.
+type BranchFigure struct {
+	ID, Name                  string
+	IsBranch                  bool
+	Residents, Collected, Due int64
+}
+
+// BranchFigures is getBranchesSummary for the all-branches documents.
+func (a *Admin) BranchFigures(ctx context.Context, p *authz.Principal) ([]BranchFigure, error) {
+	out, err := a.summary(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]BranchFigure, len(out.Hostels))
+	for i, r := range out.Hostels {
+		res[i] = BranchFigure{r.ID, r.Name, r.IsBranch, r.Residents, r.Collected, r.Due}
+	}
+	return res, nil
 }
 
 // ---- request a branch ----

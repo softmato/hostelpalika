@@ -239,3 +239,17 @@ func (d *Doc) PNGOpacity(png []byte, x, y, w, h, opacity float64) error {
 	defer d.f.SetAlpha(1, "Normal")
 	return d.PNG(png, x, y, w, h)
 }
+
+// AppendPDF draws every page of file onto new pages of d.
+func (d *Doc) AppendPDF(file []byte) {
+	tpl := d.ImportPage(file, 1)
+	pages := len(d.imp.GetPageSizes())
+	for n := 1; ; n++ {
+		d.AddPage()
+		d.DrawImported(tpl)
+		if n >= pages {
+			return
+		}
+		tpl = d.ImportPage(file, n+1)
+	}
+}
