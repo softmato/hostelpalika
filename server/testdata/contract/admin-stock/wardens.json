@@ -1,0 +1,886 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "warden refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wardens loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 4,
+            "totalPages": 1
+          },
+          "wardens": [
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w10@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000014",
+              "name": "Warden w10",
+              "permissions": [
+                "manageStock",
+                "recordExpenses"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w11@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000015",
+              "name": "Warden w11",
+              "permissions": [
+                "manageStock"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w12@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000016",
+              "name": "Warden w12",
+              "permissions": [
+                "recordExpenses"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w13@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000017",
+              "name": "Warden w13",
+              "permissions": [
+                "manageStock",
+                "recordExpenses",
+                "approveStockCount"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens?status=SUSPENDED",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wardens loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 0,
+            "totalPages": 0
+          },
+          "wardens": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens?status=X\u0026page=0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Too small: expected number to be \u003e0"
+            ],
+            "status": [
+              "Invalid option: expected one of \"ACTIVE\"|\"INVITED\"|\"SUSPENDED\"|\"REMOVED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "page"
+            },
+            {
+              "message": "Invalid option: expected one of \"ACTIVE\"|\"INVITED\"|\"SUSPENDED\"|\"REMOVED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "no",
+        "name": "",
+        "phone": "1",
+        "permissions": [
+          "nope"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "permissions": [
+              "Invalid option: expected one of \"registerResidents\"|\"editHostelProfile\"|\"manageRooms\"|\"viewPayments\"|\"approvePayments\"|\"recordCash\"|\"reversePayments\"|\"manageFeeSchedule\"|\"managePaymentProfile\"|\"manageFood\"|\"manageNotices\"|\"viewComplaints\"|\"updateComplaints\"|\"viewNightStatus\"|\"updateNightStatus\"|\"manageMaintenance\"|\"recordExpenses\"|\"expenseWithoutProof\"|\"manageStock\"|\"approveStockCount\"|\"verifyPayments\""
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "name"
+            },
+            {
+              "message": "Invalid option: expected one of \"registerResidents\"|\"editHostelProfile\"|\"manageRooms\"|\"viewPayments\"|\"approvePayments\"|\"recordCash\"|\"reversePayments\"|\"manageFeeSchedule\"|\"managePaymentProfile\"|\"manageFood\"|\"manageNotices\"|\"viewComplaints\"|\"updateComplaints\"|\"viewNightStatus\"|\"updateNightStatus\"|\"manageMaintenance\"|\"recordExpenses\"|\"expenseWithoutProof\"|\"manageStock\"|\"approveStockCount\"|\"verifyPayments\"",
+              "path": "permissions.0"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "new.w@contract.test",
+        "name": "New W",
+        "phone": "9811111111"
+      }
+    },
+    "masks": [
+      "data.temporaryPassword",
+      "**dates"
+    ],
+    "capture": {
+      "wid": "data.warden.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden saved",
+        "data": {
+          "accountCreated": true,
+          "accountUpgraded": false,
+          "temporaryPassword": "5mXjtuqAxpxM",
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.498Z",
+            "email": "new.w@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d06",
+            "name": "New W",
+            "permissions": [
+              "registerResidents",
+              "viewPayments",
+              "approvePayments",
+              "recordCash",
+              "manageFood",
+              "manageNotices",
+              "viewComplaints",
+              "updateComplaints",
+              "viewNightStatus",
+              "updateNightStatus",
+              "manageMaintenance",
+              "recordExpenses",
+              "manageStock"
+            ],
+            "phone": "9811111111",
+            "role": "WARDEN",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T03:58:19.498Z",
+            "userId": "6ae80a5b5e205a5564095d04"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "create custom",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "new.x@contract.test",
+        "name": "New X",
+        "permissions": [
+          "manageFood"
+        ]
+      }
+    },
+    "masks": [
+      "data.temporaryPassword",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden saved",
+        "data": {
+          "accountCreated": true,
+          "accountUpgraded": false,
+          "temporaryPassword": "rLt1ZZeLnCB2",
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.949Z",
+            "email": "new.x@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d0b",
+            "name": "New X",
+            "permissions": [
+              "manageFood"
+            ],
+            "phone": "",
+            "role": "WARDEN",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T03:58:19.949Z",
+            "userId": "6ae80a5b5e205a5564095d09"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "create again reactivates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "new.w@contract.test",
+        "name": "New W"
+      }
+    },
+    "masks": [
+      "data.temporaryPassword",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden saved",
+        "data": {
+          "accountCreated": false,
+          "accountUpgraded": false,
+          "temporaryPassword": null,
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.498Z",
+            "email": "new.w@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d06",
+            "name": "New W",
+            "permissions": [
+              "registerResidents",
+              "viewPayments",
+              "approvePayments",
+              "recordCash",
+              "manageFood",
+              "manageNotices",
+              "viewComplaints",
+              "updateComplaints",
+              "viewNightStatus",
+              "updateNightStatus",
+              "manageMaintenance",
+              "recordExpenses",
+              "manageStock"
+            ],
+            "phone": "9811111111",
+            "role": "WARDEN",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T03:58:20.070Z",
+            "userId": "6ae80a5b5e205a5564095d04"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "update empty",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/{{wid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Provide permissions or status to update."
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Provide permissions or status to update.",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "update invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/{{wid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "REMOVED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"ACTIVE\"|\"SUSPENDED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"ACTIVE\"|\"SUSPENDED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "update bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/zz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "ACTIVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid warden id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "update missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/6d0300000000000000000fff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "ACTIVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Warden was not found.",
+        "errorCode": "WARDEN_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "update",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/{{wid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "permissions": [
+          "manageFood",
+          "recordCash"
+        ],
+        "status": "SUSPENDED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden updated",
+        "data": {
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.498Z",
+            "email": "new.w@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d06",
+            "name": "New W",
+            "permissions": [
+              "manageFood",
+              "recordCash"
+            ],
+            "phone": "9811111111",
+            "role": "WARDEN",
+            "status": "SUSPENDED",
+            "updatedAt": "2026-11-02T03:58:36.464Z",
+            "userId": "6ae80a5b5e205a5564095d04"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reinstate",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/wardens/{{wid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "ACTIVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden updated",
+        "data": {
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.498Z",
+            "email": "new.w@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d06",
+            "name": "New W",
+            "permissions": [
+              "manageFood",
+              "recordCash"
+            ],
+            "phone": "9811111111",
+            "role": "WARDEN",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T03:58:36.644Z",
+            "userId": "6ae80a5b5e205a5564095d04"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "deactivate",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/wardens/{{wid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Warden deactivated",
+        "data": {
+          "warden": {
+            "createdAt": "2026-11-02T03:58:19.498Z",
+            "email": "new.w@contract.test",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a5b5e205a5564095d06",
+            "name": "New W",
+            "permissions": [
+              "manageFood",
+              "recordCash"
+            ],
+            "phone": "9811111111",
+            "role": "WARDEN",
+            "status": "SUSPENDED",
+            "updatedAt": "2026-11-02T03:58:36.777Z",
+            "userId": "6ae80a5b5e205a5564095d04"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/wardens",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wardens loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 6,
+            "totalPages": 1
+          },
+          "wardens": [
+            {
+              "createdAt": "2026-11-02T03:58:19.949Z",
+              "email": "new.x@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6ae80a5b5e205a5564095d0b",
+              "name": "New X",
+              "permissions": [
+                "manageFood"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-02T03:58:19.949Z",
+              "userId": "6ae80a5b5e205a5564095d09"
+            },
+            {
+              "createdAt": "2026-11-02T03:58:19.498Z",
+              "email": "new.w@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6ae80a5b5e205a5564095d06",
+              "name": "New W",
+              "permissions": [
+                "manageFood",
+                "recordCash"
+              ],
+              "phone": "9811111111",
+              "role": "WARDEN",
+              "status": "SUSPENDED",
+              "updatedAt": "2026-11-02T03:58:36.777Z",
+              "userId": "6ae80a5b5e205a5564095d04"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w10@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000014",
+              "name": "Warden w10",
+              "permissions": [
+                "manageStock",
+                "recordExpenses"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w11@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000015",
+              "name": "Warden w11",
+              "permissions": [
+                "manageStock"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w12@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000016",
+              "name": "Warden w12",
+              "permissions": [
+                "recordExpenses"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "createdAt": "2026-10-18T06:00:00.000Z",
+              "email": "w13@contract.test",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d0300000000000000000017",
+              "name": "Warden w13",
+              "permissions": [
+                "manageStock",
+                "recordExpenses",
+                "approveStockCount"
+              ],
+              "phone": "",
+              "role": "WARDEN",
+              "status": "ACTIVE",
+              "updatedAt": "2026-10-18T06:00:00.000Z",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "deactivate missing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/wardens/6d0300000000000000000fff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Warden was not found.",
+        "errorCode": "WARDEN_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  }
+]

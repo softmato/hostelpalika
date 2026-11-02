@@ -65,6 +65,11 @@ func categoryForRole(role string) string {
 
 type provider struct {
 	ID              bson.ObjectID  `bson:"_id"`
+	ApprovedAt      *time.Time     `bson:"approvedAt"`
+	ApprovedBy      *bson.ObjectID `bson:"approvedBy"`
+	HiddenAt        *time.Time     `bson:"hiddenAt"`
+	HiddenBy        *bson.ObjectID `bson:"hiddenBy"`
+	UpdatedAt       *time.Time     `bson:"updatedAt"`
 	Area            string         `bson:"area"`
 	Availability    string         `bson:"availability"`
 	Categories      []string       `bson:"categories"`

@@ -1,0 +1,829 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referrals loaded",
+        "data": {
+          "referrals": [
+            {
+              "converted": false,
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "email": "",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d03000000000000000000a5",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6d03000000000000000000a4",
+              "referrerResidentId": "6d03000000000000000000a0",
+              "status": "INQUIRY_CREATED",
+              "updatedAt": "2026-10-01T06:00:00.000Z",
+              "referrerName": "Ravi Rai",
+              "referrerPhone": "9800000090",
+              "reward": null
+            },
+            {
+              "converted": false,
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "email": "",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d03000000000000000000a6",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6d03000000000000000000a4",
+              "referrerResidentId": "6d03000000000000000000a0",
+              "status": "JOINED",
+              "updatedAt": "2026-10-01T06:00:00.000Z",
+              "referrerName": "Ravi Rai",
+              "referrerPhone": "9800000090",
+              "reward": {
+                "amount": 500,
+                "hostelId": "6d0300000000000000000002",
+                "id": "6d03000000000000000000a8",
+                "notes": "",
+                "referralId": "6d03000000000000000000a6",
+                "referrerResidentId": "6d03000000000000000000a0",
+                "rewardType": "CASH",
+                "status": "PENDING"
+              }
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "summary": {
+            "byStatus": {
+              "INQUIRY_CREATED": 1,
+              "JOINED": 1
+            },
+            "converted": 0,
+            "joined": 1,
+            "pendingConfirmation": 1,
+            "rewardApprovedAmount": 0,
+            "rewardPaidAmount": 0,
+            "rewardPendingAmount": 500,
+            "total": 2
+          },
+          "topReferrers": [
+            {
+              "code": "HH0090A0",
+              "id": "6d03000000000000000000a4",
+              "joinedCount": 1,
+              "name": "Ravi Rai",
+              "rewardCount": 0,
+              "roomType": "SINGLE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals?status=JOINED",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referrals loaded",
+        "data": {
+          "referrals": [
+            {
+              "converted": false,
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "email": "",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d03000000000000000000a6",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6d03000000000000000000a4",
+              "referrerResidentId": "6d03000000000000000000a0",
+              "status": "JOINED",
+              "updatedAt": "2026-10-01T06:00:00.000Z",
+              "referrerName": "Ravi Rai",
+              "referrerPhone": "9800000090",
+              "reward": {
+                "amount": 500,
+                "hostelId": "6d0300000000000000000002",
+                "id": "6d03000000000000000000a8",
+                "notes": "",
+                "referralId": "6d03000000000000000000a6",
+                "referrerResidentId": "6d03000000000000000000a0",
+                "rewardType": "CASH",
+                "status": "PENDING"
+              }
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "summary": {
+            "byStatus": {
+              "INQUIRY_CREATED": 1,
+              "JOINED": 1
+            },
+            "converted": 0,
+            "joined": 1,
+            "pendingConfirmation": 1,
+            "rewardApprovedAmount": 0,
+            "rewardPaidAmount": 0,
+            "rewardPendingAmount": 500,
+            "total": 2
+          },
+          "topReferrers": [
+            {
+              "code": "HH0090A0",
+              "id": "6d03000000000000000000a4",
+              "joinedCount": 1,
+              "name": "Ravi Rai",
+              "rewardCount": 0,
+              "roomType": "SINGLE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals?status=X",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"INQUIRY_CREATED\"|\"JOINED\"|\"REWARDED\"|\"CANCELLED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"INQUIRY_CREATED\"|\"JOINED\"|\"REWARDED\"|\"CANCELLED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward unconfirmed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a5/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "APPROVED",
+        "amount": 100
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Confirm the referral as joined before recording a reward.",
+        "errorCode": "REFERRAL_NOT_CONFIRMED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a6/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "X",
+        "amount": -1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "status": [
+              "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PAID\"|\"CANCELLED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PAID\"|\"CANCELLED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward foreign",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a7/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "PAID"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Referral was not found.",
+        "errorCode": "REFERRAL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/zz/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "PAID"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid referral id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward approved",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a6/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "APPROVED",
+        "amount": 1500,
+        "notes": "Well done",
+        "rewardType": "DISCOUNT"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral reward updated",
+        "data": {
+          "referral": {
+            "converted": false,
+            "createdAt": "2026-10-01T06:00:00.000Z",
+            "email": "",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a6",
+            "message": "",
+            "name": "Friend",
+            "phone": "9800000099",
+            "referralCodeId": "6d03000000000000000000a4",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "status": "JOINED",
+            "updatedAt": "2026-11-02T03:58:08.267Z"
+          },
+          "reward": {
+            "amount": 1500,
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a8",
+            "notes": "Well done",
+            "referralId": "6d03000000000000000000a6",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "rewardType": "DISCOUNT",
+            "status": "APPROVED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "reward paid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a6/reward",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "status": "PAID"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral reward updated",
+        "data": {
+          "referral": {
+            "converted": false,
+            "createdAt": "2026-10-01T06:00:00.000Z",
+            "email": "",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a6",
+            "message": "",
+            "name": "Friend",
+            "phone": "9800000099",
+            "referralCodeId": "6d03000000000000000000a4",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "status": "REWARDED",
+            "updatedAt": "2026-11-02T03:58:08.464Z"
+          },
+          "reward": {
+            "amount": 1500,
+            "approvedAt": "2026-11-02T03:58:08.440Z",
+            "approvedBy": "6c0000000000000000000005",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a8",
+            "notes": "Well done",
+            "referralId": "6d03000000000000000000a6",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "rewardType": "DISCOUNT",
+            "status": "PAID"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "confirm invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a5/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "rewardAmount": -1,
+        "rewardType": "X",
+        "joinedResidentId": "z"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "joinedResidentId": [
+              "Invalid object id."
+            ],
+            "rewardAmount": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "rewardType": [
+              "Invalid option: expected one of \"DISCOUNT\"|\"CASH\"|\"SERVICE_CREDIT\"|\"OTHER\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "joinedResidentId"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "rewardAmount"
+            },
+            {
+              "message": "Invalid option: expected one of \"DISCOUNT\"|\"CASH\"|\"SERVICE_CREDIT\"|\"OTHER\"",
+              "path": "rewardType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "confirm wrong resident",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a5/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "joinedResidentId": "6d03000000000000000000a2"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Joined resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "confirm",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a5/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "joinedResidentId": "6d03000000000000000000a1",
+        "rewardAmount": 300,
+        "rewardNotes": "Thanks"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral confirmed",
+        "data": {
+          "referral": {
+            "confirmedAt": "2026-11-02T03:58:15.202Z",
+            "confirmedBy": "6c0000000000000000000005",
+            "converted": false,
+            "createdAt": "2026-10-01T06:00:00.000Z",
+            "email": "",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a5",
+            "joinedResidentId": "6d03000000000000000000a1",
+            "message": "",
+            "name": "Friend",
+            "phone": "9800000099",
+            "referralCodeId": "6d03000000000000000000a4",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "status": "JOINED",
+            "updatedAt": "2026-11-02T03:58:15.202Z"
+          },
+          "reward": {
+            "amount": 300,
+            "approvedAt": "2026-11-02T03:58:15.212Z",
+            "approvedBy": "6c0000000000000000000005",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a57e87b32a4a6cd6d22",
+            "notes": "Thanks",
+            "referralId": "6d03000000000000000000a5",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "rewardType": "DISCOUNT",
+            "status": "APPROVED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "confirm twice",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/referrals/6d03000000000000000000a5/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral confirmed",
+        "data": {
+          "referral": {
+            "confirmedAt": "2026-11-02T03:58:15.286Z",
+            "confirmedBy": "6c0000000000000000000005",
+            "converted": false,
+            "createdAt": "2026-10-01T06:00:00.000Z",
+            "email": "",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6d03000000000000000000a5",
+            "joinedResidentId": "6d03000000000000000000a1",
+            "message": "",
+            "name": "Friend",
+            "phone": "9800000099",
+            "referralCodeId": "6d03000000000000000000a4",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "status": "JOINED",
+            "updatedAt": "2026-11-02T03:58:15.286Z"
+          },
+          "reward": {
+            "amount": 0,
+            "approvedAt": "2026-11-02T03:58:15.295Z",
+            "approvedBy": "6c0000000000000000000005",
+            "hostelId": "6d0300000000000000000002",
+            "id": "6ae80a57e87b32a4a6cd6d22",
+            "notes": "Thanks",
+            "referralId": "6d03000000000000000000a5",
+            "referrerResidentId": "6d03000000000000000000a0",
+            "rewardType": "DISCOUNT",
+            "status": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referrals loaded",
+        "data": {
+          "referrals": [
+            {
+              "confirmedAt": "2026-11-02T03:58:15.286Z",
+              "confirmedBy": "6c0000000000000000000005",
+              "converted": false,
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "email": "",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d03000000000000000000a5",
+              "joinedResidentId": "6d03000000000000000000a1",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6d03000000000000000000a4",
+              "referrerResidentId": "6d03000000000000000000a0",
+              "status": "JOINED",
+              "updatedAt": "2026-11-02T03:58:15.286Z",
+              "referrerName": "Ravi Rai",
+              "referrerPhone": "9800000090",
+              "reward": {
+                "amount": 0,
+                "approvedAt": "2026-11-02T03:58:15.295Z",
+                "approvedBy": "6c0000000000000000000005",
+                "hostelId": "6d0300000000000000000002",
+                "id": "6ae80a57e87b32a4a6cd6d22",
+                "notes": "Thanks",
+                "referralId": "6d03000000000000000000a5",
+                "referrerResidentId": "6d03000000000000000000a0",
+                "rewardType": "DISCOUNT",
+                "status": "PENDING"
+              }
+            },
+            {
+              "converted": false,
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "email": "",
+              "hostelId": "6d0300000000000000000002",
+              "id": "6d03000000000000000000a6",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6d03000000000000000000a4",
+              "referrerResidentId": "6d03000000000000000000a0",
+              "status": "REWARDED",
+              "updatedAt": "2026-11-02T03:58:08.464Z",
+              "referrerName": "Ravi Rai",
+              "referrerPhone": "9800000090",
+              "reward": {
+                "amount": 1500,
+                "approvedAt": "2026-11-02T03:58:08.440Z",
+                "approvedBy": "6c0000000000000000000005",
+                "hostelId": "6d0300000000000000000002",
+                "id": "6d03000000000000000000a8",
+                "notes": "Well done",
+                "referralId": "6d03000000000000000000a6",
+                "referrerResidentId": "6d03000000000000000000a0",
+                "rewardType": "DISCOUNT",
+                "status": "PAID"
+              }
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "summary": {
+            "byStatus": {
+              "JOINED": 1,
+              "REWARDED": 1
+            },
+            "converted": 0,
+            "joined": 2,
+            "pendingConfirmation": 0,
+            "rewardApprovedAmount": 0,
+            "rewardPaidAmount": 1500,
+            "rewardPendingAmount": 0,
+            "total": 2
+          },
+          "topReferrers": [
+            {
+              "code": "HH0090A0",
+              "id": "6d03000000000000000000a4",
+              "joinedCount": 2,
+              "name": "Ravi Rai",
+              "rewardCount": 1,
+              "roomType": "SINGLE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  }
+]

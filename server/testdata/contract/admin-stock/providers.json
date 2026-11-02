@@ -1,0 +1,702 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Approved service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 6,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Koteshwor",
+              "availability": "",
+              "categories": [
+                "CLEANER"
+              ],
+              "category": "CLEANER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000002@prov.test",
+              "experience": "",
+              "fullName": "Sita Cleaner",
+              "id": "6c0000000000000000000075",
+              "phone": "9801000002",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000005@prov.test",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "phone": "9801000005",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "OTHER"
+              ],
+              "category": "OTHER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000099@prov.test",
+              "experience": "",
+              "fullName": "Contract Provider",
+              "id": "6c00000000000000000000d1",
+              "phone": "9801000099",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "description": "Fixes taps",
+              "email": "",
+              "experience": "",
+              "fullName": "Hari Plumber",
+              "id": "6d03000000000000000000b0",
+              "phone": "9810000000",
+              "ratingSummary": {
+                "averageRating": 0,
+                "totalReviews": 0
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-10-01T06:00:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "Twenty years",
+              "email": "9801000001@prov.test",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "phone": "9801000001",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Pokhara Lakeside",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Pokhara",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000007@prov.test",
+              "experience": "",
+              "fullName": "Other Town Plumber",
+              "id": "6c000000000000000000007a",
+              "phone": "9801000007",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers?category=PLUMBER\u0026area=bane\u0026q=hari",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Approved service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "description": "Fixes taps",
+              "email": "",
+              "experience": "",
+              "fullName": "Hari Plumber",
+              "id": "6d03000000000000000000b0",
+              "phone": "9810000000",
+              "ratingSummary": {
+                "averageRating": 0,
+                "totalReviews": 0
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-10-01T06:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "no match",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers?q=zzz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Approved service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 0,
+            "totalPages": 0
+          },
+          "providers": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers?category=X\u0026q=",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "category": [
+              "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\""
+            ],
+            "q": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\"",
+              "path": "category"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "one",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers/6d03000000000000000000b0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider loaded",
+        "data": {
+          "application": {
+            "id": "6d03000000000000000000b2",
+            "providerId": "6d03000000000000000000b0",
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "submittedAt": "2026-10-01T06:00:00.000Z"
+          },
+          "documents": [
+            {
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "documentType": "LICENSE",
+              "fileAssetId": null,
+              "fileUrl": "https://x.test/a.pdf",
+              "id": "6d03000000000000000000b3",
+              "providerId": "6d03000000000000000000b0",
+              "status": "PENDING"
+            }
+          ],
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "",
+            "categories": [
+              "PLUMBER"
+            ],
+            "category": "PLUMBER",
+            "city": "Kathmandu",
+            "createdAt": "2026-10-01T06:00:00.000Z",
+            "description": "Fixes taps",
+            "email": "",
+            "experience": "",
+            "fullName": "Hari Plumber",
+            "id": "6d03000000000000000000b0",
+            "phone": "9810000000",
+            "ratingSummary": {
+              "averageRating": 0,
+              "totalReviews": 0
+            },
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "updatedAt": "2026-10-01T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "pending hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers/6d03000000000000000000b1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/service-providers/zz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid service provider id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "code signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/hostel-referrals"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel referrals",
+        "data": {
+          "code": "STOC00002",
+          "enabled": true,
+          "link": "https://hostelpalika.com/register-hostel?ref=STOC00002",
+          "referrals": [
+            {
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "hostelName": "Contract Hostel",
+              "id": "6d03000000000000000000b5",
+              "liveAt": null,
+              "reward": {
+                "days": 0,
+                "months": 1
+              },
+              "rewardAdded": false,
+              "rewardText": "1 month",
+              "status": "REGISTERED"
+            }
+          ],
+          "theyGet": {
+            "days": 0,
+            "months": 1,
+            "text": "1 month"
+          },
+          "youGet": {
+            "days": 0,
+            "months": 1,
+            "text": "1 month"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "code again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel referrals",
+        "data": {
+          "code": "STOC00002",
+          "enabled": true,
+          "link": "https://hostelpalika.com/register-hostel?ref=STOC00002",
+          "referrals": [
+            {
+              "createdAt": "2026-10-01T06:00:00.000Z",
+              "hostelName": "Contract Hostel",
+              "id": "6d03000000000000000000b5",
+              "liveAt": null,
+              "reward": {
+                "days": 0,
+                "months": 1
+              },
+              "rewardAdded": false,
+              "rewardText": "1 month",
+              "status": "REGISTERED"
+            }
+          ],
+          "theyGet": {
+            "days": 0,
+            "months": 1,
+            "text": "1 month"
+          },
+          "youGet": {
+            "days": 0,
+            "months": 1,
+            "text": "1 month"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "code foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/hostel-referrals?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "invite invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/hostel-referrals/invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "no"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "invite foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/hostel-referrals/invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "a@b.test",
+        "hostelId": "6c00000000000000000000a1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  },
+  {
+    "name": "invite",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/hostel-referrals/invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "email": "Owner@B.test",
+        "name": "Owner"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The invite could not be sent. Try again.",
+        "errorCode": "INVITE_FAILED"
+      }
+    },
+    "recorded": "http://localhost:3100 089d4364"
+  }
+]
