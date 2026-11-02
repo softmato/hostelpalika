@@ -55,3 +55,15 @@ func HostelLeavePending(holdDays int, hostelName, ownerEmail, ownerName, queueUR
 		}, "\n"),
 	})}
 }
+
+// HostelAgreement is hostelAgreementEmail: the signed PDF rides on it.
+func HostelAgreement(hostelName, ownerName, refCode string) Content {
+	return Content{Category: Info, Subject: "Your HostelPalika agreement for " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Your signed agreement",
+		BodyHTML: strings.Join([]string{
+			hello(ownerName),
+			Paragraph("Thank you for signing. Your agreement with HostelPalika for <strong>" + EscapeHTML(hostelName) + "</strong> is attached as a PDF, number <strong>" + EscapeHTML(refCode) + "</strong>. Please keep it safe."),
+			Paragraph("It says what you get, how your data is kept safe, and how you can take all of your data with you if you ever leave."),
+		}, "\n"),
+	})}
+}

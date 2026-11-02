@@ -15,9 +15,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/go-pdf/fpdf"
+	gofpdi "github.com/go-pdf/fpdf/contrib/gofpdi"
 )
 
 // A4 in points, as pdf-lib's PageSizes.A4.
@@ -60,6 +62,7 @@ type Doc struct {
 	f      *fpdf.Fpdf
 	encode func(string) string
 	images int
+	imp    *gofpdi.Importer
 	h      float64
 }
 
@@ -203,4 +206,36 @@ func Encodable(s string) bool {
 		}
 	}
 	return true
+}
+
+// ImportPage reads one page of an existing PDF as a template for DrawImported.
+func (d *Doc) ImportPage(file []byte, page int) int {
+	var rs io.ReadSeeker = bytes.NewReader(file)
+	d.imp = gofpdi.NewImporter()
+	return d.imp.ImportPageFromStream(d.f, &rs, page, "/MediaBox")
+}
+
+// DrawImported paints an imported page over the whole current page.
+func (d *Doc) DrawImported(tpl int) {
+	d.imp.UseImportedTemplate(d.f, tpl, 0, 0, PageWidth, d.h)
+}
+
+// Polyline strokes joined points, round-capped; (x, y) are from the page's bottom.
+func (d *Doc) Polyline(points [][2]float64, width float64, color RGB) {
+	r, g, b := color.ints()
+	d.f.SetDrawColor(r, g, b)
+	d.f.SetLineWidth(width)
+	d.f.SetLineCapStyle("round")
+	d.f.SetLineJoinStyle("round")
+	for i := 1; i < len(points); i++ {
+		d.f.Line(points[i-1][0], d.h-points[i-1][1], points[i][0], d.h-points[i][1])
+	}
+	d.f.SetLineCapStyle("butt")
+}
+
+// PNGOpacity is PNG drawn at the given opacity.
+func (d *Doc) PNGOpacity(png []byte, x, y, w, h, opacity float64) error {
+	d.f.SetAlpha(opacity, "Normal")
+	defer d.f.SetAlpha(1, "Normal")
+	return d.PNG(png, x, y, w, h)
 }

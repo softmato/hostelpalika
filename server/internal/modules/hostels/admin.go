@@ -19,6 +19,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -31,6 +32,7 @@ type Admin struct {
 	Mail    *email.Sender
 	Notify  *notifications.Service
 	RT      *realtime.Client
+	R2      *storage.R2
 	Cache   *cache.Cache
 	Billing *billing.Service
 	// Outbound is outboundUrl(): where links in emails point.
@@ -60,6 +62,8 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	g.POST("/kyc", admin, a.kycAddDocuments)
 	g.DELETE("/kyc", admin, a.kycRemoveDocument)
 	g.POST("/kyc/submit", admin, a.kycSubmit)
+	g.GET("/kyc/agreement", admin, a.agreementGet)
+	g.POST("/kyc/agreement", admin, a.agreementSign)
 }
 
 // AdminHostel is resolveAdminHostelId: the hostel asked for if the caller may open
