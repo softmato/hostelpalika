@@ -3,6 +3,16 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Phase 6 — in progress] — 2026-11-02
+
+### Added
+- Finance statements: import (eSewa, Khalti, bank; CSV, `.xlsx` and legacy `.xls`), the matching ladder and scoring, reconciliation buckets, approve-matched, assign orphan, ask resident. A small BIFF8 reader (`finance/xlsread.go`) reads `.xls`, because `extrame/xls` could not open the eSewa app's own export.
+- Reports: account statement PDF and all-branches PDF (cover table, then each branch's pages).
+- Fixed in Go and TS: a failed row no longer ends a statement import (FIN-11). All Phase 6 findings so far are in `review_fixes_needed.md`.
+
+### Still to do in Phase 6
+- Residents (29 routes), bookings (6), resident-scan (2), resident-lookup (1); then the review, run separately.
+
 ## [Review of Phases 0–5] — 2026-11-01
 
 ### Decided by the owner

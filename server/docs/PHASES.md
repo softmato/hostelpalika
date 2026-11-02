@@ -128,6 +128,14 @@ cookie release. Claude does the first two; the cookie release is outside work, s
 does it if it can reach Vercel, and otherwise hands the owner the step and moves on
 (`MISSION.md` addition 4). Phase 6 does not wait for it.
 
+**Status 2026-11-02.** Done and contract-green: expenses, stock, wardens, referrals, all
+12 hostel report routes (statement and all-branches PDFs included), the setup group (KYC,
+leave, agreement, profile, plan billing, backup), and all of finance (rules, late fine,
+khata, concessions, fee schedules, invoices and ledgers, billing runs, payment gateways
+and profile, statement import and reconcile, assign, ask-resident). Left: residents (29
+routes), bookings (6), resident-scan (2), resident-lookup (1), then the review. Findings
+so far are in `review_fixes_needed.md` ("Phase 6 findings").
+
 The biggest group (223 routes). Port module by module, in this order, so money
 moves last within it:
 

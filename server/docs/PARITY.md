@@ -455,8 +455,8 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | GET POST | `/api/v1/hostel-admin/finance/billing-runs` | cap:manageFeeSchedule, cap:viewPayments | etag max60s | finance, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/finance/events` | cap:viewPayments | etag | finance, hostels |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/approve` | cap:approvePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/ask-resident` | cap:viewPayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/assign` | cap:approvePayments |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/ask-resident` | cap:viewPayments |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/assign` | cap:approvePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reject` | cap:approvePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reverse` | cap:reversePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/bulk-approve` | cap:approvePayments | max60s | finance, hostels |
@@ -480,9 +480,9 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | GET POST | `/api/v1/hostel-admin/finance/rent-concessions` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
 | ☐ | DELETE | `/api/v1/hostel-admin/finance/rent-concessions/:id` | cap:manageFeeSchedule |  | finance, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/finance/residents/:residentId/ledger` | cap:viewPayments | etag | finance, hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/finance/statements` | cap:approvePayments | etag | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/statements/:id` | cap:approvePayments | etag | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/statements/:id/approve-matched` | cap:approvePayments |  | finance |
+| ☑ | GET POST | `/api/v1/hostel-admin/finance/statements` | cap:approvePayments | etag | finance, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/finance/statements/:id` | cap:approvePayments | etag | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/statements/:id/approve-matched` | cap:approvePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/food/photos` | cap:manageFood |  | food |
 | ☐ | GET PUT | `/api/v1/hostel-admin/food/routine` | cap:manageFood | redis etag | food |
 | ☐ | GET | `/api/v1/hostel-admin/hostel-referrals` | requireHostelStaffPrincipal | etag | hostel-referrals, food |
@@ -523,12 +523,12 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | GET | `/api/v1/hostel-admin/reports/export` | requireHostelStaffPrincipal |  | reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/food` | cap:manageFood | etag | reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/maintenance` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/overall/pdf` | requireHostelAdminPrincipal |  | finance, hostels, reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/overall/pdf` | requireHostelAdminPrincipal |  | finance, hostels, reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/overview` | requireHostelStaffPrincipal | etag | reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/payments` | requireHostelStaffPrincipal | etag | reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/performance` | requireHostelStaffPrincipal | etag | reports |
 | ☐ | GET | `/api/v1/hostel-admin/reports/performance/pdf` | requireHostelStaffPrincipal |  | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/statement/pdf` | cap:viewPayments |  | finance, hostels, reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/statement/pdf` | cap:viewPayments |  | finance, hostels, reports |
 | ☐ | GET | `/api/v1/hostel-admin/resident-lookup` | rateLimitPublicForm, cap:registerResidents | etag | users |
 | ☐ | GET | `/api/v1/hostel-admin/resident-scan` | rateLimitPublicForm, cap:registerResidents, cap:viewPayments | etag | users |
 | ☐ | GET | `/api/v1/hostel-admin/resident-scan/photo` | cap:registerResidents |  | users |
