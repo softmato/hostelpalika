@@ -41,6 +41,7 @@ type Service struct {
 	R2       *storage.R2
 	Claims   files.Claims
 	AppURL   func(path string) string
+	Outbound string
 }
 
 // rerr is ResidentServiceError.

@@ -1,0 +1,932 @@
+[
+  {
+    "name": "link signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link"
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "link warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "link outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "link",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form QR loaded",
+        "data": {
+          "enabled": true,
+          "guardianDocRequired": false,
+          "hostelName": "Contract Hostel",
+          "qrDataUrl": "data:image/png;base64,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",
+          "url": "https://hostelpalika.com/join/apply/lrJMSmd_mnKN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "link warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form QR loaded",
+        "data": {
+          "enabled": true,
+          "guardianDocRequired": false,
+          "hostelName": "Contract Hostel",
+          "qrDataUrl": "data:image/png;base64,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",
+          "url": "https://hostelpalika.com/join/apply/lrJMSmd_mnKN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "settings empty",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "guardianDocRequired": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "guardianDocRequired"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "settings bad",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "guardianDocRequired": "yes"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "guardianDocRequired": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "guardianDocRequired"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "settings resident",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "guardianDocRequired": true
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "settings",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "guardianDocRequired": true
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form settings saved",
+        "data": {
+          "enabled": true,
+          "guardianDocRequired": true,
+          "hostelName": "Contract Hostel",
+          "qrDataUrl": "data:image/png;base64,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",
+          "url": "https://hostelpalika.com/join/apply/lrJMSmd_mnKN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "link after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-form-link",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form QR loaded",
+        "data": {
+          "enabled": true,
+          "guardianDocRequired": true,
+          "hostelName": "Contract Hostel",
+          "qrDataUrl": "data:image/png;base64,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",
+          "url": "https://hostelpalika.com/join/apply/lrJMSmd_mnKN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "forms signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms"
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "forms warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "forms",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Forms loaded",
+        "data": {
+          "forms": [
+            {
+              "details": null,
+              "documents": [
+                {
+                  "assetId": "6d010000000000000000005c",
+                  "kind": "APPLICANT_ID",
+                  "label": "Citizenship or ID"
+                }
+              ],
+              "email": "form1@contract.test",
+              "firstName": "form1",
+              "id": "6d0100000000000000000064",
+              "lastName": "Applicant",
+              "phone": "9850000000",
+              "photo": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000064/photo?v=6d010000000000000000005b",
+              "residentId": null,
+              "residentType": "STUDENT",
+              "status": "PENDING",
+              "submittedAt": "2026-10-29T11:06:33.056Z"
+            },
+            {
+              "details": null,
+              "documents": [],
+              "email": "form2@contract.test",
+              "firstName": "form2",
+              "id": "6d0100000000000000000065",
+              "lastName": "Applicant",
+              "phone": "9850000010",
+              "photo": null,
+              "residentId": null,
+              "residentType": "STUDENT",
+              "status": "PENDING",
+              "submittedAt": "2026-10-29T10:06:33.056Z"
+            }
+          ],
+          "waiting": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "forms outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000064",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "details": null,
+          "documents": [
+            {
+              "assetId": "6d010000000000000000005c",
+              "kind": "APPLICANT_ID",
+              "label": "Citizenship or ID"
+            }
+          ],
+          "email": "form1@contract.test",
+          "firstName": "form1",
+          "id": "6d0100000000000000000064",
+          "lastName": "Applicant",
+          "phone": "9850000000",
+          "photo": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000064/photo?v=6d010000000000000000005b",
+          "residentId": null,
+          "residentType": "STUDENT",
+          "status": "PENDING",
+          "submittedAt": "2026-10-29T11:06:33.056Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form plain",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "details": null,
+          "documents": [],
+          "email": "form2@contract.test",
+          "firstName": "form2",
+          "id": "6d0100000000000000000065",
+          "lastName": "Applicant",
+          "phone": "9850000010",
+          "photo": null,
+          "residentId": null,
+          "residentType": "STUDENT",
+          "status": "PENDING",
+          "submittedAt": "2026-10-29T10:06:33.056Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form declined",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000066",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "details": null,
+          "documents": [],
+          "email": "form3@contract.test",
+          "firstName": "form3",
+          "id": "6d0100000000000000000066",
+          "lastName": "Applicant",
+          "phone": "9850000020",
+          "photo": null,
+          "residentId": null,
+          "residentType": "STUDENT",
+          "status": "DECLINED",
+          "submittedAt": "2026-10-29T09:06:33.056Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form outsiders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000067",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d01000000000000000000ee",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form photo asset gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000064/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That photo is no longer available.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form photo none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form has no photo.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form photo outsiders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000067/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline resident",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline outsiders",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000067",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That form was not found.",
+        "errorCode": "ADMISSION_FORM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form declined",
+        "data": {
+          "ok": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form declined",
+        "data": {
+          "ok": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "forms after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Forms loaded",
+        "data": {
+          "forms": [
+            {
+              "details": null,
+              "documents": [
+                {
+                  "assetId": "6d010000000000000000005c",
+                  "kind": "APPLICANT_ID",
+                  "label": "Citizenship or ID"
+                }
+              ],
+              "email": "form1@contract.test",
+              "firstName": "form1",
+              "id": "6d0100000000000000000064",
+              "lastName": "Applicant",
+              "phone": "9850000000",
+              "photo": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000064/photo?v=6d010000000000000000005b",
+              "residentId": null,
+              "residentType": "STUDENT",
+              "status": "PENDING",
+              "submittedAt": "2026-10-29T11:06:33.056Z"
+            }
+          ],
+          "waiting": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "form after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/admission-forms/6d0100000000000000000065",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.qrDataUrl",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "details": null,
+          "documents": [],
+          "email": "form2@contract.test",
+          "firstName": "form2",
+          "id": "6d0100000000000000000065",
+          "lastName": "Applicant",
+          "phone": "9850000010",
+          "photo": null,
+          "residentId": null,
+          "residentType": "STUDENT",
+          "status": "DECLINED",
+          "submittedAt": "2026-10-29T10:06:33.056Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

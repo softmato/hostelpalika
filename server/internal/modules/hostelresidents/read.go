@@ -213,24 +213,20 @@ func (s *Service) Contacts(ctx context.Context, id, hostelID string, p *authz.Pr
 	return ordered.Map{{Key: "emergencyContacts", Value: em}, {Key: "guardians", Value: g}}, nil
 }
 
-// Photo is readResidentPhoto + streamCardPhoto: the bytes and their type.
-func (s *Service) Photo(ctx context.Context, id string, p *authz.Principal) (body interface {
+type photoStream interface {
 	Read([]byte) (int, error)
 	Close() error
-}, contentType string, err error) {
-	r, err := s.find(ctx, id, p, "")
-	if err != nil {
-		return nil, "", err
-	}
-	if r.PhotoAssetID == nil {
-		return nil, "", rerr("No photo on file.", "PHOTO_MISSING", http.StatusNotFound)
-	}
+}
+
+// streamAsset is streamCardPhoto: the object behind a FileAsset, from the
+// bucket the row names.
+func (s *Service) streamAsset(ctx context.Context, id bson.ObjectID) (photoStream, string, error) {
 	var asset struct {
 		Bucket   string `bson:"bucket"`
 		Key      string `bson:"key"`
 		MimeType string `bson:"mimeType"`
 	}
-	err = s.DB.Collection("fileassets").FindOne(ctx, bson.D{{Key: "_id", Value: *r.PhotoAssetID}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "status", Value: "ACTIVE"}}).Decode(&asset)
+	err := s.DB.Collection("fileassets").FindOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "status", Value: "ACTIVE"}}).Decode(&asset)
 	if err != nil {
 		return nil, "", rerr("That photo is no longer available.", "PHOTO_MISSING", http.StatusNotFound)
 	}
@@ -242,4 +238,16 @@ func (s *Service) Photo(ctx context.Context, id string, p *authz.Principal) (bod
 		asset.MimeType = "application/octet-stream"
 	}
 	return rd, asset.MimeType, nil
+}
+
+// Photo is readResidentPhoto.
+func (s *Service) Photo(ctx context.Context, id string, p *authz.Principal) (photoStream, string, error) {
+	r, err := s.find(ctx, id, p, "")
+	if err != nil {
+		return nil, "", err
+	}
+	if r.PhotoAssetID == nil {
+		return nil, "", rerr("No photo on file.", "PHOTO_MISSING", http.StatusNotFound)
+	}
+	return s.streamAsset(ctx, *r.PhotoAssetID)
 }

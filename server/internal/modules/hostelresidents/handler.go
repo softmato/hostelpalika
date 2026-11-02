@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
@@ -36,6 +37,12 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.DELETE("/:id", reg, h.remove)
 	a.GET("/:id/contacts", reg, httpx.ETag(), h.contactsOf)
 	a.GET("/:id/photo", staff, h.photo)
+	a.GET("/admission-form-link", reg, httpx.ETag(), h.formLink)
+	a.PATCH("/admission-form-link", reg, h.formSettings)
+	a.GET("/admission-forms", reg, httpx.ETag(), h.forms)
+	a.GET("/admission-forms/:formId", reg, httpx.ETag(), h.form)
+	a.DELETE("/admission-forms/:formId", reg, h.declineForm)
+	a.GET("/admission-forms/:formId/photo", reg, h.formPhoto)
 	a.GET("/leaving-today", reg, h.leavingToday)
 	a.PATCH("/fees", hostelrooms.Cap(h.Guards, "manageFeeSchedule"), h.fees)
 	a.GET("/intake-quote", reg, httpx.ETag(), h.intakeQuote)
@@ -136,12 +143,7 @@ func (h *Handler) photo(c *gin.Context) {
 	if fail(c, err) {
 		return
 	}
-	defer rd.Close()
-	c.Header("Cache-Control", "private, max-age=3600")
-	c.Header("X-Content-Type-Options", "nosniff")
-	c.Header("Content-Type", mime)
-	c.Status(http.StatusOK)
-	_, _ = io.Copy(c.Writer, rd)
+	sendPhoto(c, rd, mime)
 }
 
 // calendarDate is `z.coerce.date().transform(hostelCalendarDay)`.
@@ -359,4 +361,100 @@ func (h *Handler) intakeQuote(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, ordered.Map{{Key: "quote", Value: quote.JSON()}}, "Intake quote")
+}
+
+// scope is hostelStaffScope: the registerResidents caller and the hostel acted on.
+func scope(c *gin.Context) (bson.ObjectID, *authz.Principal, bool) {
+	hostel, ok := hostelrooms.HostelOf(c, valid.Query(c)["hostelId"])
+	return hostel, authz.From(c), ok
+}
+
+func (h *Handler) formLink(c *gin.Context) {
+	hostel, p, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.FormLink(c, hostel, p)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Form QR loaded")
+}
+
+func (h *Handler) formSettings(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	on, _ := f.Bool("guardianDocRequired", false, nil)
+	if fail(c, f.Err()) {
+		return
+	}
+	hostel, p, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.FormSettings(c, hostel, on, p)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Form settings saved")
+}
+
+func (h *Handler) forms(c *gin.Context) {
+	hostel, _, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.Forms(c, hostel)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Forms loaded")
+}
+
+func (h *Handler) form(c *gin.Context) {
+	hostel, _, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.Form(c, hostel, c.Param("formId"))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Form loaded")
+}
+
+func (h *Handler) declineForm(c *gin.Context) {
+	hostel, p, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.DeclineForm(c, hostel, c.Param("formId"), p)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Form declined")
+}
+
+func (h *Handler) formPhoto(c *gin.Context) {
+	hostel, _, ok := scope(c)
+	if !ok {
+		return
+	}
+	rd, mime, err := h.FormPhoto(c, hostel, c.Param("formId"))
+	if fail(c, err) {
+		return
+	}
+	sendPhoto(c, rd, mime)
+}
+
+func sendPhoto(c *gin.Context, rd photoStream, mime string) {
+	defer rd.Close()
+	c.Header("Cache-Control", "private, max-age=3600")
+	c.Header("X-Content-Type-Options", "nosniff")
+	c.Header("Content-Type", mime)
+	c.Status(http.StatusOK)
+	_, _ = io.Copy(c.Writer, rd)
 }

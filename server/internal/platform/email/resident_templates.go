@@ -1,6 +1,7 @@
 package email
 
 import (
+	"github.com/softmato/hostelpalika/server/internal/platform/money"
 	"strconv"
 	"strings"
 	"time"
@@ -176,4 +177,88 @@ func WardRegistered(guardianName, hostelName, hostelPhone string, moveInDate tim
 			}),
 			Paragraph("The hostel will call you in an emergency. Something wrong? Tell the hostel."),
 		}, "\n")})}
+}
+
+// SectionTitle is sectionTitle: a bold line that opens a group of rows.
+func SectionTitle(text string) string {
+	return `<p style="margin:24px 0 4px;font-family:` + font + `;font-size:15px;line-height:22px;font-weight:700;color:` + colorStrong + `;">` + EscapeHTML(text) + `</p>`
+}
+
+// RegisteredFirstMonth is the rent bill raised with a registration.
+type RegisteredFirstMonth struct {
+	Amount        int64
+	DueDate       time.Time
+	Period        string
+	Prorated      bool
+	ReferenceCode string
+}
+
+// RegisteredInput is residentRegisteredEmail's argument; a zero money field is blank.
+type RegisteredInput struct {
+	AdmissionFee, DepositAmount, MonthlyRent int64
+	DashboardURL, HostelName                 string
+	FirstMonth                               *RegisteredFirstMonth
+	MoveInDate                               time.Time
+	ResidentName, RoomNumber, RoomType       string
+	SignIn                                   string // ACTIVATION_CODE | EXISTING_ACCOUNT | NEW_ACCOUNT
+	SignInEmail                              string
+}
+
+// ResidentRegistered is residentRegisteredEmail.
+func ResidentRegistered(in RegisteredInput) Content {
+	money := func(v int64) string {
+		if v == 0 {
+			return ""
+		}
+		return "NPR " + money.GroupUS(v)
+	}
+	first := ""
+	if f := in.FirstMonth; f != nil {
+		parts := []string{SectionTitle("To pay now"), DetailsTable([]DetailRow{
+			{Label: "Month", Value: MonthName(f.Period)},
+			{Emphasis: true, Label: "Amount", Value: money(f.Amount)},
+			{Label: "Pay by", Value: EmailDate(f.DueDate)},
+			{Label: "Reference code", Value: f.ReferenceCode},
+		})}
+		if f.Prorated {
+			parts = append(parts, SmallPrint("Only from the day you move in, not the full month."))
+		} else {
+			parts = append(parts, "")
+		}
+		if f.ReferenceCode != "" {
+			parts = append(parts, SmallPrint("Write the reference code when you pay, so the hostel knows it is you."))
+		} else {
+			parts = append(parts, "")
+		}
+		first = strings.Join(parts, "\n")
+	}
+	room := RoomTypeLabel(in.RoomType)
+	if in.RoomNumber != "" {
+		room += " · " + in.RoomNumber
+	}
+	var signIn string
+	switch in.SignIn {
+	case "EXISTING_ACCOUNT":
+		signIn = "Log in the same way as before. No new password needed."
+	case "NEW_ACCOUNT":
+		addr := in.SignInEmail
+		if addr == "" {
+			addr = "this email"
+		}
+		signIn = "Your account is ready on " + EscapeHTML(addr) + ". Log in with Google, or tap “Forgot password” on the login page to set one."
+	default:
+		signIn = "To use the app, ask the hostel for your code."
+	}
+	var body []string
+	for _, b := range []string{
+		Paragraph("Hi " + EscapeHTML(in.ResidentName) + ", <strong>" + EscapeHTML(in.HostelName) + "</strong> added you as a resident."),
+		DetailsTable([]DetailRow{{Label: "Room", Value: room}, {Label: "Moving in", Value: EmailDate(in.MoveInDate)}, {Label: "Monthly rent", Value: money(in.MonthlyRent)},
+			{Label: "Admission fee", Value: money(in.AdmissionFee)}, {Label: "Deposit", Value: money(in.DepositAmount)}}),
+		first, CTAButton(in.DashboardURL, "Open my account"), SmallPrint(signIn), SmallPrint("Something wrong? Tell the hostel before you pay."),
+	} {
+		if b != "" {
+			body = append(body, b)
+		}
+	}
+	return Content{Category: Info, Subject: "Welcome to " + in.HostelName, HTML: EmailLayout(Layout{Heading: "Welcome to your hostel", BodyHTML: strings.Join(body, "\n")})}
 }

@@ -980,6 +980,10 @@ type endInput struct {
 	reason *string
 	status string
 	strike bool
+	// set is written first (check-in's checkedInAt/residentId); keepBed leaves the
+	// held bed counted, as a resident now sleeps in it.
+	set     bson.D
+	keepBed bool
 }
 
 func endingFor(b *Booking, status string) string {
@@ -1026,8 +1030,8 @@ func (s *Signed) endBooking(ctx context.Context, b *Booking, in endInput, now ti
 	}
 	var ended Booking
 	err := s.db.Collection("bookings").FindOneAndUpdate(ctx, bson.D{{Key: "_id", Value: b.ID}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{in.from}}}}},
-		bson.D{{Key: "$set", Value: bson.D{{Key: "bedHeld", Value: false}, {Key: "endReason", Value: reason}, {Key: "endedAt", Value: now}, {Key: "endedBy", Value: actor}, {Key: "hostelStrike", Value: in.strike},
-			{Key: "settlement", Value: settleDoc}, {Key: "status", Value: in.status}, {Key: "isOpen", Value: openStatus(in.status)}, {Key: "updatedAt", Value: now}}}},
+		bson.D{{Key: "$set", Value: append(append(bson.D{}, in.set...), bson.D{{Key: "bedHeld", Value: false}, {Key: "endReason", Value: reason}, {Key: "endedAt", Value: now}, {Key: "endedBy", Value: actor}, {Key: "hostelStrike", Value: in.strike},
+			{Key: "settlement", Value: settleDoc}, {Key: "status", Value: in.status}, {Key: "isOpen", Value: openStatus(in.status)}, {Key: "updatedAt", Value: now}}...)}},
 		options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&ended)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
@@ -1035,7 +1039,7 @@ func (s *Signed) endBooking(ctx context.Context, b *Booking, in endInput, now ti
 	if err != nil {
 		return nil, err
 	}
-	if b.BedHeld {
+	if b.BedHeld && !in.keepBed {
 		if err := s.releaseBed(ctx, b.HostelID, b.RoomType, now); err != nil {
 			slog.ErrorContext(ctx, "Booking ended but its held bed could not be released.", "bookingId", b.ID.Hex(), "error", err)
 		}

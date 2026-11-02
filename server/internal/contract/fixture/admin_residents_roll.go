@@ -21,6 +21,18 @@ func init() {
 		if _, err := db.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: HostelKyc}}, bson.D{{Key: "$set", Value: bson.D{{Key: "kyc.status", Value: "APPROVED"}}}}); err != nil {
 			return err
 		}
+		form := func(n int, h bson.ObjectID, first, status string, extra ...bson.E) bson.D {
+			d := bson.D{{Key: "_id", Value: gid(1, n)}, {Key: "hostelId", Value: h}, {Key: "firstName", Value: first}, {Key: "lastName", Value: "Applicant"}, {Key: "phone", Value: "98500000" + string(rune('0'+n%10)) + "0"},
+				{Key: "email", Value: first + "@contract.test"}, {Key: "residentType", Value: "STUDENT"}, {Key: "status", Value: status}, {Key: "submittedAt", Value: now.Add(-time.Duration(n) * time.Hour)}}
+			d = withOverrides(d, extra)
+			return append(d, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
+		}
+		if err := insertAll(ctx, db, map[string][]any{"admissionforms": {
+			form(100, HostelKyc, "form1", "PENDING", bson.E{Key: "photoAssetId", Value: gid(1, 91)}, bson.E{Key: "documents", Value: bson.A{bson.D{{Key: "fileAssetId", Value: gid(1, 92)}, {Key: "kind", Value: "APPLICANT_ID"}}}}),
+			form(101, HostelKyc, "form2", "PENDING"), form(102, HostelKyc, "form3", "DECLINED"), form(103, gid(1, 1), "form4", "PENDING"),
+		}}); err != nil {
+			return err
+		}
 		_, err := db.Collection("residents").UpdateOne(ctx, bson.D{{Key: "_id", Value: oid("c2")}}, bson.D{{Key: "$set", Value: bson.D{{Key: "isDeleted", Value: true}}}})
 		return err
 	}
