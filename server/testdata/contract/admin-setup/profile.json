@@ -1,0 +1,3221 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile"
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "warden reads",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000001",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "name": "Setup Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0400000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {},
+            "roomConfigurations": [],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "setup-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-09-01T06:00:00.000Z",
+            "verificationStatus": "VERIFIED",
+            "hostelCode": "HH-00000001"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "published reads",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000034",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Triple",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 7000,
+                "rooms": 3,
+                "roomType": "Triple",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-09-01T06:00:00.000Z",
+            "verificationStatus": "VERIFIED",
+            "hostelCode": "HH-00000032"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain reads",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {},
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-09-01T06:00:00.000Z",
+            "verificationStatus": "VERIFIED",
+            "hostelCode": "HH-0000003C"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "bad scope",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "other scope",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile?hostelId=6d0400000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "patch anon",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "patch warden no grant",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "name": "x",
+        "panNumber": "12",
+        "contact": {
+          "email": "no",
+          "phone": "1"
+        },
+        "arrivalGuide": {
+          "photoUrl": "http://x"
+        },
+        "food": {
+          "mealsPerDay": 9
+        },
+        "totalFloors": 99,
+        "location": {
+          "lat": 200
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "arrivalGuide": [
+              "The photo must be an https link."
+            ],
+            "contact": [
+              "Invalid email address",
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "food": [
+              "Too big: expected number to be \u003c=6"
+            ],
+            "location": [
+              "Too big: expected number to be \u003c=90"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "panNumber": [
+              "A PAN/VAT number is 9 digits."
+            ],
+            "totalFloors": [
+              "Too big: expected number to be \u003c=50"
+            ]
+          },
+          "issues": [
+            {
+              "message": "The photo must be an https link.",
+              "path": "arrivalGuide.photoUrl"
+            },
+            {
+              "message": "Invalid email address",
+              "path": "contact.email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "contact.phone"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=6",
+              "path": "food.mealsPerDay"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=90",
+              "path": "location.lat"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            },
+            {
+              "message": "A PAN/VAT number is 9 digits.",
+              "path": "panNumber"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=50",
+              "path": "totalFloors"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain edits",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "description": "  A quiet place ",
+        "facilities": [
+          "WiFi",
+          "WiFi",
+          "Laundry"
+        ],
+        "rules": [
+          " No noise "
+        ],
+        "food": {
+          "hasVeg": true,
+          "mealsPerDay": "3"
+        },
+        "hostelType": "BOYS",
+        "contact": {
+          "phone": "9800000000"
+        },
+        "arrivalGuide": {
+          "note": "Blue gate",
+          "photoUrl": ""
+        },
+        "totalFloors": "4",
+        "roomTypes": [
+          "Double"
+        ]
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {},
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.490Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain pan set once",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "panNumber": "987654321"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {},
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.593Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain pan stays",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "panNumber": "111111111"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {},
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.645Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain pricing kept",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "pricing": {
+          "monthlyRentMin": "800",
+          "currency": "NPR",
+          "formFee": 100
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.705Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain rename free",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "name": "Plain Renamed"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.759Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "location merges",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "location": {
+          "province": ""
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:38.814Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "location read",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:41.131Z",
+            "verificationStatus": "VERIFIED",
+            "hostelCode": "HH-0000003C"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "plain rooms",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          },
+          {
+            "roomType": "Quad",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 12,
+              "totalRooms": 6,
+              "vacantBeds": 2
+            },
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcb",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcc",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Quad",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:41.231Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "published rename refused",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "name": "New Name"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel name change limit reached. Send a change request to the platform team instead.",
+        "errorCode": "NAME_CHANGE_LIMIT_REACHED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "published same name",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "name": "Published Hostel"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000034",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Triple",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 7000,
+                "rooms": 3,
+                "roomType": "Triple",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:41.337Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "published pricing stripped",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "pricing": {
+          "monthlyRentMin": 1
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000034",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Triple",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 7000,
+                "rooms": 3,
+                "roomType": "Triple",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:41.403Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "published pan stays",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "panNumber": "222222222"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000034",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Triple",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 7000,
+                "rooms": 3,
+                "roomType": "Triple",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:41.473Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "occupied refused",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Residents live in Single Sitter Room. Move them to another room type before removing it.",
+        "errorCode": "ROOM_TYPE_OCCUPIED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "drop empty type keeps rent",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          },
+          {
+            "roomType": "Single",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          },
+          {
+            "roomType": "Studio",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 1,
+            "monthlyRent": 500,
+            "mealInclusion": "Optional"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile updated",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 18,
+              "totalRooms": 9,
+              "vacantBeds": 3
+            },
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd5",
+                "mealInclusion": "Optional",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd6",
+                "mealInclusion": "Optional",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd7",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Studio",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:41.636Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel profile loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 18,
+              "totalRooms": 9,
+              "vacantBeds": 3
+            },
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000036",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd5",
+                "mealInclusion": "Optional",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd6",
+                "mealInclusion": "Optional",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd7",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Studio",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:41.636Z",
+            "verificationStatus": "VERIFIED",
+            "hostelCode": "HH-00000032"
+          },
+          "pricedByRateCard": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "geocode anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile/geocode?q=x"
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "geocode refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile/geocode",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Provide a search query, or a lat/lng pair to look up."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Provide a search query, or a lat/lng pair to look up.",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "geocode warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/profile/geocode?lat=1\u0026lng=2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "change anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/change-request",
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "change invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/change-request",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "changeType": "X",
+        "requestedValue": "a"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "changeType": [
+              "Invalid option: expected one of \"HOSTEL_NAME\"|\"OWNER_NAME\"|\"OWNER_EMAIL\""
+            ],
+            "requestedValue": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"HOSTEL_NAME\"|\"OWNER_NAME\"|\"OWNER_EMAIL\"",
+              "path": "changeType"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "requestedValue"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "change sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/change-request",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "changeType": "OWNER_NAME",
+        "requestedValue": " New Name ",
+        "reason": "Married"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Change request sent to the platform team",
+        "data": {
+          "changeType": "OWNER_NAME",
+          "notifiedAdmins": 0,
+          "status": "SUBMITTED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "change other hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/change-request",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "changeType": "OWNER_NAME",
+        "requestedValue": "New Name",
+        "hostelId": "6d0400000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "photo anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "photo invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "url": "ftp://x",
+        "kind": "BAD"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "kind": [
+              "Invalid option: expected one of \"EXTERIOR\"|\"INTERIOR\"|\"ROOM\""
+            ],
+            "url": [
+              "Photo URL must start with / or http(s)://"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"EXTERIOR\"|\"INTERIOR\"|\"ROOM\"",
+              "path": "kind"
+            },
+            {
+              "message": "Photo URL must start with / or http(s)://",
+              "path": "url"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "room photo no type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "url": "/a.jpg",
+        "kind": "ROOM"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "roomType": [
+              "A room photo must name the room type it belongs to."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A room photo must name the room type it belongs to.",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "room photo unknown type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "url": "/a.jpg",
+        "kind": "ROOM",
+        "roomType": "Penthouse"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Penthouse\" is not one of your room types.",
+        "errorCode": "ROOM_TYPE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "photo added",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "url": "https://img.contract.test/n.jpg",
+        "alt": " Front "
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel photo added",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 12,
+              "totalRooms": 6,
+              "vacantBeds": 2
+            },
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6ae828365e205a5564095dda",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/n.jpg"
+              }
+            ],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcb",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcc",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Quad",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:42.121Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "room photo added",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000003d:HOSTEL_ADMIN:6d040000000000000000003c}}"
+      },
+      "body": {
+        "url": "/b.jpg",
+        "kind": "ROOM",
+        "roomType": "Double",
+        "alt": "Bed"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel photo added",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 12,
+              "totalRooms": 6,
+              "vacantBeds": 2
+            },
+            "contact": {
+              "phone": "9800000000"
+            },
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "A quiet place",
+            "facilities": [
+              "WiFi",
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d040000000000000000003c",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Plain Renamed",
+            "nameChangeCount": 0,
+            "ownerId": "6d040000000000000000003d",
+            "panNumber": "987654321",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6ae828365e205a5564095dda",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/n.jpg"
+              },
+              {
+                "alt": "Bed",
+                "id": "6ae828365e205a5564095ddc",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "/b.jpg"
+              }
+            ],
+            "pricing": {
+              "formFee": 100,
+              "currency": "NPR",
+              "monthlyRentMin": 800
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcb",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dcc",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Quad",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No noise"
+            ],
+            "slug": "plain-hostel",
+            "status": "ACTIVE",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 4,
+            "updatedAt": "2026-11-02T06:05:42.169Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "exterior limit",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/profile/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      },
+      "body": {
+        "url": "/c.jpg",
+        "kind": "EXTERIOR"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You can upload at most 3 exterior photo(s). Remove one first.",
+        "errorCode": "PHOTO_LIMIT_REACHED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "delete anon",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/profile/photos/6d0400000000000000000036"
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "delete bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/profile/photos/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_HOSTEL_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/profile/photos/6d0400000000000000000036",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel photo deleted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 18,
+              "totalRooms": 9,
+              "vacantBeds": 3
+            },
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd5",
+                "mealInclusion": "Optional",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd6",
+                "mealInclusion": "Optional",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd7",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Studio",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:42.352Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  },
+  {
+    "name": "delete again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/profile/photos/6d0400000000000000000036",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000033:HOSTEL_ADMIN:6d0400000000000000000032}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.hostel.photos[*].id",
+      "data.hostel.photos[*]._id",
+      "data.hostel.nearbyPlaces"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel photo deleted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 18,
+              "totalRooms": 9,
+              "vacantBeds": 3
+            },
+            "contact": {},
+            "createdAt": "2026-09-01T06:00:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {},
+            "hostelType": "CO_LIVING",
+            "id": "6d0400000000000000000032",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "landmark": "Near the temple",
+              "lat": 27.7,
+              "lng": 85.3,
+              "locationSource": "MANUAL"
+            },
+            "name": "Published Hostel",
+            "nameChangeCount": 2,
+            "ownerId": "6d0400000000000000000033",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "",
+                "id": "6d0400000000000000000035",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000037",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6d0400000000000000000038",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://img.contract.test/p.jpg"
+              }
+            ],
+            "pricing": {
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd5",
+                "mealInclusion": "Optional",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd6",
+                "mealInclusion": "Optional",
+                "monthlyRent": 12000,
+                "rooms": 3,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae828355e205a5564095dd7",
+                "mealInclusion": "Optional",
+                "monthlyRent": 500,
+                "rooms": 3,
+                "roomType": "Studio",
+                "vacantBeds": 1
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "published-hostel",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-02T06:05:42.410Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 566873e2"
+  }
+]

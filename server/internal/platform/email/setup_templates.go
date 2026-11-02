@@ -67,3 +67,14 @@ func HostelAgreement(hostelName, ownerName, refCode string) Content {
 		}, "\n"),
 	})}
 }
+
+// HostelChangeRequest is hostelChangeRequestEmail: to every superadmin.
+func HostelChangeRequest(change, hostelName, hostelSlug, newValue, reason string) Content {
+	return Content{Category: Support, Subject: "Change request: " + change + " — " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "A hostel asked for a change",
+		BodyHTML: strings.Join([]string{
+			DetailsTable([]DetailRow{{Label: "Hostel", Value: hostelName + " (" + hostelSlug + ")"}, {Label: "Change", Value: change}, {Label: "New value", Value: newValue}, {Label: "Reason", Value: reason}}),
+			Paragraph("Check it, then make the change in the platform portal. The owner gets an email when it is done."),
+		}, "\n"),
+	})}
+}

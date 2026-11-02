@@ -15,9 +15,11 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/maps"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
@@ -33,6 +35,8 @@ type Admin struct {
 	Notify  *notifications.Service
 	RT      *realtime.Client
 	R2      *storage.R2
+	BG      *background.Runner
+	Maps    *maps.Client
 	Cache   *cache.Cache
 	Billing *billing.Service
 	// Outbound is outboundUrl(): where links in emails point.
@@ -64,6 +68,12 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	g.POST("/kyc/submit", admin, a.kycSubmit)
 	g.GET("/kyc/agreement", admin, a.agreementGet)
 	g.POST("/kyc/agreement", admin, a.agreementSign)
+	g.GET("/profile", authz.Use(a.Guards.RequireHostelStaff), httpx.ETag(), a.profileGet)
+	g.PATCH("/profile", a.profilePatch)
+	g.GET("/profile/geocode", httpx.ETag(), a.profileGeocode)
+	g.POST("/profile/change-request", a.profileChangeRequest)
+	g.POST("/profile/photos", a.profilePhotoAdd)
+	g.DELETE("/profile/photos/:photoId", a.profilePhotoDelete)
 }
 
 // AdminHostel is resolveAdminHostelId: the hostel asked for if the caller may open
