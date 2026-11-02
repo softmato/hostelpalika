@@ -26,6 +26,11 @@ type Rate struct {
 type Schedule struct {
 	ID    bson.ObjectID `bson:"_id"`
 	Rates []Rate        `bson:"rates"`
+
+	AdmissionFee              *float64 `bson:"admissionFee"`
+	DepositAmount             *float64 `bson:"depositAmount"`
+	FormFee                   *float64 `bson:"formFee"`
+	ReferralAdmissionDiscount *float64 `bson:"referralAdmissionDiscount"`
 }
 
 // EffectiveSchedule is getEffectiveSchedule: the rate card in force at any

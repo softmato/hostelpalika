@@ -3,6 +3,7 @@ package hostelresidents
 import (
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -34,6 +36,9 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.DELETE("/:id", reg, h.remove)
 	a.GET("/:id/contacts", reg, httpx.ETag(), h.contactsOf)
 	a.GET("/:id/photo", staff, h.photo)
+	a.GET("/leaving-today", reg, h.leavingToday)
+	a.PATCH("/fees", hostelrooms.Cap(h.Guards, "manageFeeSchedule"), h.fees)
+	a.GET("/intake-quote", reg, httpx.ETag(), h.intakeQuote)
 	a.POST("/:id/guardians", reg, h.guardian)
 	a.POST("/:id/emergency-contacts", reg, h.emergency)
 }
@@ -240,4 +245,118 @@ func (h *Handler) emergency(c *gin.Context) {
 		return
 	}
 	httpx.Write(c, http.StatusCreated, out, "Emergency contact added")
+}
+
+func (h *Handler) leavingToday(c *gin.Context) {
+	hostel, ok := hostelrooms.HostelOf(c, valid.Query(c)["hostelId"])
+	if !ok {
+		return
+	}
+	rows, err := h.LeavingToday(c, hostel)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, struct {
+		Residents []leaver `json:"residents"`
+	}{rows}, "Leaving today")
+}
+
+func (h *Handler) fees(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	hid, _ := f.Str("hostelId", valid.S{Opt: true})
+	var fee *int64
+	if v, present := f.M["monthlyFee"]; present && v == nil {
+		fee = nil
+	} else if n, ok := f.Num("monthlyFee", valid.N{Coerce: true, Int: true, Min: valid.P(0)}); ok {
+		i := int64(n)
+		fee = &i
+	}
+	reason, _ := f.Str("reason", valid.S{Opt: true, Trim: true, Max: 500})
+	var ids []string
+	if arr, ok := f.Array("residentIds", true, false); ok {
+		ids = []string{}
+		for i, v := range arr {
+			s, isStr := v.(string)
+			if !isStr {
+				f.Is.Add("residentIds."+strconv.Itoa(i), valid.Type("string", valid.Received(v, false)))
+				continue
+			}
+			ids = append(ids, s)
+		}
+	}
+	if fail(c, f.Err()) {
+		return
+	}
+	hostel, ok := hostelrooms.HostelOf(c, hid)
+	if !ok {
+		return
+	}
+	out, err := h.SetFee(c, hostel, fee, reason, ids, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Monthly fee updated")
+}
+
+func (h *Handler) intakeQuote(c *gin.Context) {
+	q := valid.Query(c)
+	var is valid.Issues
+	num := func(key string) *float64 {
+		v := valid.QueryNumber(q, key, false, &is)
+		if v == nil {
+			return nil
+		}
+		n := *v
+		switch {
+		case n != float64(int64(n)):
+			is.Add(key, valid.Type("int", "number"))
+			return nil
+		case n < 0:
+			is.Add(key, valid.TooSmall("number", 0, true))
+			return nil
+		case n > 10_000_000:
+			is.Add(key, valid.TooBig("number", 10_000_000, true))
+			return nil
+		}
+		return &n
+	}
+	var in QuoteIn
+	in.AdmissionFee = num("admissionFee")
+	if s := valid.QueryEnum(q, "billingCycle", &is, "CALENDAR_MONTH", "SAME_DAY"); s != nil {
+		in.BillingCycle = s
+	}
+	in.DepositAmount, in.FormFee = num("depositAmount"), num("formFee")
+	hid := q["hostelId"]
+	in.MonthlyFee = num("monthlyFee")
+	if raw, ok := q["moveInDate"]; ok {
+		if t, ok := valid.CoerceDate(raw); ok {
+			in.MoveInDate = t
+		} else {
+			is.Add("moveInDate", "Invalid input: expected date, received Date")
+		}
+	}
+	if s := valid.QueryString(q, "referralCode", 0, 32, &is); s != nil {
+		in.ReferralCode = *s
+	}
+	if raw, ok := q["roomType"]; !ok {
+		is.Add("roomType", valid.Type("string", valid.Received(nil, true)))
+	} else if in.RoomType = valid.Trim(raw); in.RoomType == "" {
+		is.Add("roomType", "Pick a room type.")
+	}
+	if fail(c, is.Err()) {
+		return
+	}
+	hostel, ok := hostelrooms.HostelOf(c, hid)
+	if !ok {
+		return
+	}
+	quote, err := h.Quote(c, hostel, in)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, ordered.Map{{Key: "quote", Value: quote.JSON()}}, "Intake quote")
 }

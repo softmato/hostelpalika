@@ -1,0 +1,887 @@
+[
+  {
+    "name": "quote signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote no type",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "roomType": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote blank type",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=%20",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "roomType": [
+              "Pick a room type."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick a room type.",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote bad numbers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026admissionFee=-1\u0026formFee=1.5\u0026depositAmount=99999999\u0026monthlyFee=x\u0026moveInDate=nope\u0026billingCycle=Z",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "admissionFee": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "billingCycle": [
+              "Invalid option: expected one of \"CALENDAR_MONTH\"|\"SAME_DAY\""
+            ],
+            "depositAmount": [
+              "Too big: expected number to be \u003c=10000000"
+            ],
+            "formFee": [
+              "Invalid input: expected int, received number"
+            ],
+            "monthlyFee": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "moveInDate": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "admissionFee"
+            },
+            {
+              "message": "Invalid option: expected one of \"CALENDAR_MONTH\"|\"SAME_DAY\"",
+              "path": "billingCycle"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=10000000",
+              "path": "depositAmount"
+            },
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "formFee"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "monthlyFee"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "moveInDate"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote single",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 3500,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote double",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Double%20Sharing",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "DOUBLE_SHARING",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 2500,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 5000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Double Sharing",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 5000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote unpriced",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Penthouse",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": null,
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": null,
+            "monthlyRent": null,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "UNPRICED",
+            "roomType": "Penthouse",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": null
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote upper",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=SINGLE",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": null,
+            "monthlyRent": null,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "UNPRICED",
+            "roomType": "SINGLE",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": null
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote special fee",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=3000",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 1500,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 3000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "OVERRIDE",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": 7000
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote free stay",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 0,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 0,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "OVERRIDE",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": 7000
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote overrides",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026admissionFee=1000\u0026formFee=200\u0026depositAmount=5000",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 1000,
+            "admissionPayable": 1000,
+            "formFee": 200,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 5000,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 3500,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote mid month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 5367,
+              "billableDays": 23,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 8–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote same day",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25\u0026billingCycle=SAME_DAY",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 7000,
+              "billableDays": 30,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 8 – Mangsir 7",
+              "period": "2083-07",
+              "prorated": false
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote old date",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2020-01-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 3379,
+              "billableDays": 14,
+              "daysInMonth": 29,
+              "dayRange": "Poush 16–29",
+              "period": "2076-09",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote referral unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026referralCode=%20nope%20",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Intake quote",
+        "data": {
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 3500,
+              "billableDays": 15,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 16–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": "NOPE",
+              "discount": 0,
+              "reason": "That code is not active in this hostel."
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "quote referral too long",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026referralCode=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "referralCode": [
+              "Too big: expected string to have \u003c=32 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=32 characters",
+              "path": "referralCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  }
+]

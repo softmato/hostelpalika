@@ -57,7 +57,7 @@ export async function setResidentMonthlyFee(
     status: { $in: ["ACTIVE", "PENDING"] },
   };
 
-  if (input.residentIds?.length) {
+  if (input.residentIds) {
     filter._id = {
       $in: input.residentIds.filter((id) => Types.ObjectId.isValid(id)),
     };

@@ -1,0 +1,779 @@
+[
+  {
+    "name": "leaving signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/leaving-today"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "leaving warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/leaving-today",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "leaving",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/leaving-today",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leaving today",
+        "data": {
+          "residents": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "leaving outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/leaving-today?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "leaving bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/leaving-today?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees resident",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 1000
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees warden no grant",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 1000
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees empty",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "monthlyFee": [
+              "Invalid input: expected number, received NaN"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "monthlyFee"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees negative",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": -5
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "monthlyFee": [
+              "Too small: expected number to be \u003e=0"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "monthlyFee"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees fractional",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 10.5
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "monthlyFee": [
+              "Invalid input: expected int, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "monthlyFee"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees bad ids",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 1000,
+        "residentIds": [
+          1
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentIds": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "residentIds.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees outsider hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 1000,
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees some",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 4000,
+        "reason": "  Short stay ",
+        "residentIds": [
+          "6d0100000000000000000028",
+          "6d0100000000000000000029",
+          "6d010000000000000000002e",
+          "nope"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Monthly fee updated",
+        "data": {
+          "monthlyFee": 4000,
+          "updatedCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees get 40",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident loaded",
+        "data": {
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "isDemoData": false,
+            "lastName": "Rai",
+            "monthlyFee": 4000,
+            "specialFee": {
+              "amount": 4000,
+              "reason": "Short stay"
+            },
+            "floor": 1,
+            "roomId": "6d010000000000000000001f",
+            "roomNumber": "102",
+            "moveOutDate": null,
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T14:52:11.604Z",
+            "details": null,
+            "documents": [],
+            "account": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees get 46",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002e",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident loaded",
+        "data": {
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Fiona",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002e",
+            "isDemoData": false,
+            "lastName": "Moved",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000060",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-09-30T06:00:00.000Z",
+            "details": null,
+            "documents": [],
+            "account": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees none (empty ids)",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 9,
+        "residentIds": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Monthly fee updated",
+        "data": {
+          "monthlyFee": 9,
+          "updatedCount": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees get 42 untouched",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident loaded",
+        "data": {
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "isDemoData": false,
+            "lastName": "Gurung",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z",
+            "details": null,
+            "documents": [],
+            "account": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees all no reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": 0
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Monthly fee updated",
+        "data": {
+          "monthlyFee": 0,
+          "updatedCount": 9
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees get 42 free",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident loaded",
+        "data": {
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "isDemoData": false,
+            "lastName": "Gurung",
+            "monthlyFee": 0,
+            "specialFee": {
+              "amount": 0,
+              "reason": "set by hostel admin"
+            },
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T14:52:12.236Z",
+            "details": null,
+            "documents": [],
+            "account": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees clear one",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/fees",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "monthlyFee": null,
+        "residentIds": [
+          "6d0100000000000000000028"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Monthly fee updated",
+        "data": {
+          "monthlyFee": null,
+          "updatedCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  },
+  {
+    "name": "fees get 40 cleared",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident loaded",
+        "data": {
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "isDemoData": false,
+            "lastName": "Rai",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": 1,
+            "roomId": "6d010000000000000000001f",
+            "roomNumber": "102",
+            "moveOutDate": null,
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-02T14:52:12.388Z",
+            "details": null,
+            "documents": [],
+            "account": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ce59b13c"
+  }
+]
