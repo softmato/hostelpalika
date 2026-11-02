@@ -1,0 +1,886 @@
+[
+  {
+    "name": "queue signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "queue wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "queue",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T11:31:57.743Z",
+              "flaggedAt": "2026-11-02T02:31:57.743Z",
+              "flaggedReason": "Reported",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000070",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 1,
+            "hidden": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=hidden",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T10:31:57.743Z",
+              "hiddenReason": "Rude",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000071",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 1,
+            "hidden": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "all",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=all\u0026pageSize=2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": true,
+            "page": 1,
+            "pageSize": 2,
+            "total": 3,
+            "totalPages": 2
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T11:31:57.743Z",
+              "flaggedAt": "2026-11-02T02:31:57.743Z",
+              "flaggedReason": "Reported",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000070",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T10:31:57.743Z",
+              "hiddenReason": "Rude",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000071",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 1,
+            "hidden": 1,
+            "total": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "bad filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=x",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "filter": [
+              "Invalid option: expected one of \"flagged\"|\"hidden\"|\"all\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"flagged\"|\"hidden\"|\"all\"",
+              "path": "filter"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hide invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/community/6d0200000000000000000070/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hide foreign",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/community/6d0200000000000000000073/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "reason": "Not nice"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hide bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/community/zzz/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "reason": "Not nice"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid post id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hide",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/community/6d0200000000000000000070/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "reason": "Not nice"
+      }
+    },
+    "masks": [
+      "data.post.createdAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post hidden",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Ana Bell",
+            "body": "Post body",
+            "commentCount": 0,
+            "createdAt": "2026-10-28T11:31:57.743Z",
+            "hiddenReason": "Not nice",
+            "hostelId": "6d0200000000000000000001",
+            "hostelName": "Ops Hostel",
+            "id": "6d0200000000000000000070",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "reportCount": 0,
+            "spaceType": "HOSTEL",
+            "status": "HIDDEN",
+            "viewerReaction": null,
+            "visibility": "HOSTEL_ONLY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "hide read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=hidden",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T11:31:57.743Z",
+              "hiddenReason": "Not nice",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000070",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T10:31:57.743Z",
+              "hiddenReason": "Rude",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000071",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 2,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "restore",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/community/6d0200000000000000000071/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "reason": "Was fine"
+      }
+    },
+    "masks": [
+      "data.post.createdAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post restored",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Ana Bell",
+            "body": "Post body",
+            "commentCount": 0,
+            "createdAt": "2026-10-28T10:31:57.743Z",
+            "hostelId": "6d0200000000000000000001",
+            "hostelName": "Ops Hostel",
+            "id": "6d0200000000000000000071",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "reportCount": 0,
+            "spaceType": "HOSTEL",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "HOSTEL_ONLY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "restore read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=all",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 3,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T11:31:57.743Z",
+              "hiddenReason": "Not nice",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000070",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T10:31:57.743Z",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000071",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Ana Bell",
+              "body": "Post body",
+              "commentCount": 0,
+              "createdAt": "2026-10-28T09:31:57.743Z",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6d0200000000000000000072",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "announce invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "body": ""
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "body"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "announce foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "body": "Hi",
+        "hostelId": "6d0200000000000000000002"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "announce wrong role",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      },
+      "body": {
+        "body": "Hi"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "announce",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "body": "Water off at noon"
+      }
+    },
+    "masks": [
+      "data.post.id",
+      "data.post.createdAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Announcement posted",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Ops Admin",
+            "body": "Water off at noon",
+            "commentCount": 0,
+            "createdAt": "2026-11-02T03:31:58.716Z",
+            "hostelId": "6d0200000000000000000001",
+            "hostelName": "Ops Hostel",
+            "id": "6ae8042e5e205a5564095c70",
+            "isAnnouncement": true,
+            "isMine": true,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "reportCount": 0,
+            "spaceType": "HOSTEL",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "HOSTEL_ONLY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "announce read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/community?filter=all\u0026pageSize=1",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.id",
+      "data.posts.*.createdAt",
+      "data.posts.*.flaggedAt",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": true,
+            "page": 1,
+            "pageSize": 1,
+            "total": 4,
+            "totalPages": 4
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Ops Admin",
+              "body": "Water off at noon",
+              "commentCount": 0,
+              "createdAt": "2026-11-02T03:31:58.716Z",
+              "hostelId": "6d0200000000000000000001",
+              "hostelName": "Ops Hostel",
+              "id": "6ae8042e5e205a5564095c70",
+              "isAnnouncement": true,
+              "isMine": true,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  }
+]

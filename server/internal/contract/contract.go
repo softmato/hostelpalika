@@ -160,6 +160,10 @@ func mask(v any, path []string) {
 	if len(path) == 0 {
 		return
 	}
+	if path[0] == "**dates" {
+		maskDates(v)
+		return
+	}
 	key, rest := path[0], path[1:]
 	switch node := v.(type) {
 	case map[string]any:
@@ -302,6 +306,41 @@ func Collect(c Case, setCookie []string, body []byte, vars map[string]string) {
 		}
 		if s, ok := node.(string); ok {
 			vars[name] = s
+		}
+	}
+}
+
+var isoDate = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$`)
+
+var generatedID = regexp.MustCompile(`^[0-9a-f]{24}$`)
+
+// volatile is a timestamp, or an object id minted in this run: fixture ids start 6c0 or 6d0.
+func volatile(s string) bool {
+	if isoDate.MatchString(s) {
+		return true
+	}
+	return generatedID.MatchString(s) && !strings.HasPrefix(s, "6c0") && !strings.HasPrefix(s, "6d0")
+}
+
+// maskDates is the mask "**dates": every timestamp and minted id anywhere in the body, for
+// groups whose fixture dates are relative to the clock. Presence and key order still compare.
+func maskDates(v any) {
+	switch node := v.(type) {
+	case map[string]any:
+		for k, child := range node {
+			if s, ok := child.(string); ok && volatile(s) {
+				node[k] = "<masked>"
+			} else {
+				maskDates(child)
+			}
+		}
+	case []any:
+		for i, child := range node {
+			if s, ok := child.(string); ok && volatile(s) {
+				node[i] = "<masked>"
+			} else {
+				maskDates(child)
+			}
 		}
 	}
 }

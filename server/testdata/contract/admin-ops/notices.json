@@ -14,7 +14,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "wrong role",
@@ -34,7 +34,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "warden without the capability",
@@ -54,7 +54,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list",
@@ -82,28 +82,28 @@
             {
               "category": "MAINTENANCE",
               "content": "Cleaning on Friday",
-              "createdAt": "2026-10-31T03:12:11.207Z",
+              "createdAt": "2026-10-31T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000040",
               "isRead": false,
               "isUrgent": true,
-              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "publishedAt": "2026-10-31T03:32:04.801Z",
               "targetAudience": "RESIDENTS",
               "title": "Water tank",
-              "updatedAt": "2026-10-31T03:12:11.207Z"
+              "updatedAt": "2026-10-31T03:32:04.801Z"
             },
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -116,7 +116,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list as the warden",
@@ -144,28 +144,28 @@
             {
               "category": "MAINTENANCE",
               "content": "Cleaning on Friday",
-              "createdAt": "2026-10-31T03:12:11.207Z",
+              "createdAt": "2026-10-31T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000040",
               "isRead": false,
               "isUrgent": true,
-              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "publishedAt": "2026-10-31T03:32:04.801Z",
               "targetAudience": "RESIDENTS",
               "title": "Water tank",
-              "updatedAt": "2026-10-31T03:12:11.207Z"
+              "updatedAt": "2026-10-31T03:32:04.801Z"
             },
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -178,7 +178,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list one category, one a page",
@@ -206,15 +206,15 @@
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -227,7 +227,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list second page",
@@ -255,15 +255,15 @@
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -276,7 +276,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list bad query",
@@ -331,7 +331,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list a hostel that is not theirs",
@@ -351,7 +351,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "list their own hostel by id",
@@ -379,28 +379,28 @@
             {
               "category": "MAINTENANCE",
               "content": "Cleaning on Friday",
-              "createdAt": "2026-10-31T03:12:11.207Z",
+              "createdAt": "2026-10-31T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000040",
               "isRead": false,
               "isUrgent": true,
-              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "publishedAt": "2026-10-31T03:32:04.801Z",
               "targetAudience": "RESIDENTS",
               "title": "Water tank",
-              "updatedAt": "2026-10-31T03:12:11.207Z"
+              "updatedAt": "2026-10-31T03:32:04.801Z"
             },
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -413,7 +413,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create empty",
@@ -455,7 +455,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create invalid",
@@ -540,7 +540,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create in a hostel that is not theirs",
@@ -565,7 +565,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create urgent",
@@ -605,20 +605,20 @@
           "notice": {
             "category": "EVENT",
             "content": "Tomorrow at six",
-            "createdAt": "2026-11-02T03:12:12.327Z",
+            "createdAt": "2026-11-02T03:32:05.381Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c0a",
+            "id": "6ae804355e205a5564095c7d",
             "isRead": false,
             "isUrgent": true,
-            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "publishedAt": "2026-11-02T03:32:05.380Z",
             "targetAudience": "ALL",
             "title": "Fire drill",
-            "updatedAt": "2026-11-02T03:12:12.327Z"
+            "updatedAt": "2026-11-02T03:32:05.381Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create guardians only",
@@ -654,20 +654,20 @@
           "notice": {
             "category": "GENERAL",
             "content": "Visiting day",
-            "createdAt": "2026-11-02T03:12:12.488Z",
+            "createdAt": "2026-11-02T03:32:05.525Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c0e",
+            "id": "6ae804355e205a5564095c81",
             "isRead": false,
             "isUrgent": false,
-            "publishedAt": "2026-11-02T03:12:12.487Z",
+            "publishedAt": "2026-11-02T03:32:05.524Z",
             "targetAudience": "GUARDIANS",
             "title": "For guardians",
-            "updatedAt": "2026-11-02T03:12:12.488Z"
+            "updatedAt": "2026-11-02T03:32:05.525Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "create dated",
@@ -704,21 +704,21 @@
           "notice": {
             "category": "GENERAL",
             "content": "Has dates",
-            "createdAt": "2026-11-02T03:12:12.535Z",
+            "createdAt": "2026-11-02T03:32:05.566Z",
             "expiresAt": "2027-01-02T03:04:05.000Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c10",
+            "id": "6ae804355e205a5564095c83",
             "isRead": false,
             "isUrgent": false,
             "publishedAt": "2026-01-02T03:04:05.000Z",
             "targetAudience": "ALL",
             "title": "Dated",
-            "updatedAt": "2026-11-02T03:12:12.535Z"
+            "updatedAt": "2026-11-02T03:32:05.566Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "the notice is in the list",
@@ -746,15 +746,15 @@
             {
               "category": "EVENT",
               "content": "Tomorrow at six",
-              "createdAt": "2026-11-02T03:12:12.327Z",
+              "createdAt": "2026-11-02T03:32:05.381Z",
               "hostelId": "6d0200000000000000000001",
-              "id": "6ae7ff8c5e205a5564095c0a",
+              "id": "6ae804355e205a5564095c7d",
               "isRead": false,
               "isUrgent": true,
-              "publishedAt": "2026-11-02T03:12:12.311Z",
+              "publishedAt": "2026-11-02T03:32:05.380Z",
               "targetAudience": "ALL",
               "title": "Fire drill",
-              "updatedAt": "2026-11-02T03:12:12.327Z"
+              "updatedAt": "2026-11-02T03:32:05.381Z"
             }
           ],
           "pagination": {
@@ -767,7 +767,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "the bell reached the resident",
@@ -800,12 +800,12 @@
               "body": "Dated",
               "category": "NOTICE",
               "channel": "IN_APP",
-              "createdAt": "2026-11-02T03:12:12.570Z",
+              "createdAt": "2026-11-02T03:32:05.597Z",
               "data": {
-                "noticeId": "6ae7ff8c5e205a5564095c10"
+                "noticeId": "6ae804355e205a5564095c83"
               },
               "hostelId": "6d0200000000000000000001",
-              "id": "6ae7ff8c5e205a5564095c12",
+              "id": "6ae804355e205a5564095c85",
               "isRead": false,
               "kind": "NORMAL",
               "needsAction": false,
@@ -821,12 +821,12 @@
               "body": "Fire drill",
               "category": "NOTICE",
               "channel": "IN_APP",
-              "createdAt": "2026-11-02T03:12:12.413Z",
+              "createdAt": "2026-11-02T03:32:05.443Z",
               "data": {
-                "noticeId": "6ae7ff8c5e205a5564095c0a"
+                "noticeId": "6ae804355e205a5564095c7d"
               },
               "hostelId": "6d0200000000000000000001",
-              "id": "6ae7ff8c5e205a5564095c0c",
+              "id": "6ae804355e205a5564095c7f",
               "isRead": false,
               "kind": "NORMAL",
               "needsAction": false,
@@ -847,7 +847,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update the title only",
@@ -877,20 +877,20 @@
           "notice": {
             "category": "EVENT",
             "content": "Tomorrow at six",
-            "createdAt": "2026-11-02T03:12:12.327Z",
+            "createdAt": "2026-11-02T03:32:05.381Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c0a",
+            "id": "6ae804355e205a5564095c7d",
             "isRead": false,
             "isUrgent": true,
-            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "publishedAt": "2026-11-02T03:32:05.380Z",
             "targetAudience": "ALL",
             "title": "Fire drill moved",
-            "updatedAt": "2026-11-02T03:12:16.199Z"
+            "updatedAt": "2026-11-02T03:32:05.719Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe",
+    "recorded": "http://localhost:3100 b97bf609",
     "corrected": "ops-1"
   },
   {
@@ -926,21 +926,21 @@
           "notice": {
             "category": "RULE",
             "content": "Seven sharp",
-            "createdAt": "2026-11-02T03:12:12.327Z",
+            "createdAt": "2026-11-02T03:32:05.381Z",
             "expiresAt": "2027-02-03T04:05:06.000Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c0a",
+            "id": "6ae804355e205a5564095c7d",
             "isRead": false,
             "isUrgent": false,
-            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "publishedAt": "2026-11-02T03:32:05.380Z",
             "targetAudience": "RESIDENTS",
             "title": "Final",
-            "updatedAt": "2026-11-02T03:12:16.283Z"
+            "updatedAt": "2026-11-02T03:32:05.773Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "the update reads back",
@@ -968,29 +968,29 @@
             {
               "category": "RULE",
               "content": "Seven sharp",
-              "createdAt": "2026-11-02T03:12:12.327Z",
+              "createdAt": "2026-11-02T03:32:05.381Z",
               "expiresAt": "2027-02-03T04:05:06.000Z",
               "hostelId": "6d0200000000000000000001",
-              "id": "6ae7ff8c5e205a5564095c0a",
+              "id": "6ae804355e205a5564095c7d",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-02T03:12:12.311Z",
+              "publishedAt": "2026-11-02T03:32:05.380Z",
               "targetAudience": "RESIDENTS",
               "title": "Final",
-              "updatedAt": "2026-11-02T03:12:16.283Z"
+              "updatedAt": "2026-11-02T03:32:05.773Z"
             },
             {
               "category": "RULE",
               "content": "After ten",
-              "createdAt": "2026-11-01T03:12:11.207Z",
+              "createdAt": "2026-11-01T03:32:04.801Z",
               "hostelId": "6d0200000000000000000001",
               "id": "6d0200000000000000000041",
               "isRead": false,
               "isUrgent": false,
-              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "publishedAt": "2026-11-01T03:32:04.801Z",
               "targetAudience": "ALL",
               "title": "Quiet hours",
-              "updatedAt": "2026-11-01T03:12:11.207Z"
+              "updatedAt": "2026-11-01T03:32:04.801Z"
             }
           ],
           "pagination": {
@@ -1003,7 +1003,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update empty body changes nothing",
@@ -1031,21 +1031,21 @@
           "notice": {
             "category": "RULE",
             "content": "Seven sharp",
-            "createdAt": "2026-11-02T03:12:12.327Z",
+            "createdAt": "2026-11-02T03:32:05.381Z",
             "expiresAt": "2027-02-03T04:05:06.000Z",
             "hostelId": "6d0200000000000000000001",
-            "id": "6ae7ff8c5e205a5564095c0a",
+            "id": "6ae804355e205a5564095c7d",
             "isRead": false,
             "isUrgent": false,
-            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "publishedAt": "2026-11-02T03:32:05.380Z",
             "targetAudience": "RESIDENTS",
             "title": "Final",
-            "updatedAt": "2026-11-02T03:12:16.389Z"
+            "updatedAt": "2026-11-02T03:32:05.850Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update invalid",
@@ -1098,7 +1098,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update bad id",
@@ -1121,7 +1121,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update missing",
@@ -1144,7 +1144,7 @@
         "errorCode": "NOTICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update someone else's notice",
@@ -1167,7 +1167,7 @@
         "errorCode": "NOTICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update naming another hostel",
@@ -1191,7 +1191,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update without the capability",
@@ -1214,7 +1214,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   },
   {
     "name": "update signed out",
@@ -1234,6 +1234,6 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 add99ffe"
+    "recorded": "http://localhost:3100 b97bf609"
   }
 ]

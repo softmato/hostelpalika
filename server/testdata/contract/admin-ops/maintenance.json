@@ -1,0 +1,1413 @@
+[
+  {
+    "name": "settings signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/settings"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "settings",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance settings loaded",
+        "data": {
+          "hostelId": "6d0200000000000000000001",
+          "minimumCharges": [
+            {
+              "amount": 200,
+              "category": "PLUMBING"
+            },
+            {
+              "amount": 200,
+              "category": "ELECTRICAL"
+            },
+            {
+              "amount": 200,
+              "category": "INTERNET"
+            },
+            {
+              "amount": 200,
+              "category": "CLEANING"
+            },
+            {
+              "amount": 200,
+              "category": "CARPENTRY"
+            },
+            {
+              "amount": 200,
+              "category": "PAINTING"
+            },
+            {
+              "amount": 200,
+              "category": "WATER"
+            },
+            {
+              "amount": 200,
+              "category": "APPLIANCE"
+            },
+            {
+              "amount": 200,
+              "category": "ROOM_REPAIR"
+            },
+            {
+              "amount": 200,
+              "category": "HEALTH"
+            },
+            {
+              "amount": 200,
+              "category": "OTHER"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "settings foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/settings?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance requests loaded",
+        "data": {
+          "requests": [],
+          "summary": {
+            "cancelled": 0,
+            "completed": 0,
+            "open": 0,
+            "total": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "bad query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests?status=X\u0026category=Y\u0026providerId=z",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "category": [
+              "Invalid option: expected one of \"PLUMBING\"|\"ELECTRICAL\"|\"INTERNET\"|\"CLEANING\"|\"CARPENTRY\"|\"PAINTING\"|\"WATER\"|\"APPLIANCE\"|\"ROOM_REPAIR\"|\"HEALTH\"|\"OTHER\""
+            ],
+            "providerId": [
+              "Invalid object id."
+            ],
+            "status": [
+              "Invalid option: expected one of \"PENDING\"|\"CONTACTED\"|\"SCHEDULED\"|\"COMPLETED\"|\"CANCELLED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PLUMBING\"|\"ELECTRICAL\"|\"INTERNET\"|\"CLEANING\"|\"CARPENTRY\"|\"PAINTING\"|\"WATER\"|\"APPLIANCE\"|\"ROOM_REPAIR\"|\"HEALTH\"|\"OTHER\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "providerId"
+            },
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"CONTACTED\"|\"SCHEDULED\"|\"COMPLETED\"|\"CANCELLED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "x",
+        "category": "NOPE",
+        "priority": "NOPE",
+        "scheduledFor": "never",
+        "providerId": "z"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "category": [
+              "Invalid option: expected one of \"PLUMBING\"|\"ELECTRICAL\"|\"INTERNET\"|\"CLEANING\"|\"CARPENTRY\"|\"PAINTING\"|\"WATER\"|\"APPLIANCE\"|\"ROOM_REPAIR\"|\"HEALTH\"|\"OTHER\""
+            ],
+            "priority": [
+              "Invalid option: expected one of \"LOW\"|\"MEDIUM\"|\"HIGH\"|\"URGENT\""
+            ],
+            "providerId": [
+              "Invalid object id."
+            ],
+            "scheduledFor": [
+              "Invalid input: expected date, received Date"
+            ],
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PLUMBING\"|\"ELECTRICAL\"|\"INTERNET\"|\"CLEANING\"|\"CARPENTRY\"|\"PAINTING\"|\"WATER\"|\"APPLIANCE\"|\"ROOM_REPAIR\"|\"HEALTH\"|\"OTHER\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid option: expected one of \"LOW\"|\"MEDIUM\"|\"HIGH\"|\"URGENT\"",
+              "path": "priority"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "providerId"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "scheduledFor"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create bad provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Tap",
+        "category": "PLUMBING",
+        "providerId": "6d0200000000000000000fff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Approved service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Tap",
+        "category": "PLUMBING",
+        "hostelId": "6d0200000000000000000002"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create bad voice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Tap",
+        "category": "PLUMBING",
+        "voiceNoteAssetId": "6d0200000000000000000ffe"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That voice note did not finish uploading. Record it again.",
+        "errorCode": "VOICE_NOTE_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Tap leaks",
+        "category": "PLUMBING",
+        "location": "Room 4",
+        "priority": "HIGH",
+        "description": "Drips",
+        "remarks": "Soon",
+        "costNote": "cheap",
+        "scheduledFor": "2099-01-01T00:00:00.000Z"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "rid": "data.request.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance request created",
+        "data": {
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "costNote": "cheap",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [
+              {
+                "action": "MAINTENANCE_REQUEST_CREATED",
+                "actorId": "6d0200000000000000000010",
+                "costNote": "",
+                "createdAt": "2026-11-02T03:43:41.635Z",
+                "hostelId": "6d0200000000000000000001",
+                "id": "6ae806ed5e205a5564095ce2",
+                "nextStatus": "PENDING",
+                "note": "Maintenance request created.",
+                "requestId": "6ae806ed5e205a5564095ce1"
+              }
+            ],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "PENDING",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:41.626Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create warden minimal",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Fan",
+        "category": "ELECTRICAL"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance request created",
+        "data": {
+          "request": {
+            "category": "ELECTRICAL",
+            "comments": [],
+            "costNote": "",
+            "createdAt": "2026-11-02T03:43:41.902Z",
+            "description": "",
+            "history": [
+              {
+                "action": "MAINTENANCE_REQUEST_CREATED",
+                "actorId": "6d0200000000000000000011",
+                "costNote": "",
+                "createdAt": "2026-11-02T03:43:41.913Z",
+                "hostelId": "6d0200000000000000000001",
+                "id": "6ae806ed5e205a5564095ce8",
+                "nextStatus": "PENDING",
+                "note": "Maintenance request created.",
+                "requestId": "6ae806ed5e205a5564095ce7"
+              }
+            ],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce7",
+            "minimumCharge": 200,
+            "priority": "MEDIUM",
+            "remarks": "",
+            "requestedBy": "6d0200000000000000000011",
+            "location": "",
+            "status": "PENDING",
+            "title": "Fan",
+            "updatedAt": "2026-11-02T03:43:41.902Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance requests loaded",
+        "data": {
+          "requests": [
+            {
+              "category": "ELECTRICAL",
+              "comments": [],
+              "costNote": "",
+              "createdAt": "2026-11-02T03:43:41.902Z",
+              "description": "",
+              "history": [
+                {
+                  "action": "MAINTENANCE_REQUEST_CREATED",
+                  "actorId": "6d0200000000000000000011",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:41.913Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806ed5e205a5564095ce8",
+                  "nextStatus": "PENDING",
+                  "note": "Maintenance request created.",
+                  "requestId": "6ae806ed5e205a5564095ce7"
+                }
+              ],
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae806ed5e205a5564095ce7",
+              "minimumCharge": 200,
+              "priority": "MEDIUM",
+              "remarks": "",
+              "requestedBy": "6d0200000000000000000011",
+              "location": "",
+              "status": "PENDING",
+              "title": "Fan",
+              "updatedAt": "2026-11-02T03:43:41.902Z"
+            },
+            {
+              "category": "PLUMBING",
+              "comments": [],
+              "costNote": "cheap",
+              "createdAt": "2026-11-02T03:43:41.626Z",
+              "description": "Drips",
+              "history": [
+                {
+                  "action": "MAINTENANCE_REQUEST_CREATED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:41.635Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806ed5e205a5564095ce2",
+                  "nextStatus": "PENDING",
+                  "note": "Maintenance request created.",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                }
+              ],
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae806ed5e205a5564095ce1",
+              "minimumCharge": 200,
+              "priority": "HIGH",
+              "remarks": "Soon",
+              "requestedBy": "6d0200000000000000000010",
+              "location": "Room 4",
+              "scheduledFor": "2099-01-01T00:00:00.000Z",
+              "status": "PENDING",
+              "title": "Tap leaks",
+              "updatedAt": "2026-11-02T03:43:41.626Z"
+            }
+          ],
+          "summary": {
+            "cancelled": 0,
+            "completed": 0,
+            "open": 2,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests?status=PENDING\u0026category=ELECTRICAL",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance requests loaded",
+        "data": {
+          "requests": [
+            {
+              "category": "ELECTRICAL",
+              "comments": [],
+              "costNote": "",
+              "createdAt": "2026-11-02T03:43:41.902Z",
+              "description": "",
+              "history": [
+                {
+                  "action": "MAINTENANCE_REQUEST_CREATED",
+                  "actorId": "6d0200000000000000000011",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:41.913Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806ed5e205a5564095ce8",
+                  "nextStatus": "PENDING",
+                  "note": "Maintenance request created.",
+                  "requestId": "6ae806ed5e205a5564095ce7"
+                }
+              ],
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae806ed5e205a5564095ce7",
+              "minimumCharge": 200,
+              "priority": "MEDIUM",
+              "remarks": "",
+              "requestedBy": "6d0200000000000000000011",
+              "location": "",
+              "status": "PENDING",
+              "title": "Fan",
+              "updatedAt": "2026-11-02T03:43:41.902Z"
+            }
+          ],
+          "summary": {
+            "cancelled": 0,
+            "completed": 0,
+            "open": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "comment invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/comment",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "message": "",
+        "visibility": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "message": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "visibility": [
+              "Invalid option: expected one of \"INTERNAL\"|\"PROVIDER_NOTE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "message"
+            },
+            {
+              "message": "Invalid option: expected one of \"INTERNAL\"|\"PROVIDER_NOTE\"",
+              "path": "visibility"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "comment bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests/zz/comment",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "message": "Hi"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid maintenance request id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "comment missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests/6d0200000000000000000fff/comment",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "message": "Hi"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Maintenance request was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "comment",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/comment",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "message": "Plumber called"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance comment added",
+        "data": {
+          "comment": {
+            "authorId": "6d0200000000000000000010",
+            "createdAt": "2026-11-02T03:43:46.734Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806f25e205a5564095ced",
+            "message": "Plumber called",
+            "requestId": "6ae806ed5e205a5564095ce1",
+            "visibility": "INTERNAL"
+          },
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "costNote": "cheap",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "PENDING",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:41.626Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "comment note",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/comment",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "message": "For provider",
+        "visibility": "PROVIDER_NOTE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance comment added",
+        "data": {
+          "comment": {
+            "authorId": "6d0200000000000000000011",
+            "createdAt": "2026-11-02T03:43:46.911Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806f25e205a5564095cf0",
+            "message": "For provider",
+            "requestId": "6ae806ed5e205a5564095ce1",
+            "visibility": "PROVIDER_NOTE"
+          },
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "costNote": "cheap",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "PENDING",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:41.626Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "status invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "status": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"PENDING\"|\"CONTACTED\"|\"SCHEDULED\"|\"COMPLETED\"|\"CANCELLED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"CONTACTED\"|\"SCHEDULED\"|\"COMPLETED\"|\"CANCELLED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "status": "SCHEDULED",
+        "note": "Tomorrow",
+        "costNote": "500"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance status updated",
+        "data": {
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "costNote": "500",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [
+              {
+                "action": "MAINTENANCE_STATUS_UPDATED",
+                "actorId": "6d0200000000000000000010",
+                "costNote": "500",
+                "createdAt": "2026-11-02T03:43:52.455Z",
+                "hostelId": "6d0200000000000000000001",
+                "id": "6ae806f85e205a5564095cf3",
+                "nextStatus": "SCHEDULED",
+                "note": "Tomorrow",
+                "previousStatus": "PENDING",
+                "requestId": "6ae806ed5e205a5564095ce1"
+              }
+            ],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "SCHEDULED",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:52.432Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "status done",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance status updated",
+        "data": {
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "completedAt": "2026-11-02T03:43:52.600Z",
+            "costNote": "500",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [
+              {
+                "action": "MAINTENANCE_STATUS_UPDATED",
+                "actorId": "6d0200000000000000000010",
+                "costNote": "",
+                "createdAt": "2026-11-02T03:43:52.610Z",
+                "hostelId": "6d0200000000000000000001",
+                "id": "6ae806f85e205a5564095cf7",
+                "nextStatus": "COMPLETED",
+                "note": "",
+                "previousStatus": "SCHEDULED",
+                "requestId": "6ae806ed5e205a5564095ce1"
+              }
+            ],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "COMPLETED",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:52.600Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "assign closed provider missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/provider",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "providerId": "6d0200000000000000000fff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This request is closed, so nobody can be assigned to it.",
+        "errorCode": "MAINTENANCE_REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "status reopen",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "status": "PENDING"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance status updated",
+        "data": {
+          "request": {
+            "category": "PLUMBING",
+            "comments": [],
+            "costNote": "500",
+            "createdAt": "2026-11-02T03:43:41.626Z",
+            "description": "Drips",
+            "history": [
+              {
+                "action": "MAINTENANCE_STATUS_UPDATED",
+                "actorId": "6d0200000000000000000010",
+                "costNote": "",
+                "createdAt": "2026-11-02T03:43:57.594Z",
+                "hostelId": "6d0200000000000000000001",
+                "id": "6ae806fd5e205a5564095cfb",
+                "nextStatus": "PENDING",
+                "note": "",
+                "previousStatus": "COMPLETED",
+                "requestId": "6ae806ed5e205a5564095ce1"
+              }
+            ],
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806ed5e205a5564095ce1",
+            "minimumCharge": 200,
+            "priority": "HIGH",
+            "remarks": "Soon",
+            "requestedBy": "6d0200000000000000000010",
+            "location": "Room 4",
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "status": "PENDING",
+            "title": "Tap leaks",
+            "updatedAt": "2026-11-02T03:43:57.584Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "assign invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/provider",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "providerId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "providerId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "assign missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/maintenance/requests/{{rid}}/provider",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "providerId": "6d0200000000000000000fff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Approved service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/maintenance/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance requests loaded",
+        "data": {
+          "requests": [
+            {
+              "category": "ELECTRICAL",
+              "comments": [],
+              "costNote": "",
+              "createdAt": "2026-11-02T03:43:41.902Z",
+              "description": "",
+              "history": [
+                {
+                  "action": "MAINTENANCE_REQUEST_CREATED",
+                  "actorId": "6d0200000000000000000011",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:41.913Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806ed5e205a5564095ce8",
+                  "nextStatus": "PENDING",
+                  "note": "Maintenance request created.",
+                  "requestId": "6ae806ed5e205a5564095ce7"
+                }
+              ],
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae806ed5e205a5564095ce7",
+              "minimumCharge": 200,
+              "priority": "MEDIUM",
+              "remarks": "",
+              "requestedBy": "6d0200000000000000000011",
+              "location": "",
+              "status": "PENDING",
+              "title": "Fan",
+              "updatedAt": "2026-11-02T03:43:41.902Z"
+            },
+            {
+              "category": "PLUMBING",
+              "comments": [
+                {
+                  "authorId": "6d0200000000000000000011",
+                  "createdAt": "2026-11-02T03:43:46.911Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f25e205a5564095cf0",
+                  "message": "For provider",
+                  "requestId": "6ae806ed5e205a5564095ce1",
+                  "visibility": "PROVIDER_NOTE"
+                },
+                {
+                  "authorId": "6d0200000000000000000010",
+                  "createdAt": "2026-11-02T03:43:46.734Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f25e205a5564095ced",
+                  "message": "Plumber called",
+                  "requestId": "6ae806ed5e205a5564095ce1",
+                  "visibility": "INTERNAL"
+                }
+              ],
+              "costNote": "500",
+              "createdAt": "2026-11-02T03:43:41.626Z",
+              "description": "Drips",
+              "history": [
+                {
+                  "action": "MAINTENANCE_STATUS_UPDATED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:57.594Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806fd5e205a5564095cfb",
+                  "nextStatus": "PENDING",
+                  "note": "",
+                  "previousStatus": "COMPLETED",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                },
+                {
+                  "action": "MAINTENANCE_STATUS_UPDATED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:52.610Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f85e205a5564095cf7",
+                  "nextStatus": "COMPLETED",
+                  "note": "",
+                  "previousStatus": "SCHEDULED",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                },
+                {
+                  "action": "MAINTENANCE_STATUS_UPDATED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "500",
+                  "createdAt": "2026-11-02T03:43:52.455Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f85e205a5564095cf3",
+                  "nextStatus": "SCHEDULED",
+                  "note": "Tomorrow",
+                  "previousStatus": "PENDING",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                },
+                {
+                  "action": "MAINTENANCE_COMMENT_ADDED",
+                  "actorId": "6d0200000000000000000011",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:46.921Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f25e205a5564095cf1",
+                  "note": "For provider",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                },
+                {
+                  "action": "MAINTENANCE_COMMENT_ADDED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:46.786Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806f25e205a5564095cee",
+                  "note": "Plumber called",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                },
+                {
+                  "action": "MAINTENANCE_REQUEST_CREATED",
+                  "actorId": "6d0200000000000000000010",
+                  "costNote": "",
+                  "createdAt": "2026-11-02T03:43:41.635Z",
+                  "hostelId": "6d0200000000000000000001",
+                  "id": "6ae806ed5e205a5564095ce2",
+                  "nextStatus": "PENDING",
+                  "note": "Maintenance request created.",
+                  "requestId": "6ae806ed5e205a5564095ce1"
+                }
+              ],
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae806ed5e205a5564095ce1",
+              "minimumCharge": 200,
+              "priority": "HIGH",
+              "remarks": "Soon",
+              "requestedBy": "6d0200000000000000000010",
+              "location": "Room 4",
+              "scheduledFor": "2099-01-01T00:00:00.000Z",
+              "status": "PENDING",
+              "title": "Tap leaks",
+              "updatedAt": "2026-11-02T03:43:57.584Z"
+            }
+          ],
+          "summary": {
+            "cancelled": 0,
+            "completed": 0,
+            "open": 2,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  }
+]

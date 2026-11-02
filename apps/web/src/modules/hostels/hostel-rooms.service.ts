@@ -127,7 +127,9 @@ export function floorLabel(floor: number) {
   return `${floor}${suffix} floor`;
 }
 
-const oid = (value: Types.ObjectId | string) => new Types.ObjectId(String(value));
+// A malformed id names no row: the lookups below answer "not found", not a 500.
+const oid = (value: Types.ObjectId | string) =>
+  Types.ObjectId.isValid(String(value)) ? new Types.ObjectId(String(value)) : new Types.ObjectId();
 
 /**
  * Floor-wise: the owner's choice, made on KYC or in Settings. Unchosen, it is

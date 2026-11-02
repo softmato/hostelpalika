@@ -260,3 +260,14 @@ func (h *Handler) me(c *gin.Context) {
 		{Key: "rejectionReason", Value: pr.RejectionReason}, {Key: "status", Value: pr.Status}, {Key: "submittedAt", Value: iso(pr.CreatedAt)},
 	}}}, "Service provider application loaded")
 }
+
+// RolesFor is PROVIDER_ROLES filtered by categoryForRole: the trades that serve a category.
+func RolesFor(category string) bson.A {
+	out := bson.A{}
+	for _, role := range categories {
+		if categoryForRole(role) == category {
+			out = append(out, role)
+		}
+	}
+	return out
+}

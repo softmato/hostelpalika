@@ -20,7 +20,7 @@ import (
 type Record struct {
 	ID            bson.ObjectID  `bson:"_id"`
 	CreatedAt     *time.Time     `bson:"createdAt"`
-	DepositAmount float64        `bson:"depositAmount"`
+	DepositAmount *float64       `bson:"depositAmount"`
 	Email         string         `bson:"email"`
 	FirstName     string         `bson:"firstName"`
 	HostelID      bson.ObjectID  `bson:"hostelId"`
@@ -90,7 +90,11 @@ func SummaryWith(r *Record, avatars map[string]*string) ordered.Map {
 	if r.MoveInDate != nil {
 		moveIn = httpx.ISO(*r.MoveInDate)
 	}
-	return ordered.Map{{Key: "createdAt", Value: isoOrUndefined(r.CreatedAt)}, {Key: "depositAmount", Value: r.DepositAmount}, {Key: "email", Value: email},
+	deposit := any(ordered.Undefined)
+	if r.DepositAmount != nil {
+		deposit = *r.DepositAmount
+	}
+	return ordered.Map{{Key: "createdAt", Value: isoOrUndefined(r.CreatedAt)}, {Key: "depositAmount", Value: deposit}, {Key: "email", Value: email},
 		{Key: "firstName", Value: r.FirstName}, {Key: "fullName", Value: r.FullName()}, {Key: "hostelId", Value: r.HostelID.Hex()}, {Key: "id", Value: r.ID.Hex()},
 		{Key: "image", Value: image}, {Key: "lastName", Value: r.LastName}, {Key: "moveInDate", Value: moveIn}, {Key: "phone", Value: r.Phone},
 		{Key: "residentType", Value: residentType}, {Key: "roomType", Value: r.RoomType}, {Key: "status", Value: r.Status},
@@ -193,6 +197,36 @@ func GuardianContacts(ctx context.Context, db *mongo.Database, hostelID, residen
 		if g.Email != "" {
 			out = append(out, Contact{Email: g.Email, Name: strings.TrimSpace(g.FirstName + " " + g.LastName), UserID: users[g.ID.Hex()]})
 		}
+	}
+	return out, nil
+}
+
+// Avatars is findResidentAvatars: one users read for a whole roster.
+func Avatars(ctx context.Context, db *mongo.Database, roster []Record) (map[string]*string, error) {
+	ids := bson.A{}
+	for i := range roster {
+		if roster[i].UserID != nil {
+			ids = append(ids, *roster[i].UserID)
+		}
+	}
+	out := map[string]*string{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	cur, err := db.Collection("users").Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
+		options.Find().SetProjection(bson.D{{Key: "image", Value: 1}}))
+	if err != nil {
+		return nil, err
+	}
+	var rows []struct {
+		ID    bson.ObjectID `bson:"_id"`
+		Image *string       `bson:"image"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		out[r.ID.Hex()] = r.Image
 	}
 	return out, nil
 }

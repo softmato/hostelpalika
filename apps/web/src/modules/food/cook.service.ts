@@ -300,7 +300,7 @@ export async function updateCookPortal(
 
   const { cookName, credentials, settings } = await provisionCookAccount({
     actorId: principal.userId,
-    cookName: input.cookName ?? existing?.cookName,
+    cookName: input.cookName ?? (existing?.cookName || undefined),
     hostelId,
     hostelName: hostel.name ?? "Hostel",
     hostelSlug: hostel.slug ?? hostelId.toString(),

@@ -1,0 +1,678 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaigns loaded",
+        "data": {
+          "campaigns": [],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 0,
+            "totalPages": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "bad page",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications?page=0",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Too small: expected number to be \u003e0"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "page"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "x",
+        "body": "y",
+        "audience": "NOPE",
+        "priority": "NOPE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "priority": [
+              "Invalid option: expected one of \"LOW\"|\"NORMAL\"|\"HIGH\"|\"URGENT\""
+            ],
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "audience": [
+              "Invalid option: expected one of \"ALL\"|\"RESIDENTS\"|\"GUARDIANS\"|\"SPECIFIC\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "body"
+            },
+            {
+              "message": "Invalid option: expected one of \"LOW\"|\"NORMAL\"|\"HIGH\"|\"URGENT\"",
+              "path": "priority"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            },
+            {
+              "message": "Invalid option: expected one of \"ALL\"|\"RESIDENTS\"|\"GUARDIANS\"|\"SPECIFIC\"",
+              "path": "audience"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create specific none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Title",
+        "body": "Body",
+        "audience": "SPECIFIC"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentIds": [
+              "Select at least one resident."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Select at least one resident.",
+              "path": "residentIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create bad resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Title",
+        "body": "Body",
+        "audience": "SPECIFIC",
+        "residentIds": [
+          "zz"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentIds": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "residentIds.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Title",
+        "body": "Body",
+        "hostelId": "6d0200000000000000000002"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create past",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Title",
+        "body": "Body",
+        "scheduledFor": "2020-01-01T00:00:00.000Z"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a delivery time in the future.",
+        "errorCode": "NOTIFICATION_SCHEDULE_IN_PAST"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create now",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Title",
+        "body": "Body text"
+      }
+    },
+    "masks": [
+      "data.campaign.id",
+      "data.campaign.createdAt",
+      "data.campaign.sentAt",
+      "data.campaign.scheduledFor",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaign created",
+        "data": {
+          "campaign": {
+            "audience": "ALL",
+            "body": "Body text",
+            "category": "ANNOUNCEMENT",
+            "createdAt": "2026-11-02T03:31:55.475Z",
+            "failureReason": "",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae8042b5e205a5564095c63",
+            "priority": "NORMAL",
+            "recipientCount": 2,
+            "scope": "HOSTEL",
+            "sentAt": "2026-11-02T03:31:55.509Z",
+            "stats": {
+              "delivered": 0,
+              "read": 0,
+              "sent": 0
+            },
+            "status": "SENT",
+            "title": "Title"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create specific",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Only Ana",
+        "body": "Body text",
+        "audience": "SPECIFIC",
+        "residentIds": [
+          "6d0200000000000000000030"
+        ],
+        "priority": "HIGH",
+        "category": "FOOD"
+      }
+    },
+    "masks": [
+      "data.campaign.id",
+      "data.campaign.createdAt",
+      "data.campaign.sentAt",
+      "data.campaign.scheduledFor",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaign created",
+        "data": {
+          "campaign": {
+            "audience": "SPECIFIC",
+            "body": "Body text",
+            "category": "FOOD",
+            "createdAt": "2026-11-02T03:31:55.609Z",
+            "failureReason": "",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae8042b5e205a5564095c67",
+            "priority": "HIGH",
+            "recipientCount": 1,
+            "scope": "HOSTEL",
+            "sentAt": "2026-11-02T03:31:55.621Z",
+            "stats": {
+              "delivered": 0,
+              "read": 0,
+              "sent": 0
+            },
+            "status": "SENT",
+            "title": "Only Ana"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create guardians",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Guardians",
+        "body": "Body text",
+        "audience": "GUARDIANS"
+      }
+    },
+    "masks": [
+      "data.campaign.id",
+      "data.campaign.createdAt",
+      "data.campaign.sentAt",
+      "data.campaign.scheduledFor",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaign created",
+        "data": {
+          "campaign": {
+            "audience": "GUARDIANS",
+            "body": "Body text",
+            "category": "ANNOUNCEMENT",
+            "createdAt": "2026-11-02T03:31:55.683Z",
+            "failureReason": "",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae8042b5e205a5564095c6a",
+            "priority": "NORMAL",
+            "recipientCount": 0,
+            "scope": "HOSTEL",
+            "sentAt": "2026-11-02T03:31:55.700Z",
+            "stats": {
+              "delivered": 0,
+              "read": 0,
+              "sent": 0
+            },
+            "status": "SENT",
+            "title": "Guardians"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "create later",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Later",
+        "body": "Body text",
+        "scheduledFor": "2099-01-01T00:00:00.000Z"
+      }
+    },
+    "masks": [
+      "data.campaign.id",
+      "data.campaign.createdAt",
+      "data.campaign.sentAt",
+      "data.campaign.scheduledFor",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaign created",
+        "data": {
+          "campaign": {
+            "audience": "ALL",
+            "body": "Body text",
+            "category": "ANNOUNCEMENT",
+            "createdAt": "2026-11-02T03:31:55.746Z",
+            "failureReason": "",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae8042b5e205a5564095c6c",
+            "priority": "NORMAL",
+            "recipientCount": 0,
+            "scheduledFor": "2099-01-01T00:00:00.000Z",
+            "scope": "HOSTEL",
+            "stats": {
+              "delivered": 0,
+              "read": 0,
+              "sent": 0
+            },
+            "status": "SCHEDULED",
+            "title": "Later"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.campaigns.*.id",
+      "data.campaigns.*.createdAt",
+      "data.campaigns.*.sentAt",
+      "data.campaigns.*.scheduledFor",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification campaigns loaded",
+        "data": {
+          "campaigns": [
+            {
+              "audience": "ALL",
+              "body": "Body text",
+              "category": "ANNOUNCEMENT",
+              "createdAt": "2026-11-02T03:33:20.439Z",
+              "failureReason": "",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae80480e15149620f7ec3a7",
+              "priority": "NORMAL",
+              "recipientCount": 0,
+              "scheduledFor": "2099-01-01T00:00:00.000Z",
+              "scope": "HOSTEL",
+              "stats": {
+                "delivered": 0,
+                "read": 0,
+                "sent": 0
+              },
+              "status": "SCHEDULED",
+              "title": "Later"
+            },
+            {
+              "audience": "GUARDIANS",
+              "body": "Body text",
+              "category": "ANNOUNCEMENT",
+              "createdAt": "2026-11-02T03:33:20.417Z",
+              "failureReason": "",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae80480e15149620f7ec3a5",
+              "priority": "NORMAL",
+              "recipientCount": 0,
+              "scope": "HOSTEL",
+              "sentAt": "2026-11-02T03:33:20.426Z",
+              "stats": {
+                "delivered": 0,
+                "read": 0,
+                "sent": 0
+              },
+              "status": "SENT",
+              "title": "Guardians"
+            },
+            {
+              "audience": "SPECIFIC",
+              "body": "Body text",
+              "category": "FOOD",
+              "createdAt": "2026-11-02T03:33:20.385Z",
+              "failureReason": "",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae80480e15149620f7ec3a2",
+              "priority": "HIGH",
+              "recipientCount": 1,
+              "scope": "HOSTEL",
+              "sentAt": "2026-11-02T03:33:20.392Z",
+              "stats": {
+                "delivered": 1,
+                "read": 0,
+                "sent": 1
+              },
+              "status": "SENT",
+              "title": "Only Ana"
+            },
+            {
+              "audience": "ALL",
+              "body": "Body text",
+              "category": "ANNOUNCEMENT",
+              "createdAt": "2026-11-02T03:33:20.307Z",
+              "failureReason": "",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae80480e15149620f7ec39e",
+              "priority": "NORMAL",
+              "recipientCount": 2,
+              "scope": "HOSTEL",
+              "sentAt": "2026-11-02T03:33:20.339Z",
+              "stats": {
+                "delivered": 2,
+                "read": 0,
+                "sent": 2
+              },
+              "status": "SENT",
+              "title": "Title"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 4,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609",
+    "corrected": "OPS-1"
+  }
+]

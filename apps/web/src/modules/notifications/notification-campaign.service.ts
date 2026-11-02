@@ -375,9 +375,9 @@ async function statsForCampaigns(campaignIds: Types.ObjectId[]) {
       $group: {
         _id: "$campaignId",
         delivered: {
-          $sum: { $cond: [{ $ne: ["$deliveredAt", null] }, 1, 0] },
+          $sum: { $cond: [{ $gt: ["$deliveredAt", null] }, 1, 0] },
         },
-        read: { $sum: { $cond: [{ $ne: ["$readAt", null] }, 1, 0] } },
+        read: { $sum: { $cond: [{ $gt: ["$readAt", null] }, 1, 0] } },
         sent: { $sum: 1 },
       },
     },

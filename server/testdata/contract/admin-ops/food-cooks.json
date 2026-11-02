@@ -1,0 +1,1526 @@
+[
+  {
+    "name": "routine signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/food/routine"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food routine loaded",
+        "data": {
+          "routine": {
+            "meals": [],
+            "monthEndSpecial": null,
+            "timings": {},
+            "updatedAt": ""
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/food/routine?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "timings": {
+          "BREAKFAST": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "meals": [
+          {
+            "dayOfWeek": "X",
+            "mealType": "Y",
+            "items": []
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "timings": [
+              "Too big: expected string to have \u003c=80 characters"
+            ],
+            "meals": [
+              "Invalid option: expected one of \"SUNDAY\"|\"MONDAY\"|\"TUESDAY\"|\"WEDNESDAY\"|\"THURSDAY\"|\"FRIDAY\"|\"SATURDAY\"",
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "Too small: expected array to have \u003e=1 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=80 characters",
+              "path": "timings.BREAKFAST"
+            },
+            {
+              "message": "Invalid option: expected one of \"SUNDAY\"|\"MONDAY\"|\"TUESDAY\"|\"WEDNESDAY\"|\"THURSDAY\"|\"FRIDAY\"|\"SATURDAY\"",
+              "path": "meals.0.dayOfWeek"
+            },
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "meals.0.mealType"
+            },
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "meals.0.items"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "timings": {
+          "BREAKFAST": "7am",
+          "DINNER": "8pm"
+        },
+        "meals": [
+          {
+            "dayOfWeek": "MONDAY",
+            "mealType": "BREAKFAST",
+            "items": [
+              "Roti",
+              "Tea"
+            ],
+            "note": "Hot"
+          },
+          {
+            "dayOfWeek": "MONDAY",
+            "mealType": "DINNER",
+            "items": [
+              "Dal"
+            ]
+          }
+        ],
+        "monthEndSpecial": {
+          "items": [
+            "Sweet"
+          ],
+          "note": "Treat"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food routine saved",
+        "data": {
+          "routine": {
+            "meals": [
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Roti",
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "7am"
+              },
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": "8pm"
+              }
+            ],
+            "monthEndSpecial": {
+              "items": [
+                "Sweet"
+              ],
+              "note": "Treat"
+            },
+            "timings": {
+              "BREAKFAST": "7am",
+              "DINNER": "8pm"
+            },
+            "updatedAt": "2026-11-02T03:43:21.990Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine read",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food routine loaded",
+        "data": {
+          "routine": {
+            "meals": [
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Roti",
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "7am"
+              },
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": "8pm"
+              }
+            ],
+            "monthEndSpecial": {
+              "items": [
+                "Sweet"
+              ],
+              "note": "Treat"
+            },
+            "timings": {
+              "BREAKFAST": "7am",
+              "DINNER": "8pm"
+            },
+            "updatedAt": "2026-11-02T03:43:21.990Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "routine clear special",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/food/routine",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "timings": {},
+        "meals": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food routine saved",
+        "data": {
+          "routine": {
+            "meals": [],
+            "monthEndSpecial": null,
+            "timings": {},
+            "updatedAt": "2026-11-02T03:43:22.133Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "photo invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/food/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "mealType": "X",
+        "date": "never",
+        "photoAssetId": ""
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mealType": [
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\""
+            ],
+            "date": [
+              "Invalid input: expected date, received Date"
+            ],
+            "photoAssetId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "mealType"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "date"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "photo no capability",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/food/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "mealType": "LUNCH",
+        "date": "2026-06-01",
+        "photoAssetId": "a1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/food/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "mealType": "LUNCH",
+        "date": "2026-06-01",
+        "photoAssetId": "a1",
+        "caption": "Dal"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photo uploaded",
+        "data": {
+          "photo": {
+            "caption": "Dal",
+            "date": "2026-06-01T00:00:00.000Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae806dc5e205a5564095c9d",
+            "mealType": "LUNCH",
+            "photoAssetId": "a1",
+            "uploadedAt": "2026-11-02T03:43:24.781Z",
+            "uploadedBy": "6d0200000000000000000010"
+          },
+          "resident": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "cooks signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cooks"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "cooks empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cooks loaded",
+        "data": {
+          "cooks": [],
+          "expensesEnabled": false,
+          "stockEnabled": true,
+          "fingerprintLock": false,
+          "portalEnabled": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "cooks foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cooks?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "add invalid kind",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "X",
+        "name": "Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "kind": [
+              "Invalid discriminator value. Expected 'CREDENTIAL' | 'INVITE'"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid discriminator value. Expected 'CREDENTIAL' | 'INVITE'",
+              "path": "kind"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "add invalid name",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "CREDENTIAL",
+        "name": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "add invalid email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "INVITE",
+        "name": "Ram",
+        "email": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "add credential",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "CREDENTIAL",
+        "name": "Ram Cook"
+      }
+    },
+    "masks": [
+      "data.credentials.temporaryPassword",
+      "**dates"
+    ],
+    "capture": {
+      "cid": "data.cook.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook sign-in created",
+        "data": {
+          "credentials": {
+            "email": "opsh@cook.local",
+            "temporaryPassword": "VQ4DzezR"
+          },
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.729Z",
+            "credentialIssuedAt": "2026-11-02T03:43:25.308Z",
+            "id": "6ae806dd5e205a5564095ca0",
+            "initialPasswordPending": true,
+            "invitationPending": false,
+            "kind": "CREDENTIAL",
+            "loginEmail": "opsh@cook.local",
+            "name": "Ram Cook",
+            "status": "ACTIVE",
+            "userId": "6ae806dd5e205a5564095c9f"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "add invite",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "INVITE",
+        "name": "Sita",
+        "email": "Sita@Contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "iid": "data.cook.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation sent",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.859Z",
+            "id": "6ae806dd5e205a5564095cac",
+            "initialPasswordPending": false,
+            "invitationExpiresAt": "2026-11-09T03:43:25.858Z",
+            "invitationPending": true,
+            "kind": "INVITE",
+            "loginEmail": "sita@contract.test",
+            "name": "Sita",
+            "status": "INVITED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "invite twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "kind": "INVITE",
+        "name": "Sita",
+        "email": "sita@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That email is already a cook here.",
+        "errorCode": "COOK_ALREADY_INVITED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "cooks list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cooks loaded",
+        "data": {
+          "cooks": [
+            {
+              "addedAt": "2026-11-02T03:43:25.729Z",
+              "credentialIssuedAt": "2026-11-02T03:43:25.308Z",
+              "id": "6ae806dd5e205a5564095ca0",
+              "initialPasswordPending": true,
+              "invitationPending": false,
+              "kind": "CREDENTIAL",
+              "loginEmail": "opsh@cook.local",
+              "name": "Ram Cook",
+              "status": "ACTIVE",
+              "userId": "6ae806dd5e205a5564095c9f"
+            },
+            {
+              "addedAt": "2026-11-02T03:43:25.859Z",
+              "id": "6ae806dd5e205a5564095cac",
+              "initialPasswordPending": false,
+              "invitationExpiresAt": "2026-11-09T03:43:25.858Z",
+              "invitationPending": true,
+              "kind": "INVITE",
+              "loginEmail": "sita@contract.test",
+              "name": "Sita",
+              "status": "INVITED"
+            }
+          ],
+          "expensesEnabled": false,
+          "stockEnabled": true,
+          "fingerprintLock": false,
+          "portalEnabled": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "update invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "name": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "update missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/6d0200000000000000000fff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "name": "Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That cook was not found.",
+        "errorCode": "COOK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "update name",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "name": "Ram K"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook updated",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.729Z",
+            "credentialIssuedAt": "2026-11-02T03:43:25.308Z",
+            "id": "6ae806dd5e205a5564095ca0",
+            "initialPasswordPending": false,
+            "invitationPending": false,
+            "kind": "CREDENTIAL",
+            "loginEmail": "opsh@cook.local",
+            "name": "Ram K",
+            "status": "ACTIVE",
+            "userId": "6ae806dd5e205a5564095c9f"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "rotate",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "rotate": true
+      }
+    },
+    "masks": [
+      "data.credentials.temporaryPassword",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "New password issued",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.729Z",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "id": "6ae806dd5e205a5564095ca0",
+            "initialPasswordPending": true,
+            "invitationPending": false,
+            "kind": "CREDENTIAL",
+            "loginEmail": "opsh@cook.local",
+            "name": "Ram K",
+            "status": "ACTIVE",
+            "userId": "6ae806dd5e205a5564095c9f"
+          },
+          "credentials": {
+            "email": "opsh@cook.local",
+            "temporaryPassword": "gxcZG9VY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "rotate invite refused",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/{{iid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "rotate": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This cook signs in with their own email, so there is no password here to rotate.",
+        "errorCode": "COOK_NOT_CREDENTIAL"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "fingerprint warden",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/cooks/fingerprint",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "fingerprint invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/cooks/fingerprint",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "fingerprint",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/cooks/fingerprint",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cooks will be asked for a fingerprint",
+        "data": {
+          "fingerprintLock": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal read",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook portal settings loaded",
+        "data": {
+          "settings": {
+            "cookEmail": "opsh@cook.local",
+            "cookName": "Ram K",
+            "cookPortalEnabled": true,
+            "cookUserId": "6ae806dd5e205a5564095c9f",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "initialPasswordPending": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal off",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook portal disabled",
+        "data": {
+          "credentialsIssued": false,
+          "settings": {
+            "cookEmail": "",
+            "cookName": "Ram K",
+            "cookPortalEnabled": false,
+            "cookUserId": "6ae806dd5e205a5564095c9f",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "initialPasswordPending": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal on",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "enabled": true,
+        "cookName": "Ram Again"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook portal enabled",
+        "data": {
+          "credentialsIssued": false,
+          "settings": {
+            "cookEmail": "opsh@cook.local",
+            "cookName": "Ram Again",
+            "cookPortalEnabled": true,
+            "cookUserId": "6ae806dd5e205a5564095c9f",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "initialPasswordPending": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "cookName": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cookName": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "enabled": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "cookName"
+            },
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "remove invite",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/cooks/{{iid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook removed",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.859Z",
+            "historicalName": "Previous Ops cook",
+            "id": "6ae806dd5e205a5564095cac",
+            "initialPasswordPending": false,
+            "invitationExpiresAt": "2026-11-09T03:43:25.858Z",
+            "invitationPending": false,
+            "kind": "INVITE",
+            "loginEmail": "sita@contract.test",
+            "name": "Sita",
+            "removedAt": "2026-11-02T03:43:33.675Z",
+            "status": "REMOVED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "remove",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook removed",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.729Z",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "historicalName": "Previous Ops cook",
+            "id": "6ae806dd5e205a5564095ca0",
+            "initialPasswordPending": false,
+            "invitationPending": false,
+            "kind": "CREDENTIAL",
+            "loginEmail": "opsh@cook.local",
+            "name": "Ram Again",
+            "removedAt": "2026-11-02T03:43:33.766Z",
+            "status": "REMOVED",
+            "userId": "6ae806dd5e205a5564095c9f"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "remove twice",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook removed",
+        "data": {
+          "cook": {
+            "addedAt": "2026-11-02T03:43:25.729Z",
+            "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+            "historicalName": "Previous Ops cook",
+            "id": "6ae806dd5e205a5564095ca0",
+            "initialPasswordPending": false,
+            "invitationPending": false,
+            "kind": "CREDENTIAL",
+            "loginEmail": "opsh@cook.local",
+            "name": "Ram Again",
+            "removedAt": "2026-11-02T03:43:33.766Z",
+            "status": "REMOVED",
+            "userId": "6ae806dd5e205a5564095c9f"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "after removal",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cooks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cooks loaded",
+        "data": {
+          "cooks": [
+            {
+              "addedAt": "2026-11-02T03:43:25.859Z",
+              "historicalName": "Previous Ops cook",
+              "id": "6ae806dd5e205a5564095cac",
+              "initialPasswordPending": false,
+              "invitationExpiresAt": "2026-11-09T03:43:25.858Z",
+              "invitationPending": false,
+              "kind": "INVITE",
+              "loginEmail": "sita@contract.test",
+              "name": "Sita",
+              "removedAt": "2026-11-02T03:43:33.675Z",
+              "status": "REMOVED"
+            },
+            {
+              "addedAt": "2026-11-02T03:43:25.729Z",
+              "credentialIssuedAt": "2026-11-02T03:43:31.233Z",
+              "historicalName": "Previous Ops cook",
+              "id": "6ae806dd5e205a5564095ca0",
+              "initialPasswordPending": false,
+              "invitationPending": false,
+              "kind": "CREDENTIAL",
+              "loginEmail": "opsh@cook.local",
+              "name": "Ram Again",
+              "removedAt": "2026-11-02T03:43:33.766Z",
+              "status": "REMOVED",
+              "userId": "6ae806dd5e205a5564095c9f"
+            }
+          ],
+          "expensesEnabled": false,
+          "stockEnabled": true,
+          "fingerprintLock": true,
+          "portalEnabled": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "update removed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cooks/{{cid}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "name": "Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This cook has been removed and cannot be changed.",
+        "errorCode": "COOK_REMOVED"
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook portal settings loaded",
+        "data": {
+          "settings": {
+            "cookEmail": "",
+            "cookName": "",
+            "cookPortalEnabled": false,
+            "initialPasswordPending": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609"
+  },
+  {
+    "name": "portal first login",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/cook-portal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "enabled": true
+      }
+    },
+    "masks": [
+      "data.credentials.temporaryPassword",
+      "**dates",
+      "data.credentials.email",
+      "data.settings.cookEmail"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cook portal enabled",
+        "data": {
+          "credentials": {
+            "email": "opshvy@cook.local",
+            "temporaryPassword": "XAEtDbYv"
+          },
+          "credentialsIssued": true,
+          "settings": {
+            "cookEmail": "opshvy@cook.local",
+            "cookName": "Ops Hostel Cook",
+            "cookPortalEnabled": true,
+            "cookUserId": "6ae8079f5105425ae3631f6f",
+            "credentialIssuedAt": "2026-11-02T03:46:39.327Z",
+            "initialPasswordPending": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 b97bf609",
+    "corrected": "OPS-3"
+  }
+]

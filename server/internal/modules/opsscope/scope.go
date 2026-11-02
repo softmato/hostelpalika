@@ -92,3 +92,13 @@ func ReadPage(q map[string]string, is *valid.Issues) pagination.Query {
 
 // Param is a path id as an object id, 422 "Invalid <label>." otherwise.
 func Param(raw, label string) (bson.ObjectID, error) { return httpx.OID(raw, label) }
+
+// BodyHostel is `hostelId: objectIdSchema.optional()` read from a body.
+func BodyHostel(f *valid.Form) string {
+	raw, ok := f.M["hostelId"]
+	if !ok {
+		return ""
+	}
+	s, _ := valid.ObjectID(raw, "hostelId", "", &f.Is, false)
+	return s
+}

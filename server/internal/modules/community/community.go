@@ -69,6 +69,8 @@ type post struct {
 	CommentCount   int            `bson:"commentCount"`
 	CreatedAt      *time.Time     `bson:"createdAt"`
 	FlaggedAt      *time.Time     `bson:"flaggedAt"`
+	FlaggedReason  *string        `bson:"flaggedReason"`
+	HiddenReason   *string        `bson:"hiddenReason"`
 	HostelID       *bson.ObjectID `bson:"hostelId"`
 	IsAnnouncement bool           `bson:"isAnnouncement"`
 	Media          []mediaItem    `bson:"media"`
