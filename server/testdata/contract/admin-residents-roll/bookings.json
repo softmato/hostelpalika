@@ -1,0 +1,2258 @@
+[
+  {
+    "name": "list signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list requests",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d4TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd4@contract.test",
+                "name": "Guest d4",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-02T14:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d4",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d1TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd1@contract.test",
+                "name": "Guest d1",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T01:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d1",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d9TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd9@contract.test",
+                "name": "Guest d9",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T06:45:49.075Z",
+              "hostelShareIfKept": 3900,
+              "id": "6b00000000000000000000d9",
+              "kind": "SHORT_STAY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": {
+                "amount": 3000,
+                "dailyRate": 1000,
+                "dates": "12 Nov 2026 – 15 Nov 2026 (Kartik 26–29)",
+                "holdBlocks": 2,
+                "moveIn": "2026-11-12",
+                "moveOut": "2026-11-15",
+                "nights": 3
+              },
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d2TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd2@contract.test",
+                "name": "Guest d2",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T11:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d2",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d3TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd3@contract.test",
+                "name": "Guest d3",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T21:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d3",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 5
+          },
+          "owed": {
+            "due": 0,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list confirmed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=confirmed",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d6TEST",
+              "confirmedAt": "2026-10-25T15:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd6@contract.test",
+                "name": "Guest d6",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-01T15:45:49.075Z",
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d6",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "CONFIRMED",
+              "statusLabel": "Confirmed",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d5TEST",
+              "confirmedAt": "2026-11-02T14:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd5@contract.test",
+                "name": "Guest d5",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-06T19:45:49.075Z",
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d5",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "CONFIRMED",
+              "statusLabel": "Confirmed",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 5
+          },
+          "owed": {
+            "due": 0,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list history",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=history",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d7TEST",
+              "confirmedAt": "2026-11-01T19:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T05:45:49.075Z",
+              "guest": {
+                "email": "guestd7@contract.test",
+                "name": "Guest d7",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d7",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": {
+                "amount": 188,
+                "documentNumber": "HH-BPO-2083-84-00000007",
+                "sentAt": "2026-11-02T13:45:49.075Z",
+                "status": "SENT",
+                "transactionId": "TX-777"
+              },
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 188
+              },
+              "status": "CANCELLED_BY_USER",
+              "statusLabel": "Cancelled",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 5
+          },
+          "owed": {
+            "due": 0,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list unknown tab",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=zzz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d4TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd4@contract.test",
+                "name": "Guest d4",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-02T14:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d4",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d1TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd1@contract.test",
+                "name": "Guest d1",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T01:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d1",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d9TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd9@contract.test",
+                "name": "Guest d9",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T06:45:49.075Z",
+              "hostelShareIfKept": 3900,
+              "id": "6b00000000000000000000d9",
+              "kind": "SHORT_STAY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": {
+                "amount": 3000,
+                "dailyRate": 1000,
+                "dates": "12 Nov 2026 – 15 Nov 2026 (Kartik 26–29)",
+                "holdBlocks": 2,
+                "moveIn": "2026-11-12",
+                "moveOut": "2026-11-15",
+                "nights": 3
+              },
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d2TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd2@contract.test",
+                "name": "Guest d2",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T11:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d2",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d3TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd3@contract.test",
+                "name": "Guest d3",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T21:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d3",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": null,
+              "status": "AWAITING_HOSTEL",
+              "statusLabel": "Waiting for the hostel",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 5
+          },
+          "owed": {
+            "due": 0,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=HH-ABCD-1234",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=HH-ABCD-1234",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "This card holds a booking",
+        "data": {
+          "booking": {
+            "code": "BK-d5TEST",
+            "guestName": "Guest d5",
+            "holdEndsAt": "2026-11-06T19:45:49.075Z",
+            "roomType": "Single"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "No booking on this card",
+        "data": {
+          "booking": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "No booking on this card",
+        "data": {
+          "booking": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=HH-ZZZZ-9999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "No booking on this card",
+        "data": {
+          "booking": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card url",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=https://x.test/r/hhabcd1234",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "This card holds a booking",
+        "data": {
+          "booking": {
+            "code": "BK-d5TEST",
+            "guestName": "Guest d5",
+            "holdEndsAt": "2026-11-06T19:45:49.075Z",
+            "roomType": "Single"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "card held",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/card?card=HH-ABCD-1234",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "This card holds a booking",
+        "data": {
+          "booking": {
+            "code": "BK-d5TEST",
+            "guestName": "Guest d5",
+            "holdEndsAt": "2026-11-06T19:45:49.075Z",
+            "roomType": "Single"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "doc signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/documents/HH-BPO-2083-84-00000007"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "doc unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/documents/HH-BPO-2083-84-00000099",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "doc payout",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/documents/HH-BPO-2083-84-00000007",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/short-stays"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Short stays",
+        "data": {
+          "enabled": false,
+          "limits": {
+            "hostelSharePercent": 70,
+            "maxNights": 29,
+            "minMarkupPercent": 20
+          },
+          "minNights": 1,
+          "rooms": [
+            {
+              "dailyRate": null,
+              "floor": null,
+              "monthlyRent": null,
+              "roomType": "Single"
+            },
+            {
+              "dailyRate": null,
+              "floor": null,
+              "monthlyRent": null,
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays put signed out",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays put bad",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": "x",
+        "minNights": 0,
+        "rates": [
+          1,
+          {
+            "roomType": "",
+            "dailyRate": -1
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "minNights": [
+              "Too small: expected number to be \u003e=1"
+            ],
+            "rates": [
+              "Invalid input: expected object, received number",
+              "Too small: expected number to be \u003e=1",
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "enabled"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "minNights"
+            },
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "rates.0"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "rates.1.dailyRate"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "rates.1.roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays put too many nights",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "minNights": 30
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received undefined"
+            ],
+            "minNights": [
+              "Too big: expected number to be \u003c=29"
+            ],
+            "rates": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "enabled"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=29",
+              "path": "minNights"
+            },
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "rates"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays put unknown room",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": true,
+        "minNights": 2,
+        "rates": [
+          {
+            "roomType": "Nope",
+            "dailyRate": 900
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel has no \"Nope\" room type.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays put",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": true,
+        "minNights": 2,
+        "rates": [
+          {
+            "roomType": "Single",
+            "dailyRate": 1200
+          },
+          {
+            "roomType": "Double",
+            "dailyRate": 800
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Set a monthly rent for Single Sitter Room on the rate card first. The daily rate is checked against it.",
+        "errorCode": "SHORT_STAY_ROOM_NOT_PRICED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "stays get after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings/short-stays",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Short stays",
+        "data": {
+          "enabled": false,
+          "limits": {
+            "hostelSharePercent": 70,
+            "maxNights": 29,
+            "minMarkupPercent": 20
+          },
+          "minNights": 1,
+          "rooms": [
+            {
+              "dailyRate": null,
+              "floor": null,
+              "monthlyRent": null,
+              "roomType": "Single"
+            },
+            {
+              "dailyRate": null,
+              "floor": null,
+              "monthlyRent": null,
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/confirm",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act warden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act bad action",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/zzz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/nope/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000ee/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "act outsiders",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d8/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel not confirmed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d2/cancel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only a booking you confirmed can be cancelled. Decline one that is waiting for your answer.",
+        "errorCode": "BOOKING_NOT_CONFIRMED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel no reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d5/cancel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline reason too long",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d2/decline",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too big: expected string to have \u003c=500 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=500 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "confirm missed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d4/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The time to answer this booking has passed. The guest is refunded in full.",
+        "errorCode": "ANSWER_WINDOW_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "confirm",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking confirmed. The bed is held.",
+        "data": {
+          "booking": {
+            "checkedInAt": null,
+            "code": "BK-d1TEST",
+            "confirmedAt": "2026-11-02T15:45:54.658Z",
+            "createdAt": "2026-10-31T15:45:49.075Z",
+            "endReason": null,
+            "endedAt": null,
+            "guest": {
+              "email": "guestd1@contract.test",
+              "name": "Guest d1",
+              "phone": "9800000000"
+            },
+            "holdEndsAt": "2026-11-09T15:45:54.658Z",
+            "hostelAnswerBy": "2026-11-03T01:45:49.075Z",
+            "hostelShareIfKept": 750,
+            "id": "6b00000000000000000000d1",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "payout": null,
+            "plannedMoveIn": "2026-11-12",
+            "roomType": "Single",
+            "settlement": null,
+            "status": "CONFIRMED",
+            "statusLabel": "Confirmed",
+            "stay": null,
+            "strike": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "confirm again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d1/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This booking is not waiting for your answer.",
+        "errorCode": "BOOKING_NOT_AWAITING_HOSTEL"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d2/decline",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": " Full up "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking declined. The guest is refunded in full.",
+        "data": {
+          "booking": {
+            "checkedInAt": null,
+            "code": "BK-d2TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-31T15:45:49.075Z",
+            "endReason": "Full up",
+            "endedAt": "2026-11-02T15:45:54.944Z",
+            "guest": {
+              "email": "guestd2@contract.test",
+              "name": "Guest d2",
+              "phone": "9800000000"
+            },
+            "holdEndsAt": null,
+            "hostelAnswerBy": "2026-11-03T11:45:49.075Z",
+            "hostelShareIfKept": 750,
+            "id": "6b00000000000000000000d2",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "payout": null,
+            "plannedMoveIn": null,
+            "roomType": "Single",
+            "settlement": {
+              "hostelShare": 0
+            },
+            "status": "DECLINED",
+            "statusLabel": "Declined by the hostel",
+            "stay": null,
+            "strike": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d2/decline",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This booking is not waiting for your answer.",
+        "errorCode": "BOOKING_NOT_AWAITING_HOSTEL"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "decline no body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d3/decline",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking declined. The guest is refunded in full.",
+        "data": {
+          "booking": {
+            "checkedInAt": null,
+            "code": "BK-d3TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-31T15:45:49.075Z",
+            "endReason": null,
+            "endedAt": "2026-11-02T15:45:55.235Z",
+            "guest": {
+              "email": "guestd3@contract.test",
+              "name": "Guest d3",
+              "phone": "9800000000"
+            },
+            "holdEndsAt": null,
+            "hostelAnswerBy": "2026-11-03T21:45:49.075Z",
+            "hostelShareIfKept": 750,
+            "id": "6b00000000000000000000d3",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "payout": null,
+            "plannedMoveIn": null,
+            "roomType": "Single",
+            "settlement": {
+              "hostelShare": 0
+            },
+            "status": "DECLINED",
+            "statusLabel": "Declined by the hostel",
+            "stay": null,
+            "strike": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel hold over",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d6/cancel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "late"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The hold on this booking has already ended.",
+        "errorCode": "HOLD_ENDED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d5/cancel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": " Room flooded "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking cancelled. The guest is refunded in full.",
+        "data": {
+          "booking": {
+            "checkedInAt": null,
+            "code": "BK-d5TEST",
+            "confirmedAt": "2026-11-02T14:45:49.075Z",
+            "createdAt": "2026-10-31T15:45:49.075Z",
+            "endReason": "Room flooded",
+            "endedAt": "2026-11-02T15:45:55.532Z",
+            "guest": {
+              "email": "guestd5@contract.test",
+              "name": "Guest d5",
+              "phone": "9800000000"
+            },
+            "holdEndsAt": "2026-11-06T19:45:49.075Z",
+            "hostelAnswerBy": null,
+            "hostelShareIfKept": 750,
+            "id": "6b00000000000000000000d5",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "payout": null,
+            "plannedMoveIn": null,
+            "roomType": "Single",
+            "settlement": {
+              "hostelShare": 0
+            },
+            "status": "CANCELLED_BY_HOSTEL",
+            "statusLabel": "Cancelled by the hostel",
+            "stay": null,
+            "strike": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d5/cancel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only a booking you confirmed can be cancelled. Decline one that is waiting for your answer.",
+        "errorCode": "BOOKING_NOT_CONFIRMED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "confirm short stay",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/bookings/6b00000000000000000000d9/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking confirmed. The bed is held.",
+        "data": {
+          "booking": {
+            "checkedInAt": null,
+            "code": "BK-d9TEST",
+            "confirmedAt": "2026-11-02T15:45:55.740Z",
+            "createdAt": "2026-10-31T15:45:49.075Z",
+            "endReason": null,
+            "endedAt": null,
+            "guest": {
+              "email": "guestd9@contract.test",
+              "name": "Guest d9",
+              "phone": "9800000000"
+            },
+            "holdEndsAt": "2026-11-13T18:14:59.999Z",
+            "hostelAnswerBy": "2026-11-03T06:45:49.075Z",
+            "hostelShareIfKept": 3900,
+            "id": "6b00000000000000000000d9",
+            "kind": "SHORT_STAY",
+            "monthlyRent": 15000,
+            "payout": null,
+            "plannedMoveIn": "2026-11-12",
+            "roomType": "Single",
+            "settlement": null,
+            "status": "CONFIRMED",
+            "statusLabel": "Confirmed",
+            "stay": {
+              "amount": 3000,
+              "dailyRate": 1000,
+              "dates": "12 Nov 2026 – 15 Nov 2026 (Kartik 26–29)",
+              "holdBlocks": 2,
+              "moveIn": "2026-11-12",
+              "moveOut": "2026-11-15",
+              "nights": 3
+            },
+            "strike": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list requests after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [],
+          "counts": {
+            "confirmed": 2,
+            "requests": 0
+          },
+          "owed": {
+            "due": 750,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list confirmed after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=confirmed",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d1TEST",
+              "confirmedAt": "2026-11-02T15:45:54.658Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd1@contract.test",
+                "name": "Guest d1",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-09T15:45:54.658Z",
+              "hostelAnswerBy": "2026-11-03T01:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d1",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "CONFIRMED",
+              "statusLabel": "Confirmed",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d9TEST",
+              "confirmedAt": "2026-11-02T15:45:55.740Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": null,
+              "guest": {
+                "email": "guestd9@contract.test",
+                "name": "Guest d9",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-13T18:14:59.999Z",
+              "hostelAnswerBy": "2026-11-03T06:45:49.075Z",
+              "hostelShareIfKept": 3900,
+              "id": "6b00000000000000000000d9",
+              "kind": "SHORT_STAY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": "2026-11-12",
+              "roomType": "Single",
+              "settlement": null,
+              "status": "CONFIRMED",
+              "statusLabel": "Confirmed",
+              "stay": {
+                "amount": 3000,
+                "dailyRate": 1000,
+                "dates": "12 Nov 2026 – 15 Nov 2026 (Kartik 26–29)",
+                "holdBlocks": 2,
+                "moveIn": "2026-11-12",
+                "moveOut": "2026-11-15",
+                "nights": 3
+              },
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 0
+          },
+          "owed": {
+            "due": 750,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list history after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=history",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": null,
+              "code": "BK-d5TEST",
+              "confirmedAt": "2026-11-02T14:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": "Room flooded",
+              "endedAt": "2026-11-02T15:45:55.532Z",
+              "guest": {
+                "email": "guestd5@contract.test",
+                "name": "Guest d5",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-06T19:45:49.075Z",
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d5",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 0
+              },
+              "status": "CANCELLED_BY_HOSTEL",
+              "statusLabel": "Cancelled by the hostel",
+              "stay": null,
+              "strike": true
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d6TEST",
+              "confirmedAt": "2026-10-25T15:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T15:45:55.380Z",
+              "guest": {
+                "email": "guestd6@contract.test",
+                "name": "Guest d6",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-01T15:45:49.075Z",
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d6",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": {
+                "amount": 750,
+                "documentNumber": null,
+                "sentAt": null,
+                "status": "DUE",
+                "transactionId": null
+              },
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 750
+              },
+              "status": "NO_SHOW",
+              "statusLabel": "Did not move in",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d3TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T15:45:55.235Z",
+              "guest": {
+                "email": "guestd3@contract.test",
+                "name": "Guest d3",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T21:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d3",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 0
+              },
+              "status": "DECLINED",
+              "statusLabel": "Declined by the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d2TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": "Full up",
+              "endedAt": "2026-11-02T15:45:54.944Z",
+              "guest": {
+                "email": "guestd2@contract.test",
+                "name": "Guest d2",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-03T11:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d2",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 0
+              },
+              "status": "DECLINED",
+              "statusLabel": "Declined by the hostel",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d4TEST",
+              "confirmedAt": null,
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T15:45:54.400Z",
+              "guest": {
+                "email": "guestd4@contract.test",
+                "name": "Guest d4",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": "2026-11-02T14:45:49.075Z",
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d4",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": null,
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 0
+              },
+              "status": "HOSTEL_NO_RESPONSE",
+              "statusLabel": "Hostel did not answer",
+              "stay": null,
+              "strike": true
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d7TEST",
+              "confirmedAt": "2026-11-01T19:45:49.075Z",
+              "createdAt": "2026-10-31T15:45:49.075Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T05:45:49.075Z",
+              "guest": {
+                "email": "guestd7@contract.test",
+                "name": "Guest d7",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d7",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": {
+                "amount": 188,
+                "documentNumber": "HH-BPO-2083-84-00000007",
+                "sentAt": "2026-11-02T13:45:49.075Z",
+                "status": "SENT",
+                "transactionId": "TX-777"
+              },
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 188
+              },
+              "status": "CANCELLED_BY_USER",
+              "statusLabel": "Cancelled",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 2,
+            "requests": 0
+          },
+          "owed": {
+            "due": 750,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

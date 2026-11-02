@@ -77,7 +77,7 @@ export async function listHostelBookings(hostelId: Types.ObjectId | string, tab:
     BookingModel.countDocuments({ ...paid, status: "AWAITING_HOSTEL" }),
     BookingModel.countDocuments({ ...paid, status: "CONFIRMED" }),
     BookingTransferModel.find({ hostelId, kind: "PAYOUT" })
-      .select("amount bookingId status")
+      .select("amount bookingId documentNumber sentAt status transactionId")
       .lean<TransferRecord[]>(),
     HostelModel.findById(hostelId)
       .select("bookingPause")

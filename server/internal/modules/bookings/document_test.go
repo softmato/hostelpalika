@@ -34,6 +34,7 @@ func TestDocumentsMatchTS(t *testing.T) {
 	pct := 75.0
 	refunded.Settlement = &struct {
 		HostelShare   *int64   `bson:"hostelShare"`
+		Kept          *int64   `bson:"kept"`
 		Refund        *int64   `bson:"refund"`
 		RefundPercent *float64 `bson:"refundPercent"`
 	}{RefundPercent: &pct}
