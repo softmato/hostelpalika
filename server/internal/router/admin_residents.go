@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelresidents"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
 	"github.com/softmato/hostelpalika/server/internal/modules/inquiries"
@@ -21,4 +22,7 @@ func mountAdminResidents(v1 *gin.RouterGroup, s *shared) {
 		Personal: s.Personal, R2: s.R2, Claims: s.Claims, AppURL: s.AppURL, Outbound: s.Outbound, Config: s.Config, ActivationSecret: s.Cfg.Auth.ActivationCodeSecret}, Guards: s.Guards, Cache: s.Cache}).Register(v1)
 	(&inquiries.Handler{DB: s.D.DB, Guards: s.Guards, Cache: s.Cache, Audit: s.Audit}).Register(v1)
 	(&movechecklist.Handler{Service: &movechecklist.Service{DB: s.D.DB}, Guards: s.Guards}).Register(v1)
+	signed := &bookings.Signed{Service: s.Bookings, Guards: s.Guards, Limiter: s.Limiter, Notify: s.Notify, Mail: s.Mail, Audit: s.Audit, RT: s.RT, Bump: s.Cache, Outbound: s.Outbound,
+		SoftmatoOn: s.Cfg.Softmato.BaseURL != "" && s.Cfg.Softmato.Secret != "" && s.Cfg.Softmato.WebhookSecret != ""}
+	(&bookings.Hostel{Signed: signed, Claim: capacity.Claim}).Register(v1)
 }

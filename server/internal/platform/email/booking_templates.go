@@ -194,3 +194,34 @@ func HostelBookingsPaused(hostelName, reviewURL string, strikes int64, windowDay
 	return Content{Category: Alert, Subject: "Bookings stopped — " + hostelName, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Bookings", Heading: "Hostel bookings stopped",
 		Preheader: hostelName + ": " + n + " strikes in " + windowDays + " days."})}
 }
+
+// ConfirmedStep is one line of the cancel ladder in the confirmation mail.
+type ConfirmedStep struct {
+	Refund        int64
+	RefundPercent string
+	Until         string
+}
+
+// BookingConfirmed is bookingConfirmedEmail: the hostel said yes.
+func BookingConfirmed(b BookingFacts, address, bookingURL, directionsURL, holdEndsAt, hostelPhone, landmark, name string, noShowRefund int64, schedule []ConfirmedStep) Content {
+	steps := make([]DetailRow, 0, len(schedule)+1)
+	for _, s := range schedule {
+		steps = append(steps, DetailRow{Label: "Cancel before " + s.Until, Value: Rupees(s.Refund) + " back (" + s.RefundPercent + "%)"})
+	}
+	steps = append(steps, DetailRow{Label: "Not moved in by " + holdEndsAt, Value: Rupees(noShowRefund) + " back"})
+	directions := ""
+	if directionsURL != "" {
+		directions = CTAButton(directionsURL, "Get directions")
+	}
+	body := strings.Join([]string{Greeting(name),
+		Paragraph("<strong>" + EscapeHTML(b.HostelName) + "</strong> said yes. One " + EscapeHTML(b.RoomType) + " bed is kept for you until <strong>" + EscapeHTML(holdEndsAt) + "</strong>."),
+		DetailsTable([]DetailRow{{Label: "Booking", Value: b.Code}, {Label: "Room type", Value: b.RoomType}, {Label: "Monthly rent", Value: Rupees(b.MonthlyRent)},
+			{Emphasis: true, Label: "Move in by", Value: holdEndsAt}, {Label: "Address", Value: address}, {Label: "Landmark", Value: landmark}, {Label: "Hostel phone", Value: hostelPhone}}),
+		directions,
+		Paragraph("At the hostel, show your " + PlatformName + " ID card. The hostel scans it and you can move in."),
+		Paragraph("<strong>If you cancel</strong>"), DetailsTable(steps),
+		SmallPrint("The booking fee is not part of your rent, admission fee or deposit. You pay those to the hostel. " + TextLink(bookingURL, "View booking") + "."),
+	}, "")
+	return Content{Category: Billing, Subject: "Your bed is booked at " + b.HostelName + " — move in by " + holdEndsAt, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Booked", Heading: "Your bed is booked",
+		Preheader: "One " + RoomTypeLabel(b.RoomType) + " bed at " + b.HostelName + " is kept for you until " + holdEndsAt + "."})}
+}

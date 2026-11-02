@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
@@ -138,6 +141,37 @@ func documentLayout(kind string, b *Booking, transfer *Transfer, issuer Issuer) 
 		l.FooterNote = "Computer-generated receipt. No signature required."
 		l.Notes = []string{issuer.LegalName + " holds this fee until the booking ends, then refunds it or pays the", "hostel its share, under the refund policy printed on the invoice."}
 		l.Number, l.NumberLabel, l.PartyEyebrow, l.Title = receipt, "Receipt No.", "Received from", "Booking Fee Receipt"
+	case kind == "payout":
+		sent := time.Now()
+		at, tx, number := "", "", ""
+		if transfer.SentAt != nil {
+			sent, at = *transfer.SentAt, documentInstant(*transfer.SentAt)
+		}
+		if transfer.TransactionID != nil {
+			tx = *transfer.TransactionID
+		}
+		if transfer.DocumentNumber != nil {
+			number = *transfer.DocumentNumber
+		}
+		var refund, kept int64
+		if b.Settlement != nil {
+			if b.Settlement.Refund != nil {
+				refund = *b.Settlement.Refund
+			}
+			if b.Settlement.Kept != nil {
+				kept = *b.Settlement.Kept
+			}
+		}
+		share := jsNum(b.Terms.HostelSharePercent) + "% of kept"
+		if b.Stay != nil {
+			share = jsNum(b.Terms.HostelSharePercent) + "% of the fee kept, " + jsNum(b.Stay.HostelSharePercent) + "% of the nights kept"
+		}
+		l.Against = &docField{"Booking", b.Code}
+		l.Amount, l.AmountLabel, l.Date, l.DateLabel = transfer.Amount, "Amount paid out", sent, "Advice Date"
+		l.Fields = []docField{{"Guest", b.Guest.Name}, {"Room type", b.RoomType}, {"Booking fee", moneyText(b.Fee)}, {"Refunded to guest", moneyText(refund)}, {"Kept", moneyText(kept)},
+			{"Hostel share", share}, {"Transaction ID", tx}, {"Sent at", at}}
+		l.FooterNote = "Computer-generated payout advice. No signature required."
+		l.Number, l.NumberLabel, l.PartyName, l.PartyEyebrow, l.PartyDetail, l.Title = number, "Advice No.", b.HostelSnapshot.Name, "Paid to", destinationText(transfer.Destination), "Payout Advice"
 	default: // refund
 		sent := time.Now()
 		at := ""
@@ -267,6 +301,38 @@ func renderDocument(l docLayout) ([]byte, error) {
 func documentFileName(number string) string { return strings.ReplaceAll(number, "/", "-") + ".pdf" }
 
 // attachment is bookingDocumentAttachment: never fails the mail it rides on.
+// HostelDocument is GET /hostel-admin/bookings/documents/:number: the payout
+// advice of one of the caller's own hostels; anything else is a plain 404.
+func (s *Signed) HostelDocument(c *gin.Context) {
+	p := authz.From(c)
+	number, _ := url.PathUnescape(c.Param("number"))
+	var t Transfer
+	err := s.db.Collection("bookingtransfers").FindOne(c, bson.D{{Key: "documentNumber", Value: number}, {Key: "kind", Value: "PAYOUT"}, {Key: "status", Value: "SENT"}}).Decode(&t)
+	var b Booking
+	if err == nil {
+		err = s.db.Collection("bookings").FindOne(c, bson.D{{Key: "_id", Value: t.BookingID}}).Decode(&b)
+	}
+	if errors.Is(err, mongo.ErrNoDocuments) || number == "" || (err == nil && !slices.Contains(p.HostelIDs, b.HostelID.Hex())) {
+		notFoundPlain(c)
+		return
+	}
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	issuer, err := s.loadIssuer(c)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	data, err := renderDocument(documentLayout("payout", &b, &t, issuer))
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	sendDocument(c, number, "application/pdf", data)
+}
+
 func (s *Signed) attachment(ctx context.Context, b *Booking) []email.Attachment {
 	issuer, err := s.loadIssuer(ctx)
 	if err != nil {

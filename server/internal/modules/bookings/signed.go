@@ -67,6 +67,7 @@ type Booking struct {
 		Phone string `bson:"phone"`
 	} `bson:"guest"`
 	HoldEndsAt     *time.Time    `bson:"holdEndsAt"`
+	HostelStrike   bool          `bson:"hostelStrike"`
 	HostelAnswerBy *time.Time    `bson:"hostelAnswerBy"`
 	HostelID       bson.ObjectID `bson:"hostelId"`
 	HostelSnapshot struct {
@@ -98,6 +99,7 @@ type Booking struct {
 	RoomType   string `bson:"roomType"`
 	Settlement *struct {
 		HostelShare   *int64   `bson:"hostelShare"`
+		Kept          *int64   `bson:"kept"`
 		Refund        *int64   `bson:"refund"`
 		RefundPercent *float64 `bson:"refundPercent"`
 	} `bson:"settlement"`
