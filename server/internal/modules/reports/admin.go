@@ -66,6 +66,7 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	r.GET("/food", httpx.ETag(), a.food)
 	r.GET("/attendance", httpx.ETag(), a.attendance)
 	r.GET("/performance", httpx.ETag(), a.performance)
+	r.GET("/performance/pdf", a.performancePDF)
 	r.GET("/export", a.export)
 }
 

@@ -96,33 +96,9 @@ func amountInWords(rupees int64) string {
 	return strings.Join(parts, " ") + " Rupees Only"
 }
 
-var nepal = time.FixedZone("NPT", 345*60)
+func documentBsDate(t time.Time) string { return bs.DocumentBsDate(t) }
 
-func documentBsDate(t time.Time) string {
-	d, err := bs.ToBs(t)
-	if err != nil {
-		return ""
-	}
-	month := bs.MonthName(d.Month)
-	if month == "" {
-		return ""
-	}
-	return fmt.Sprintf("%d %s %d BS", d.Day, month, d.Year)
-}
-
-func documentAdDate(t time.Time) string { return enGBDay(t.In(nepal)) }
-
-func documentInstant(t time.Time) string {
-	l := t.In(nepal)
-	h, suffix := l.Hour()%12, "am"
-	if h == 0 {
-		h = 12
-	}
-	if l.Hour() >= 12 {
-		suffix = "pm"
-	}
-	return fmt.Sprintf("%s, %d:%02d %s NPT", documentAdDate(t), h, l.Minute(), suffix)
-}
+func documentInstant(t time.Time) string { return bs.DocumentInstant(t) }
 
 type docField struct{ Label, Value string }
 
@@ -287,7 +263,7 @@ func renderDocument(l docLayout) ([]byte, error) {
 	c.Down(pdf.SpaceTight)
 
 	c.Field(l.NumberLabel, l.Number, pdf.FieldOptions{ValueColor: accent})
-	c.Field(l.DateLabel, documentBsDate(l.Date), pdf.FieldOptions{Suffix: "(" + documentAdDate(l.Date) + ")"})
+	c.Field(l.DateLabel, documentBsDate(l.Date), pdf.FieldOptions{Suffix: "(" + bs.DocumentAdDate(l.Date) + ")"})
 	if l.Against != nil {
 		c.Field(l.Against.Label, l.Against.Value, pdf.FieldOptions{})
 	}

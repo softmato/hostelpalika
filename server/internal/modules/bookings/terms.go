@@ -230,12 +230,8 @@ func quoteStay(dailyRate int64, holdDays, sharePercent, maxAdvanceDays, maxNight
 	return &Stay{Amount: nights * dailyRate, DailyRate: dailyRate, HoldBlocks: blocks, HostelSharePercent: sharePercent, MoveIn: *moveIn, MoveOut: *moveOut, Nights: nights}, nil
 }
 
-var enGBMonths = []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
-
 // enGBDay is en-GB `{day:"numeric", month:"short", year:"numeric"}`, which says "Sept".
-func enGBDay(t time.Time) string {
-	return strconv.Itoa(t.Day()) + " " + enGBMonths[t.Month()-1] + " " + strconv.Itoa(t.Year())
-}
+func enGBDay(t time.Time) string { return bs.EnGBDay(t) }
 
 // stayDatesText is stayDatesText: AD first, the hostel's BS days beside it.
 func stayDatesText(s *Stay) string {

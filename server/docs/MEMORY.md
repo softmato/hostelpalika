@@ -175,3 +175,8 @@ Port order inside finance: the billing run needs `fee-schedule.service`, `refere
 - Check a raster golden by eye, not by the number alone: blank text scored only 4/255, and the first threshold of 3 nearly let it pass.
 - Go numbers written to Mongo go through `jsInt` where TS writes a JS number: an `int64` lands as `NumberLong`.
 - Fixed 2026-11-01 under the bug rule: receipts/x/pdf (now 404) and PATCH guardians (keys left out stay as they are). Left as is on purpose: a batched notification keeps its `createdAt`, so the row keeps its place in the bell.
+
+## Phase 6 progress note (2026-11-02)
+Done and contract-green: expenses, stock, 10 of 12 hostel report routes. Left in reports: `statement/pdf` and `overall/pdf`, both need the finance ledger (`getHostelLedger`).
+CI green from 82064ea0: Go 1.27.3, patched modules, `staticcheck.conf` exempts ST1005 because error strings are the web's own answers.
+Findings to log at closeout: REP-1 payments report filtered claims on `submittedAt`, a field PaymentEvent lacks (now `occurredAt`). REP-2 food and attendance `days=abc` made an invalid date. REP-3 overview crashed on an unreadable month such as 2083-13. REP-4 `$group` order shuffled invoice counts and tied attendance rows.
