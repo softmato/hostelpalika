@@ -1,0 +1,557 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "warden no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata",
+        "data": {
+          "accounts": [],
+          "items": [],
+          "requests": [],
+          "recent": [],
+          "waiting": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "save bad",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "items": [
+          {
+            "name": " ",
+            "price": 0,
+            "imageAssetId": "zz"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "items": [
+              "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "Too small: expected string to have \u003e=1 characters",
+              "Too small: expected number to be \u003e=1"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "path": "items.0.imageAssetId"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "items.0.name"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "items.0.price"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "items": [
+          {
+            "name": " Tea ",
+            "price": 20
+          },
+          {
+            "name": "Biscuit",
+            "price": 15,
+            "active": false,
+            "imageAssetId": "6D0900000000000000000099",
+            "id": "6d09000000000000000000c8"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.items[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata items saved",
+        "data": {
+          "items": [
+            {
+              "active": true,
+              "id": "6ae84e215e205a5564095e28",
+              "imageAssetId": null,
+              "name": "Tea",
+              "price": 20
+            },
+            {
+              "active": false,
+              "id": "6d09000000000000000000c8",
+              "imageAssetId": "6d0900000000000000000099",
+              "name": "Biscuit",
+              "price": 15
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "read items",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.items[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata",
+        "data": {
+          "accounts": [],
+          "items": [
+            {
+              "active": true,
+              "id": "6ae84e215e205a5564095e28",
+              "imageAssetId": null,
+              "name": "Tea",
+              "price": 20
+            },
+            {
+              "active": false,
+              "id": "6d09000000000000000000c8",
+              "imageAssetId": "6d0900000000000000000099",
+              "name": "Biscuit",
+              "price": 15
+            }
+          ],
+          "requests": [],
+          "recent": [],
+          "waiting": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "decide bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d090000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "OPEN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"APPROVE\"|\"DECLINE\"|\"CLOSE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"APPROVE\"|\"DECLINE\"|\"CLOSE\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "decide bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "APPROVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "KHATA_ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "decide other",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d0900000000000000000063",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "APPROVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "KHATA_ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "decide deleted",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d090000000000000000000d",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "APPROVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "KHATA_ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "approve",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d090000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "APPROVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "residentId": "6d090000000000000000000a",
+          "status": "ACTIVE"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "decline",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d090000000000000000000b",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "DECLINE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "residentId": "6d090000000000000000000b",
+          "status": "DECLINED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "overview after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.items[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata",
+        "data": {
+          "accounts": [
+            {
+              "id": "6d090000000000000000000a",
+              "name": "Asha Report",
+              "requestedAt": null,
+              "roomNumber": null,
+              "unbilled": 0
+            }
+          ],
+          "items": [
+            {
+              "active": true,
+              "id": "6ae84e215e205a5564095e28",
+              "imageAssetId": null,
+              "name": "Tea",
+              "price": 20
+            },
+            {
+              "active": false,
+              "id": "6d09000000000000000000c8",
+              "imageAssetId": "6d0900000000000000000099",
+              "name": "Biscuit",
+              "price": 15
+            }
+          ],
+          "requests": [],
+          "recent": [],
+          "waiting": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "close",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/khata/residents/6d090000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "action": "CLOSE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "residentId": "6d090000000000000000000a",
+          "status": "CLOSED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  },
+  {
+    "name": "overview closed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.items[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata",
+        "data": {
+          "accounts": [],
+          "items": [
+            {
+              "active": true,
+              "id": "6ae84e215e205a5564095e28",
+              "imageAssetId": null,
+              "name": "Tea",
+              "price": 20
+            },
+            {
+              "active": false,
+              "id": "6d09000000000000000000c8",
+              "imageAssetId": "6d0900000000000000000099",
+              "name": "Biscuit",
+              "price": 15
+            }
+          ],
+          "requests": [],
+          "recent": [],
+          "waiting": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 02971998"
+  }
+]

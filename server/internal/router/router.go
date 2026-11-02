@@ -180,7 +180,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis), R2: storage.New(cfg.R2),
 		Reader: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}}).Register(v1)
 	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
-	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), Cache: cache.New(d.Redis)}).Register(v1)
 	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
 	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
 	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL}).Register(v1)

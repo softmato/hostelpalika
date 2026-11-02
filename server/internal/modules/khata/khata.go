@@ -19,6 +19,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -39,6 +40,7 @@ type Handler struct {
 	Notify *notifications.Service
 	RT     *realtime.Client
 	Bump   realtime.Bumper
+	Cache  *cache.Cache
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
@@ -46,6 +48,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.POST("/cook/khata/:id", h.decide)
 	v1.GET("/resident/finance/khata", httpx.ETag(), h.mine)
 	v1.POST("/resident/finance/khata", h.act)
+	h.registerStaff(v1)
 }
 
 type item struct {
@@ -197,27 +200,33 @@ func (h *Handler) orders(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	coll := h.DB.Collection("khataentries")
-	cur, err := coll.Find(c, bson.D{{Key: "hostelId", Value: hostel}, {Key: "status", Value: "REQUESTED"}}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: 1}}).SetLimit(200))
+	out, err := h.listOrders(c, hostel)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
+	}
+	httpx.OK(c, out, "Khata asks")
+}
+
+// listOrders is listKhataOrders: asks still waiting, and what was handed over or refused in the last day.
+func (h *Handler) listOrders(ctx context.Context, hostel bson.ObjectID) (ordersOut, error) {
+	coll := h.DB.Collection("khataentries")
+	cur, err := coll.Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "status", Value: "REQUESTED"}}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: 1}}).SetLimit(200))
+	if err != nil {
+		return ordersOut{}, err
 	}
 	var waiting []entry
-	if err := cur.All(c, &waiting); err != nil {
-		httpx.Fail(c, err)
-		return
+	if err := cur.All(ctx, &waiting); err != nil {
+		return ordersOut{}, err
 	}
-	cur, err = coll.Find(c, bson.D{{Key: "decidedAt", Value: bson.D{{Key: "$gte", Value: time.Now().Add(-24 * time.Hour)}}}, {Key: "hostelId", Value: hostel}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"GIVEN", "DECLINED"}}}}},
+	cur, err = coll.Find(ctx, bson.D{{Key: "decidedAt", Value: bson.D{{Key: "$gte", Value: time.Now().Add(-24 * time.Hour)}}}, {Key: "hostelId", Value: hostel}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"GIVEN", "DECLINED"}}}}},
 		options.Find().SetSort(bson.D{{Key: "decidedAt", Value: -1}}).SetLimit(50))
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return ordersOut{}, err
 	}
 	var recent []entry
-	if err := cur.All(c, &recent); err != nil {
-		httpx.Fail(c, err)
-		return
+	if err := cur.All(ctx, &recent); err != nil {
+		return ordersOut{}, err
 	}
 	ids := bson.A{}
 	for i := range waiting {
@@ -226,15 +235,13 @@ func (h *Handler) orders(c *gin.Context) {
 	for i := range recent {
 		ids = append(ids, recent[i].Resident)
 	}
-	cur, err = h.DB.Collection("residents").Find(c, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}})
+	cur, err = h.DB.Collection("residents").Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}})
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return ordersOut{}, err
 	}
 	var rows []resident
-	if err := cur.All(c, &rows); err != nil {
-		httpx.Fail(c, err)
-		return
+	if err := cur.All(ctx, &rows); err != nil {
+		return ordersOut{}, err
 	}
 	people := map[bson.ObjectID]*resident{}
 	for i := range rows {
@@ -247,7 +254,7 @@ func (h *Handler) orders(c *gin.Context) {
 	for i := range waiting {
 		out.Waiting[i] = waiting[i].out(people[waiting[i].Resident])
 	}
-	httpx.OK(c, out, "Khata asks")
+	return out, nil
 }
 
 func (h *Handler) decide(c *gin.Context) {
