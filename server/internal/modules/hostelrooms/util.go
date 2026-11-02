@@ -119,3 +119,6 @@ func numericCompare(a, b string) int {
 	}
 	return 0
 }
+
+// JSLess is jsLess for other modules' name sorts.
+func JSLess(a, b string) bool { return jsLess(a, b) }

@@ -984,3 +984,37 @@ func (h *Handler) void(c *gin.Context) {
 	}
 	httpx.OK(c, out, "Expense cancelled")
 }
+
+// LedgerExpenses is listLedgerExpenses: recorded spending, newest day first, for
+// the money ledger. mineOnly keeps a warden to their own rows and cash given to them.
+func LedgerExpenses(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, asker string, limit int64, mineOnly bool) ([]ordered.Map, bool, error) {
+	filter := bson.D{{Key: "cashStatus", Value: bson.D{{Key: "$ne", Value: "DECLINED"}}}, {Key: "hostelId", Value: hostel}, {Key: "status", Value: "RECORDED"}}
+	if mineOnly {
+		me, err := bson.ObjectIDFromHex(asker)
+		if err != nil {
+			return nil, false, err
+		}
+		filter = append(filter, bson.E{Key: "$or", Value: bson.A{bson.D{{Key: "recordedBy", Value: me}}, bson.D{{Key: "category", Value: staffCash}, {Key: "cashTo.userId", Value: me}}}})
+	}
+	cur, err := db.Collection("expenses").Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "spentOn", Value: -1}, {Key: "createdAt", Value: -1}}).SetLimit(limit))
+	if err != nil {
+		return nil, false, err
+	}
+	var docs []doc
+	if err := cur.All(ctx, &docs); err != nil {
+		return nil, false, err
+	}
+	cats, err := (&Handler{DB: db}).categories(ctx, hostel)
+	if err != nil {
+		return nil, false, err
+	}
+	names := map[string]string{}
+	for _, x := range cats {
+		names[x.ID] = x.Name
+	}
+	out := make([]ordered.Map, len(docs))
+	for i := range docs {
+		out[i] = serialize(&docs[i], asker, names)
+	}
+	return out, int64(len(docs)) >= limit, nil
+}

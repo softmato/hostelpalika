@@ -1,0 +1,1006 @@
+[
+  {
+    "name": "invoices resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "invoices bad period",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?period=2083-13",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "period": [
+              "Invalid string: must match pattern /^\\d{4}-(0[1-9]|1[0-2])$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-(0[1-9]|1[0-2])$/",
+              "path": "period"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "invoices 2083-05",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?period=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-05",
+          "rows": [
+            {
+              "displayStatus": "PARTIAL",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 1000,
+                "dueDate": "2026-09-02T18:00:00.000Z",
+                "id": "6d0900000000000000000014",
+                "method": "ESEWA",
+                "month": "2083-05",
+                "paidAmount": 250,
+                "paidDate": "2026-09-02T18:00:00.000Z",
+                "status": "PARTIAL",
+                "fineWaived": false,
+                "lines": []
+              },
+              "resident": {
+                "fullName": "Asha Report",
+                "id": "6d090000000000000000000a",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000100",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "PENDING_PROOF",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 500,
+                "dueDate": "2026-09-02T18:00:00.000Z",
+                "id": "6d0900000000000000000015",
+                "month": "2083-05",
+                "paidAmount": 0,
+                "status": "PENDING_PROOF",
+                "fineWaived": false,
+                "lines": []
+              },
+              "resident": {
+                "fullName": "Bina Report",
+                "id": "6d090000000000000000000b",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000110",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 9000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Card Ledger",
+                "id": "6d09000000000000000000b0",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "phone": "9800000200",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 0,
+                "reason": "PAID_BEFORE_JOINING"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Early Ledger",
+                "id": "6d09000000000000000000b3",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "BED_TYPE_NOT_PRICED"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Odd Ledger",
+                "id": "6d09000000000000000000b2",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Penthouse"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 7000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Own Ledger",
+                "id": "6d09000000000000000000b1",
+                "image": null,
+                "moveInDate": "2026-08-26T00:00:00.000Z",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 250,
+            "due": 1500,
+            "notBilled": 4,
+            "overdue": 0,
+            "paid": 0,
+            "partial": 1,
+            "unpaid": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "invoices 2083-06",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?period=2083-06",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-06",
+          "rows": [
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 1000,
+                "dueDate": "2026-09-11T06:00:00.000Z",
+                "id": "6d09000000000000000000a1",
+                "month": "2083-06",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 1000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Asha Report",
+                "id": "6d090000000000000000000a",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000100",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 9000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Card Ledger",
+                "id": "6d09000000000000000000b0",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "phone": "9800000200",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 0,
+                "reason": "PAID_BEFORE_JOINING"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Early Ledger",
+                "id": "6d09000000000000000000b3",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "BED_TYPE_NOT_PRICED"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Odd Ledger",
+                "id": "6d09000000000000000000b2",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Penthouse"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 7000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Own Ledger",
+                "id": "6d09000000000000000000b1",
+                "image": null,
+                "moveInDate": "2026-08-26T00:00:00.000Z",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 0,
+            "due": 1000,
+            "notBilled": 4,
+            "overdue": 0,
+            "paid": 0,
+            "partial": 0,
+            "unpaid": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "invoices 2083-08",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?period=2083-08",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-08",
+          "rows": [
+            {
+              "displayStatus": "PAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 1000,
+                "dueDate": "2026-09-11T06:00:00.000Z",
+                "id": "6d09000000000000000000a2",
+                "month": "2083-08",
+                "paidAmount": 1000,
+                "status": "PAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 1000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Asha Report",
+                "id": "6d090000000000000000000a",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000100",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 9000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Card Ledger",
+                "id": "6d09000000000000000000b0",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "phone": "9800000200",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 9000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Early Ledger",
+                "id": "6d09000000000000000000b3",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "BED_TYPE_NOT_PRICED"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Odd Ledger",
+                "id": "6d09000000000000000000b2",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Penthouse"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 7000,
+                "reason": "NOT_YET_DUE"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Own Ledger",
+                "id": "6d09000000000000000000b1",
+                "image": null,
+                "moveInDate": "2026-08-26T00:00:00.000Z",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 1000,
+            "due": 1000,
+            "notBilled": 4,
+            "overdue": 0,
+            "paid": 1,
+            "partial": 0,
+            "unpaid": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "invoices current",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-07",
+          "rows": [
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 700,
+                "dueDate": "2026-09-02T18:00:00.000Z",
+                "id": "6d0900000000000000000019",
+                "month": "2083-07",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": []
+              },
+              "resident": {
+                "fullName": "Asha Report",
+                "id": "6d090000000000000000000a",
+                "image": null,
+                "moveInDate": "2026-09-01T06:00:00.000Z",
+                "phone": "9800000100",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 4500,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Card Ledger",
+                "id": "6d09000000000000000000b0",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "phone": "9800000200",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 4500,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Early Ledger",
+                "id": "6d09000000000000000000b3",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "BED_TYPE_NOT_PRICED"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Odd Ledger",
+                "id": "6d09000000000000000000b2",
+                "image": null,
+                "moveInDate": "2026-07-17T00:00:00.000Z",
+                "roomNumber": null,
+                "roomType": "Penthouse"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 3500,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Own Ledger",
+                "id": "6d09000000000000000000b1",
+                "image": null,
+                "moveInDate": "2026-08-26T00:00:00.000Z",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 0,
+            "due": 700,
+            "notBilled": 4,
+            "overdue": 0,
+            "paid": 0,
+            "partial": 0,
+            "unpaid": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "ledger resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "ledger",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Transactions",
+        "data": {
+          "entries": [
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "id": "6d0900000000000000000014",
+              "method": "ESEWA",
+              "month": "2083-05",
+              "paidAmount": 250,
+              "paidDate": "2026-09-02T18:00:00.000Z",
+              "status": "PARTIAL",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "paymentMethod": "ESEWA",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            },
+            {
+              "dueAmount": 500,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "id": "6d0900000000000000000015",
+              "month": "2083-05",
+              "paidAmount": 0,
+              "status": "PENDING_PROOF",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "residentId": "6d090000000000000000000b",
+              "residentName": "Bina Report"
+            },
+            {
+              "dueAmount": 800,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "id": "6d0900000000000000000016",
+              "method": "ESEWA",
+              "month": "2083-04",
+              "paidAmount": 800,
+              "paidDate": "2026-09-02T18:00:00.000Z",
+              "status": "PAID",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "paymentMethod": "ESEWA",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            },
+            {
+              "dueAmount": 200,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "id": "6d0900000000000000000018",
+              "month": null,
+              "paidAmount": 0,
+              "status": "UNPAID",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            },
+            {
+              "dueAmount": 700,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "id": "6d0900000000000000000019",
+              "month": "2083-07",
+              "paidAmount": 0,
+              "status": "UNPAID",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-11T06:00:00.000Z",
+              "id": "6d09000000000000000000a1",
+              "month": "2083-06",
+              "paidAmount": 0,
+              "status": "UNPAID",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-11T06:00:00.000Z",
+              "id": "6d09000000000000000000a2",
+              "month": "2083-08",
+              "paidAmount": 1000,
+              "status": "PAID",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "residentId": "6d090000000000000000000a",
+              "residentName": "Asha Report"
+            }
+          ],
+          "expenses": [],
+          "openingBalance": null,
+          "truncated": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "periods",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices/periods",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment periods",
+        "data": {
+          "earliestPeriod": "2083-04",
+          "months": [
+            {
+              "collected": 1000,
+              "due": 1000,
+              "needsAttention": 0,
+              "paid": 1,
+              "period": "2083-08",
+              "total": 1
+            },
+            {
+              "collected": 0,
+              "due": 700,
+              "needsAttention": 1,
+              "paid": 0,
+              "period": "2083-07",
+              "total": 1
+            },
+            {
+              "collected": 0,
+              "due": 1000,
+              "needsAttention": 1,
+              "paid": 0,
+              "period": "2083-06",
+              "total": 1
+            },
+            {
+              "collected": 250,
+              "due": 1500,
+              "needsAttention": 2,
+              "paid": 0,
+              "period": "2083-05",
+              "total": 2
+            },
+            {
+              "collected": 800,
+              "due": 800,
+              "needsAttention": 0,
+              "paid": 1,
+              "period": "2083-04",
+              "total": 1
+            }
+          ],
+          "overall": {
+            "collected": 2050,
+            "due": 5200,
+            "outstanding": 3150,
+            "overdueResidents": 0,
+            "paid": 2,
+            "partial": 1,
+            "pendingProofs": 1,
+            "unpaid": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "resident ledger",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/residents/6d090000000000000000000a/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident payment history",
+        "data": {
+          "months": [
+            {
+              "dueAmount": 700,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "invoiceId": "6d0900000000000000000019",
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-07",
+              "status": "UNPAID"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-11T06:00:00.000Z",
+              "invoiceId": "6d09000000000000000000a1",
+              "lines": [
+                {
+                  "amount": 1000,
+                  "basis": "SCHEDULE",
+                  "description": "Monthly rent"
+                }
+              ],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-06",
+              "status": "UNPAID"
+            },
+            {
+              "dueAmount": 1000,
+              "dueDate": "2026-09-02T18:00:00.000Z",
+              "invoiceId": "6d0900000000000000000014",
+              "lines": [],
+              "paidAmount": 250,
+              "payments": [
+                {
+                  "amount": 250,
+                  "method": "ESEWA",
+                  "occurredAt": "2026-09-01T06:00:00.000Z",
+                  "receiptNumber": null,
+                  "settledAt": "2026-09-02T18:00:00.000Z",
+                  "transactionCode": null
+                }
+              ],
+              "period": "2083-05",
+              "status": "PARTIAL"
+            }
+          ],
+          "resident": {
+            "fullName": "Asha Report",
+            "id": "6d090000000000000000000a",
+            "moveInDate": "2026-09-01T06:00:00.000Z",
+            "phone": "9800000100",
+            "roomType": "Single"
+          },
+          "totals": {
+            "monthsBilled": 3,
+            "monthsPaid": 0,
+            "outstanding": 2450,
+            "paid": 250
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "resident ledger own fee",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/residents/6d09000000000000000000b1/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident payment history",
+        "data": {
+          "months": [
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-07",
+              "status": "NOT_BILLED"
+            },
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-06",
+              "status": "NOT_BILLED"
+            },
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-05",
+              "status": "NOT_BILLED"
+            }
+          ],
+          "resident": {
+            "fullName": "Own Ledger",
+            "id": "6d09000000000000000000b1",
+            "moveInDate": "2026-08-26T00:00:00.000Z",
+            "phone": null,
+            "roomType": "Single"
+          },
+          "totals": {
+            "monthsBilled": 0,
+            "monthsPaid": 0,
+            "outstanding": 0,
+            "paid": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "resident ledger bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/residents/nope/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  },
+  {
+    "name": "resident ledger erased",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/residents/6d090000000000000000000d/ledger",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 3a52eecf"
+  }
+]

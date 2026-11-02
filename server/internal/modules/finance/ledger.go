@@ -91,9 +91,20 @@ func LedgerStages(match bson.D) bson.A {
 
 // ListResidentInvoices is listResidentInvoices: newest due date first.
 func ListResidentInvoices(ctx context.Context, db *mongo.Database, s LedgerScope) ([]LedgerInvoice, error) {
-	stages := append(ledgerStages(s), bson.D{{Key: "$sort", Value: bson.D{{Key: "dueDate", Value: -1}}}})
-	if s.Limit > 0 {
-		stages = append(stages, bson.D{{Key: "$limit", Value: s.Limit}})
+	return ListLedger(ctx, db, ledgerStages(s), bson.D{{Key: "dueDate", Value: -1}}, s.Limit)
+}
+
+// UnvoidedMatch is ledgerFilterFor's default status: everything but VOID.
+func UnvoidedMatch(match bson.D) bson.A {
+	return LedgerStages(append(match, bson.E{Key: "status", Value: bson.D{{Key: "$ne", Value: "VOID"}}}))
+}
+
+// ListLedger runs the ledger stages, sorted and limited (0 = no limit).
+// listRecentInvoices is this with createdAt -1.
+func ListLedger(ctx context.Context, db *mongo.Database, stages bson.A, sort bson.D, limit int64) ([]LedgerInvoice, error) {
+	stages = append(stages, bson.D{{Key: "$sort", Value: sort}})
+	if limit > 0 {
+		stages = append(stages, bson.D{{Key: "$limit", Value: limit}})
 	}
 	cur, err := db.Collection("invoices").Aggregate(ctx, stages)
 	if err != nil {
