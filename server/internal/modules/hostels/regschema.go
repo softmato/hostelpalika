@@ -154,6 +154,78 @@ func each(f *valid.Form, key string, items []any, fill func(i int, sub *valid.Fo
 func ParseRegistration(body any) (Reg, error) {
 	f := valid.NewForm(body)
 	var in Reg
+	parseCreateBase(f, &in, false)
+	in.AltPhone = regStr(f, "alternatePhone", valid.S{Min: 7, Max: 24})
+	f.Nest("applicant", false, func(s *valid.Form) {
+		in.Applicant.Age = regStr(s, "age", valid.S{Max: 3})
+		if v, ok := s.Str("email", valid.S{Opt: true, Trim: true}); ok {
+			if !valid.IsEmail(v) {
+				s.Is.Add("email", valid.Format("email"))
+			}
+			in.Applicant.Email = &v
+		}
+		if s.Present("gender") {
+			if v, ok := s.Enum("gender", true, nil, "Male", "Female", "Other"); ok {
+				in.Applicant.Gender = &v
+			}
+		}
+		in.Applicant.IDProof = regStr(s, "idProofType", valid.S{Max: 80})
+		in.Applicant.Name, _ = s.Str("name", valid.S{Trim: true, Min: 2, Max: 120})
+		in.Applicant.Phone, _ = s.Str("phone", valid.S{Trim: true, Min: 7, Max: 24})
+	})
+	regNum(f, "cookCount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(100)})
+	in.Landmark = regStr(f, "landmark", valid.S{Max: 240})
+	in.MapLink = regStr(f, "mapLink", valid.S{Max: 500})
+	in.PAN = regStr(f, "panNumber", valid.S{Re: panShape, ReMsg: "A PAN/VAT number is 9 digits."})
+	f.Nest("plan", true, func(s *valid.Form) {
+		monthly := "monthly"
+		cycle, _ := s.Enum("cycle", true, &monthly, "monthly", "halfYearly", "annual")
+		pc := PlanChoice{Cycle: cycle}
+		if s.Present("lifetime") {
+			if b, ok := s.Bool("lifetime", true, nil); ok {
+				pc.Lifetime = &b
+			}
+		}
+		pc.PlanID, _ = s.Str("planId", valid.S{Trim: true, Min: 1, Max: 40})
+		in.Plan = &pc
+	})
+	parseShortStays(f, &in)
+	parseFoodRoutine(f)
+	f.Nest("payoutAccount", true, func(s *valid.Form) { in.Payout = parsePayout(s) })
+	in.RefDisc = regNum(f, "referralAdmissionDiscount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(1_000_000)})
+	in.TotalCap = regNum(f, "totalCapacity", valid.N{Int: true, Min: valid.P(0), Max: valid.P(10_000)})
+	in.Year = regStr(f, "yearEstablished", valid.S{Re: yearShape, ReMsg: "Year established should be four digits."})
+	if v, ok := f.Str("referralCode", valid.S{Opt: true, Trim: true, Max: 32}); ok {
+		in.RefCode = v
+	}
+	if !f.Hard {
+		refineRegistration(f, in)
+	}
+	return in, f.Err()
+}
+
+// parseShortStays is the shortStays object both the registration and branch schemas carry.
+func parseShortStays(f *valid.Form, in *Reg) {
+	f.Nest("shortStays", true, func(s *valid.Form) {
+		var ss ShortStaysIn
+		ss.Enabled, _ = s.Bool("enabled", false, nil)
+		ss.MinNights, _ = s.Num("minNights", valid.N{Coerce: true, Int: true, Min: valid.P(1), Max: valid.P(29)})
+		if items, ok := s.Array("rates", false, false); ok {
+			each(s, "rates", items, func(_ int, r *valid.Form) {
+				var sr ShortRate
+				sr.Daily, _ = r.Num("dailyRate", valid.N{Coerce: true, Int: true, IntMsg: "Use whole rupees.", Min: valid.P(1)})
+				sr.RoomType, _ = r.Str("roomType", valid.S{Trim: true, Min: 1, Max: 80})
+				ss.Rates = append(ss.Rates, sr)
+			})
+			s.Size("rates", len(items), 0, 30, "", false)
+		}
+		in.ShortStays = &ss
+	})
+}
+
+// parseCreateBase is platformHostelCreateSchema without ownerId, fields in declared order; the
+// registration and branch schemas are both built on it.
+func parseCreateBase(f *valid.Form, in *Reg, branch bool) {
 	f.Nest("capacitySummary", true, func(s *valid.Form) {
 		for _, k := range []string{"totalBeds", "totalRooms", "vacantBeds"} {
 			if v := regNum(s, k, valid.N{Int: true, Min: nonneg()}); v != nil {
@@ -161,7 +233,21 @@ func ParseRegistration(body any) (Reg, error) {
 			}
 		}
 	})
-	if f.Nest("contact", true, func(s *valid.Form) {
+	if branch {
+		// A branch must give a phone: the contact object is required and phone leads.
+		f.Nest("contact", false, func(s *valid.Form) {
+			if v, ok := s.Str("phone", valid.S{Trim: true, Min: 7, Max: 24}); ok {
+				in.Contact = append(in.Contact, bson.E{Key: "phone", Value: v})
+			}
+			if v, ok := s.Str("email", valid.S{Opt: true, Trim: true}); ok {
+				if !valid.IsEmail(v) {
+					s.Is.Add("email", valid.Format("email"))
+				}
+				in.Contact = append(in.Contact, bson.E{Key: "email", Value: v})
+			}
+		})
+		in.ContactSet = true
+	} else if f.Nest("contact", true, func(s *valid.Form) {
 		if v, ok := s.Str("email", valid.S{Opt: true, Trim: true}); ok {
 			if !valid.IsEmail(v) {
 				s.Is.Add("email", valid.Format("email"))
@@ -266,67 +352,6 @@ func ParseRegistration(body any) (Reg, error) {
 	in.RoomTypes = textArray(f, "roomTypes")
 	in.Rules = textArray(f, "rules")
 	in.Floors = regNum(f, "totalFloors", valid.N{Int: true, Min: valid.P(0), Max: valid.P(50)})
-	in.AltPhone = regStr(f, "alternatePhone", valid.S{Min: 7, Max: 24})
-	f.Nest("applicant", false, func(s *valid.Form) {
-		in.Applicant.Age = regStr(s, "age", valid.S{Max: 3})
-		if v, ok := s.Str("email", valid.S{Opt: true, Trim: true}); ok {
-			if !valid.IsEmail(v) {
-				s.Is.Add("email", valid.Format("email"))
-			}
-			in.Applicant.Email = &v
-		}
-		if s.Present("gender") {
-			if v, ok := s.Enum("gender", true, nil, "Male", "Female", "Other"); ok {
-				in.Applicant.Gender = &v
-			}
-		}
-		in.Applicant.IDProof = regStr(s, "idProofType", valid.S{Max: 80})
-		in.Applicant.Name, _ = s.Str("name", valid.S{Trim: true, Min: 2, Max: 120})
-		in.Applicant.Phone, _ = s.Str("phone", valid.S{Trim: true, Min: 7, Max: 24})
-	})
-	regNum(f, "cookCount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(100)})
-	in.Landmark = regStr(f, "landmark", valid.S{Max: 240})
-	in.MapLink = regStr(f, "mapLink", valid.S{Max: 500})
-	in.PAN = regStr(f, "panNumber", valid.S{Re: panShape, ReMsg: "A PAN/VAT number is 9 digits."})
-	f.Nest("plan", true, func(s *valid.Form) {
-		monthly := "monthly"
-		cycle, _ := s.Enum("cycle", true, &monthly, "monthly", "halfYearly", "annual")
-		pc := PlanChoice{Cycle: cycle}
-		if s.Present("lifetime") {
-			if b, ok := s.Bool("lifetime", true, nil); ok {
-				pc.Lifetime = &b
-			}
-		}
-		pc.PlanID, _ = s.Str("planId", valid.S{Trim: true, Min: 1, Max: 40})
-		in.Plan = &pc
-	})
-	f.Nest("shortStays", true, func(s *valid.Form) {
-		var ss ShortStaysIn
-		ss.Enabled, _ = s.Bool("enabled", false, nil)
-		ss.MinNights, _ = s.Num("minNights", valid.N{Coerce: true, Int: true, Min: valid.P(1), Max: valid.P(29)})
-		if items, ok := s.Array("rates", false, false); ok {
-			each(s, "rates", items, func(_ int, r *valid.Form) {
-				var sr ShortRate
-				sr.Daily, _ = r.Num("dailyRate", valid.N{Coerce: true, Int: true, IntMsg: "Use whole rupees.", Min: valid.P(1)})
-				sr.RoomType, _ = r.Str("roomType", valid.S{Trim: true, Min: 1, Max: 80})
-				ss.Rates = append(ss.Rates, sr)
-			})
-			s.Size("rates", len(items), 0, 30, "", false)
-		}
-		in.ShortStays = &ss
-	})
-	parseFoodRoutine(f)
-	f.Nest("payoutAccount", true, func(s *valid.Form) { in.Payout = parsePayout(s) })
-	in.RefDisc = regNum(f, "referralAdmissionDiscount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(1_000_000)})
-	in.TotalCap = regNum(f, "totalCapacity", valid.N{Int: true, Min: valid.P(0), Max: valid.P(10_000)})
-	in.Year = regStr(f, "yearEstablished", valid.S{Re: yearShape, ReMsg: "Year established should be four digits."})
-	if v, ok := f.Str("referralCode", valid.S{Opt: true, Trim: true, Max: 32}); ok {
-		in.RefCode = v
-	}
-	if !f.Hard {
-		refineRegistration(f, in)
-	}
-	return in, f.Err()
 }
 
 // parsePhotos is the photos array: kind defaults to INTERIOR, a url starts with / or http(s)://.

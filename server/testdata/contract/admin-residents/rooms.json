@@ -1,0 +1,4268 @@
+[
+  {
+    "name": "layout signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms"
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "layout resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "layout",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 10,
+            "free": 3,
+            "rooms": 7
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "layout warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 10,
+            "free": 3,
+            "rooms": 7
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "layout outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 0,
+        "floor": "x",
+        "numbers": [],
+        "roomType": " "
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "beds": [
+              "Too small: expected number to be \u003e=1"
+            ],
+            "floor": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "numbers": [
+              "Too small: expected array to have \u003e=1 items"
+            ],
+            "roomType": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "beds"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "floor"
+            },
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "numbers"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add invalid numbers",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 2,
+        "floor": 3,
+        "numbers": [
+          "",
+          5,
+          "xxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "roomType": "Double Sharing",
+        "hostelId": "nope"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid id."
+            ],
+            "numbers": [
+              "Too small: expected string to have \u003e=1 characters",
+              "Invalid input: expected string, received number",
+              "Too big: expected string to have \u003c=20 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "numbers.0"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "numbers.1"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=20 characters",
+              "path": "numbers.2"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add no capability",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 2,
+        "floor": 3,
+        "numbers": [
+          "301"
+        ],
+        "roomType": "Double Sharing"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add unknown type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 2,
+        "floor": 3,
+        "numbers": [
+          "301"
+        ],
+        "roomType": "Suite"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Suite\" is not one of this hostel's room types. Add it under room types first.",
+        "errorCode": "ROOM_TYPE_UNKNOWN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 2,
+        "floor": 3,
+        "numbers": [
+          "301",
+          "101",
+          " 102 "
+        ],
+        "roomType": "Double Sharing"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room 101, 102 already exists.",
+        "errorCode": "ROOM_NUMBER_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add outsider hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 2,
+        "floor": 3,
+        "numbers": [
+          "301"
+        ],
+        "roomType": "Single",
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": "2",
+        "floor": 3,
+        "numbers": [
+          "301",
+          "302",
+          " 301"
+        ],
+        "roomType": "Double Sharing"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms added",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 14,
+            "free": 7,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "add read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 14,
+            "free": 7,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "room types",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/room-types",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Room types loaded",
+        "data": {
+          "roomTypes": [
+            {
+              "monthlyRent": 5000,
+              "roomType": "Double Sharing",
+              "vacantBeds": 6
+            },
+            {
+              "monthlyRent": 7000,
+              "roomType": "Single",
+              "vacantBeds": 1
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "room types no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/room-types",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "room types outsider",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/room-types?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "room types bad hostel id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/room-types?hostelId=zz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update not found",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d01000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "number": "X1"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room was not found.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/not-an-id",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "number": "X1"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room was not found.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "update invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001e",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 41,
+        "number": ""
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "beds": [
+              "Too big: expected number to be \u003c=40"
+            ],
+            "number": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=40",
+              "path": "beds"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update outsider room",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000022",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "number": "X1"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room was not found.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update number taken",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001f",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "number": "101"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room 101 already exists.",
+        "errorCode": "ROOM_NUMBER_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update too small",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000020",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "beds": 1
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "2 people live in Room 201. It needs at least 2 beds.",
+        "errorCode": "ROOM_TOO_SMALL"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update retype too small",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000020",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "2 people live in Room 201; a Single Sitter Room has 1 bed. Move 1 person out first.",
+        "errorCode": "ROOM_TOO_SMALL"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update unknown type",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001e",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomType": "Suite"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Suite\" is not one of this hostel's room types. Add it under room types first.",
+        "errorCode": "ROOM_TYPE_UNKNOWN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update retype",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000021",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomType": "Double Sharing"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Room saved",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update retype read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update number and floor",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001f",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "number": "102A",
+        "floor": 2
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Room saved",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "delete occupied",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001e",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "1 people live in Room 101. Move them first.",
+        "errorCode": "ROOM_OCCUPIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "delete not found",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/rooms/6d01000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room was not found.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "delete outsider room",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000022",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room was not found.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "delete no capability",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/rooms/6d0100000000000000000021",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "order invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/order",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "floor": 1,
+        "ids": []
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Too small: expected array to have \u003e=1 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "order warden",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/order",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "floor": 1,
+        "ids": [
+          "6d010000000000000000001e"
+        ]
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "order",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/order",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "floor": 1,
+        "ids": [
+          "6d010000000000000000001e",
+          "6d010000000000000000001f"
+        ]
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "order other floor ignored",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/order",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "floor": 0,
+        "ids": [
+          "6d0100000000000000000020",
+          "6d010000000000000000001e"
+        ]
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "move no capability",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/room",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "x"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move unknown resident",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ff/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move outsider resident",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move outsider room",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000022"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move to full room",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000020"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/room",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please complete your hostel KYC. This opens once our team has approved it.",
+        "errorCode": "KYC_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "move read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 2,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "requests",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms/requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Room requests",
+        "data": {
+          "requests": [
+            {
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "from": {
+                "floor": 2,
+                "free": 1,
+                "number": "102A",
+                "roomType": "Double Sharing"
+              },
+              "id": "6d0100000000000000000032",
+              "note": "closer to the stairs",
+              "resident": {
+                "id": "6d0100000000000000000028",
+                "name": "Asha Rai"
+              },
+              "to": {
+                "floor": 2,
+                "free": 0,
+                "number": "201",
+                "roomType": "Double Sharing"
+              }
+            },
+            {
+              "createdAt": "2026-10-20T02:00:00.000Z",
+              "from": {
+                "floor": 1,
+                "free": 0,
+                "number": "101",
+                "roomType": "Single"
+              },
+              "id": "6d0100000000000000000033",
+              "note": null,
+              "resident": {
+                "id": "6d0100000000000000000029",
+                "name": "Bimal Thapa"
+              },
+              "to": {
+                "floor": 0,
+                "free": 2,
+                "number": "G1",
+                "roomType": "Double Sharing"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d0100000000000000000032",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "maybe"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"approve\"|\"decline\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"approve\"|\"decline\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer closed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d01000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "decline"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That request was already answered.",
+        "errorCode": "REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/zzz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "decline"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That request was already answered.",
+        "errorCode": "REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "answer approve full",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d0100000000000000000032",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "approve"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room 201 is full.",
+        "errorCode": "ROOM_FULL"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer decline",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d0100000000000000000032",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "decline",
+        "reason": " Room is full "
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Answered",
+        "data": {
+          "requests": [
+            {
+              "createdAt": "2026-10-20T02:00:00.000Z",
+              "from": {
+                "floor": 1,
+                "free": 0,
+                "number": "101",
+                "roomType": "Single"
+              },
+              "id": "6d0100000000000000000033",
+              "note": null,
+              "resident": {
+                "id": "6d0100000000000000000029",
+                "name": "Bimal Thapa"
+              },
+              "to": {
+                "floor": 0,
+                "free": 2,
+                "number": "G1",
+                "roomType": "Double Sharing"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer declined twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d0100000000000000000032",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "decline"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That request was already answered.",
+        "errorCode": "REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer approve",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/rooms/requests/6d0100000000000000000033",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "approve"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Answered",
+        "data": {
+          "requests": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "answer read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 0,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 15,
+            "free": 8,
+            "rooms": 9
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "tracking resident",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/tracking",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "tracking warden",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/tracking",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "tracking invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/tracking",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": "no"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "tracking off",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/rooms/tracking",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "pendingRequests": 0,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 13,
+            "free": 8,
+            "rooms": 7
+          },
+          "tracking": false,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "tracking off read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 0,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163a",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae80150ff307cc54c1c163b",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 13,
+            "free": 8,
+            "rooms": 7
+          },
+          "tracking": false,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "delete free",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/rooms/6d010000000000000000001e",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Room removed",
+        "data": {
+          "pendingRequests": 0,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 12,
+            "free": 7,
+            "rooms": 6
+          },
+          "tracking": false,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "delete free read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.rooms.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 0,
+          "rooms": [
+            {
+              "beds": 2,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102A",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1e",
+              "number": "301",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 2,
+              "floor": 3,
+              "free": 2,
+              "id": "6ae7ffa35e205a5564095c1f",
+              "number": "302",
+              "residents": [],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 12,
+            "free": 7,
+            "rooms": 6
+          },
+          "tracking": false,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000c2",
+              "name": "Desk Intake"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  }
+]

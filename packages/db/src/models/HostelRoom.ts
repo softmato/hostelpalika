@@ -16,6 +16,7 @@ const hostelRoomSchema = new Schema(
     hostelId: { ref: "Hostel", required: true, type: Schema.Types.ObjectId },
     /** 0 = ground floor, 1 = first floor… */
     floor: { max: 200, min: -5, required: true, type: Number },
+    position: { type: Number },
     number: { maxlength: 20, required: true, trim: true, type: String },
     roomType: { required: true, trim: true, type: String },
     beds: { max: 40, min: 1, required: true, type: Number },

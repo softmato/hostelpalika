@@ -1,0 +1,335 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "events",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move events loaded",
+        "data": {
+          "events": [
+            {
+              "date": "2026-10-17T06:00:00.000Z",
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_OUT"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d0100000000000000000028",
+              "residentName": "Asha Rai",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d0100000000000000000029",
+              "residentName": "Bimal Thapa",
+              "residentStatus": "ACTIVE",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002a",
+              "residentName": "Chandra Gurung",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002c",
+              "residentName": "Dev Karki",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002d",
+              "residentName": "Esha Lama",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_OUT"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c0000000000000000000021",
+              "residentName": "Code Holder",
+              "residentStatus": "PENDING",
+              "roomType": "DOUBLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c0000000000000000000025",
+              "residentName": "In Vitee",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c00000000000000000000e8",
+              "residentName": "Night Owl",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "events warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move events loaded",
+        "data": {
+          "events": [
+            {
+              "date": "2026-10-17T06:00:00.000Z",
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_OUT"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d0100000000000000000028",
+              "residentName": "Asha Rai",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d0100000000000000000029",
+              "residentName": "Bimal Thapa",
+              "residentStatus": "ACTIVE",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002a",
+              "residentName": "Chandra Gurung",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002c",
+              "residentName": "Dev Karki",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002d",
+              "residentName": "Esha Lama",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-09-30T06:00:00.000Z",
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "type": "MOVE_OUT"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c0000000000000000000021",
+              "residentName": "Code Holder",
+              "residentStatus": "PENDING",
+              "roomType": "DOUBLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c0000000000000000000025",
+              "residentName": "In Vitee",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            },
+            {
+              "date": "2026-01-01T00:00:00.000Z",
+              "residentId": "6c00000000000000000000e8",
+              "residentName": "Night Owl",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "type": "MOVE_IN"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "RES-1"
+  },
+  {
+    "name": "outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  }
+]

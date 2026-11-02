@@ -301,7 +301,20 @@ func claimChecks(e *claimEvent, inv *checkInvoice, settled int64) []ClaimCheck {
 
 // ListReviewQueue is listReviewQueue: the newest 200 claims in one state.
 func ListReviewQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string) ([]ReviewRow, error) {
-	cur, err := db.Collection("paymentevents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "source", Value: "RESIDENT_CLAIM"}, {Key: "status", Value: status}},
+	return listQueue(ctx, db, hostel, status, "RESIDENT_CLAIM")
+}
+
+// ListStaffQueue is the staff screen's queue. Pending cash above the hostel's threshold
+// is in it too: nothing else showed that cash to the second approver (FIN-2).
+func ListStaffQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string) ([]ReviewRow, error) {
+	if status != "PENDING" {
+		return ListReviewQueue(ctx, db, hostel, status)
+	}
+	return listQueue(ctx, db, hostel, status, bson.D{{Key: "$in", Value: bson.A{"RESIDENT_CLAIM", "CASH_ENTRY"}}})
+}
+
+func listQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string, source any) ([]ReviewRow, error) {
+	cur, err := db.Collection("paymentevents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "source", Value: source}, {Key: "status", Value: status}},
 		options.Find().SetSort(bson.D{{Key: "occurredAt", Value: -1}}).SetLimit(200))
 	if err != nil {
 		return nil, err
@@ -462,8 +475,65 @@ func CreditAmount(ctx context.Context, db *mongo.Database, hostel, resident bson
 }
 
 // errorStatus is FINANCE_ERROR_STATUS, for the codes Go throws so far.
-var errorStatus = map[string]int{"INVOICE_NOT_FOUND": 404, "INVOICE_ALREADY_PAID": 409, "EVIDENCE_IS_SYSTEM_DOCUMENT": 422, "EVIDENCE_NOT_READABLE": 422, "EVIDENCE_NOT_A_PAYMENT": 422, "EVIDENCE_WRONG_TRANSACTION": 422,
-	"EVIDENCE_ALREADY_USED": 409, "TXN_ID_ALREADY_CLAIMED": 409, "TXN_ID_REQUIRED": 422, "TXN_ID_NOT_PLAUSIBLE": 422, "ASSET_NOT_OWNED": 403, "ASSET_UPLOAD_INCOMPLETE": 422, "AMOUNT_OUT_OF_BOUNDS": 422, "RECEIPT_NOT_FOUND": 404}
+var errorStatus = map[string]int{
+	"FEE_SCHEDULE_MISSING":          422,
+	"BED_TYPE_NOT_PRICED":           422,
+	"FEE_SCHEDULE_MONTH_LOCKED":     409,
+	"FEE_SCHEDULE_IN_USE":           409,
+	"KHATA_NOT_ACTIVE":              409,
+	"KHATA_ITEM_NOT_FOUND":          404,
+	"KHATA_ENTRY_NOT_FOUND":         404,
+	"KHATA_ENTRY_DECIDED":           409,
+	"RENT_CONCESSION_NOT_FOUND":     404,
+	"INVOICE_ALREADY_BILLED":        409,
+	"INVOICE_NOT_FOUND":             404,
+	"INVOICE_ALREADY_PAID":          409,
+	"CLAIM_NOT_FOUND":               404,
+	"CLAIM_ALREADY_REVIEWED":        409,
+	"INVOICE_HAS_SETTLED_PAYMENTS":  409,
+	"REFERENCE_CODE_INVALID":        422,
+	"REFERENCE_PREFIX_MISSING":      422,
+	"EVIDENCE_IS_SYSTEM_DOCUMENT":   422,
+	"EVIDENCE_NOT_READABLE":         422,
+	"EVIDENCE_NOT_A_PAYMENT":        422,
+	"EVIDENCE_WRONG_TRANSACTION":    422,
+	"EVIDENCE_ALREADY_USED":         409,
+	"TXN_ID_ALREADY_USED":           409,
+	"TXN_ID_ALREADY_CLAIMED":        409,
+	"TXN_ID_REQUIRED":               422,
+	"TXN_ID_NOT_PLAUSIBLE":          422,
+	"ASSET_NOT_OWNED":               403,
+	"ASSET_UPLOAD_INCOMPLETE":       422,
+	"AMOUNT_OUT_OF_BOUNDS":          422,
+	"REVERSAL_REASON_REQUIRED":      422,
+	"SETTLED_EVENT_IMMUTABLE":       500,
+	"RECEIPT_ALREADY_VOID":          409,
+	"RECEIPT_NOT_FOUND":             404,
+	"SECOND_APPROVER_REQUIRED":      409,
+	"HOSTEL_SCOPE_REQUIRED":         422,
+	"STATEMENT_UNREADABLE":          422,
+	"STATEMENT_NOT_FOUND":           404,
+	"STATEMENT_NOT_READY":           409,
+	"EVENT_NOT_FOUND":               404,
+	"EVENT_ALREADY_ASSIGNED":        409,
+	"GATEWAY_NOT_CONFIGURED":        422,
+	"GATEWAY_NOT_ELIGIBLE":          422,
+	"GATEWAY_SANDBOX_IN_PRODUCTION": 409,
+	"GATEWAY_VERIFICATION_FAILED":   422,
+	"GATEWAY_UNREACHABLE":           502,
+	"INTENT_NOT_FOUND":              404,
+	"RESIDENT_NOT_FOUND":            404,
+	"INTENT_NOT_PAYABLE":            409,
+	"LEAVE_OFF":                     409,
+	"LEAVE_DATES":                   422,
+	"LEAVE_CROSSES_MONTH":           422,
+	"LEAVE_TOO_SHORT":               422,
+	"LEAVE_OVERLAP":                 409,
+	"LEAVE_MONTH_NOT_BILLED":        409,
+	"LEAVE_NOT_FOUND":               404,
+	"EVENT_NOT_PENDING":             409,
+	"EVENT_NOT_SETTLED":             409,
+}
 
 // Err is new FinanceServiceError(message, code, details?).
 func Err(code, message string, details ...any) error {

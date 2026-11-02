@@ -106,6 +106,11 @@ var (
 // Reset drops the database and writes the fixture. Hashes are cost 4: bcrypt
 // reads the cost from the hash, so both servers verify them, just fast.
 func Reset(ctx context.Context, db *mongo.Database) error {
+	// This drops the database. Real credentials are allowed on this machine now, so
+	// refuse anything that is not a contract database.
+	if !strings.HasPrefix(db.Name(), "hostelpalika_contract") {
+		return fmt.Errorf("fixture: refusing to drop database %q", db.Name())
+	}
 	if err := db.Drop(ctx); err != nil {
 		return err
 	}

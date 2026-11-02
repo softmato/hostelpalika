@@ -211,5 +211,5 @@ func (e *Engine) notifyPaymentReversed(ctx context.Context, ev *Event, outstandi
 	if name == "" {
 		name = "there"
 	}
-	e.send(ctx, "payment_reversed", contact.Email, email.PaymentReversed(ev.Amount, e.hostelName(ctx, ev.HostelID), outstanding, e.AppURL("/resident/payments"), e.periodOf(ctx, ev.InvoiceID), reason, name), nil)
+	e.send(ctx, "payment_reversed", contact.Email, email.PaymentReversed(ev.Amount, e.hostelName(ctx, ev.HostelID), outstanding, e.AppURL("/resident/payments"), e.PeriodOf(ctx, ev.InvoiceID), reason, name), nil)
 }

@@ -25,6 +25,19 @@ export const noticeCreateSchema = z.object({
   expiresAt: z.coerce.date().optional(),
 });
 
-export const noticeUpdateSchema = noticeCreateSchema.partial().extend({
+/**
+ * Every field optional and no default: `.partial()` alone keeps the create
+ * defaults in zod 4, so editing a title reset the category, urgency and audience.
+ */
+export const noticeUpdateSchema = z.object({
   hostelId: objectIdSchema.optional(),
+  title: noticeCreateSchema.shape.title.optional(),
+  content: noticeCreateSchema.shape.content.optional(),
+  category: z
+    .enum(["GENERAL", "URGENT", "EVENT", "RULE", "MAINTENANCE", "PAYMENT", "FOOD"])
+    .optional(),
+  isUrgent: z.boolean().optional(),
+  targetAudience: z.enum(["ALL", "RESIDENTS", "GUARDIANS"]).optional(),
+  publishedAt: z.coerce.date().optional(),
+  expiresAt: z.coerce.date().optional(),
 });

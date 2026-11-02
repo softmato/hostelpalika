@@ -29,9 +29,11 @@ jobs:
       - name: System libraries (libvips, poppler)
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libvips-dev poppler-utils pkg-config
       # The contract fixtures dial a replica set on 27018 (MEMORY.md).
+      # 7.0, not 8.0: every 8.x refuses to start on the runner's kernel, 6.19 or newer
+      # (SERVER-121912). The suite uses nothing specific to 8.
       - name: Start Mongo
         run: |
-          docker run -d --name mongo -p 27018:27017 mongo:8.0 --replSet rs0 --bind_ip_all
+          docker run -d --name mongo -p 27018:27017 mongo:7.0 --replSet rs0 --bind_ip_all
           for i in $(seq 1 30); do
             docker exec mongo mongosh --quiet --eval 'try { rs.status().ok } catch (e) { rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]}).ok }' && exit 0
             sleep 2

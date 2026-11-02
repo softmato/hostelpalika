@@ -379,15 +379,15 @@ func (e *Engine) afterSettle(ctx context.Context, s *Settled, p *authz.Principal
 		if s.Balance != nil {
 			remaining = s.Balance.Outstanding
 		}
-		e.NotifyClaimReviewed(ctx, ClaimReview{HostelID: ev.HostelID, InvoiceID: ev.InvoiceID, Kind: "verified", Receipt: s.Receipt, Remaining: remaining, Verified: ev.Amount, ResidentID: *ev.ResidentID, Period: e.periodOf(ctx, ev.InvoiceID)})
+		e.NotifyClaimReviewed(ctx, ClaimReview{HostelID: ev.HostelID, InvoiceID: ev.InvoiceID, Kind: "verified", Receipt: s.Receipt, Remaining: remaining, Verified: ev.Amount, ResidentID: *ev.ResidentID, Period: e.PeriodOf(ctx, ev.InvoiceID)})
 	}
 	if e.Bump != nil {
 		e.Bump.Bump(ctx, ev.HostelID.Hex())
 	}
 }
 
-// periodOf reads an invoice's period; nil for a one-off, or when it cannot be read.
-func (e *Engine) periodOf(ctx context.Context, invoiceID *bson.ObjectID) *string {
+// PeriodOf reads an invoice's period; nil for a one-off, or when it cannot be read.
+func (e *Engine) PeriodOf(ctx context.Context, invoiceID *bson.ObjectID) *string {
 	if invoiceID == nil {
 		return nil
 	}

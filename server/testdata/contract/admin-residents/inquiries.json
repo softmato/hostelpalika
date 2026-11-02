@@ -1,0 +1,764 @@
+[
+  {
+    "name": "list signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiries loaded",
+        "data": {
+          "inquiries": [
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "email": "lead1@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000047",
+              "message": "Is a bed free?",
+              "name": "Indu Bhatta",
+              "phone": "9810000010",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "CONTACTED",
+              "updatedAt": "2026-10-20T01:00:00.000Z"
+            },
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "email": "lead0@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000046",
+              "message": "Is a bed free?",
+              "name": "Hari Sharma",
+              "phone": "9810000000",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "NEW",
+              "updatedAt": "2026-10-20T00:00:00.000Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiries loaded",
+        "data": {
+          "inquiries": [
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "email": "lead1@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000047",
+              "message": "Is a bed free?",
+              "name": "Indu Bhatta",
+              "phone": "9810000010",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "CONTACTED",
+              "updatedAt": "2026-10-20T01:00:00.000Z"
+            },
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "email": "lead0@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000046",
+              "message": "Is a bed free?",
+              "name": "Hari Sharma",
+              "phone": "9810000000",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "NEW",
+              "updatedAt": "2026-10-20T00:00:00.000Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list filtered",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries?status=CONTACTED&page=1&pageSize=5",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiries loaded",
+        "data": {
+          "inquiries": [
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "email": "lead1@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000047",
+              "message": "Is a bed free?",
+              "name": "Indu Bhatta",
+              "phone": "9810000010",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "CONTACTED",
+              "updatedAt": "2026-10-20T01:00:00.000Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 5,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list paged",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries?page=2&pageSize=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiries loaded",
+        "data": {
+          "inquiries": [
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "email": "lead0@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000046",
+              "message": "Is a bed free?",
+              "name": "Hari Sharma",
+              "phone": "9810000000",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "NEW",
+              "updatedAt": "2026-10-20T00:00:00.000Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 2,
+            "pageSize": 1,
+            "total": 2,
+            "totalPages": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list invalid",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries?page=0&pageSize=101&status=GONE&hostelId=zz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Too small: expected number to be >0"
+            ],
+            "pageSize": [
+              "Too big: expected number to be <=100"
+            ],
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "status": [
+              "Invalid option: expected one of \"NEW\"|\"CONTACTED\"|\"VISIT_SCHEDULED\"|\"CONVERTED\"|\"CLOSED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be >0",
+              "path": "page"
+            },
+            {
+              "message": "Too big: expected number to be <=100",
+              "path": "pageSize"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid option: expected one of \"NEW\"|\"CONTACTED\"|\"VISIT_SCHEDULED\"|\"CONVERTED\"|\"CLOSED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000046/status",
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000046/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "DONE"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"NEW\"|\"CONTACTED\"|\"VISIT_SCHEDULED\"|\"CONVERTED\"|\"CLOSED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"NEW\"|\"CONTACTED\"|\"VISIT_SCHEDULED\"|\"CONVERTED\"|\"CLOSED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/zz/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_HOSTEL_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status not found",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d01000000000000000000ff/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Inquiry was not found.",
+        "errorCode": "INQUIRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status outsider inquiry",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000048/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Inquiry was not found.",
+        "errorCode": "INQUIRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status deleted",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000049/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Inquiry was not found.",
+        "errorCode": "INQUIRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000046/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "VISIT_SCHEDULED"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry status updated",
+        "data": {
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-20T00:00:00.000Z",
+            "email": "lead0@contract.test",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000046",
+            "message": "Is a bed free?",
+            "name": "Hari Sharma",
+            "phone": "9810000000",
+            "preferredRoomType": "Single",
+            "source": "PUBLIC_WEBSITE",
+            "status": "VISIT_SCHEDULED",
+            "updatedAt": "2026-11-02T03:12:19.867Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "masks": [
+      "data.inquiries.*.updatedAt",
+      "data.inquiry.updatedAt"
+    ]
+  },
+  {
+    "name": "status read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/inquiries?status=VISIT_SCHEDULED",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiries loaded",
+        "data": {
+          "inquiries": [
+            {
+              "budgetRange": "",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "email": "lead0@contract.test",
+              "gender": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000046",
+              "message": "Is a bed free?",
+              "name": "Hari Sharma",
+              "phone": "9810000000",
+              "preferredRoomType": "Single",
+              "source": "PUBLIC_WEBSITE",
+              "status": "VISIT_SCHEDULED",
+              "updatedAt": "2026-11-02T03:12:19.867Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "masks": [
+      "data.inquiries.*.updatedAt",
+      "data.inquiry.updatedAt"
+    ]
+  },
+  {
+    "name": "note invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000046/notes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "x",
+        "nextFollowUpAt": "nonsense"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "nextFollowUpAt": [
+              "Invalid input: expected date, received Date"
+            ],
+            "note": [
+              "Too small: expected string to have >=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "nextFollowUpAt"
+            },
+            {
+              "message": "Too small: expected string to have >=2 characters",
+              "path": "note"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "note not found",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/inquiries/6d01000000000000000000ff/notes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "Called back"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Inquiry was not found.",
+        "errorCode": "INQUIRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "note outsider inquiry",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000048/notes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "Called back"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Inquiry was not found.",
+        "errorCode": "INQUIRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "note",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000046/notes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "  Called back, visiting Friday  ",
+        "nextFollowUpAt": "2026-11-07T04:00:00.000Z"
+      }
+    },
+    "masks": [
+      "data.inquiries.*.updatedAt",
+      "data.inquiry.updatedAt",
+      "data.note.createdAt",
+      "data.note.id"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry note added",
+        "data": {
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-20T00:00:00.000Z",
+            "email": "lead0@contract.test",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000046",
+            "message": "Is a bed free?",
+            "name": "Hari Sharma",
+            "phone": "9810000000",
+            "preferredRoomType": "Single",
+            "source": "PUBLIC_WEBSITE",
+            "status": "VISIT_SCHEDULED",
+            "updatedAt": "2026-11-02T03:12:19.867Z"
+          },
+          "note": {
+            "authorId": "6c0000000000000000000005",
+            "createdAt": "2026-11-02T03:12:29.310Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae7ff9d5e205a5564095c18",
+            "inquiryId": "6d0100000000000000000046",
+            "nextFollowUpAt": "2026-11-07T04:00:00.000Z",
+            "note": "Called back, visiting Friday",
+            "statusSnapshot": "VISIT_SCHEDULED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "note without date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/inquiries/6d0100000000000000000047/notes",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "Left a message"
+      }
+    },
+    "masks": [
+      "data.note.id",
+      "data.note.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry note added",
+        "data": {
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-20T01:00:00.000Z",
+            "email": "lead1@contract.test",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000047",
+            "message": "Is a bed free?",
+            "name": "Indu Bhatta",
+            "phone": "9810000010",
+            "preferredRoomType": "Single",
+            "source": "PUBLIC_WEBSITE",
+            "status": "CONTACTED",
+            "updatedAt": "2026-10-20T01:00:00.000Z"
+          },
+          "note": {
+            "authorId": "6d010000000000000000000b",
+            "createdAt": "2026-11-02T03:12:29.400Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae7ff9d5e205a5564095c1a",
+            "inquiryId": "6d0100000000000000000047",
+            "note": "Left a message",
+            "statusSnapshot": "CONTACTED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  }
+]

@@ -5,7 +5,9 @@ import (
 	"context"
 	"io"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -69,7 +71,9 @@ func TestContract(t *testing.T) {
 				}
 			}
 			vars := map[string]string{}
-			for _, c := range cases {
+			finding, acceptRe := acceptSpec()
+			changed := false
+			for i, c := range cases {
 				if c.Response == nil {
 					t.Fatal(c.Name + ": not recorded yet: go run ./cmd/dev record " + f)
 				}
@@ -85,7 +89,12 @@ func TestContract(t *testing.T) {
 				w := httptest.NewRecorder()
 				r.ServeHTTP(w, req)
 				cookies := w.Header().Values("Set-Cookie")
-				for _, d := range contract.Diff(c, w.Code, w.Header().Get("Content-Type"), cookies, w.Body.Bytes()) {
+				diffs := contract.Diff(c, w.Code, w.Header().Get("Content-Type"), cookies, w.Body.Bytes())
+				if len(diffs) > 0 && acceptRe != nil && acceptRe.MatchString(c.Name) {
+					cases[i].Response.Status, cases[i].Response.ContentType, cases[i].Response.Body = w.Code, w.Header().Get("Content-Type"), append([]byte(nil), w.Body.Bytes()...)
+					cases[i].Corrected, changed, diffs = finding, true, nil
+				}
+				for _, d := range diffs {
 					t.Errorf("%s: %s", c.Name, d)
 				}
 				for _, d := range contract.DiffLocation(c, w.Header().Get("Location")) {
@@ -93,6 +102,22 @@ func TestContract(t *testing.T) {
 				}
 				contract.Collect(c, cookies, w.Body.Bytes(), vars)
 			}
+			if changed {
+				if err := contract.Save(f, cases); err != nil {
+					t.Fatal(err)
+				}
+			}
 		})
 	}
+}
+
+// acceptSpec reads CONTRACT_ACCEPT="<finding>|<case name regexp>": Go's answer replaces
+// the recording of the matching cases that differ, marked corrected. Only for a TS bug
+// already logged under that finding (RULES.md §2), and run with a -run filter for one file.
+func acceptSpec() (string, *regexp.Regexp) {
+	finding, expr, ok := strings.Cut(os.Getenv("CONTRACT_ACCEPT"), "|")
+	if !ok {
+		return "", nil
+	}
+	return finding, regexp.MustCompile(expr)
 }

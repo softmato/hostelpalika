@@ -1,0 +1,644 @@
+[
+  {
+    "name": "community anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community resident refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community warden refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community default",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community settings loaded",
+        "data": {
+          "hostelId": "6d0400000000000000000001",
+          "settings": {
+            "enabled": true,
+            "profanityFilterEnabled": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community other hostel 404",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community?hostelId=6d0400000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community bad body",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "enabled": "yes",
+        "hostelId": "nope"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "hostelId": [
+              "Invalid string: must match pattern /^[a-f\\d]{24}$/i"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "enabled"
+            },
+            {
+              "message": "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community turn off",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community settings updated",
+        "data": {
+          "settings": {
+            "enabled": false,
+            "profanityFilterEnabled": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community settings loaded",
+        "data": {
+          "hostelId": "6d0400000000000000000001",
+          "settings": {
+            "enabled": false,
+            "profanityFilterEnabled": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community partial",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "hostelId": "6d0400000000000000000001",
+        "profanityFilterEnabled": false
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community settings updated",
+        "data": {
+          "settings": {
+            "enabled": false,
+            "profanityFilterEnabled": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community read back 2",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/settings/community?hostelId=6d0400000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community settings loaded",
+        "data": {
+          "hostelId": "6d0400000000000000000001",
+          "settings": {
+            "enabled": false,
+            "profanityFilterEnabled": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "community patch other hostel 404",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/settings/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "hostelId": "6d0400000000000000000006",
+        "enabled": true
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/payout-account"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout warden refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account",
+        "data": {
+          "account": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout other hostel 404",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/payout-account?hostelId=6d0400000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout bad body",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "method": "BANK",
+        "holderName": "A",
+        "number": "12"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "holderName": [
+              "Enter the name on the account."
+            ],
+            "bankName": [
+              "Enter the bank's name."
+            ],
+            "number": [
+              "Enter the account number: 6 to 24 letters or digits."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the name on the account.",
+              "path": "holderName"
+            },
+            {
+              "message": "Enter the bank's name.",
+              "path": "bankName"
+            },
+            {
+              "message": "Enter the account number: 6 to 24 letters or digits.",
+              "path": "number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout wallet bad number",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "method": "ESEWA",
+        "holderName": "Sita Rai",
+        "number": "12345"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "number": [
+              "Enter the 10-digit mobile number your eSewa account uses."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the 10-digit mobile number your eSewa account uses.",
+              "path": "number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout bank",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "method": "BANK",
+        "holderName": "Sita Rai",
+        "bankName": "Nabil Bank",
+        "branch": "Kathmandu",
+        "number": "0123 4567-89"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account saved. We will check it before any payout.",
+        "data": {
+          "account": {
+            "bankName": "Nabil Bank",
+            "branch": "Kathmandu",
+            "holderName": "Sita Rai",
+            "maskedNumber": "••••6789",
+            "method": "BANK",
+            "methodLabel": "Bank account",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING_REVIEW",
+            "submittedAt": "2026-11-01T22:57:46.622Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account",
+        "data": {
+          "account": {
+            "bankName": "Nabil Bank",
+            "branch": "Kathmandu",
+            "holderName": "Sita Rai",
+            "maskedNumber": "••••6789",
+            "method": "BANK",
+            "methodLabel": "Bank account",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING_REVIEW",
+            "submittedAt": "2026-11-01T22:57:46.622Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout same again",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "method": "BANK",
+        "holderName": "Sita Rai",
+        "bankName": "Nabil Bank",
+        "branch": "Kathmandu",
+        "number": "0123456789"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account saved. We will check it before any payout.",
+        "data": {
+          "account": {
+            "bankName": "Nabil Bank",
+            "branch": "Kathmandu",
+            "holderName": "Sita Rai",
+            "maskedNumber": "••••6789",
+            "method": "BANK",
+            "methodLabel": "Bank account",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING_REVIEW",
+            "submittedAt": "2026-11-01T22:57:46.622Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout wallet drops bank",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "method": "ESEWA",
+        "holderName": "Sita Rai",
+        "bankName": "Ignored",
+        "number": "9812345678"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account saved. We will check it before any payout.",
+        "data": {
+          "account": {
+            "bankName": "",
+            "branch": "",
+            "holderName": "Sita Rai",
+            "maskedNumber": "••••5678",
+            "method": "ESEWA",
+            "methodLabel": "eSewa",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING_REVIEW",
+            "submittedAt": "2026-11-01T22:58:14.719Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "payout other hostel put 404",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/payout-account",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "hostelId": "6d0400000000000000000006",
+        "method": "KHALTI",
+        "holderName": "Sita Rai",
+        "number": "9812345678"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  }
+]

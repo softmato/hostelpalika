@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
+	"github.com/softmato/hostelpalika/server/internal/modules/ledger"
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
@@ -461,46 +462,32 @@ func (h *Handler) submit(ctx context.Context, invoiceID string, in *claimInput, 
 	if key == "" {
 		key = asset.ID.Hex()
 	}
-	now := time.Now().UTC().Truncate(time.Millisecond)
-	occurred := now
+	occurred := time.Time{}
 	if in.paidAt != nil {
 		occurred = in.paidAt.UTC()
 	}
 	idem := "claim:" + r.ID.Hex() + ":" + inv.ID.Hex() + ":" + key
-	event := bson.NewObjectID()
-	var hashVal, noteVal, codeVal, refVal any
-	if asset.Hash != "" {
-		hashVal = asset.Hash
-	}
+	var noteVal, codeVal any
 	if in.hasNote {
 		noteVal = in.note
 	}
 	if in.hasCode {
 		codeVal = in.code
 	}
+	refVal := ""
 	if inv.Reference != nil {
 		refVal = *inv.Reference
 	}
-	_, err = h.DB.Collection("paymentevents").InsertOne(ctx, bson.D{{Key: "_id", Value: event}, {Key: "hostelId", Value: inv.HostelID}, {Key: "invoiceId", Value: inv.ID}, {Key: "residentId", Value: r.ID}, {Key: "amount", Value: in.amount}, {Key: "direction", Value: "CREDIT"}, {Key: "status", Value: "PENDING"},
-		{Key: "confirmation", Value: "UNCONFIRMED"}, {Key: "source", Value: "RESIDENT_CLAIM"}, {Key: "provider", Value: provider}, {Key: "providerTxnId", Value: nil}, {Key: "referenceCode", Value: refVal}, {Key: "idempotencyKey", Value: idem}, {Key: "evidenceAssetId", Value: asset.ID}, {Key: "evidenceHash", Value: hashVal},
-		{Key: "statementImportId", Value: nil}, {Key: "occurredAt", Value: occurred}, {Key: "observedAt", Value: now}, {Key: "rawPayload", Value: bson.D{{Key: "referenceNote", Value: noteVal}, {Key: "submittedBy", Value: p.UserID}, {Key: "transactionCode", Value: codeVal}}}, {Key: "reviewFlags", Value: flags},
-		{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}})
+	residentID, invID, assetID := r.ID, inv.ID, asset.ID
+	ev, created, err := (&ledger.Engine{DB: h.DB}).AppendEvent(ctx, ledger.AppendInput{Amount: int64(in.amount), HostelID: inv.HostelID, InvoiceID: &invID, ResidentID: &residentID, Source: "RESIDENT_CLAIM", Provider: provider, ReferenceCode: refVal, IdempotencyKey: idem, EvidenceAsset: &assetID, EvidenceHash: asset.Hash, OccurredAt: occurred,
+		RawPayload: bson.D{{Key: "referenceNote", Value: noteVal}, {Key: "submittedBy", Value: p.UserID}, {Key: "transactionCode", Value: codeVal}}, ReviewFlags: flags})
 	if err != nil {
-		if !mongo.IsDuplicateKeyError(err) {
-			return nil, err
-		}
-		if strings.Contains(err.Error(), "evidenceHash") {
-			return nil, finance.Err("EVIDENCE_ALREADY_USED", "This screenshot has already been submitted.")
-		}
-		var existing struct {
-			ID     bson.ObjectID `bson:"_id"`
-			Status string        `bson:"status"`
-		}
-		if derr := h.DB.Collection("paymentevents").FindOne(ctx, bson.D{{Key: "idempotencyKey", Value: idem}}).Decode(&existing); derr != nil {
-			return nil, err
-		}
-		return &claimResult{false, existing.ID.Hex(), existing.Status}, nil
+		return nil, err
 	}
+	if !created {
+		return &claimResult{false, ev.ID.Hex(), ev.Status}, nil
+	}
+	event := ev.ID
 	me, err := httpx.OID(p.UserID, "user id")
 	if err != nil {
 		return nil, err

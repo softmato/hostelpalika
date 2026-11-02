@@ -2,6 +2,45 @@
 
 Read this after README.md. Update it at the end of every session.
 
+## HANDOFF: Phase 6 in progress (2026-11-02). Start here.
+
+The owner stopped the parallel sessions as too token-hungry: **one session, no subagents or
+side sessions.** The work is in this checkout. The stopped sessions' code and my `financeadmin`
+work are **uncommitted**. Commit with `git add <paths>` then a plain `git commit`, and no Claude co-author line.
+
+**Committed and pushed (`add99ffe`):** `modules/ledger` (settle, reverse, receipts, credit, each sequence one transaction, R28); `platform/mongo.InTx`; `email.PaymentVerified/Rejected/Reversed`; the TS fix for FIN-1; test seams (`CONTRACT_DB`, `groupSeeds`, `gid`, recorder lock, `router/admin_*.go` mount files). `server/docs/phase6-notes/README.md` is the port recipe and the slice table. Delete that folder when Phase 6 closes.
+
+**Do first, in order:**
+1. Kill any leftover `devrec.exe` (mine, recording `admin-residents` + `admin-ops` from `/tmp/devrec.exe`), delete `$TEMP/hostelpalika-contract-record.lock`, check `curl localhost:3100/api/v1/health` (else `bash server/testdata/contract/record-ts.sh` in the background).
+2. `go build ./...`. Last build result unseen. `finance.Err` needs `EVENT_NOT_PENDING` and `EVENT_NOT_SETTLED` (both 409) in `errorStatus` (`finance/review.go`), or they answer status 0. Check `valid.N`'s field names against `financeadmin/handler.go` (`Int`, `Positive` are guesses), `SECOND_APPROVER_REQUIRED`, `TXN_ID_ALREADY_USED` and `AMOUNT_OUT_OF_BOUNDS` too. Also `residentfinance/claims.go`'s event insert lacks `currency`, `confirmedAt` and the pointer fields, and writes an `int64` amount: switch it to `ledger.AppendEvent`.
+3. Commit, including `.github/workflows/server.yml` (now `mongo:7.0`, because every Mongo 8.x refuses the runner's kernel, SERVER-121912). Push and read CI (R17). The push hook runs `tsc`. Never run CI or tests against production.
+
+**Findings to log in `review_fixes_needed.md` (Critical FIN-1):**
+- FIN-1 Critical: reverse and cash looked rows up by id alone, across hostels. Fixed in TS and Go. Tell the owner: real exposure, check `auditlogs` for cross-hostel reversals.
+- FIN-2: cash above the threshold could never be approved, since `approveCashPayment` has no route. Fixed in Go only (`ListStaffQueue`, `approveClaim`). **TS still owed.**
+- FIN-3: a second reverse repeats notice and audit. Go only. **TS owed.**
+- FIN-4: reversing an overpayment leaves its credit spendable. Go only. **TS owed.**
+- FIN-5: `entries.idempotencyKey`'s unique index does not guard within one row, so a replay could credit twice. Go only (conditional push). **TS owed.**
+- Reverse of an unsettled event answered 500. Now `EVENT_NOT_SETTLED` 409. Add to TS's `FINANCE_ERROR_STATUS` too.
+- Notices `.partial()` bug: fixed by the ops session in `notice.validation.ts`, not logged.
+
+**State of each slice (written is not verified; nothing below is contract-green except where said):**
+| Slice | Written | Left |
+|---|---|---|
+| residents (52) | `hostelrooms`, `inquiries`, `movechecklist` (move-events only), mounted; 3 case files, recording was in flight | `residents` 30, `resident-lookup`, `resident-scan`, `bookings` 6, tenant cases |
+| ops (43) | `notices/admin.go`, `noticepushes`, `opsscope`, mounted; `notices` cases unrecorded, replay failed | maintenance, attendance, food, complaints, sos-alerts, night-status, community, cooks, cook-portal, notifications, tenant cases |
+| stock (47) | `stock/fold.go`, seed, 127 cases, **but dynamic-id cases recorded HTML 500 when TS crashed: re-record**; no handlers | stock handlers, reports 12, expenses 9, wardens, service-providers, referrals, hostel-referrals |
+| setup (40) | `billing/{admin,state}.go`, `hostels/{admin,branches,branchschema,owned,payout}.go`, `setup_templates.go`, mounted; `billing.json` + `settings.json` recorded, not replayed. `branches.go` `totalsBy` was reported unfinished; I removed a duplicate `objectIDs` | kyc, leave, backup, profile, subscription, rest of branches, payout |
+| finance (41) | `financeadmin/handler.go`: events list/approve/reject/reverse/bulk, cash, void, receipt PDF, no cases yet. Read in TS already: payment-event, receipt, credit, cash, notify, billing, review | cases + fixture `admin_finance.go`; billing-runs, fee-schedules, invoices (list/ledger/periods/waive-fine), khata, late-fine, money-rules, payment-gateways, payment-profile, rent-concessions, residents ledger, statements, ask-resident, assign |
+
+Port order inside finance: the billing run needs `fee-schedule.service`, `reference-sequence`, `late-fine`, `khata`, `rent-concession`, `resident-leave`, offer fee-offs. Per invoice, use `InTx`.
+
+**Also still open:** R31 intake (`account/saved-hostels` route, `User.savedHostelIds`, `cash method` done in Go, claim-verified notice wording done in `ledger`, guardian done; `hostel-suspension` `PLAN_OVERDUE`, plan sweep, `report.service`, `hostel-referral.service`, `hostel-branch.service`), then move the `PARITY.md` baseline to `dfb807f1`. Tick `PARITY.md` and `PHASES.md`, write `CHANGELOG.md`. Phase 4 cookie release (a Vercel `auth.json` exists on this machine; CLI not on PATH). Then Phase 7.
+
+**Last, on the owner's request:** clear the stopped sessions' disk use on C: if safe (Go build cache is regenerable: `go clean -cache` only when nothing is building; `$TEMP/go-build*`, `/tmp/devrec.exe`; C: had 15 GB free). Four idle linked sessions remain unarchived: the owner has not agreed to archive them.
+
+**Environment gotchas:** `package internal/trace/tracev2 is not in std` = corrupt Go module index: delete cache entries starting `go index`, or set `GODEBUG=goindex=0`. The machine has 7.7 GB RAM. Next compiles each route on first hit, so a first recording is slow. Very long `Bash` commands fail: write files with the tool. Real services rule: `MISSION.md` addition 5 (real Mongo read-only, R2 under a test prefix, no test write ever touches a real hostel).
+
 ## State (2026-11-01)
 
 - **`MISSION.md` is the owner's binding brief: read it first.** The owner's bug rule replaced "TS is the spec, even its bugs": a TS bug is fixed in Go in the best way and in TS too (`RULES.md` §2); paths and methods stay exact.

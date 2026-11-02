@@ -137,7 +137,9 @@ func (a *actor) nameOf(id, fallback string) string {
 type item struct {
 	ID       bson.ObjectID `bson:"_id"`
 	Active   bool          `bson:"active"`
+	Category *string       `bson:"category"`
 	Kind     string        `bson:"kind"`
+	Location *string       `bson:"location"`
 	LowAt    *float64      `bson:"lowAt"`
 	Name     string        `bson:"name"`
 	PackSize *float64      `bson:"packSize"`
@@ -159,6 +161,16 @@ type line struct {
 
 type entry struct {
 	ID           bson.ObjectID  `bson:"_id"`
+	Amount       *float64       `bson:"amount"`
+	BillNo       *string        `bson:"billNo"`
+	Discount     *float64       `bson:"discount"`
+	ExpenseID    *bson.ObjectID `bson:"expenseId"`
+	Paid         *float64       `bson:"paid"`
+	Photo        *bson.ObjectID `bson:"photoAssetId"`
+	Supplier     *string        `bson:"supplier"`
+	SupplierID   *bson.ObjectID `bson:"supplierId"`
+	Tax          *float64       `bson:"tax"`
+	Total        *float64       `bson:"total"`
 	ApprovedBy   *string        `bson:"approvedByName"`
 	CancelReason *string        `bson:"cancelReason"`
 	CreatedAt    time.Time      `bson:"createdAt"`

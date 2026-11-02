@@ -495,9 +495,10 @@ export async function listMoveEvents(principal: ApiPrincipal, hostelId?: string)
       residentStatus: resident.status,
       roomType: resident.roomType,
     };
-    const rows: Array<typeof base & { date: string; type: "MOVE_IN" | "MOVE_OUT" }> = [
-      { ...base, date: resident.moveInDate.toISOString(), type: "MOVE_IN" },
-    ];
+    // A resident registered before moving in has no move-in date yet.
+    const rows: Array<typeof base & { date: string; type: "MOVE_IN" | "MOVE_OUT" }> = resident.moveInDate
+      ? [{ ...base, date: resident.moveInDate.toISOString(), type: "MOVE_IN" }]
+      : [];
 
     if (resident.status === "MOVED_OUT") {
       const checklist = moveOutByResident.get(resident._id.toString());

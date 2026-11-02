@@ -4,7 +4,7 @@
 Given by the project owner on 2026-11-01, kept word for word below. Where another
 document here disagrees with it, this one wins; fix the other document.
 
-Four additions from the owner in the same conversation, equally binding:
+Five additions from the owner in the same conversation, equally binding:
 
 1. **Bugs.** Whatever bug, mistake or error the TS server has, we fix it in Go in the
    best way and make it more production grade, and we also fix it in TS (minorly or
@@ -27,6 +27,12 @@ Four additions from the owner in the same conversation, equally binding:
    - **Product decisions** nobody else can make go to the owner.
    - This does not change: EAS builds stay the owner's, and Go dev and test never touch
      production Atlas.
+
+5. **Real services, safely** (2026-11-02): "now you can use the real monogo , r2, everything
+   but in safe way. as whole codebase is ours, lest use the real one cred , env now which we
+   have in for next server." This relaxes addition 4's last line. Safe means: production Mongo
+   is read only, R2 writes stay under a throwaway test prefix and are deleted, and the contract
+   suite stays on its local fixture, because every file drops that database.
 
 How the project's own rules apply on top of this brief:
 

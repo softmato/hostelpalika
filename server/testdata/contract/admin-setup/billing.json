@@ -1,0 +1,545 @@
+[
+  {
+    "name": "subscription anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/subscription"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "subscription resident refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/subscription",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "subscription",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/subscription",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.state.subscription.activatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Subscription loaded",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Setup Hostel",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": "2030-01-01T00:00:00.000Z",
+              "id": "6d040000000000000000000c",
+              "invoiceNumber": "SUB-0002-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PARTIAL"
+            },
+            "outstanding": 3900,
+            "paid": 1000,
+            "payments": [
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000000d",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000000f",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0002-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 3900,
+                "id": "6d0400000000000000000010",
+                "isMocked": false,
+                "method": "SOFTMATO",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-09-01T06:00:00.000Z",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": 4900,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d040000000000000000000a",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "subscription warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/subscription",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Subscription loaded",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Setup Hostel",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": "2030-01-01T00:00:00.000Z",
+              "id": "6d040000000000000000000c",
+              "invoiceNumber": "SUB-0002-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PARTIAL"
+            },
+            "outstanding": 3900,
+            "paid": 1000,
+            "payments": [
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000000d",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000000f",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0002-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 3900,
+                "id": "6d0400000000000000000010",
+                "isMocked": false,
+                "method": "SOFTMATO",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-09-01T06:00:00.000Z",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": 4900,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d040000000000000000000a",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "subscription other",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/subscription",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000005:HOSTEL_ADMIN:6d0400000000000000000006}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Subscription loaded",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Other Setup Hostel",
+            "hostelStatus": "ACTIVE",
+            "invoice": null,
+            "outstanding": 0,
+            "paid": 0,
+            "payments": [],
+            "planChosen": false,
+            "subscription": {
+              "activatedAt": null,
+              "currentPeriodEnd": null,
+              "cycle": null,
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d040000000000000000000e",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": null,
+              "planName": null,
+              "source": "PUBLIC",
+              "status": "PENDING_SELECTION",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "billing anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "billing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.history.plan.daysRemaining",
+      "data.history.plan.daysToDue",
+      "data.history.plan.periodDays"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing loaded",
+        "data": {
+          "history": {
+            "docsUrl": null,
+            "invoices": [
+              {
+                "amount": 4900,
+                "currency": "NPR",
+                "cycleLabel": "Monthly",
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/invoice/SUB-0001-0001",
+                "dueAt": null,
+                "invoiceNumber": "SUB-0001-0001",
+                "issuedAt": "2026-09-01T06:00:00.000Z",
+                "issuedBy": "platform",
+                "outstanding": 0,
+                "paid": 4900,
+                "planId": "pro",
+                "planName": "Pro",
+                "printedNumber": "LIN-1",
+                "softmatoInvoiceNo": null,
+                "status": "PAID"
+              },
+              {
+                "amount": 4900,
+                "currency": "NPR",
+                "cycleLabel": "Monthly",
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/invoice/SUB-0002-0001",
+                "dueAt": "2030-01-01T00:00:00.000Z",
+                "invoiceNumber": "SUB-0002-0001",
+                "issuedAt": "2026-09-01T06:00:00.000Z",
+                "issuedBy": "platform",
+                "outstanding": 3900,
+                "paid": 1000,
+                "planId": "pro",
+                "planName": "Pro",
+                "printedNumber": "SUB-0002-0001",
+                "softmatoInvoiceNo": null,
+                "status": "PARTIAL"
+              }
+            ],
+            "payments": [
+              {
+                "amount": 4900,
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/receipt/SRC-0001-0001",
+                "method": "CASH",
+                "paidAt": "2026-09-01T06:00:00.000Z",
+                "printedNumber": "SRC-0001-0001",
+                "provider": null,
+                "providerRef": null,
+                "receiptNumber": "SRC-0001-0001",
+                "softmatoTransactionNo": null,
+                "status": "SETTLED"
+              },
+              {
+                "amount": 1000,
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/receipt/SRC-0002-0001",
+                "method": "CASH",
+                "paidAt": "2026-09-01T06:00:00.000Z",
+                "printedNumber": "SRC-0002-0001",
+                "provider": null,
+                "providerRef": null,
+                "receiptNumber": "SRC-0002-0001",
+                "softmatoTransactionNo": null,
+                "status": "SETTLED"
+              }
+            ],
+            "plan": {
+              "activatedAt": "2026-09-01T06:00:00.000Z",
+              "amountDue": 3900,
+              "amountPaid": 1000,
+              "cycle": "monthly",
+              "cycleMonths": 1,
+              "cycleLabel": "Monthly",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "daysRemaining": 1157,
+              "daysToDue": 1156,
+              "dueBy": "2030-01-01T00:00:00.000Z",
+              "dueFrom": "2026-09-01T06:00:00.000Z",
+              "lifetime": false,
+              "periodDays": 1219,
+              "planId": "pro",
+              "planName": "Pro",
+              "price": 4900,
+              "status": "ACTIVE",
+              "trialEndsAt": null
+            }
+          },
+          "hostelCode": "HH-00000001",
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Setup Hostel",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": "2030-01-01T00:00:00.000Z",
+              "id": "6d040000000000000000000c",
+              "invoiceNumber": "SUB-0002-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PARTIAL"
+            },
+            "outstanding": 3900,
+            "paid": 1000,
+            "payments": [
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000000d",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000000f",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0002-0001",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 3900,
+                "id": "6d0400000000000000000010",
+                "isMocked": false,
+                "method": "SOFTMATO",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-09-01T06:00:00.000Z",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": 4900,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d040000000000000000000a",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  },
+  {
+    "name": "billing other",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000005:HOSTEL_ADMIN:6d0400000000000000000006}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing loaded",
+        "data": {
+          "history": {
+            "docsUrl": null,
+            "invoices": [],
+            "payments": [],
+            "plan": {
+              "activatedAt": null,
+              "amountDue": 0,
+              "amountPaid": 0,
+              "cycle": null,
+              "cycleMonths": null,
+              "cycleLabel": null,
+              "currentPeriodEnd": null,
+              "daysRemaining": null,
+              "daysToDue": null,
+              "dueBy": null,
+              "dueFrom": null,
+              "lifetime": false,
+              "periodDays": null,
+              "planId": null,
+              "planName": null,
+              "price": null,
+              "status": "PENDING_SELECTION",
+              "trialEndsAt": null
+            }
+          },
+          "hostelCode": "HH-00000006",
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Other Setup Hostel",
+            "hostelStatus": "ACTIVE",
+            "invoice": null,
+            "outstanding": 0,
+            "paid": 0,
+            "payments": [],
+            "planChosen": false,
+            "subscription": {
+              "activatedAt": null,
+              "currentPeriodEnd": null,
+              "cycle": null,
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d040000000000000000000e",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": null,
+              "planName": null,
+              "source": "PUBLIC",
+              "status": "PENDING_SELECTION",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 398c0c32"
+  }
+]

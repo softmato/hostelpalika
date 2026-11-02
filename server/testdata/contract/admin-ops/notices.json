@@ -1,0 +1,1239 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "warden without the capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "MAINTENANCE",
+              "content": "Cleaning on Friday",
+              "createdAt": "2026-10-31T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000040",
+              "isRead": false,
+              "isUrgent": true,
+              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "targetAudience": "RESIDENTS",
+              "title": "Water tank",
+              "updatedAt": "2026-10-31T03:12:11.207Z"
+            },
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list as the warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "MAINTENANCE",
+              "content": "Cleaning on Friday",
+              "createdAt": "2026-10-31T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000040",
+              "isRead": false,
+              "isUrgent": true,
+              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "targetAudience": "RESIDENTS",
+              "title": "Water tank",
+              "updatedAt": "2026-10-31T03:12:11.207Z"
+            },
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list one category, one a page",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?category=RULE\u0026page=1\u0026pageSize=1",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 1,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list second page",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?page=2\u0026pageSize=1",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 2,
+            "pageSize": 1,
+            "total": 2,
+            "totalPages": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list bad query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?page=0\u0026pageSize=500\u0026category=NOPE\u0026hostelId=zz",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Too small: expected number to be \u003e0"
+            ],
+            "pageSize": [
+              "Too big: expected number to be \u003c=100"
+            ],
+            "category": [
+              "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\""
+            ],
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "page"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=100",
+              "path": "pageSize"
+            },
+            {
+              "message": "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list a hostel that is not theirs",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?hostelId=6d0200000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "list their own hostel by id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?hostelId=6d0200000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "MAINTENANCE",
+              "content": "Cleaning on Friday",
+              "createdAt": "2026-10-31T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000040",
+              "isRead": false,
+              "isUrgent": true,
+              "publishedAt": "2026-10-31T03:12:11.207Z",
+              "targetAudience": "RESIDENTS",
+              "title": "Water tank",
+              "updatedAt": "2026-10-31T03:12:11.207Z"
+            },
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "title": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "content": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "title"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "content"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "x",
+        "content": "y",
+        "category": "NOPE",
+        "isUrgent": "yes",
+        "targetAudience": "ALL!",
+        "publishedAt": "not a date",
+        "hostelId": "zz"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "content": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "category": [
+              "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\""
+            ],
+            "isUrgent": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "targetAudience": [
+              "Invalid option: expected one of \"ALL\"|\"RESIDENTS\"|\"GUARDIANS\""
+            ],
+            "publishedAt": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "content"
+            },
+            {
+              "message": "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "isUrgent"
+            },
+            {
+              "message": "Invalid option: expected one of \"ALL\"|\"RESIDENTS\"|\"GUARDIANS\"",
+              "path": "targetAudience"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "publishedAt"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create in a hostel that is not theirs",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Hello",
+        "content": "World",
+        "hostelId": "6d0200000000000000000002"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create urgent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "  Fire drill  ",
+        "content": "Tomorrow at six",
+        "category": "EVENT",
+        "isUrgent": true
+      }
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "capture": {
+      "noticeId": "data.notice.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice created",
+        "data": {
+          "delivery": {
+            "emailed": 0,
+            "notified": 3
+          },
+          "notice": {
+            "category": "EVENT",
+            "content": "Tomorrow at six",
+            "createdAt": "2026-11-02T03:12:12.327Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c0a",
+            "isRead": false,
+            "isUrgent": true,
+            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "targetAudience": "ALL",
+            "title": "Fire drill",
+            "updatedAt": "2026-11-02T03:12:12.327Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create guardians only",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000011:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "For guardians",
+        "content": "Visiting day",
+        "targetAudience": "GUARDIANS"
+      }
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice created",
+        "data": {
+          "delivery": {
+            "emailed": 0,
+            "notified": 0
+          },
+          "notice": {
+            "category": "GENERAL",
+            "content": "Visiting day",
+            "createdAt": "2026-11-02T03:12:12.488Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c0e",
+            "isRead": false,
+            "isUrgent": false,
+            "publishedAt": "2026-11-02T03:12:12.487Z",
+            "targetAudience": "GUARDIANS",
+            "title": "For guardians",
+            "updatedAt": "2026-11-02T03:12:12.488Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "create dated",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Dated",
+        "content": "Has dates",
+        "publishedAt": "2026-01-02T03:04:05.000Z",
+        "expiresAt": "2027-01-02T03:04:05.000Z"
+      }
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice created",
+        "data": {
+          "delivery": {
+            "emailed": 0,
+            "notified": 3
+          },
+          "notice": {
+            "category": "GENERAL",
+            "content": "Has dates",
+            "createdAt": "2026-11-02T03:12:12.535Z",
+            "expiresAt": "2027-01-02T03:04:05.000Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c10",
+            "isRead": false,
+            "isUrgent": false,
+            "publishedAt": "2026-01-02T03:04:05.000Z",
+            "targetAudience": "ALL",
+            "title": "Dated",
+            "updatedAt": "2026-11-02T03:12:12.535Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "the notice is in the list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?category=EVENT",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "EVENT",
+              "content": "Tomorrow at six",
+              "createdAt": "2026-11-02T03:12:12.327Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae7ff8c5e205a5564095c0a",
+              "isRead": false,
+              "isUrgent": true,
+              "publishedAt": "2026-11-02T03:12:12.311Z",
+              "targetAudience": "ALL",
+              "title": "Fire drill",
+              "updatedAt": "2026-11-02T03:12:12.327Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "the bell reached the resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=all",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000020:RESIDENT:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.noticeId",
+      "data.notifications.*.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/notices",
+              "body": "Dated",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-02T03:12:12.570Z",
+              "data": {
+                "noticeId": "6ae7ff8c5e205a5564095c10"
+              },
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae7ff8c5e205a5564095c12",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New notice",
+              "userId": "6d0200000000000000000020"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/notices",
+              "body": "Fire drill",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-02T03:12:12.413Z",
+              "data": {
+                "noticeId": "6ae7ff8c5e205a5564095c0a"
+              },
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae7ff8c5e205a5564095c0c",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "URGENT",
+              "status": "SENT",
+              "title": "Urgent notice",
+              "userId": "6d0200000000000000000020"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update the title only",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/{{noticeId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Fire drill moved"
+      }
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice updated",
+        "data": {
+          "notice": {
+            "category": "EVENT",
+            "content": "Tomorrow at six",
+            "createdAt": "2026-11-02T03:12:12.327Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c0a",
+            "isRead": false,
+            "isUrgent": true,
+            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "targetAudience": "ALL",
+            "title": "Fire drill moved",
+            "updatedAt": "2026-11-02T03:12:16.199Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe",
+    "corrected": "ops-1"
+  },
+  {
+    "name": "update everything",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/{{noticeId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Final",
+        "content": "Seven sharp",
+        "category": "RULE",
+        "isUrgent": false,
+        "targetAudience": "RESIDENTS",
+        "expiresAt": "2027-02-03T04:05:06.000Z"
+      }
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice updated",
+        "data": {
+          "notice": {
+            "category": "RULE",
+            "content": "Seven sharp",
+            "createdAt": "2026-11-02T03:12:12.327Z",
+            "expiresAt": "2027-02-03T04:05:06.000Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c0a",
+            "isRead": false,
+            "isUrgent": false,
+            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "targetAudience": "RESIDENTS",
+            "title": "Final",
+            "updatedAt": "2026-11-02T03:12:16.283Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "the update reads back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notices?category=RULE",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      }
+    },
+    "masks": [
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "RULE",
+              "content": "Seven sharp",
+              "createdAt": "2026-11-02T03:12:12.327Z",
+              "expiresAt": "2027-02-03T04:05:06.000Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6ae7ff8c5e205a5564095c0a",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-02T03:12:12.311Z",
+              "targetAudience": "RESIDENTS",
+              "title": "Final",
+              "updatedAt": "2026-11-02T03:12:16.283Z"
+            },
+            {
+              "category": "RULE",
+              "content": "After ten",
+              "createdAt": "2026-11-01T03:12:11.207Z",
+              "hostelId": "6d0200000000000000000001",
+              "id": "6d0200000000000000000041",
+              "isRead": false,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T03:12:11.207Z",
+              "targetAudience": "ALL",
+              "title": "Quiet hours",
+              "updatedAt": "2026-11-01T03:12:11.207Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update empty body changes nothing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/{{noticeId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.notice.id",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice updated",
+        "data": {
+          "notice": {
+            "category": "RULE",
+            "content": "Seven sharp",
+            "createdAt": "2026-11-02T03:12:12.327Z",
+            "expiresAt": "2027-02-03T04:05:06.000Z",
+            "hostelId": "6d0200000000000000000001",
+            "id": "6ae7ff8c5e205a5564095c0a",
+            "isRead": false,
+            "isUrgent": false,
+            "publishedAt": "2026-11-02T03:12:12.311Z",
+            "targetAudience": "RESIDENTS",
+            "title": "Final",
+            "updatedAt": "2026-11-02T03:12:16.389Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/{{noticeId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "x",
+        "category": "NOPE",
+        "isUrgent": 1
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "category": [
+              "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\""
+            ],
+            "isUrgent": [
+              "Invalid input: expected boolean, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            },
+            {
+              "message": "Invalid option: expected one of \"GENERAL\"|\"URGENT\"|\"EVENT\"|\"RULE\"|\"MAINTENANCE\"|\"PAYMENT\"|\"FOOD\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid input: expected boolean, received number",
+              "path": "isUrgent"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Hello"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid notice id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/6d02000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Hello"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Notice was not found.",
+        "errorCode": "NOTICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update someone else's notice",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/6d0200000000000000000042",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Hijack"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Notice was not found.",
+        "errorCode": "NOTICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update naming another hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/6d0200000000000000000040",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000010:HOSTEL_ADMIN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Hijack",
+        "hostelId": "6d0200000000000000000002"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update without the capability",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/6d0200000000000000000040",
+      "headers": {
+        "authorization": "Bearer {{access:6d0200000000000000000012:WARDEN:6d0200000000000000000001}}"
+      },
+      "body": {
+        "title": "Nope"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  },
+  {
+    "name": "update signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notices/6d0200000000000000000040",
+      "body": {
+        "title": "Nope"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 add99ffe"
+  }
+]
