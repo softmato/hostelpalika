@@ -52,6 +52,8 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.GET("/:id/move-out", reg, httpx.ETag(), h.moveOut)
 	a.POST("/:id/move-out", reg, h.saveMoveOut)
 	a.POST("/:id/write-off", hostelrooms.Cap(h.Guards, "recordCash"), h.writeOff)
+	a.POST("/:id/activation-code", reg, h.activation(http.StatusCreated, "Activation code generated"))
+	a.PATCH("/:id/activation-code", reg, h.activation(http.StatusOK, "Activation code regenerated"))
 	a.GET("/leaving-today", reg, h.leavingToday)
 	a.PATCH("/fees", hostelrooms.Cap(h.Guards, "manageFeeSchedule"), h.fees)
 	a.GET("/intake-quote", reg, httpx.ETag(), h.intakeQuote)
@@ -651,4 +653,46 @@ func (h *Handler) writeOff(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, out, "Written off")
+}
+
+// truthy is z.coerce.boolean(): Boolean(value).
+func truthy(v any) bool {
+	switch x := v.(type) {
+	case nil:
+		return false
+	case bool:
+		return x
+	case string:
+		return x != ""
+	case float64:
+		return x != 0 && x == x
+	}
+	return true
+}
+
+func (h *Handler) activation(status int, msg string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		body, err := valid.Body(c)
+		if fail(c, err) {
+			return
+		}
+		f := valid.NewForm(body)
+		var in ActivationIn
+		if n, ok := f.Num("expiresInHours", valid.N{Opt: true, Coerce: true, Int: true, Min: valid.P(1), Max: valid.P(1440)}); ok {
+			in.ExpiresInHours = int(n)
+		}
+		hid := hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+		in.SendEmail = true
+		if v, present := f.M["sendEmail"]; present {
+			in.SendEmail = truthy(v)
+		}
+		if fail(c, f.Err()) {
+			return
+		}
+		out, err := h.GenerateActivation(c, c.Param("id"), hid, in, authz.From(c))
+		if fail(c, err) {
+			return
+		}
+		httpx.Write(c, status, out, msg)
+	}
 }

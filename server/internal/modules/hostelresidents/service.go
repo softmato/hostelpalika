@@ -20,6 +20,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
 	"github.com/softmato/hostelpalika/server/internal/modules/ledger"
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
+	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
@@ -42,6 +43,9 @@ type Service struct {
 	Claims   files.Claims
 	AppURL   func(path string) string
 	Outbound string
+	Config   *platformconfig.Service
+	// ActivationSecret hashes activation codes (ACTIVATION_CODE_SECRET).
+	ActivationSecret string
 }
 
 // rerr is ResidentServiceError.

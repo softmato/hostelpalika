@@ -262,3 +262,23 @@ func ResidentRegistered(in RegisteredInput) Content {
 	}
 	return Content{Category: Info, Subject: "Welcome to " + in.HostelName, HTML: EmailLayout(Layout{Heading: "Welcome to your hostel", BodyHTML: strings.Join(body, "\n")})}
 }
+
+// ResidentQRActivation is residentQrActivationEmail; an empty qrImageURL falls
+// back to the scan-in-the-app line.
+func ResidentQRActivation(activationURL, code string, expiresAt time.Time, hostelName, qrImageURL, residentName string) Content {
+	qrBlock := Paragraph("Scan the QR code in the " + PlatformName + " app, or use the code below on the web.")
+	if qrImageURL != "" {
+		qrBlock = `<p style="margin:0 0 16px;text-align:center;">
+    <img src="` + EscapeHTML(qrImageURL) + `" alt="Activation QR code" width="200" height="200" style="border:1px solid #dbeee8;border-radius:12px;" />
+  </p>`
+	}
+	return Content{Category: Security, Subject: "Start your " + PlatformName + " account — " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Start your account",
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(residentName) + ", <strong>" + EscapeHTML(hostelName) + "</strong> made your account on " + PlatformName + "."),
+			qrBlock,
+			Paragraph(`Cannot scan? Type this code:<br/><strong style="font-size:22px;letter-spacing:3px;">` + EscapeHTML(code) + `</strong>`),
+			CTAButton(activationURL, "Start my account"),
+			Paragraph("This code works till <strong>" + EscapeHTML(expiresAt.UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")) + "</strong>. After that, ask your hostel for a new one."),
+		}, "\n")})}
+}

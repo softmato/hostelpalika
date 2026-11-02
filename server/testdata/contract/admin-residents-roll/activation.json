@@ -1,0 +1,1210 @@
+[
+  {
+    "name": "post signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post warden no grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post bad hours",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 0
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "expiresInHours": [
+              "Too small: expected number to be \u003e=1"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "expiresInHours"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post bad hours big",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 5000
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "expiresInHours": [
+              "Too big: expected number to be \u003c=1440"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=1440",
+              "path": "expiresInHours"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post bad hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "hostelId": "x"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/nope/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid resident id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post outsiders",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post outsider hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post no email on file",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code generated",
+        "data": {
+          "activation": {
+            "code": "SHIFAZGP",
+            "createdAt": "2026-11-02T15:30:38.218Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:37.880Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ac9e5e205a5564095f46",
+            "residentId": "6d010000000000000000002a",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "fullName": "Chandra Gurung",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "image": null,
+            "lastName": "Gurung",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post suppressed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "sendEmail": false
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code generated",
+        "data": {
+          "activation": {
+            "code": "RECCMYXN",
+            "createdAt": "2026-11-02T15:30:39.057Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:39.012Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ac9f5e205a5564095f48",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "email_suppressed",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post string false",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "sendEmail": "false"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code generated",
+        "data": {
+          "activation": {
+            "code": "TD02YCTN",
+            "createdAt": "2026-11-02T15:30:39.387Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:39.282Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ac9f5e205a5564095f4a",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post hours",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 24,
+        "sendEmail": 0
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code generated",
+        "data": {
+          "activation": {
+            "code": "QZRZ2UL7",
+            "createdAt": "2026-11-02T15:30:39.685Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-03T15:30:39.664Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ac9f5e205a5564095f4c",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "email_suppressed",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "post default",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code generated",
+        "data": {
+          "activation": {
+            "code": "8N0JOLSF",
+            "createdAt": "2026-11-02T15:30:40.240Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:40.029Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca05e205a5564095f4e",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch resident",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch warden no grant",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch bad hours",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 0
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "expiresInHours": [
+              "Too small: expected number to be \u003e=1"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "expiresInHours"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch bad hours big",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 5000
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "expiresInHours": [
+              "Too big: expected number to be \u003c=1440"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=1440",
+              "path": "expiresInHours"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch bad hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "hostelId": "x"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/nope/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid resident id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch unknown",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch outsiders",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch outsider hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch no email on file",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code regenerated",
+        "data": {
+          "activation": {
+            "code": "1O9C2PTV",
+            "createdAt": "2026-11-02T15:30:41.407Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:41.312Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca15e205a5564095f50",
+            "residentId": "6d010000000000000000002a",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "fullName": "Chandra Gurung",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "image": null,
+            "lastName": "Gurung",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch suppressed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "sendEmail": false
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code regenerated",
+        "data": {
+          "activation": {
+            "code": "6GI9EK7C",
+            "createdAt": "2026-11-02T15:30:42.151Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:42.034Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca25e205a5564095f52",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "email_suppressed",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch string false",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "sendEmail": "false"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code regenerated",
+        "data": {
+          "activation": {
+            "code": "TCR2I59Z",
+            "createdAt": "2026-11-02T15:30:42.810Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:42.734Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca25e205a5564095f54",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch hours",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "expiresInHours": 24,
+        "sendEmail": 0
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code regenerated",
+        "data": {
+          "activation": {
+            "code": "XN5XWZLB",
+            "createdAt": "2026-11-02T15:30:45.991Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-03T15:30:45.951Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca55e205a5564095f56",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "email_suppressed",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "patch default",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/activation-code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.activation.id",
+      "data.activation.code"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation code regenerated",
+        "data": {
+          "activation": {
+            "code": "U4AEYYMU",
+            "createdAt": "2026-11-02T15:30:46.576Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-09T15:30:46.436Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8aca65e205a5564095f58",
+            "residentId": "6d0100000000000000000028",
+            "status": "PENDING"
+          },
+          "delivery": {
+            "reason": "no_resident_email",
+            "sent": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]
