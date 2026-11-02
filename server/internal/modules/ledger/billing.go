@@ -924,3 +924,6 @@ func (e *Engine) BillingSummary(ctx context.Context, hostel bson.ObjectID, perio
 	}
 	return ordered.Map{{Key: "invoiceCount", Value: len(invoices)}, {Key: "notBilledResidentIds", Value: not}, {Key: "period", Value: period}, {Key: "totalBilled", Value: total}}, nil
 }
+
+// OrdinalDay is ordinalDay: 1st, 2nd, 3rd, 4th.
+func OrdinalDay(day int) string { return ordinalDay(day) }

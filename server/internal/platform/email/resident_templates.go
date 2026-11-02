@@ -143,3 +143,37 @@ func HostelReclaimed(hostelName, ownerName, portalURL string) Content {
 		}, "\n"),
 	})}
 }
+
+// ResidentLinked is residentLinkedEmail: the account already belongs to them,
+// so no credentials travel.
+func ResidentLinked(dashboardURL, hostelName, residentName string) Content {
+	return Content{Category: Info, Subject: "You are now a resident of " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Welcome to your hostel",
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(residentName) + ", <strong>" + EscapeHTML(hostelName) + "</strong> added you as a resident on " + PlatformName + "."),
+			Paragraph("No new password needed. Log in the same way as before (email and password, or Google)."),
+			CTAButton(dashboardURL, "Open my dashboard"),
+			Paragraph("There you can see rent, payments, meals and notices, and send complaints."),
+		}, "\n")})}
+}
+
+// WardRegistered is wardRegisteredEmail: tells a guardian their ward now lives
+// at a hostel. A zero moveInDate drops the row; roomType's underscores read as spaces.
+func WardRegistered(guardianName, hostelName, hostelPhone string, moveInDate time.Time, relation, residentName, roomType string) Content {
+	rel := strings.ToLower(relation)
+	if rel == "" {
+		rel = "guardian"
+	}
+	return Content{Category: Info, Subject: residentName + " now stays at " + hostelName, HTML: EmailLayout(Layout{
+		Heading: residentName + " now stays at " + hostelName,
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(guardianName) + ", <strong>" + EscapeHTML(hostelName) + "</strong> added <strong>" + EscapeHTML(residentName) + "</strong> as a resident and added you as their " + EscapeHTML(rel) + "."),
+			DetailsTable([]DetailRow{
+				{Label: "Hostel", Value: hostelName},
+				{Label: "Room", Value: strings.ReplaceAll(roomType, "_", " ")},
+				{Label: "Moving in", Value: EmailDate(moveInDate)},
+				{Label: "Hostel phone", Value: hostelPhone},
+			}),
+			Paragraph("The hostel will call you in an emergency. Something wrong? Tell the hostel."),
+		}, "\n")})}
+}
