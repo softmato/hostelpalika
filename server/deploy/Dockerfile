@@ -2,7 +2,7 @@
 # Build context is server/ (compose sets it). Builder and runtime share the
 # Debian codename so the libvips the binary links against is the one it runs with.
 
-FROM golang:1.27-trixie AS build
+FROM golang:1.27.3-trixie AS build
 RUN apt-get update && apt-get install -y --no-install-recommends libvips-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
