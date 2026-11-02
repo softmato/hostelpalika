@@ -1,0 +1,2302 @@
+[
+  {
+    "name": "in signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/nope/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid resident id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in outsiders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in none yet",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist loaded",
+        "data": {
+          "checklist": null,
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save warden no grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "depositAmount": -1,
+        "documentsCollected": [
+          1,
+          ""
+        ],
+        "itemsProvided": "x",
+        "rulesAccepted": "yes",
+        "bedCondition": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "hostelId": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "bedCondition": [
+              "Too big: expected string to have \u003c=1000 characters"
+            ],
+            "depositAmount": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "documentsCollected": [
+              "Invalid input: expected string, received number",
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "itemsProvided": [
+              "Invalid input: expected array, received string"
+            ],
+            "rulesAccepted": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=1000 characters",
+              "path": "bedCondition"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "depositAmount"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "documentsCollected.0"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "documentsCollected.1"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid input: expected array, received string",
+              "path": "itemsProvided"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "rulesAccepted"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save too many",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "roomPhotoAssetIds": [
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "roomPhotoAssetIds": [
+              "Too big: expected array to have \u003c=20 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=20 items",
+              "path": "roomPhotoAssetIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save outsiders",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist saved",
+        "data": {
+          "checklist": {
+            "bedCondition": "",
+            "completedAt": "2026-11-02T15:25:12.323Z",
+            "depositAmount": 0,
+            "documentsCollected": [],
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab58e87b32a4a6cd6e19",
+            "itemsProvided": [],
+            "residentId": "6d0100000000000000000028",
+            "roomCondition": "",
+            "roomPhotoAssetIds": [],
+            "rulesAccepted": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in get after empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist loaded",
+        "data": {
+          "checklist": {
+            "bedCondition": "",
+            "completedAt": "2026-11-02T15:25:12.323Z",
+            "depositAmount": 0,
+            "documentsCollected": [],
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab58e87b32a4a6cd6e19",
+            "itemsProvided": [],
+            "residentId": "6d0100000000000000000028",
+            "roomCondition": "",
+            "roomPhotoAssetIds": [],
+            "rulesAccepted": false
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "bedCondition": " Good ",
+        "roomCondition": "Fresh paint",
+        "depositAmount": 3000.5,
+        "documentsCollected": [
+          "Citizenship",
+          " ID card "
+        ],
+        "itemsProvided": [
+          "Mattress",
+          "Pillow"
+        ],
+        "roomPhotoAssetIds": [
+          "a1"
+        ],
+        "rulesAccepted": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist saved",
+        "data": {
+          "checklist": {
+            "bedCondition": "Good",
+            "completedAt": "2026-11-02T15:25:12.536Z",
+            "depositAmount": 3000.5,
+            "documentsCollected": [
+              "Citizenship",
+              "ID card"
+            ],
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab58e87b32a4a6cd6e19",
+            "itemsProvided": [
+              "Mattress",
+              "Pillow"
+            ],
+            "residentId": "6d0100000000000000000028",
+            "roomCondition": "Fresh paint",
+            "roomPhotoAssetIds": [
+              "a1"
+            ],
+            "rulesAccepted": true
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in save again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "itemsProvided": [
+          "Mattress"
+        ],
+        "rulesAccepted": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist saved",
+        "data": {
+          "checklist": {
+            "bedCondition": "Good",
+            "completedAt": "2026-11-02T15:25:12.666Z",
+            "depositAmount": 0,
+            "documentsCollected": [],
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab58e87b32a4a6cd6e19",
+            "itemsProvided": [
+              "Mattress"
+            ],
+            "residentId": "6d0100000000000000000028",
+            "roomCondition": "Fresh paint",
+            "roomPhotoAssetIds": [],
+            "rulesAccepted": true
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "in get after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-in",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-in checklist loaded",
+        "data": {
+          "checklist": {
+            "bedCondition": "Good",
+            "completedAt": "2026-11-02T15:25:12.666Z",
+            "depositAmount": 0,
+            "documentsCollected": [],
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab58e87b32a4a6cd6e19",
+            "itemsProvided": [
+              "Mattress"
+            ],
+            "residentId": "6d0100000000000000000028",
+            "roomCondition": "Fresh paint",
+            "roomPhotoAssetIds": [],
+            "rulesAccepted": true
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/nope/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid resident id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out outsiders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out preview",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out?date=2026-10-25",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": null,
+          "pendingFeeAmount": 500000,
+          "preview": {
+            "billedDays": 30,
+            "date": "2026-10-25",
+            "dateLabel": "Kartik 8, 2083 BS",
+            "defaultCharge": "TILL_DAY",
+            "lastMonth": null,
+            "owedAfter": {
+              "FULL_MONTH": 500000,
+              "TILL_DAY": 500000
+            },
+            "paidBack": {
+              "FULL_MONTH": 0,
+              "TILL_DAY": 0
+            },
+            "periodLabel": "Kartik 2083 BS",
+            "stayed": 8
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out preview first day",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000029/move-out?date=2026-10-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": null,
+          "pendingFeeAmount": 0,
+          "preview": {
+            "billedDays": 18,
+            "date": "2026-10-01",
+            "dateLabel": "Aswin 15, 2083 BS",
+            "defaultCharge": "TILL_DAY",
+            "lastMonth": null,
+            "owedAfter": {
+              "FULL_MONTH": 0,
+              "TILL_DAY": 0
+            },
+            "paidBack": {
+              "FULL_MONTH": 0,
+              "TILL_DAY": 0
+            },
+            "periodLabel": "Aswin 2083 BS",
+            "stayed": 2
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Bimal",
+            "fullName": "Bimal Thapa",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000029",
+            "image": null,
+            "lastName": "Thapa",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000010",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out preview late",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out?date=2026-12-30",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": null,
+          "pendingFeeAmount": 500000,
+          "preview": {
+            "billedDays": 30,
+            "date": "2026-12-30",
+            "dateLabel": "Poush 15, 2083 BS",
+            "defaultCharge": "TILL_DAY",
+            "lastMonth": null,
+            "owedAfter": {
+              "FULL_MONTH": 500000,
+              "TILL_DAY": 500000
+            },
+            "paidBack": {
+              "FULL_MONTH": 0,
+              "TILL_DAY": 0
+            },
+            "periodLabel": "Poush 2083 BS",
+            "stayed": 15
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "ACTIVE",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out preview moved out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002e/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-10-17T06:00:00.000Z",
+            "damageNotes": "",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000050",
+            "itemReturnNotes": "",
+            "residentId": "6d010000000000000000002e"
+          },
+          "pendingFeeAmount": 0,
+          "preview": null,
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Fiona",
+            "fullName": "Fiona Moved",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002e",
+            "image": null,
+            "lastName": "Moved",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000060",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save warden no grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "depositRefundDecision": "X",
+        "moveOutDate": "nope",
+        "lastMonthCharge": "Y",
+        "dues": "Z",
+        "depositRefundAmount": -3,
+        "damageNotes": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "damageNotes": [
+              "Too big: expected string to have \u003c=2000 characters"
+            ],
+            "depositRefundAmount": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "depositRefundDecision": [
+              "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PARTIAL\"|\"FORFEITED\""
+            ],
+            "moveOutDate": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+            ],
+            "lastMonthCharge": [
+              "Invalid option: expected one of \"FULL_MONTH\"|\"TILL_DAY\""
+            ],
+            "dues": [
+              "Invalid option: expected one of \"KEEP\"|\"WRITE_OFF\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=2000 characters",
+              "path": "damageNotes"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "depositRefundAmount"
+            },
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PARTIAL\"|\"FORFEITED\"",
+              "path": "depositRefundDecision"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/",
+              "path": "moveOutDate"
+            },
+            {
+              "message": "Invalid option: expected one of \"FULL_MONTH\"|\"TILL_DAY\"",
+              "path": "lastMonthCharge"
+            },
+            {
+              "message": "Invalid option: expected one of \"KEEP\"|\"WRITE_OFF\"",
+              "path": "dues"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save partial too much",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "depositRefundDecision": "PARTIAL",
+        "depositRefundAmount": 99999
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "A partial refund cannot be more than the deposit held.",
+        "errorCode": "REFUND_OVER_DEPOSIT"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save before move in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "moveOutDate": "2000-01-01"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "They can't leave before the day they moved in.",
+        "errorCode": "MOVE_OUT_BEFORE_MOVE_IN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save write off without cash grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "dues": "WRITE_OFF",
+        "moveOutDate": "2026-10-25"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save outsiders",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "moveOutDate": "2026-10-25",
+        "depositRefundDecision": "APPROVED",
+        "damageNotes": " Scratched ",
+        "itemReturnNotes": "All back"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist saved",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-11-02T15:25:14.103Z",
+            "damageNotes": "Scratched",
+            "depositRefundAmount": 0,
+            "depositRefundDecision": "APPROVED",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab5ae87b32a4a6cd6e1c",
+            "itemReturnNotes": "All back",
+            "pendingFeeAmount": 355,
+            "residentId": "6d010000000000000000002a"
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "fullName": "Chandra Gurung",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "image": null,
+            "lastName": "Gurung",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          },
+          "writtenOff": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out get after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-11-02T15:25:14.103Z",
+            "damageNotes": "Scratched",
+            "depositRefundAmount": 0,
+            "depositRefundDecision": "APPROVED",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab5ae87b32a4a6cd6e1c",
+            "itemReturnNotes": "All back",
+            "pendingFeeAmount": 355,
+            "residentId": "6d010000000000000000002a"
+          },
+          "pendingFeeAmount": 355,
+          "preview": null,
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "fullName": "Chandra Gurung",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "image": null,
+            "lastName": "Gurung",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-11-02T15:25:14.115Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "rooms after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 1,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 10,
+            "free": 4,
+            "rooms": 7
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002a/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "moveOutDate": "2026-10-25",
+        "depositRefundDecision": "FORFEITED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist saved",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-11-02T15:25:14.524Z",
+            "damageNotes": "Scratched",
+            "depositRefundAmount": 0,
+            "depositRefundDecision": "FORFEITED",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab5ae87b32a4a6cd6e1c",
+            "itemReturnNotes": "All back",
+            "pendingFeeAmount": 355,
+            "residentId": "6d010000000000000000002a"
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Chandra",
+            "fullName": "Chandra Gurung",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d010000000000000000002a",
+            "image": null,
+            "lastName": "Gurung",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000020",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-11-02T15:25:14.115Z"
+          },
+          "writtenOff": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out save till day",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "moveOutDate": "2026-10-25",
+        "lastMonthCharge": "TILL_DAY",
+        "depositRefundDecision": "PENDING"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist saved",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-11-02T15:25:14.880Z",
+            "damageNotes": "",
+            "depositRefundAmount": 0,
+            "depositRefundDecision": "PENDING",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab5ae87b32a4a6cd6e1f",
+            "itemReturnNotes": "",
+            "pendingFeeAmount": 500355,
+            "residentId": "6d0100000000000000000028"
+          },
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-09-30T06:00:00.000Z"
+          },
+          "writtenOff": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "invoice 40 after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/invoices?residentId=6d0100000000000000000028",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoices",
+        "data": {
+          "month": "2083-07",
+          "rows": [
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 355,
+                "dueDate": "2026-11-16T00:00:00.000Z",
+                "id": "6ae8ab5a5e205a5564095f3c",
+                "month": "2083-07",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 1333,
+                    "basis": "MANUAL",
+                    "description": "Monthly rent — Kartik 2083 BS"
+                  },
+                  {
+                    "amount": -978,
+                    "basis": "CREDIT",
+                    "description": "Moved out Kartik 8, 2083 BS — 22 days not charged"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Asha Rai",
+                "id": "6d0100000000000000000028",
+                "image": null,
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000000",
+                "roomNumber": "102",
+                "roomType": "Double Sharing"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 7000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Bimal Thapa",
+                "id": "6d0100000000000000000029",
+                "image": null,
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000010",
+                "roomNumber": "101",
+                "roomType": "Single"
+              }
+            },
+            {
+              "displayStatus": "UNPAID",
+              "notBilled": null,
+              "payment": {
+                "dueAmount": 355,
+                "dueDate": "2026-11-16T00:00:00.000Z",
+                "id": "6ae8ab595e205a5564095f33",
+                "month": "2083-07",
+                "paidAmount": 0,
+                "status": "UNPAID",
+                "fineWaived": false,
+                "lines": [
+                  {
+                    "amount": 1333,
+                    "basis": "MANUAL",
+                    "description": "Monthly rent — Kartik 2083 BS"
+                  },
+                  {
+                    "amount": -978,
+                    "basis": "CREDIT",
+                    "description": "Moved out Kartik 8, 2083 BS — 22 days not charged"
+                  }
+                ]
+              },
+              "resident": {
+                "fullName": "Chandra Gurung",
+                "id": "6d010000000000000000002a",
+                "image": null,
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000020",
+                "roomNumber": null,
+                "roomType": "Double Sharing"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 5000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Dev Karki",
+                "id": "6d010000000000000000002c",
+                "image": null,
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000040",
+                "roomNumber": "201",
+                "roomType": "Double Sharing"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": 5000,
+                "reason": "NOT_YET_RUN"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Esha Lama",
+                "id": "6d010000000000000000002d",
+                "image": null,
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000050",
+                "roomNumber": "201",
+                "roomType": "Double Sharing"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "FEE_SCHEDULE_MISSING"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "In Vitee",
+                "id": "6c0000000000000000000025",
+                "image": null,
+                "moveInDate": "2026-01-01T00:00:00.000Z",
+                "phone": "9800000025",
+                "roomNumber": null,
+                "roomType": "SINGLE"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "FEE_SCHEDULE_MISSING"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Night Owl",
+                "id": "6c00000000000000000000e8",
+                "image": null,
+                "moveInDate": "2026-01-01T00:00:00.000Z",
+                "phone": "9800000077",
+                "roomNumber": null,
+                "roomType": "SINGLE"
+              }
+            },
+            {
+              "displayStatus": "NOT_BILLED",
+              "notBilled": {
+                "amount": null,
+                "reason": "FEE_SCHEDULE_MISSING"
+              },
+              "payment": null,
+              "resident": {
+                "fullName": "Res Ident",
+                "id": "6c00000000000000000000c1",
+                "image": null,
+                "moveInDate": "2026-01-01T00:00:00.000Z",
+                "phone": "9800000007",
+                "roomNumber": null,
+                "roomType": "SINGLE"
+              }
+            }
+          ],
+          "totals": {
+            "collected": 0,
+            "due": 710,
+            "notBilled": 6,
+            "overdue": 0,
+            "paid": 0,
+            "partial": 0,
+            "unpaid": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/write-off",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff warden no cash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff bad reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff still here",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000029/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only what a moved-out resident owes can be written off. Move them out first.",
+        "errorCode": "RESIDENT_STILL_HERE"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff outsiders",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": " Gone for good "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Written off",
+        "data": {
+          "writtenOff": 500355
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "writeoff again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/write-off",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Written off",
+        "data": {
+          "writtenOff": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "out get after writeoff",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/move-out",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move-out checklist loaded",
+        "data": {
+          "checklist": {
+            "completedAt": "2026-11-02T15:25:14.880Z",
+            "damageNotes": "",
+            "depositRefundAmount": 0,
+            "depositRefundDecision": "PENDING",
+            "finalReceiptAssetId": "",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae8ab5ae87b32a4a6cd6e1f",
+            "itemReturnNotes": "",
+            "pendingFeeAmount": 0,
+            "residentId": "6d0100000000000000000028"
+          },
+          "pendingFeeAmount": 0,
+          "preview": null,
+          "resident": {
+            "createdAt": "2026-09-30T06:00:00.000Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Asha",
+            "fullName": "Asha Rai",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0100000000000000000028",
+            "image": null,
+            "lastName": "Rai",
+            "moveInDate": "2026-09-30T06:00:00.000Z",
+            "phone": "9800000000",
+            "residentType": "STUDENT",
+            "roomType": "Double Sharing",
+            "status": "MOVED_OUT",
+            "updatedAt": "2026-11-02T15:25:14.890Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "move events after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/move-events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Move events loaded",
+        "data": {
+          "events": [
+            {
+              "residentId": "6d0100000000000000000028",
+              "residentName": "Asha Rai",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Double Sharing",
+              "date": "2026-11-02T15:25:14.880Z",
+              "type": "MOVE_OUT"
+            },
+            {
+              "residentId": "6d010000000000000000002a",
+              "residentName": "Chandra Gurung",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Double Sharing",
+              "date": "2026-11-02T15:25:14.524Z",
+              "type": "MOVE_OUT"
+            },
+            {
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "date": "2026-10-17T06:00:00.000Z",
+              "type": "MOVE_OUT"
+            },
+            {
+              "residentId": "6d0100000000000000000028",
+              "residentName": "Asha Rai",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Double Sharing",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d0100000000000000000029",
+              "residentName": "Bimal Thapa",
+              "residentStatus": "ACTIVE",
+              "roomType": "Single",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002a",
+              "residentName": "Chandra Gurung",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Double Sharing",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002c",
+              "residentName": "Dev Karki",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002d",
+              "residentName": "Esha Lama",
+              "residentStatus": "ACTIVE",
+              "roomType": "Double Sharing",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002e",
+              "residentName": "Fiona Moved",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6d010000000000000000002f",
+              "residentName": "Gita Gone",
+              "residentStatus": "MOVED_OUT",
+              "roomType": "Single",
+              "date": "2026-09-30T06:00:00.000Z",
+              "type": "MOVE_OUT"
+            },
+            {
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "date": "2026-01-01T00:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6c0000000000000000000021",
+              "residentName": "Code Holder",
+              "residentStatus": "PENDING",
+              "roomType": "DOUBLE",
+              "date": "2026-01-01T00:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6c0000000000000000000025",
+              "residentName": "In Vitee",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "date": "2026-01-01T00:00:00.000Z",
+              "type": "MOVE_IN"
+            },
+            {
+              "residentId": "6c00000000000000000000e8",
+              "residentName": "Night Owl",
+              "residentStatus": "ACTIVE",
+              "roomType": "SINGLE",
+              "date": "2026-01-01T00:00:00.000Z",
+              "type": "MOVE_IN"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

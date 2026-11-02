@@ -26,11 +26,11 @@ type Service struct {
 const ledgerCap = 20000
 
 type Event struct {
-	Date           string `json:"date"`
 	ResidentID     string `json:"residentId"`
 	ResidentName   string `json:"residentName"`
 	ResidentStatus string `json:"residentStatus"`
 	RoomType       string `json:"roomType"`
+	Date           string `json:"date"`
 	Type           string `json:"type"`
 }
 
@@ -78,7 +78,7 @@ func (s *Service) Events(ctx context.Context, p *authz.Principal, requested stri
 	for _, r := range residents {
 		name := strings.TrimSpace(r.First + " " + r.Last)
 		if r.MoveIn != nil {
-			events = append(events, Event{httpx.ISO(*r.MoveIn), r.ID.Hex(), name, r.Status, r.RoomType, "MOVE_IN"})
+			events = append(events, Event{r.ID.Hex(), name, r.Status, r.RoomType, httpx.ISO(*r.MoveIn), "MOVE_IN"})
 		}
 		if r.Status == "MOVED_OUT" {
 			at := done[r.ID]
@@ -86,7 +86,7 @@ func (s *Service) Events(ctx context.Context, p *authz.Principal, requested stri
 				at = r.UpdatedAt
 			}
 			if at != nil {
-				events = append(events, Event{httpx.ISO(*at), r.ID.Hex(), name, r.Status, r.RoomType, "MOVE_OUT"})
+				events = append(events, Event{r.ID.Hex(), name, r.Status, r.RoomType, httpx.ISO(*at), "MOVE_OUT"})
 			}
 		}
 	}

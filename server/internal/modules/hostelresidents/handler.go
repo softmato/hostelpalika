@@ -47,6 +47,11 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.GET("/:id/leave", hostelrooms.Cap(h.Guards, "viewPayments"), httpx.ETag(), h.leaves)
 	a.POST("/:id/leave", hostelrooms.Cap(h.Guards, "recordCash"), h.addLeave)
 	a.DELETE("/:id/leave/:leaveId", hostelrooms.Cap(h.Guards, "recordCash"), h.cancelLeave)
+	a.GET("/:id/move-in", reg, httpx.ETag(), h.moveIn)
+	a.POST("/:id/move-in", reg, h.saveMoveIn)
+	a.GET("/:id/move-out", reg, httpx.ETag(), h.moveOut)
+	a.POST("/:id/move-out", reg, h.saveMoveOut)
+	a.POST("/:id/write-off", hostelrooms.Cap(h.Guards, "recordCash"), h.writeOff)
 	a.GET("/leaving-today", reg, h.leavingToday)
 	a.PATCH("/fees", hostelrooms.Cap(h.Guards, "manageFeeSchedule"), h.fees)
 	a.GET("/intake-quote", reg, httpx.ETag(), h.intakeQuote)
@@ -511,4 +516,139 @@ func (h *Handler) cancelLeave(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, out, "Removed")
+}
+
+// strList is z.array(z.string().trim().min(1)).max(max).default([]).
+func strList(f *valid.Form, key string, max int) []string {
+	arr, ok := f.Array(key, true, true)
+	if !ok {
+		return nil
+	}
+	out := []string{}
+	for i, v := range arr {
+		path := key + "." + strconv.Itoa(i)
+		str, isStr := v.(string)
+		if !isStr {
+			f.Is.Add(path, valid.Type("string", valid.Received(v, false)))
+			continue
+		}
+		str = valid.Trim(str)
+		if str == "" {
+			f.Is.Add(path, valid.TooSmall("string", 1, true))
+			continue
+		}
+		out = append(out, str)
+	}
+	f.Size(key, len(arr), 0, max, "", false)
+	return out
+}
+
+func optStr(f *valid.Form, key string, max int) *string {
+	if s, ok := f.Str(key, valid.S{Opt: true, Trim: true, Max: max}); ok {
+		return &s
+	}
+	return nil
+}
+
+func (h *Handler) moveIn(c *gin.Context) {
+	q := valid.Query(c)
+	out, err := h.MoveIn(c, c.Param("id"), q["hostelId"], authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Move-in checklist loaded")
+}
+
+func (h *Handler) saveMoveIn(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	var in MoveInIn
+	in.BedCondition = optStr(f, "bedCondition", 1000)
+	in.DepositAmount, _ = f.Num("depositAmount", valid.N{Opt: true, Min: valid.P(0), Default: valid.P(0)})
+	in.DocumentsCollected = strList(f, "documentsCollected", 20)
+	hid := hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+	in.ItemsProvided = strList(f, "itemsProvided", 50)
+	in.RoomCondition = optStr(f, "roomCondition", 1000)
+	in.RoomPhotoAssetIDs = strList(f, "roomPhotoAssetIds", 20)
+	def := false
+	in.RulesAccepted, _ = f.Bool("rulesAccepted", true, &def)
+	if fail(c, f.Err()) {
+		return
+	}
+	out, err := h.SaveMoveIn(c, c.Param("id"), hid, in, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.Write(c, http.StatusCreated, out, "Move-in checklist saved")
+}
+
+func (h *Handler) moveOut(c *gin.Context) {
+	q := valid.Query(c)
+	out, err := h.MoveOut(c, c.Param("id"), q["hostelId"], q["date"], authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Move-out checklist loaded")
+}
+
+func (h *Handler) saveMoveOut(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	var in MoveOutIn
+	in.DamageNotes = optStr(f, "damageNotes", 2000)
+	in.DepositRefundAmount, _ = f.Num("depositRefundAmount", valid.N{Opt: true, Min: valid.P(0), Default: valid.P(0)})
+	pending := "PENDING"
+	in.DepositRefundDecision, _ = f.Enum("depositRefundDecision", true, &pending, "PENDING", "APPROVED", "PARTIAL", "FORFEITED")
+	in.FinalReceiptAssetID = optStr(f, "finalReceiptAssetId", 0)
+	hid := hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+	in.ItemReturnNotes = optStr(f, "itemReturnNotes", 2000)
+	if s, ok := f.Str("moveOutDate", valid.S{Opt: true, Re: dayRe, ReSrc: `/^\d{4}-\d{2}-\d{2}$/`}); ok {
+		in.MoveOutDate = s
+	}
+	if s, ok := f.Enum("lastMonthCharge", true, nil, "FULL_MONTH", "TILL_DAY"); ok {
+		in.LastMonthCharge = s
+	}
+	keep := "KEEP"
+	in.Dues, _ = f.Enum("dues", true, &keep, "KEEP", "WRITE_OFF")
+	if fail(c, f.Err()) {
+		return
+	}
+	p := authz.From(c)
+	if in.Dues == "WRITE_OFF" {
+		if _, err := h.Guards.RequireHostelCapability(c, "recordCash"); fail(c, err) {
+			return
+		}
+	}
+	out, err := h.SaveMoveOut(c, c.Param("id"), hid, in, p)
+	if fail(c, err) {
+		return
+	}
+	httpx.Write(c, http.StatusCreated, out, "Move-out checklist saved")
+}
+
+func (h *Handler) writeOff(c *gin.Context) {
+	reason, hid := "Written off after move-out", ""
+	if body, err := valid.Body(c); err == nil {
+		if _, isObj := body.(map[string]any); isObj {
+			f := valid.NewForm(body)
+			hid = hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+			if s, ok := f.Str("reason", valid.S{Opt: true, Trim: true, Min: 3, Max: 200}); ok {
+				reason = s
+			}
+			if fail(c, f.Err()) {
+				return
+			}
+		}
+	}
+	out, err := h.WriteOff(c, c.Param("id"), hid, reason, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Written off")
 }

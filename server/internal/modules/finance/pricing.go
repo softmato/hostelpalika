@@ -226,3 +226,12 @@ func ComputeInvoiceAmount(monthly int64, moveIn, moveOut *time.Time, b bs.Bounds
 func PaidBeforeJoining(paidTill *string, period string) bool {
 	return paidTill != nil && *paidTill != "" && period <= *paidTill
 }
+
+// ResidentPeriodOf is residentPeriodOf: the period the date falls in on this
+// resident's cycle (their bill day, else the calendar BS month).
+func ResidentPeriodOf(r *Billable, t time.Time) (string, error) {
+	if d := BillDay(r); d > 0 {
+		return bs.CyclePeriodOf(t, d)
+	}
+	return bs.PeriodOf(t)
+}
