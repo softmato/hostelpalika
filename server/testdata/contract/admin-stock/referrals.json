@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "wrong role",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "list",
@@ -139,7 +139,8 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510",
+    "unorderedKeys": true
   },
   {
     "name": "filter",
@@ -221,7 +222,8 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510",
+    "unorderedKeys": true
   },
   {
     "name": "bad",
@@ -258,7 +260,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "foreign",
@@ -281,7 +283,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward unconfirmed",
@@ -308,7 +310,7 @@
         "errorCode": "REFERRAL_NOT_CONFIRMED"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward invalid",
@@ -337,7 +339,7 @@
           "formErrors": [],
           "fieldErrors": {
             "amount": [
-              "Too small: expected number to be \u003e=0"
+              "Too small: expected number to be >=0"
             ],
             "status": [
               "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PAID\"|\"CANCELLED\""
@@ -345,7 +347,7 @@
           },
           "issues": [
             {
-              "message": "Too small: expected number to be \u003e=0",
+              "message": "Too small: expected number to be >=0",
               "path": "amount"
             },
             {
@@ -356,7 +358,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward foreign",
@@ -382,7 +384,7 @@
         "errorCode": "REFERRAL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward bad id",
@@ -408,7 +410,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward approved",
@@ -447,7 +449,7 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T03:58:08.267Z"
+            "updatedAt": "2026-11-02T04:12:08.086Z"
           },
           "reward": {
             "amount": 1500,
@@ -462,7 +464,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "reward paid",
@@ -498,11 +500,11 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "REWARDED",
-            "updatedAt": "2026-11-02T03:58:08.464Z"
+            "updatedAt": "2026-11-02T04:12:08.229Z"
           },
           "reward": {
             "amount": 1500,
-            "approvedAt": "2026-11-02T03:58:08.440Z",
+            "approvedAt": "2026-11-02T04:12:08.212Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
             "id": "6d03000000000000000000a8",
@@ -515,7 +517,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "confirm invalid",
@@ -548,7 +550,7 @@
               "Invalid object id."
             ],
             "rewardAmount": [
-              "Too small: expected number to be \u003e=0"
+              "Too small: expected number to be >=0"
             ],
             "rewardType": [
               "Invalid option: expected one of \"DISCOUNT\"|\"CASH\"|\"SERVICE_CREDIT\"|\"OTHER\""
@@ -560,7 +562,7 @@
               "path": "joinedResidentId"
             },
             {
-              "message": "Too small: expected number to be \u003e=0",
+              "message": "Too small: expected number to be >=0",
               "path": "rewardAmount"
             },
             {
@@ -571,7 +573,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "confirm wrong resident",
@@ -597,7 +599,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "confirm",
@@ -624,7 +626,7 @@
         "message": "Referral confirmed",
         "data": {
           "referral": {
-            "confirmedAt": "2026-11-02T03:58:15.202Z",
+            "confirmedAt": "2026-11-02T04:12:08.456Z",
             "confirmedBy": "6c0000000000000000000005",
             "converted": false,
             "createdAt": "2026-10-01T06:00:00.000Z",
@@ -638,14 +640,14 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T03:58:15.202Z"
+            "updatedAt": "2026-11-02T04:12:08.456Z"
           },
           "reward": {
             "amount": 300,
-            "approvedAt": "2026-11-02T03:58:15.212Z",
+            "approvedAt": "2026-11-02T04:12:08.467Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80a57e87b32a4a6cd6d22",
+            "id": "6ae80d98e87b32a4a6cd6d25",
             "notes": "Thanks",
             "referralId": "6d03000000000000000000a5",
             "referrerResidentId": "6d03000000000000000000a0",
@@ -655,7 +657,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "confirm twice",
@@ -678,7 +680,7 @@
         "message": "Referral confirmed",
         "data": {
           "referral": {
-            "confirmedAt": "2026-11-02T03:58:15.286Z",
+            "confirmedAt": "2026-11-02T04:12:08.564Z",
             "confirmedBy": "6c0000000000000000000005",
             "converted": false,
             "createdAt": "2026-10-01T06:00:00.000Z",
@@ -692,14 +694,14 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T03:58:15.286Z"
+            "updatedAt": "2026-11-02T04:12:08.564Z"
           },
           "reward": {
             "amount": 0,
-            "approvedAt": "2026-11-02T03:58:15.295Z",
+            "approvedAt": "2026-11-02T04:12:08.577Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80a57e87b32a4a6cd6d22",
+            "id": "6ae80d98e87b32a4a6cd6d25",
             "notes": "Thanks",
             "referralId": "6d03000000000000000000a5",
             "referrerResidentId": "6d03000000000000000000a0",
@@ -709,7 +711,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510"
   },
   {
     "name": "read back",
@@ -732,7 +734,7 @@
         "data": {
           "referrals": [
             {
-              "confirmedAt": "2026-11-02T03:58:15.286Z",
+              "confirmedAt": "2026-11-02T04:12:08.564Z",
               "confirmedBy": "6c0000000000000000000005",
               "converted": false,
               "createdAt": "2026-10-01T06:00:00.000Z",
@@ -746,15 +748,15 @@
               "referralCodeId": "6d03000000000000000000a4",
               "referrerResidentId": "6d03000000000000000000a0",
               "status": "JOINED",
-              "updatedAt": "2026-11-02T03:58:15.286Z",
+              "updatedAt": "2026-11-02T04:12:08.564Z",
               "referrerName": "Ravi Rai",
               "referrerPhone": "9800000090",
               "reward": {
                 "amount": 0,
-                "approvedAt": "2026-11-02T03:58:15.295Z",
+                "approvedAt": "2026-11-02T04:12:08.577Z",
                 "approvedBy": "6c0000000000000000000005",
                 "hostelId": "6d0300000000000000000002",
-                "id": "6ae80a57e87b32a4a6cd6d22",
+                "id": "6ae80d98e87b32a4a6cd6d25",
                 "notes": "Thanks",
                 "referralId": "6d03000000000000000000a5",
                 "referrerResidentId": "6d03000000000000000000a0",
@@ -774,12 +776,12 @@
               "referralCodeId": "6d03000000000000000000a4",
               "referrerResidentId": "6d03000000000000000000a0",
               "status": "REWARDED",
-              "updatedAt": "2026-11-02T03:58:08.464Z",
+              "updatedAt": "2026-11-02T04:12:08.229Z",
               "referrerName": "Ravi Rai",
               "referrerPhone": "9800000090",
               "reward": {
                 "amount": 1500,
-                "approvedAt": "2026-11-02T03:58:08.440Z",
+                "approvedAt": "2026-11-02T04:12:08.212Z",
                 "approvedBy": "6c0000000000000000000005",
                 "hostelId": "6d0300000000000000000002",
                 "id": "6d03000000000000000000a8",
@@ -800,8 +802,8 @@
           },
           "summary": {
             "byStatus": {
-              "JOINED": 1,
-              "REWARDED": 1
+              "REWARDED": 1,
+              "JOINED": 1
             },
             "converted": 0,
             "joined": 2,
@@ -824,6 +826,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 089d4364"
+    "recorded": "http://localhost:3100 edde3510",
+    "unorderedKeys": true
   }
 ]

@@ -1,0 +1,3657 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses"
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "no capability",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000b:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "home owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.currentPeriod",
+      "data.period",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": true,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 120,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CLEANING",
+              "categoryLabel": "Cleaning",
+              "createdAt": "2026-10-20T04:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000041",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000c",
+                "name": "Warden w12",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Brooms"
+            },
+            {
+              "amount": 1000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T02:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003c",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Local Store: Daal 20 kg"
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003d",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Paid Local Store"
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "mine": {
+            "count": 2,
+            "out": 1500
+          },
+          "pendingCash": [
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": false,
+          "role": "HOSTEL_ADMIN",
+          "totals": {
+            "byCategory": [
+              {
+                "amount": 1500,
+                "category": "GROCERIES",
+                "customCategoryId": null,
+                "label": "Groceries"
+              },
+              {
+                "amount": 300,
+                "category": "GAS",
+                "customCategoryId": null,
+                "label": "Gas"
+              },
+              {
+                "amount": 120,
+                "category": "CLEANING",
+                "customCategoryId": null,
+                "label": "Cleaning"
+              }
+            ],
+            "in": 0,
+            "lastMonthOut": 0,
+            "left": -1920,
+            "out": 1920,
+            "staffCount": 2
+          },
+          "wallet": null,
+          "wallets": [
+            {
+              "given": 2000,
+              "left": 1700,
+              "pending": 500,
+              "spent": 300,
+              "name": "Warden w10",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "given": 0,
+              "left": -120,
+              "pending": 0,
+              "spent": 120,
+              "name": "Warden w12",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "given": 0,
+              "left": 0,
+              "pending": 0,
+              "spent": 0,
+              "name": "Warden w13",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "home warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.currentPeriod",
+      "data.period",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": false,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "mine": {
+            "count": 1,
+            "out": 300
+          },
+          "pendingCash": [
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": true,
+          "role": "WARDEN",
+          "totals": null,
+          "wallet": {
+            "given": 2000,
+            "left": 1700,
+            "pending": 500,
+            "spent": 300,
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          },
+          "wallets": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "home warden 12",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000c:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.currentPeriod",
+      "data.period",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": false,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 120,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CLEANING",
+              "categoryLabel": "Cleaning",
+              "createdAt": "2026-10-20T04:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000041",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000c",
+                "name": "Warden w12",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Brooms"
+            }
+          ],
+          "mine": {
+            "count": 1,
+            "out": 120
+          },
+          "pendingCash": [],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": true,
+          "role": "WARDEN",
+          "totals": null,
+          "wallet": {
+            "given": 0,
+            "left": -120,
+            "pending": 0,
+            "spent": 120,
+            "name": "Warden w12",
+            "userId": "6d030000000000000000000c"
+          },
+          "wallets": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "bad query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses?period=x\u0026hostelId=z",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid id."
+            ],
+            "period": [
+              "Month must be YYYY-MM."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Month must be YYYY-MM.",
+              "path": "period"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "period old",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses?period=2080-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": true,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [],
+          "mine": {
+            "count": 0,
+            "out": 0
+          },
+          "pendingCash": [
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2080-01",
+          "proofRequired": false,
+          "role": "HOSTEL_ADMIN",
+          "totals": {
+            "byCategory": [],
+            "in": 0,
+            "lastMonthOut": 0,
+            "left": 0,
+            "out": 0,
+            "staffCount": 0
+          },
+          "wallet": null,
+          "wallets": [
+            {
+              "given": 2000,
+              "left": 1700,
+              "pending": 500,
+              "spent": 300,
+              "name": "Warden w10",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "given": 0,
+              "left": -120,
+              "pending": 0,
+              "spent": 120,
+              "name": "Warden w12",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "given": 0,
+              "left": 0,
+              "pending": 0,
+              "spent": 0,
+              "name": "Warden w13",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "period future",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses?period=2099-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.currentPeriod",
+      "data.period",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": true,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 120,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CLEANING",
+              "categoryLabel": "Cleaning",
+              "createdAt": "2026-10-20T04:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000041",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000c",
+                "name": "Warden w12",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Brooms"
+            },
+            {
+              "amount": 1000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T02:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003c",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Local Store: Daal 20 kg"
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003d",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Paid Local Store"
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "mine": {
+            "count": 2,
+            "out": 1500
+          },
+          "pendingCash": [
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": false,
+          "role": "HOSTEL_ADMIN",
+          "totals": {
+            "byCategory": [
+              {
+                "amount": 1500,
+                "category": "GROCERIES",
+                "customCategoryId": null,
+                "label": "Groceries"
+              },
+              {
+                "amount": 300,
+                "category": "GAS",
+                "customCategoryId": null,
+                "label": "Gas"
+              },
+              {
+                "amount": 120,
+                "category": "CLEANING",
+                "customCategoryId": null,
+                "label": "Cleaning"
+              }
+            ],
+            "in": 0,
+            "lastMonthOut": 0,
+            "left": -1920,
+            "out": 1920,
+            "staffCount": 2
+          },
+          "wallet": null,
+          "wallets": [
+            {
+              "given": 2000,
+              "left": 1700,
+              "pending": 500,
+              "spent": 300,
+              "name": "Warden w10",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "given": 0,
+              "left": -120,
+              "pending": 0,
+              "spent": 120,
+              "name": "Warden w12",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "given": 0,
+              "left": 0,
+              "pending": 0,
+              "spent": 0,
+              "name": "Warden w13",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 0,
+        "category": "X",
+        "spentOn": "nope",
+        "paidBy": "Y"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Write how much you paid."
+            ],
+            "category": [
+              "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\""
+            ],
+            "paidBy": [
+              "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"BANK\""
+            ],
+            "spentOn": [
+              "Date must be YYYY-MM-DD."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write how much you paid.",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\"",
+              "path": "category"
+            },
+            {
+              "message": "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"BANK\"",
+              "path": "paidBy"
+            },
+            {
+              "message": "Date must be YYYY-MM-DD.",
+              "path": "spentOn"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create other no what",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "OTHER"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "what": [
+              "Write what it was for."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write what it was for.",
+              "path": "what"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create custom none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "CUSTOM"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "customCategoryId": [
+              "Pick one of your categories."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick one of your categories.",
+              "path": "customCategoryId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create cash none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "STAFF_CASH"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cashTo": [
+              "Pick the warden who got the money."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick the warden who got the money.",
+              "path": "cashTo"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create cash bad warden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "STAFF_CASH",
+        "cashTo": {
+          "userId": "6d0300000000000000000fff"
+        }
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a warden of this hostel who can add expenses.",
+        "errorCode": "CASH_TO_NOT_STAFF"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "warden gives cash refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "STAFF_CASH",
+        "cashTo": {
+          "userId": "6d030000000000000000000a"
+        }
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only the owner can give cash to a warden.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "warden needs proof",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "GAS"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add a photo of the bill or the goods.",
+        "errorCode": "PROOF_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "future date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "GAS",
+        "spentOn": "2099-01-01"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The date cannot be in the future.",
+        "errorCode": "DATE_IN_FUTURE"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "old date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "GAS",
+        "spentOn": "2020-01-01"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That date is too long ago. Check the year.",
+        "errorCode": "DATE_TOO_OLD"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "bad day",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "GAS",
+        "spentOn": "2026-02-31"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That date does not exist.",
+        "errorCode": "INVALID_DATE"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "photo not mine",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "GAS",
+        "photoAssetId": "6d0300000000000000000090"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This photo is not yours to attach. Add it again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "custom missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 100,
+        "category": "CUSTOM",
+        "customCategoryId": "6d0300000000000000000fff"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That category is not there any more. Pick another.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 1500,
+        "category": "GROCERIES",
+        "what": "Rice",
+        "clientRequestId": "req-00000001"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "capture": {
+      "eid": "data.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense added",
+        "data": {
+          "amount": 1500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "GROCERIES",
+          "categoryLabel": "Groceries",
+          "createdAt": "2026-11-02T04:10:52.282Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d16",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": "Rice"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "create replay",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 1500,
+        "category": "GROCERIES",
+        "what": "Rice",
+        "clientRequestId": "req-00000001"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Already saved",
+        "data": {
+          "amount": 1500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "GROCERIES",
+          "categoryLabel": "Groceries",
+          "createdAt": "2026-11-02T04:10:52.282Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d16",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": "Rice"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "salary",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 9000,
+        "category": "SALARY",
+        "salaryFor": {
+          "name": "Warden w10",
+          "userId": "6d030000000000000000000a"
+        },
+        "paidBy": "BANK"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense added",
+        "data": {
+          "amount": 9000,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "SALARY",
+          "categoryLabel": "Salary",
+          "createdAt": "2026-11-02T04:10:52.433Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d18",
+          "mine": true,
+          "paidBy": "BANK",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": {
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          },
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "warden with photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 200,
+        "category": "GAS",
+        "photoAssetId": "6d0300000000000000000091"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "capture": {
+      "wid": "data.id"
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This photo is not yours to attach. Add it again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "give cash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "amount": 700,
+        "category": "STAFF_CASH",
+        "cashTo": {
+          "userId": "6d030000000000000000000a"
+        }
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "capture": {
+      "cid": "data.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense added",
+        "data": {
+          "amount": 700,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": "PENDING",
+          "cashTo": {
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          },
+          "category": "STAFF_CASH",
+          "categoryLabel": "Cash to warden",
+          "createdAt": "2026-11-02T04:10:52.550Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d1a",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash owner refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{cid}}/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "accept": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Cash not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{cid}}/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "accept": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "accept"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash wrong warden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{cid}}/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000c:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "accept": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This cash was already answered, or is not yours.",
+        "errorCode": "CASH_NOT_PENDING"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash accept",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{cid}}/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "accept": true
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash received",
+        "data": {
+          "amount": 700,
+          "cashNote": null,
+          "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+          "cashStatus": "ACCEPTED",
+          "cashTo": {
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          },
+          "category": "STAFF_CASH",
+          "categoryLabel": "Cash to warden",
+          "createdAt": "2026-11-02T04:10:52.550Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d1a",
+          "mine": false,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{cid}}/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "accept": false
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This cash was already answered, or is not yours.",
+        "errorCode": "CASH_NOT_PENDING"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cash decline seeded",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/6d0300000000000000000040/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "accept": false,
+        "note": "Never came"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Marked not received",
+        "data": {
+          "amount": 500,
+          "cashNote": "Never came",
+          "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+          "cashStatus": "DECLINED",
+          "cashTo": {
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          },
+          "category": "STAFF_CASH",
+          "categoryLabel": "Cash to warden",
+          "createdAt": "2026-10-20T05:00:00.000Z",
+          "customCategoryId": null,
+          "id": "6d0300000000000000000040",
+          "mine": false,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{eid}}/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/zz/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "Wrong amount"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Expense not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void other warden refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{wid}}/void",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000c:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "Wrong amount"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Expense not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void own",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{wid}}/void",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "Wrong amount"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Expense not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{eid}}/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "Wrong amount"
+      }
+    },
+    "masks": [
+      "data.spentOn",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense cancelled",
+        "data": {
+          "amount": 1500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "GROCERIES",
+          "categoryLabel": "Groceries",
+          "createdAt": "2026-11-02T04:10:52.282Z",
+          "customCategoryId": null,
+          "id": "6ae80d4c5e205a5564095d16",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "HOSTEL",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000005",
+            "name": "Contract admin",
+            "role": "HOSTEL_ADMIN"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-02",
+          "status": "VOID",
+          "voidReason": "Wrong amount",
+          "voidedAt": "2026-11-02T04:11:13.524Z",
+          "what": "Rice"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "void twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/{{eid}}/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "reason": "Wrong amount"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This expense is already cancelled.",
+        "errorCode": "EXPENSE_ALREADY_VOID"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category warden refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "name": "Snacks"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "name": "x"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category builtin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "name": "gas"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have a category with this name.",
+        "errorCode": "CATEGORY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "name": "Snacks"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "capture": {
+      "cat": "data.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Category added",
+        "data": {
+          "hidden": false,
+          "id": "6ae80d695e205a5564095d22",
+          "name": "Snacks"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "name": "SNACKS"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have a category with this name.",
+        "errorCode": "CATEGORY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category empty edit",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/expenses/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Nothing to change."
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Nothing to change.",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/expenses/categories/6d0300000000000000000fff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "hidden": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Category not found.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/expenses/categories/zz",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "hidden": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Category not found.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "category hide",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/expenses/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "hidden": true,
+        "name": "Snacks two"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Category saved",
+        "data": {
+          "hidden": true,
+          "id": "6ae80d695e205a5564095d22",
+          "name": "Snacks two"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cook switch warden",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/expenses/cook",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cook switch invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/expenses/cook",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "enabled": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cook switch",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/expenses/cook",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "The cook can add expenses",
+        "data": {
+          "expensesEnabled": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "cook switch off",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/expenses/cook",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "enabled": false
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "The cook can no longer add expenses",
+        "data": {
+          "expensesEnabled": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wallet owner needs user",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses/wallet",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a warden.",
+        "errorCode": "WALLET_USER_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wallet bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses/wallet?userId=z",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "userId": [
+              "Invalid id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": "userId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wallet owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses/wallet?userId=6d030000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash box loaded",
+        "data": {
+          "rows": [
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-11-02T04:10:52.550Z",
+              "customCategoryId": null,
+              "id": "6ae80d4c5e205a5564095d1a",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": "Never came",
+              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashStatus": "DECLINED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "truncated": false,
+          "wallet": {
+            "given": 2700,
+            "left": 2400,
+            "pending": 0,
+            "spent": 300,
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wallet warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses/wallet",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash box loaded",
+        "data": {
+          "rows": [
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-11-02T04:10:52.550Z",
+              "customCategoryId": null,
+              "id": "6ae80d4c5e205a5564095d1a",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": "Never came",
+              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashStatus": "DECLINED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "truncated": false,
+          "wallet": {
+            "given": 2700,
+            "left": 2400,
+            "pending": 0,
+            "spent": 300,
+            "name": "Warden w10",
+            "userId": "6d030000000000000000000a"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "wallet none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses/wallet?userId=6d0300000000000000000fff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This warden has no cash box here.",
+        "errorCode": "WALLET_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "receipt invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/receipt/read",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "assetId": "z"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "assetId": [
+              "Invalid string: must match pattern /^[a-f\\d]{24}$/i"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "path": "assetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "receipt not mine",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/receipt/read",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "assetId": "6d0300000000000000000090"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This photo is not yours to attach. Add it again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "receipt unread",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/expenses/receipt/read",
+      "headers": {
+        "authorization": "Bearer {{access:6d030000000000000000000a:WARDEN:6d0300000000000000000002}}"
+      },
+      "body": {
+        "assetId": "6d0300000000000000000091"
+      }
+    },
+    "masks": [
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This photo is not yours to attach. Add it again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0300000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.currentPeriod",
+      "data.period",
+      "**none",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": true,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6d0300000000000000000050",
+              "name": "Pest control"
+            },
+            {
+              "hidden": true,
+              "id": "6ae80d695e205a5564095d22",
+              "name": "Snacks two"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-11-02T04:10:52.550Z",
+              "customCategoryId": null,
+              "id": "6ae80d4c5e205a5564095d1a",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 9000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "SALARY",
+              "categoryLabel": "Salary",
+              "createdAt": "2026-11-02T04:10:52.433Z",
+              "customCategoryId": null,
+              "id": "6ae80d4c5e205a5564095d18",
+              "mine": true,
+              "paidBy": "BANK",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 1500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-11-02T04:10:52.282Z",
+              "customCategoryId": null,
+              "id": "6ae80d4c5e205a5564095d16",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "VOID",
+              "voidReason": "Wrong amount",
+              "voidedAt": "2026-11-02T04:11:13.524Z",
+              "what": "Rice"
+            },
+            {
+              "amount": 2000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "ACCEPTED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003f",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 500,
+              "cashNote": "Never came",
+              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashStatus": "DECLINED",
+              "cashTo": {
+                "name": "Warden w10",
+                "userId": "6d030000000000000000000a"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-10-20T05:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000040",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            },
+            {
+              "amount": 120,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CLEANING",
+              "categoryLabel": "Cleaning",
+              "createdAt": "2026-10-20T04:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d0300000000000000000041",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000c",
+                "name": "Warden w12",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Brooms"
+            },
+            {
+              "amount": 1000,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T02:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003c",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Local Store: Daal 20 kg"
+            },
+            {
+              "amount": 500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GROCERIES",
+              "categoryLabel": "Groceries",
+              "createdAt": "2026-10-20T01:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003d",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Contract admin",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Paid Local Store"
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6d030000000000000000003e",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6d030000000000000000000a",
+                "name": "Warden w10",
+                "role": "WARDEN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-02",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "Gas refill"
+            }
+          ],
+          "mine": {
+            "count": 3,
+            "out": 10500
+          },
+          "pendingCash": [],
+          "people": [
+            {
+              "holdsCash": true,
+              "name": "Warden w10",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "holdsCash": false,
+              "name": "Warden w11",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000b"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w12",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "holdsCash": true,
+              "name": "Warden w13",
+              "role": "WARDEN",
+              "userId": "6d030000000000000000000d"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": false,
+          "role": "HOSTEL_ADMIN",
+          "totals": {
+            "byCategory": [
+              {
+                "amount": 9000,
+                "category": "SALARY",
+                "customCategoryId": null,
+                "label": "Salary"
+              },
+              {
+                "amount": 1500,
+                "category": "GROCERIES",
+                "customCategoryId": null,
+                "label": "Groceries"
+              },
+              {
+                "amount": 300,
+                "category": "GAS",
+                "customCategoryId": null,
+                "label": "Gas"
+              },
+              {
+                "amount": 120,
+                "category": "CLEANING",
+                "customCategoryId": null,
+                "label": "Cleaning"
+              }
+            ],
+            "in": 0,
+            "lastMonthOut": 0,
+            "left": -10920,
+            "out": 10920,
+            "staffCount": 2
+          },
+          "wallet": null,
+          "wallets": [
+            {
+              "given": 2700,
+              "left": 2400,
+              "pending": 0,
+              "spent": 300,
+              "name": "Warden w10",
+              "userId": "6d030000000000000000000a"
+            },
+            {
+              "given": 0,
+              "left": -120,
+              "pending": 0,
+              "spent": 120,
+              "name": "Warden w12",
+              "userId": "6d030000000000000000000c"
+            },
+            {
+              "given": 0,
+              "left": 0,
+              "pending": 0,
+              "spent": 0,
+              "name": "Warden w13",
+              "userId": "6d030000000000000000000d"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 edde3510"
+  }
+]

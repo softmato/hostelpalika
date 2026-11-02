@@ -62,13 +62,19 @@ var (
 
 func fail(status int, code, message string) error { return httpx.NewError(status, code, message, nil) }
 
-type actor struct {
-	hostelID bson.ObjectID
-	p        *authz.Principal
+// Actor is ExpenseActor: who is recording, and for which hostel.
+type Actor struct {
+	hostelID  bson.ObjectID
+	p         *authz.Principal
+	role      string // HOSTEL_ADMIN | WARDEN | COOK
+	canSeeAll bool
 }
 
+// HostelID is the hostel this actor records for.
+func (a *Actor) HostelID() bson.ObjectID { return a.hostelID }
+
 // resolve is resolveExpenseActor for a cook.
-func (h *Handler) resolve(ctx context.Context, p *authz.Principal, requested string) (*actor, error) {
+func (h *Handler) resolve(ctx context.Context, p *authz.Principal, requested string) (*Actor, error) {
 	id := requested
 	if id == "" && len(p.HostelIDs) > 0 {
 		id = p.HostelIDs[0]
@@ -90,7 +96,7 @@ func (h *Handler) resolve(ctx context.Context, p *authz.Principal, requested str
 	if !s.On {
 		return nil, fail(403, "EXPENSES_OFF_FOR_COOK", "The owner has not turned on expenses for the cook.")
 	}
-	return &actor{oid, p}, nil
+	return &Actor{oid, p, "COOK", false}, nil
 }
 
 func (h *Handler) cook(c *gin.Context) (*authz.Principal, error) {
@@ -451,7 +457,9 @@ func ParseSpentOn(value string, now time.Time) (time.Time, error) {
 
 func rupees(n int64) string { return "Rs " + money.GroupIN(n) }
 
-type input struct {
+// Input is createExpenseSchema's answer. Stock fills it directly.
+type Input struct {
+	cashToUser                  string
 	amount                      int64
 	category, clientRequest     string
 	customID, hostelID, paidBy  string
@@ -461,9 +469,9 @@ type input struct {
 	hasSalary                   bool
 }
 
-func parse(body any) (*input, error) {
+func parse(body any) (*Input, error) {
 	f := valid.NewForm(body)
-	in := &input{}
+	in := &Input{}
 	if f.M != nil {
 		v, present := f.M["amount"]
 		n, isNum := v.(float64)
@@ -556,6 +564,7 @@ func parse(body any) (*input, error) {
 			case !objectIDRe.MatchString(s):
 				sub.Is.Add("userId", "Invalid id.")
 			}
+			in.cashToUser = s
 			f.Join("cashTo", sub)
 		}
 	}
@@ -578,7 +587,7 @@ func parse(body any) (*input, error) {
 	return in, nil
 }
 
-func (h *Handler) byRequest(ctx context.Context, a *actor, key string, me bson.ObjectID) (*doc, error) {
+func (h *Handler) byRequest(ctx context.Context, a *Actor, key string, me bson.ObjectID) (*doc, error) {
 	var d doc
 	err := h.DB.Collection("expenses").FindOne(ctx, bson.D{{Key: "clientRequestId", Value: key}, {Key: "hostelId", Value: a.hostelID}, {Key: "recordedBy", Value: me}}).Decode(&d)
 	if err == mongo.ErrNoDocuments {
@@ -612,7 +621,7 @@ type photo struct {
 	hash, txnID string
 }
 
-func (h *Handler) usablePhoto(ctx context.Context, a *actor, assetID string) (*photo, error) {
+func (h *Handler) usablePhoto(ctx context.Context, a *Actor, assetID string) (*photo, error) {
 	id, err := httpx.OID(assetID, "asset id")
 	if err != nil {
 		return nil, err
@@ -653,7 +662,7 @@ func (h *Handler) receiptGroup(ctx context.Context, hostel bson.ObjectID) (bson.
 }
 
 // savedReceipt is findSavedReceipt + receiptAlreadySaved: nil when the receipt is new.
-func (h *Handler) savedReceipt(ctx context.Context, a *actor, group bson.ObjectID, hash, txn string) error {
+func (h *Handler) savedReceipt(ctx context.Context, a *Actor, group bson.ObjectID, hash, txn string) error {
 	match := bson.A{}
 	if hash != "" {
 		match = append(match, bson.D{{Key: "receiptHash", Value: hash}})
@@ -692,7 +701,7 @@ func (h *Handler) savedReceipt(ctx context.Context, a *actor, group bson.ObjectI
 	return fail(409, "RECEIPT_ALREADY_SAVED", msg+".")
 }
 
-func (h *Handler) recorderName(ctx context.Context, a *actor, me bson.ObjectID) (string, error) {
+func (h *Handler) recorderName(ctx context.Context, a *Actor, me bson.ObjectID) (string, error) {
 	var cook struct {
 		Name string `bson:"name"`
 	}
@@ -750,47 +759,57 @@ func (h *Handler) create(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	me, err := httpx.OID(p.UserID, "user id")
+	h.answerCreate(c, a, in)
+}
+
+func (h *Handler) answerCreate(c *gin.Context, a *Actor, in *Input) {
+	out, duplicate, err := h.Create(c, a, in)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
-	already := func(d *doc) {
-		out, err := h.one(c, d, p.UserID)
-		if err != nil {
-			httpx.Fail(c, err)
-			return
-		}
+	if duplicate {
 		httpx.OK(c, out, "Already saved")
+		return
+	}
+	httpx.Write(c, 201, out, "Expense added")
+}
+
+// Create is createExpense: the one way an expense row is written. duplicate means this
+// clientRequestId was already saved, and out is that row.
+func (h *Handler) Create(c context.Context, a *Actor, in *Input) (ordered.Map, bool, error) {
+	p := a.p
+	me, err := httpx.OID(p.UserID, "user id")
+	if err != nil {
+		return nil, false, err
+	}
+	already := func(d *doc) (ordered.Map, bool, error) {
+		out, err := h.one(c, d, p.UserID)
+		return out, true, err
 	}
 	if in.clientRequest != "" {
 		d, err := h.byRequest(c, a, in.clientRequest, me)
 		if err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, false, err
 		}
 		if d != nil {
-			already(d)
-			return
+			return already(d)
 		}
 	}
 	now := time.Now().UTC().Truncate(time.Millisecond)
 	spentOn, err := ParseSpentOn(in.spentOn, now)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, false, err
 	}
 	var customID any
 	if in.category == custom {
 		id, _ := bson.ObjectIDFromHex(in.customID)
 		err := h.DB.Collection("hostelexpensecategories").FindOne(c, bson.D{{Key: "_id", Value: id}, {Key: "hidden", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "hostelId", Value: a.hostelID}}).Err()
 		if err == mongo.ErrNoDocuments {
-			httpx.Fail(c, fail(404, "CATEGORY_NOT_FOUND", "That category is not there any more. Pick another."))
-			return
+			return nil, false, fail(404, "CATEGORY_NOT_FOUND", "That category is not there any more. Pick another.")
 		}
 		if err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, false, err
 		}
 		customID = id
 	}
@@ -800,8 +819,7 @@ func (h *Handler) create(c *gin.Context) {
 		if in.salaryUser != "" {
 			people, err := h.people(c, a.hostelID)
 			if err != nil {
-				httpx.Fail(c, err)
-				return
+				return nil, false, err
 			}
 			for _, x := range people {
 				if x.UserID == in.salaryUser {
@@ -811,25 +829,50 @@ func (h *Handler) create(c *gin.Context) {
 		}
 		salary = bson.D{{Key: "name", Value: in.salaryName}, {Key: "userId", Value: user}}
 	}
+	var cashTo, cashStatus any
+	cashName, cashUser := "", ""
 	if in.category == staffCash {
-		httpx.Fail(c, fail(403, "CAPABILITY_DENIED", "Only the owner can give cash to a warden."))
-		return
+		if !a.canSeeAll {
+			return nil, false, fail(403, "CAPABILITY_DENIED", "Only the owner can give cash to a warden.")
+		}
+		people, err := h.people(c, a.hostelID)
+		if err != nil {
+			return nil, false, err
+		}
+		for _, x := range people {
+			if x.HoldsCash && x.UserID == in.cashToUser {
+				cashName, cashUser = x.Name, x.UserID
+			}
+		}
+		if cashUser == "" {
+			return nil, false, fail(422, "CASH_TO_NOT_STAFF", "Pick a warden of this hostel who can add expenses.")
+		}
+		to, _ := bson.ObjectIDFromHex(cashUser)
+		cashTo, cashStatus = bson.D{{Key: "name", Value: cashName}, {Key: "userId", Value: to}}, "PENDING"
 	}
 	if in.photoAssetID == "" {
-		httpx.Fail(c, fail(422, "PROOF_REQUIRED", "Add a photo of the bill or the goods."))
-		return
+		required, err := h.ProofRequired(c, a)
+		if err != nil {
+			return nil, false, err
+		}
+		if required {
+			return nil, false, fail(422, "PROOF_REQUIRED", "Add a photo of the bill or the goods.")
+		}
 	}
-	ph, err := h.usablePhoto(c, a, in.photoAssetID)
-	if err != nil {
-		httpx.Fail(c, err)
-		return
+	var ph *photo
+	var photoVal any
+	if in.photoAssetID != "" {
+		if ph, err = h.usablePhoto(c, a, in.photoAssetID); err != nil {
+			return nil, false, err
+		}
+		photoVal = ph.id
 	}
+	shared := in.shared && ph != nil
 	var groupID, hashVal, txnVal any
-	if in.shared {
+	if shared {
 		group, err := h.receiptGroup(c, a.hostelID)
 		if err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, false, err
 		}
 		groupID = group
 		if ph.hash != "" {
@@ -839,14 +882,12 @@ func (h *Handler) create(c *gin.Context) {
 			txnVal = ph.txnID
 		}
 		if err := h.savedReceipt(c, a, group, ph.hash, ph.txnID); err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, false, err
 		}
 	}
 	name, err := h.recorderName(c, a, me)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, false, err
 	}
 	var request any
 	if in.clientRequest != "" {
@@ -854,57 +895,64 @@ func (h *Handler) create(c *gin.Context) {
 	}
 	id := bson.NewObjectID()
 	_, err = h.DB.Collection("expenses").InsertOne(c, bson.D{{Key: "_id", Value: id}, {Key: "hostelId", Value: a.hostelID}, {Key: "spentOn", Value: spentOn}, {Key: "amount", Value: in.amount}, {Key: "category", Value: in.category}, {Key: "customCategoryId", Value: customID},
-		{Key: "what", Value: in.what}, {Key: "paidBy", Value: in.paidBy}, {Key: "payer", Value: "STAFF"}, {Key: "photoAssetId", Value: ph.id}, {Key: "receiptGroupId", Value: groupID}, {Key: "receiptHash", Value: hashVal}, {Key: "receiptTxnId", Value: txnVal},
-		{Key: "cashTo", Value: nil}, {Key: "cashStatus", Value: nil}, {Key: "salaryFor", Value: salary}, {Key: "recordedBy", Value: me}, {Key: "recordedByName", Value: name}, {Key: "recordedByRole", Value: "COOK"}, {Key: "source", Value: "MANUAL"}, {Key: "status", Value: "RECORDED"},
+		{Key: "what", Value: in.what}, {Key: "paidBy", Value: in.paidBy}, {Key: "payer", Value: payerOf(a)}, {Key: "photoAssetId", Value: photoVal}, {Key: "receiptGroupId", Value: groupID}, {Key: "receiptHash", Value: hashVal}, {Key: "receiptTxnId", Value: txnVal},
+		{Key: "cashTo", Value: cashTo}, {Key: "cashStatus", Value: cashStatus}, {Key: "salaryFor", Value: salary}, {Key: "recordedBy", Value: me}, {Key: "recordedByName", Value: name}, {Key: "recordedByRole", Value: a.role}, {Key: "source", Value: "MANUAL"}, {Key: "status", Value: "RECORDED"},
 		{Key: "clientRequestId", Value: request}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}})
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			if in.clientRequest != "" {
 				if d, derr := h.byRequest(c, a, in.clientRequest, me); derr == nil && d != nil {
-					already(d)
-					return
+					return already(d)
 				}
 			}
 			if in.shared {
 				group := groupID.(bson.ObjectID)
 				if serr := h.savedReceipt(c, a, group, ph.hash, ph.txnID); serr != nil {
-					httpx.Fail(c, serr)
-					return
+					return nil, false, serr
 				}
 			}
 		}
-		httpx.Fail(c, err)
-		return
+		return nil, false, err
 	}
 	if err := h.Audit.WriteFinance(c, me, string(p.Role), audit.Finance{Action: "EXPENSE_RECORDED", AmountAfter: in.amount, EntityID: id.Hex(), EntityType: "Expense", HostelID: a.hostelID, Source: "EXPENSE_MANUAL"}); err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, false, err
 	}
-	who := name
-	if who == "" {
-		who = "Staff"
+	if cashUser != "" {
+		h.notifyQuietly(c, a.hostelID, cashUser, "Cash for the hostel", rupees(in.amount)+" from the owner. Open Expenses and tap Got it.", id.Hex(), "STAFF_CASH_GIVEN")
 	}
-	text := who + " recorded " + rupees(in.amount)
-	if in.what != "" {
-		text += " — " + in.what
+	if a.role != "HOSTEL_ADMIN" {
+		who := name
+		if who == "" {
+			who = "Staff"
+		}
+		text := who + " recorded " + rupees(in.amount)
+		if in.what != "" {
+			text += " — " + in.what
+		}
+		h.notifyAdmins(c, a.hostelID, p.UserID, "New expense recorded", text+".", id.Hex(), "STAFF_EXPENSE_RECORDED")
 	}
-	h.notifyAdmins(c, a.hostelID, p.UserID, "New expense recorded", text+".", id.Hex(), "STAFF_EXPENSE_RECORDED")
-	if in.shared {
+	if shared {
 		_, _ = h.Notify.CreateInApp(c, notifications.Input{ActionURL: "/app/expenses", Body: "Your shared receipt was saved as an expense of NPR " + money.GroupUS(in.amount) + ".", Category: "PAYMENT",
 			Data: ordered.Map{{Key: "expenseId", Value: id.Hex()}, {Key: "type", Value: "SHARED_RECEIPT_SAVED"}}, HostelID: a.hostelID.Hex(), Kind: "NORMAL", NoPush: in.notified, Title: "Receipt saved", UserID: p.UserID})
 	}
 	h.moneyMoved(c, a.hostelID)
 	var d doc
 	if err := h.DB.Collection("expenses").FindOne(c, bson.D{{Key: "_id", Value: id}}).Decode(&d); err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, false, err
 	}
 	out, err := h.one(c, &d, p.UserID)
-	if err != nil {
-		httpx.Fail(c, err)
-		return
+	return out, false, err
+}
+
+func payerOf(a *Actor) string {
+	if a.role == "HOSTEL_ADMIN" {
+		return "HOSTEL"
 	}
-	httpx.Write(c, 201, out, "Expense added")
+	return "STAFF"
+}
+
+func (h *Handler) notifyQuietly(ctx context.Context, hostel bson.ObjectID, user, title, body, expenseID, kind string) {
+	_, _ = h.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/app/expenses", Body: body, Category: "PAYMENT", Data: ordered.Map{{Key: "expenseId", Value: expenseID}, {Key: "type", Value: kind}}, HostelID: hostel.Hex(), Kind: "NORMAL", Title: title, UserID: user})
 }
 
 func (h *Handler) void(c *gin.Context) {
@@ -929,61 +977,7 @@ func (h *Handler) void(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	id, err := bson.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		httpx.Fail(c, fail(404, "EXPENSE_NOT_FOUND", notFoundMsg))
-		return
-	}
-	me, err := httpx.OID(p.UserID, "user id")
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	coll := h.DB.Collection("expenses")
-	filter := bson.D{{Key: "_id", Value: id}, {Key: "hostelId", Value: a.hostelID}, {Key: "recordedBy", Value: me}}
-	var old doc
-	err = coll.FindOne(c, filter).Decode(&old)
-	if err == mongo.ErrNoDocuments {
-		httpx.Fail(c, fail(404, "EXPENSE_NOT_FOUND", notFoundMsg))
-		return
-	}
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	already := fail(409, "EXPENSE_ALREADY_VOID", "This expense is already cancelled.")
-	if old.Status == "VOID" {
-		httpx.Fail(c, already)
-		return
-	}
-	now := time.Now().UTC().Truncate(time.Millisecond)
-	var updated doc
-	err = coll.FindOneAndUpdate(c, append(filter, bson.E{Key: "status", Value: "RECORDED"}),
-		bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "VOID"}, {Key: "voidReason", Value: reason}, {Key: "voidedAt", Value: now}, {Key: "voidedBy", Value: me}, {Key: "updatedAt", Value: now}}}},
-		options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&updated)
-	if err == mongo.ErrNoDocuments {
-		httpx.Fail(c, already)
-		return
-	}
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	if err := h.Audit.WriteFinance(c, me, string(p.Role), audit.Finance{Action: "EXPENSE_VOIDED", AmountBefore: old.Amount, EntityID: old.ID.Hex(), EntityType: "Expense", HostelID: a.hostelID, Reason: reason, Source: "EXPENSE_VOID"}); err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	what := rupees(old.Amount)
-	if old.What != "" {
-		what += " — " + old.What
-	}
-	who := old.ByName
-	if who == "" {
-		who = "Staff"
-	}
-	h.notifyAdmins(c, a.hostelID, p.UserID, "Expense cancelled", who+" cancelled "+what+". "+reason, old.ID.Hex(), "STAFF_EXPENSE_VOIDED")
-	h.moneyMoved(c, a.hostelID)
-	out, err := h.one(c, &updated, p.UserID)
+	out, err := h.Void(c, a, c.Param("id"), reason)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
