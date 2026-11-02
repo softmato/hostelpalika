@@ -24,6 +24,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -35,6 +36,11 @@ type Handler struct {
 	Audit  *audit.Log
 	Cache  *cache.Cache
 	RT     *realtime.Client
+	// Gateway secrets and the QR payee read.
+	FinanceKey, FinancePrev string
+	Production              bool
+	R2                      *storage.R2
+	Reader                  *finance.Reader
 }
 
 // Register mounts the claim review, cash and void routes; the other groups add theirs.
@@ -52,6 +58,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	h.registerFeeSchedules(v1)
 	h.registerInvoices(v1)
 	h.registerBillingRuns(v1)
+	h.registerGateways(v1)
 }
 
 func scopeOf(p *authz.Principal) bson.A {

@@ -1,0 +1,1221 @@
+[
+  {
+    "name": "gateways resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateways list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateways",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "PAYPAL",
+        "mode": "TEST",
+        "secret": "",
+        "merchantCode": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "merchantCode": [
+              "Too big: expected string to have \u003c=64 characters"
+            ],
+            "mode": [
+              "Invalid option: expected one of \"LIVE\"|\"SANDBOX\""
+            ],
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\""
+            ],
+            "secret": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=64 characters",
+              "path": "merchantCode"
+            },
+            {
+              "message": "Invalid option: expected one of \"LIVE\"|\"SANDBOX\"",
+              "path": "mode"
+            },
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\"",
+              "path": "provider"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "secret"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway personal enable",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "FONEPAY",
+        "accountKind": "PERSONAL",
+        "enabled": true,
+        "merchantCode": "FP1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "A personal wallet can only receive about NPR 5,000 per day, so rent payments would start failing partway through the month. Use a registered merchant account for online payments, or collect this one through your bank account instead.",
+        "errorCode": "GATEWAY_NOT_ELIGIBLE"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway no merchant",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "ESEWA",
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "ESEWA needs a merchant code before it can take payments.",
+        "errorCode": "GATEWAY_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway live no secret",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "ESEWA",
+        "enabled": true,
+        "mode": "LIVE",
+        "merchantCode": "EPAYTEST"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Enter the secret key before going live.",
+        "errorCode": "GATEWAY_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway save sandbox",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "ESEWA",
+        "enabled": true,
+        "merchantCode": " EPAYTEST "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateway saved",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.373Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": "EPAYTEST",
+              "mode": "SANDBOX",
+              "payable": true,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f",
+    "corrected": "FIN-10"
+  },
+  {
+    "name": "gateway save same again",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "ESEWA",
+        "enabled": true,
+        "merchantCode": "EPAYTEST"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateway saved",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.373Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": "EPAYTEST",
+              "mode": "SANDBOX",
+              "payable": true,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f",
+    "corrected": "FIN-10"
+  },
+  {
+    "name": "gateway khalti secret",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "KHALTI",
+        "secret": "live_secret_key_123",
+        "mode": "LIVE",
+        "enabled": true
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateway saved",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.373Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": "EPAYTEST",
+              "mode": "SANDBOX",
+              "payable": true,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.645Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "LIVE",
+              "payable": true,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": true,
+                "fingerprint": "442e1f374830986f",
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f",
+    "corrected": "FIN-10"
+  },
+  {
+    "name": "gateway khalti rotate",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "provider": "KHALTI",
+        "secret": "live_secret_key_456",
+        "mode": "LIVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateway saved",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.373Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": "EPAYTEST",
+              "mode": "SANDBOX",
+              "payable": true,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.645Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "LIVE",
+              "payable": true,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": true,
+                "fingerprint": "dcef1e58f153fb86",
+                "rotatedAt": "2026-11-02T09:34:57.748Z"
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f",
+    "corrected": "FIN-10"
+  },
+  {
+    "name": "gateway delete bad",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways?provider=PAYPAL",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\"",
+              "path": "provider"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway delete missing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\"",
+              "path": "provider"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "gateway delete khalti",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/finance/payment-gateways?provider=KHALTI",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment gateway removed",
+        "data": {
+          "gateways": [
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": true,
+              "enabledAt": "2026-11-02T09:34:57.373Z",
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": "EPAYTEST",
+              "mode": "SANDBOX",
+              "payable": true,
+              "provider": "ESEWA",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "FONEPAY",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            },
+            {
+              "accountKind": "MERCHANT",
+              "blockedReason": null,
+              "enabled": false,
+              "enabledAt": null,
+              "health": null,
+              "lastEventAt": null,
+              "lastVerifiedAt": null,
+              "merchantCode": null,
+              "mode": "SANDBOX",
+              "payable": false,
+              "provider": "KHALTI",
+              "secret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              },
+              "webhookSecret": {
+                "configured": false,
+                "fingerprint": null,
+                "rotatedAt": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment profile",
+        "data": {
+          "profile": {
+            "bankAccountName": null,
+            "bankAccountNumber": null,
+            "bankName": null,
+            "cashApprovalThreshold": 20000,
+            "displayName": null,
+            "enabledProviders": [
+              "ESEWA"
+            ],
+            "esewaId": null,
+            "extraAccounts": [],
+            "khaltiId": null,
+            "lastStatementUploadAt": null,
+            "payeeVerifiable": false,
+            "paymentInstructions": null,
+            "qrPayeeName": null,
+            "qrPayeeNumber": null,
+            "qrPayeeSource": null,
+            "staticQrAssetId": null,
+            "statementCadenceDays": 7,
+            "tier": "TIER_1",
+            "usable": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "cashApprovalThreshold": -1,
+        "statementCadenceDays": 91,
+        "extraAccounts": [
+          {
+            "kind": "CARD",
+            "number": ""
+          }
+        ],
+        "esewaId": 5
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cashApprovalThreshold": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "esewaId": [
+              "Invalid input: expected string, received number"
+            ],
+            "extraAccounts": [
+              "Invalid option: expected one of \"BANK\"|\"ESEWA\"|\"KHALTI\"",
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "statementCadenceDays": [
+              "Too big: expected number to be \u003c=90"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "cashApprovalThreshold"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "esewaId"
+            },
+            {
+              "message": "Invalid option: expected one of \"BANK\"|\"ESEWA\"|\"KHALTI\"",
+              "path": "extraAccounts.0.kind"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "extraAccounts.0.number"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=90",
+              "path": "statementCadenceDays"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile qr not owned",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "staticQrAssetId": "6d09000000000000000000ff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That image does not belong to this hostel. Upload the QR again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile save",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "bankAccountName": " Report Hostel ",
+        "bankAccountNumber": "01234567890123",
+        "bankName": "Nabil",
+        "cashApprovalThreshold": 5000,
+        "displayName": "",
+        "esewaId": "9800000001",
+        "extraAccounts": [
+          {
+            "kind": "BANK",
+            "number": "111222333444",
+            "bankName": "NIC",
+            "accountName": "Ops"
+          },
+          {
+            "kind": "KHALTI",
+            "number": "9800000002",
+            "bankName": "ignored"
+          }
+        ],
+        "paymentInstructions": "Pay before the 5th.",
+        "qrPayeeName": "Report Hostel",
+        "statementCadenceDays": 14
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment profile saved",
+        "data": {
+          "profile": {
+            "bankAccountName": "Report Hostel",
+            "bankAccountNumber": "01234567890123",
+            "bankName": "Nabil",
+            "cashApprovalThreshold": 5000,
+            "displayName": null,
+            "enabledProviders": [
+              "ESEWA"
+            ],
+            "esewaId": "9800000001",
+            "extraAccounts": [
+              {
+                "accountName": "Ops",
+                "bankName": "NIC",
+                "kind": "BANK",
+                "number": "111222333444"
+              },
+              {
+                "accountName": null,
+                "bankName": null,
+                "kind": "KHALTI",
+                "number": "9800000002"
+              }
+            ],
+            "khaltiId": null,
+            "lastStatementUploadAt": null,
+            "payeeVerifiable": true,
+            "paymentInstructions": "Pay before the 5th.",
+            "qrPayeeName": "Report Hostel",
+            "qrPayeeNumber": null,
+            "qrPayeeSource": "MANUAL",
+            "staticQrAssetId": null,
+            "statementCadenceDays": 14,
+            "tier": "TIER_1",
+            "usable": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile clear qr",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "staticQrAssetId": null,
+        "khaltiId": null
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment profile saved",
+        "data": {
+          "profile": {
+            "bankAccountName": "Report Hostel",
+            "bankAccountNumber": "01234567890123",
+            "bankName": "Nabil",
+            "cashApprovalThreshold": 5000,
+            "displayName": null,
+            "enabledProviders": [
+              "ESEWA"
+            ],
+            "esewaId": "9800000001",
+            "extraAccounts": [
+              {
+                "accountName": "Ops",
+                "bankName": "NIC",
+                "kind": "BANK",
+                "number": "111222333444"
+              },
+              {
+                "accountName": null,
+                "bankName": null,
+                "kind": "KHALTI",
+                "number": "9800000002"
+              }
+            ],
+            "khaltiId": null,
+            "lastStatementUploadAt": null,
+            "payeeVerifiable": true,
+            "paymentInstructions": "Pay before the 5th.",
+            "qrPayeeName": "Report Hostel",
+            "qrPayeeNumber": null,
+            "qrPayeeSource": "MANUAL",
+            "staticQrAssetId": null,
+            "statementCadenceDays": 14,
+            "tier": "TIER_1",
+            "usable": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  },
+  {
+    "name": "profile after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/payment-profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment profile",
+        "data": {
+          "profile": {
+            "bankAccountName": "Report Hostel",
+            "bankAccountNumber": "01234567890123",
+            "bankName": "Nabil",
+            "cashApprovalThreshold": 5000,
+            "displayName": null,
+            "enabledProviders": [
+              "ESEWA"
+            ],
+            "esewaId": "9800000001",
+            "extraAccounts": [
+              {
+                "accountName": "Ops",
+                "bankName": "NIC",
+                "kind": "BANK",
+                "number": "111222333444"
+              },
+              {
+                "accountName": null,
+                "bankName": null,
+                "kind": "KHALTI",
+                "number": "9800000002"
+              }
+            ],
+            "khaltiId": null,
+            "lastStatementUploadAt": null,
+            "payeeVerifiable": true,
+            "paymentInstructions": "Pay before the 5th.",
+            "qrPayeeName": "Report Hostel",
+            "qrPayeeNumber": null,
+            "qrPayeeSource": "MANUAL",
+            "staticQrAssetId": null,
+            "statementCadenceDays": 14,
+            "tier": "TIER_1",
+            "usable": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 765c333f"
+  }
+]

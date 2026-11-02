@@ -317,20 +317,24 @@ async function writeEntry(
   principal: ApiPrincipal,
 ): Promise<void> {
   const fields = {
-    "gateways.$[slot].accountKind": entry.accountKind,
-    "gateways.$[slot].enabledAt": entry.enabledAt ?? null,
-    "gateways.$[slot].merchantCode": entry.merchantCode ?? null,
-    "gateways.$[slot].mode": entry.mode,
-    "gateways.$[slot].updatedBy": principal.userId,
+    "gateways.$.accountKind": entry.accountKind,
+    "gateways.$.enabledAt": entry.enabledAt ?? null,
+    "gateways.$.merchantCode": entry.merchantCode ?? null,
+    "gateways.$.mode": entry.mode,
+    "gateways.$.updatedBy": principal.userId,
   };
 
+  /*
+   * Matched on the slot itself (FIN-10). The arrayFilters form threw on a profile
+   * with no `gateways` array, and an unchanged save (modifiedCount 0) fell through
+   * to the push and its upsert, which collided with the profile's unique hostelId.
+   */
   const updated = await HostelPaymentProfileModel.updateOne(
-    { hostelId },
+    { hostelId, "gateways.provider": provider },
     { $set: fields },
-    { arrayFilters: [{ "slot.provider": provider }] },
   );
 
-  if (updated.matchedCount > 0 && updated.modifiedCount > 0) {
+  if (updated.matchedCount > 0) {
     return;
   }
 

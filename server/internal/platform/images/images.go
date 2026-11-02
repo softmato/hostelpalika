@@ -270,3 +270,24 @@ func SVGToPNG(svg []byte) ([]byte, error) {
 	out, _, err := ref.ExportPng(vips.NewPngExportParams())
 	return out, err
 }
+
+// InvertGrey is sharp(b).rotate().greyscale().negate().png(): white text on a dark
+// poster reads as dark on light for OCR.
+func InvertGrey(b []byte) ([]byte, error) {
+	img, err := load(b)
+	if err != nil {
+		return nil, err
+	}
+	defer img.Close()
+	if err := img.AutoRotate(); err != nil {
+		return nil, err
+	}
+	if err := img.ToColorSpace(vips.InterpretationBW); err != nil {
+		return nil, err
+	}
+	if err := img.Invert(); err != nil {
+		return nil, err
+	}
+	out, _, err := img.ExportPng(vips.NewPngExportParams())
+	return out, err
+}
