@@ -1,9 +1,12 @@
 package fixture
 
 import (
+	"context"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // Quick sign-ups for the KYC cases: 40 owner, 41 a draft with nothing, 42 owner, 43 a
@@ -16,6 +19,19 @@ var (
 )
 
 func init() {
+	// The two unique indexes the setup routes rely on; every reset drops the database.
+	seed := groupSeeds["admin-setup"]
+	groupSeeds["admin-setup"] = func(ctx context.Context, db *mongo.Database, now time.Time) error {
+		if err := seed(ctx, db, now); err != nil {
+			return err
+		}
+		if _, err := db.Collection("hostelleaverequests").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "hostelId", Value: 1}},
+			Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.D{{Key: "status", Value: "PENDING"}})}); err != nil {
+			return err
+		}
+		_, err := db.Collection("hostelagreementsignatures").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "hostelId", Value: 1}}, Options: options.Index().SetUnique(true)})
+		return err
+	}
 	extendGroup("admin-setup", func(now time.Time) map[string][]any {
 		fixed := time.Date(2026, 9, 1, 6, 0, 0, 0, time.UTC)
 		base := func(id, owner bson.ObjectID, name, slug string, location bson.D, extra ...bson.E) bson.D {

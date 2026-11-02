@@ -404,14 +404,8 @@ func (a *Admin) agreementSign(c *gin.Context) {
 		ip = c.GetHeader("x-real-ip")
 	}
 	now := time.Now().UTC().Truncate(time.Millisecond)
-	_, err = a.DB.Collection("hostelagreementsignatures").UpdateOne(c, bson.D{{Key: "hostelId", Value: id}, {Key: "refCode", Value: nil}},
-		bson.D{{Key: "$set", Value: bson.D{{Key: "ip", Value: clip(ip, 64)}, {Key: "parties", Value: parties}, {Key: "signature", Value: signature}, {Key: "signedAt", Value: now}, {Key: "signedBy", Value: actor},
-			{Key: "signerName", Value: name}, {Key: "terms", Value: terms}, {Key: "textHash", Value: hash}, {Key: "userAgent", Value: clip(c.GetHeader("user-agent"), 300)}, {Key: "updatedAt", Value: now}}},
-			{Key: "$setOnInsert", Value: bson.D{{Key: "hostelId", Value: id}, {Key: "createdAt", Value: now}, {Key: "__v", Value: 0}}}}, upsert)
-	if mongo.IsDuplicateKeyError(err) {
-		// The unique index refuses the upsert once a signed row has its code.
-		err = final
-	}
+	err = a.saveSignature(c, id, bson.D{{Key: "ip", Value: clip(ip, 64)}, {Key: "parties", Value: parties}, {Key: "signature", Value: signature}, {Key: "signedAt", Value: now}, {Key: "signedBy", Value: actor},
+		{Key: "signerName", Value: name}, {Key: "terms", Value: terms}, {Key: "textHash", Value: hash}, {Key: "userAgent", Value: clip(c.GetHeader("user-agent"), 300)}, {Key: "updatedAt", Value: now}}, now)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
@@ -442,6 +436,17 @@ func (a *Admin) agreementSign(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, agreementWrap{out}, "Agreement signed")
+}
+
+// saveSignature upserts the unissued row. The unique index refuses the upsert once a
+// signed row has its code, which is how a sign racing an issue loses.
+func (a *Admin) saveSignature(ctx context.Context, id bson.ObjectID, set bson.D, now time.Time) error {
+	_, err := a.DB.Collection("hostelagreementsignatures").UpdateOne(ctx, bson.D{{Key: "hostelId", Value: id}, {Key: "refCode", Value: nil}},
+		bson.D{{Key: "$set", Value: set}, {Key: "$setOnInsert", Value: bson.D{{Key: "hostelId", Value: id}, {Key: "createdAt", Value: now}, {Key: "__v", Value: 0}}}}, upsert)
+	if mongo.IsDuplicateKeyError(err) {
+		return httpx.NewError(409, "AGREEMENT_FINAL", "Your agreement is already signed and sent.", nil)
+	}
+	return err
 }
 
 // IssueAgreement is issueHostelAgreement: gives the signed agreement its number and

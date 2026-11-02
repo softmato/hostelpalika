@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "warden",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "resident",
@@ -63,7 +63,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "overview",
@@ -100,7 +100,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "other hostel",
@@ -123,7 +123,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "invalid",
@@ -186,7 +186,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "out of range",
@@ -214,7 +214,7 @@
         "errorCode": "LEAVE_HOLD_OUT_OF_RANGE"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "cancel none",
@@ -237,7 +237,7 @@
         "errorCode": "LEAVE_NOT_PENDING"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "sent",
@@ -272,12 +272,12 @@
             "holdUntil": null,
             "hostelId": "6d0400000000000000000001",
             "hostelName": "Setup Hostel",
-            "id": "6ae823915e205a5564095da0",
+            "id": "6ae82d535e205a5564095de0",
             "ownerEmail": "setup.owner@contract.test",
             "ownerName": "Setup HOSTEL_ADMIN",
             "reason": "Moving away",
             "reclaimedAt": null,
-            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "requestedAt": "2026-11-02T06:27:31.760Z",
             "reviewNote": null,
             "reviewedAt": null,
             "status": "PENDING"
@@ -285,7 +285,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "again",
@@ -305,35 +305,15 @@
       "**dates"
     ],
     "response": {
-      "status": 200,
+      "status": 409,
       "contentType": "application/json",
       "body": {
-        "success": true,
-        "message": "Request to leave sent",
-        "data": {
-          "request": {
-            "branchCount": 0,
-            "exportSections": [],
-            "exportSentAt": null,
-            "exportSentTo": null,
-            "holdDays": 15,
-            "holdUntil": null,
-            "hostelId": "6d0400000000000000000001",
-            "hostelName": "Setup Hostel",
-            "id": "6ae823915e205a5564095da2",
-            "ownerEmail": "setup.owner@contract.test",
-            "ownerName": "Setup HOSTEL_ADMIN",
-            "reason": "Moving away",
-            "reclaimedAt": null,
-            "requestedAt": "2026-11-02T05:45:53.617Z",
-            "reviewNote": null,
-            "reviewedAt": null,
-            "status": "PENDING"
-          }
-        }
+        "success": false,
+        "message": "A request to leave is already waiting for review.",
+        "errorCode": "LEAVE_ALREADY_PENDING"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "pending overview",
@@ -375,12 +355,12 @@
             "holdUntil": null,
             "hostelId": "6d0400000000000000000001",
             "hostelName": "Setup Hostel",
-            "id": "6ae823915e205a5564095da0",
+            "id": "6ae82d535e205a5564095de0",
             "ownerEmail": "setup.owner@contract.test",
             "ownerName": "Setup HOSTEL_ADMIN",
             "reason": "Moving away",
             "reclaimedAt": null,
-            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "requestedAt": "2026-11-02T06:27:31.760Z",
             "reviewNote": null,
             "reviewedAt": null,
             "status": "PENDING"
@@ -388,7 +368,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "cancel",
@@ -418,12 +398,12 @@
             "holdUntil": null,
             "hostelId": "6d0400000000000000000001",
             "hostelName": "Setup Hostel",
-            "id": "6ae823915e205a5564095da0",
+            "id": "6ae82d535e205a5564095de0",
             "ownerEmail": "setup.owner@contract.test",
             "ownerName": "Setup HOSTEL_ADMIN",
             "reason": "Moving away",
             "reclaimedAt": null,
-            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "requestedAt": "2026-11-02T06:27:31.760Z",
             "reviewNote": null,
             "reviewedAt": null,
             "status": "CANCELLED"
@@ -431,7 +411,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "cancel twice",
@@ -446,35 +426,15 @@
       "**dates"
     ],
     "response": {
-      "status": 200,
+      "status": 409,
       "contentType": "application/json",
       "body": {
-        "success": true,
-        "message": "Request cancelled",
-        "data": {
-          "request": {
-            "branchCount": 0,
-            "exportSections": [],
-            "exportSentAt": null,
-            "exportSentTo": null,
-            "holdDays": 15,
-            "holdUntil": null,
-            "hostelId": "6d0400000000000000000001",
-            "hostelName": "Setup Hostel",
-            "id": "6ae823915e205a5564095da2",
-            "ownerEmail": "setup.owner@contract.test",
-            "ownerName": "Setup HOSTEL_ADMIN",
-            "reason": "Moving away",
-            "reclaimedAt": null,
-            "requestedAt": "2026-11-02T05:45:53.617Z",
-            "reviewNote": null,
-            "reviewedAt": null,
-            "status": "CANCELLED"
-          }
-        }
+        "success": false,
+        "message": "There is no waiting request to cancel.",
+        "errorCode": "LEAVE_NOT_PENDING"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   },
   {
     "name": "branch-less owner overview",
@@ -511,6 +471,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 bd58b61e"
   }
 ]
