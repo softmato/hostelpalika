@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/backup"
 	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelleave"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
@@ -26,4 +27,6 @@ func mountAdminSetup(v1 *gin.RouterGroup, s *shared) {
 			ops := s.Config.OperationsTyped(ctx)
 			return ops.LeaveHoldMinDays, ops.LeaveHoldMaxDays
 		}}).Register(v1)
+	(&backup.Handler{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Config: s.Config, Drive: backup.NewDrive(s.Cfg.Google.DriveClientID, s.Cfg.Google.DriveClientSecret),
+		AppURL: strings.TrimRight(s.Cfg.AppURL, "/"), JWTSecret: s.Cfg.Auth.AccessSecret, FinanceKey: s.Cfg.Crypto.FinanceMasterKey, FinancePrev: s.Cfg.Crypto.FinanceMasterKeyPrev}).Register(v1)
 }

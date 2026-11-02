@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha512"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -219,4 +220,20 @@ func marshalNoEscape(v any) ([]byte, error) {
 		return nil, fmt.Errorf("archive header: %w", err)
 	}
 	return bytes.TrimSuffix(buf.Bytes(), []byte("\n")), nil
+}
+
+// FromBase64 is sealed-archive.ts fromBase64: anything outside the alphabet is
+// dropped, never an error, and trailing bits are ignored.
+func FromBase64(text string) []byte {
+	clean := strings.Map(func(r rune) rune {
+		if r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '+' || r == '/' {
+			return r
+		}
+		return -1
+	}, text)
+	if len(clean)%4 == 1 {
+		clean = clean[:len(clean)-1]
+	}
+	out, _ := base64.RawStdEncoding.DecodeString(clean)
+	return out
 }

@@ -144,7 +144,7 @@ func Diff(c Case, status int, contentType string, setCookie []string, body []byt
 		diffs = append(diffs, fmt.Sprintf("body:\n  got  %s\n  want %s", g, e))
 	} else if !c.UnorderedKeys && order(body) != order(want.Body) {
 		// Key order matters to some clients (RULES.md §2); DeepEqual ignores it.
-		diffs = append(diffs, "body: same values, different key order")
+		diffs = append(diffs, "body: same values, different key order\n  got  "+order(body)+"\n  want "+order(want.Body))
 	}
 	return diffs
 }

@@ -78,6 +78,8 @@ type Deps struct {
 // and the upload doors, which read a body over slow mobile links first. Keys are
 // Gin paths; TestRouteBudgetsAreRoutes catches a typo.
 var routeBudgets = map[string]time.Duration{
+	"/api/v1/hostel-admin/backup":                       300 * time.Second,
+	"/api/v1/hostel-admin/backup/runs/:runId/file":      120 * time.Second,
 	"/api/v1/account/hostel-leave/:requestId/files/zip": 300 * time.Second,
 	"/api/v1/files/upload":                              120 * time.Second,
 	"/api/v1/public/files/upload":                       120 * time.Second,

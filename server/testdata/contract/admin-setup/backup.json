@@ -1,0 +1,1401 @@
+[
+  {
+    "name": "overview anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview co-admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007f:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup loaded",
+        "data": {
+          "allowed": true,
+          "drive": {
+            "connectedAt": "2026-09-01T06:00:00.000Z",
+            "email": "owner@gmail.test",
+            "error": null,
+            "ready": true,
+            "status": "CONNECTED"
+          },
+          "hostelId": "6d0400000000000000000078",
+          "key": {
+            "fingerprint": "7778-8F1A-0CEA-001A",
+            "kitConfirmedAt": null,
+            "setAt": "2026-09-01T06:00:00.000Z"
+          },
+          "runs": [
+            {
+              "bytes": 2048,
+              "checked": false,
+              "counts": {
+                "Notice": 1,
+                "Hostel": 1,
+                "Expense": 1
+              },
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "error": null,
+              "fileName": "hostelpalika-backup-2026-09-01-06-00.hpbk",
+              "id": "6d0400000000000000000083",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": true,
+              "sha512": "ab12",
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": 1024,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-31T06:00:00.000Z",
+              "error": null,
+              "fileName": "old.hpbk",
+              "id": "6d0400000000000000000084",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-30T06:00:00.000Z",
+              "error": "The backup could not be made.",
+              "fileName": null,
+              "id": "6d0400000000000000000085",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "SCHEDULE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview no plan",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007e:HOSTEL_ADMIN:6d040000000000000000007d}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup loaded",
+        "data": {
+          "allowed": false,
+          "drive": {
+            "connectedAt": null,
+            "email": null,
+            "error": null,
+            "ready": true,
+            "status": "NOT_CONNECTED"
+          },
+          "hostelId": "6d040000000000000000007d",
+          "key": {
+            "fingerprint": "7778-8F1A-0CEA-001A",
+            "kitConfirmedAt": null,
+            "setAt": "2026-09-01T06:00:00.000Z"
+          },
+          "runs": [
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "error": null,
+              "fileName": null,
+              "id": "6d0400000000000000000086",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": true,
+              "sha512": null,
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "key short",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "publicKey": "abc"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "publicKey": [
+              "Too small: expected string to have >=40 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=40 characters",
+              "path": "publicKey"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "key wrong size",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That is not a backup key.",
+        "errorCode": "BACKUP_KEY_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "kit mismatch",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "fingerprint": "0000-0000"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That recovery kit is for a different key.",
+        "errorCode": "BACKUP_KEY_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "kit bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "fingerprint": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "fingerprint"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "kit confirmed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "fingerprint": "7778-8F1A-0CEA-001A"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Recovery kit noted",
+        "data": {
+          "confirmed": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "connect no plan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007e:HOSTEL_ADMIN:6d040000000000000000007d}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup to Google Drive comes with the Pro plan and up.",
+        "errorCode": "BACKUP_NEEDS_PRO"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "connect bad from",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "from": "phone"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "from": [
+              "Invalid option: expected one of \"app\"|\"web\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"app\"|\"web\"",
+              "path": "from"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "connect owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "from": "app"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.url"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Open Google to connect Drive",
+        "data": {
+          "url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&client_id=contract-google-client.apps.googleusercontent.com&include_granted_scopes=true&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fv1%2Fhostel-admin%2Fbackup%2Fdrive%2Fcallback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.appdata+email&state=eyJlIjoxNzkzNjA4ODQzMjAwLCJmIjoiYXBwIiwiaCI6IjZkMDQwMDAwMDAwMDAwMDAwMDAwMDA3OCIsInUiOiI2ZDA0MDAwMDAwMDAwMDAwMDAwMDAwNzkifQ.9Ehw890MjR6VGx6FkNi4_QUELwtv2ziE4bLqQrb2KG8"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "connect co-admin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007f:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "backup no plan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007e:HOSTEL_ADMIN:6d040000000000000000007d}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup to Google Drive comes with the Pro plan and up.",
+        "errorCode": "BACKUP_NEEDS_PRO"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "backup co-admin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007f:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "backup owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup finished",
+        "data": {
+          "error": "Google Drive is not connected.",
+          "ok": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview after backup",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.runs[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup loaded",
+        "data": {
+          "allowed": true,
+          "drive": {
+            "connectedAt": "2026-09-01T06:00:00.000Z",
+            "email": "owner@gmail.test",
+            "error": "Google Drive is not connected.",
+            "ready": true,
+            "status": "REVOKED"
+          },
+          "hostelId": "6d0400000000000000000078",
+          "key": {
+            "fingerprint": "7778-8F1A-0CEA-001A",
+            "kitConfirmedAt": "2026-11-02T08:30:42.250Z",
+            "setAt": "2026-09-01T06:00:00.000Z"
+          },
+          "runs": [
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-11-02T08:30:44.347Z",
+              "error": "Google Drive is not connected.",
+              "fileName": null,
+              "id": "6ae84a345e205a5564095df1",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "MANUAL"
+            },
+            {
+              "bytes": 2048,
+              "checked": false,
+              "counts": {
+                "Notice": 1,
+                "Hostel": 1,
+                "Expense": 1
+              },
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "error": null,
+              "fileName": "hostelpalika-backup-2026-09-01-06-00.hpbk",
+              "id": "6d0400000000000000000083",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": true,
+              "sha512": "ab12",
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": 1024,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-31T06:00:00.000Z",
+              "error": null,
+              "fileName": "old.hpbk",
+              "id": "6d0400000000000000000084",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-30T06:00:00.000Z",
+              "error": "The backup could not be made.",
+              "fileName": null,
+              "id": "6d0400000000000000000085",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "SCHEDULE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "file bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/runs/nope/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup not found.",
+        "errorCode": "BACKUP_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "file other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/runs/6d0400000000000000000086/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup not found.",
+        "errorCode": "BACKUP_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "file failed run",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/runs/6d0400000000000000000085/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup not found.",
+        "errorCode": "BACKUP_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "file not on drive",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/runs/6d0400000000000000000084/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 410,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This backup is no longer kept in Drive.",
+        "errorCode": "BACKUP_NOT_ON_DRIVE"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "file on drive",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/runs/6d0400000000000000000083/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Google Drive is not connected.",
+        "errorCode": "REVOKED"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[",
+        "index": -1,
+        "runId": ""
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "data": [
+              "Too small: expected string to have >=2 characters"
+            ],
+            "index": [
+              "Too small: expected number to be >=0"
+            ],
+            "runId": [
+              "Too small: expected string to have >=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=2 characters",
+              "path": "data"
+            },
+            {
+              "message": "Too small: expected number to be >=0",
+              "path": "index"
+            },
+            {
+              "message": "Too small: expected string to have >=1 characters",
+              "path": "runId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore unknown run",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Restored notice\"}]",
+        "index": 0,
+        "runId": "6d04000000000000000003e7"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup not found.",
+        "errorCode": "BACKUP_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore failed run",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Restored notice\"}]",
+        "index": 0,
+        "runId": "6d0400000000000000000085"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Backup not found.",
+        "errorCode": "BACKUP_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore edited",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Edited notice\"}]",
+        "index": 0,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This part of the backup does not match what was backed up.",
+        "errorCode": "BACKUP_CHUNK_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore wrong index",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Restored notice\"}]",
+        "index": 1,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This part of the backup does not match what was backed up.",
+        "errorCode": "BACKUP_CHUNK_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore record",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Hostel",
+        "data": "[{\"_id\":{\"$oid\":\"6d0400000000000000000078\"}}]",
+        "index": 0,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Restored",
+        "data": {
+          "added": 0,
+          "kept": 1,
+          "refused": 0,
+          "restorable": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore other hostel rows",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Expense",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a1\"},\"hostelId\":{\"$oid\":\"6d040000000000000000007d\"},\"title\":\"Not ours\"}]",
+        "index": 0,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This backup holds rows of a hostel that is not yours.",
+        "errorCode": "BACKUP_OTHER_HOSTEL"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore adds",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Restored notice\"}]",
+        "index": 0,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Restored",
+        "data": {
+          "added": 1,
+          "kept": 0,
+          "refused": 0,
+          "restorable": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "restore again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/backup/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "collection": "Notice",
+        "data": "[{\"_id\":{\"$oid\":\"6d04000000000000000000a0\"},\"hostelId\":{\"$oid\":\"6d0400000000000000000078\"},\"title\":\"Restored notice\"}]",
+        "index": 0,
+        "runId": "6d0400000000000000000083"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Restored",
+        "data": {
+          "added": 0,
+          "kept": 1,
+          "refused": 0,
+          "restorable": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "callback no code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/drive/callback?state=x"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 307,
+      "contentType": "",
+      "location": "/hostel-admin/backup?drive=failed"
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "callback bad state",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/drive/callback?code=abc&state=e30.bad"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 307,
+      "contentType": "",
+      "location": "/hostel-admin/backup?drive=failed"
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "callback app",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup/drive/callback?state=eyJmIjoiYXBwIn0.x"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 307,
+      "contentType": "",
+      "location": "/backup?drive=failed"
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "key new",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/backup/key",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      },
+      "body": {
+        "publicKey": "ISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0A="
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Recovery key saved",
+        "data": {
+          "fingerprint": "3114-CF80-DB5E-C449"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview new key",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.runs[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup loaded",
+        "data": {
+          "allowed": true,
+          "drive": {
+            "connectedAt": "2026-09-01T06:00:00.000Z",
+            "email": "owner@gmail.test",
+            "error": "Google Drive is not connected.",
+            "ready": true,
+            "status": "REVOKED"
+          },
+          "hostelId": "6d0400000000000000000078",
+          "key": {
+            "fingerprint": "3114-CF80-DB5E-C449",
+            "kitConfirmedAt": null,
+            "setAt": "2026-11-02T08:31:07.022Z"
+          },
+          "runs": [
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-11-02T08:30:44.347Z",
+              "error": "Google Drive is not connected.",
+              "fileName": null,
+              "id": "6ae84a345e205a5564095df1",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "MANUAL"
+            },
+            {
+              "bytes": 2048,
+              "checked": false,
+              "counts": {
+                "Notice": 1,
+                "Hostel": 1,
+                "Expense": 1
+              },
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "error": null,
+              "fileName": "hostelpalika-backup-2026-09-01-06-00.hpbk",
+              "id": "6d0400000000000000000083",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": true,
+              "sha512": "ab12",
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": 1024,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-31T06:00:00.000Z",
+              "error": null,
+              "fileName": "old.hpbk",
+              "id": "6d0400000000000000000084",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-30T06:00:00.000Z",
+              "error": "The backup could not be made.",
+              "fileName": null,
+              "id": "6d0400000000000000000085",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "SCHEDULE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "disconnect co-admin",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000007f:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "disconnect",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/backup/drive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Drive disconnected",
+        "data": {
+          "disconnected": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  },
+  {
+    "name": "overview disconnected",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/backup",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000079:HOSTEL_ADMIN:6d0400000000000000000078}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.runs[*].id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Backup loaded",
+        "data": {
+          "allowed": true,
+          "drive": {
+            "connectedAt": "2026-09-01T06:00:00.000Z",
+            "email": null,
+            "error": null,
+            "ready": true,
+            "status": "NOT_CONNECTED"
+          },
+          "hostelId": "6d0400000000000000000078",
+          "key": {
+            "fingerprint": "3114-CF80-DB5E-C449",
+            "kitConfirmedAt": null,
+            "setAt": "2026-11-02T08:31:07.022Z"
+          },
+          "runs": [
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-11-02T08:30:44.347Z",
+              "error": "Google Drive is not connected.",
+              "fileName": null,
+              "id": "6ae84a345e205a5564095df1",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "MANUAL"
+            },
+            {
+              "bytes": 2048,
+              "checked": false,
+              "counts": {
+                "Notice": 1,
+                "Hostel": 1,
+                "Expense": 1
+              },
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "error": null,
+              "fileName": "hostelpalika-backup-2026-09-01-06-00.hpbk",
+              "id": "6d0400000000000000000083",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": true,
+              "sha512": "ab12",
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": 1024,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-31T06:00:00.000Z",
+              "error": null,
+              "fileName": "old.hpbk",
+              "id": "6d0400000000000000000084",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "OK",
+              "trigger": "SCHEDULE"
+            },
+            {
+              "bytes": null,
+              "checked": false,
+              "counts": {},
+              "createdAt": "2026-08-30T06:00:00.000Z",
+              "error": "The backup could not be made.",
+              "fileName": null,
+              "id": "6d0400000000000000000085",
+              "keyFingerprint": "7778-8F1A-0CEA-001A",
+              "onDrive": false,
+              "sha512": null,
+              "status": "FAILED",
+              "trigger": "SCHEDULE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 95dcc69e"
+  }
+]
