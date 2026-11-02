@@ -60,6 +60,7 @@ type Doc struct {
 	f      *fpdf.Fpdf
 	encode func(string) string
 	images int
+	h      float64
 }
 
 // New starts a document with one A4 page.
@@ -69,10 +70,28 @@ func New() *Doc {
 	f.SetAutoPageBreak(false, 0)
 	f.SetCompression(true)
 	f.SetCreator("HostelPalika", true)
-	d := &Doc{f: f, encode: f.UnicodeTranslatorFromDescriptor("cp1252")}
+	d := &Doc{f: f, encode: f.UnicodeTranslatorFromDescriptor("cp1252"), h: PageHeight}
 	f.AddPage()
 	return d
 }
+
+// NewSized starts a document whose every page is w by h points, such as a landscape report.
+func NewSized(w, h float64) *Doc {
+	f := fpdf.NewCustom(&fpdf.InitType{UnitStr: "pt", Size: fpdf.SizeType{Wd: w, Ht: h}})
+	f.SetMargins(0, 0, 0)
+	f.SetAutoPageBreak(false, 0)
+	f.SetCompression(true)
+	f.SetCreator("HostelPalika", true)
+	d := &Doc{f: f, encode: f.UnicodeTranslatorFromDescriptor("cp1252"), h: h}
+	f.AddPage()
+	return d
+}
+
+// Pages is how many pages exist; GoToPage goes back to draw on one.
+func (d *Doc) Pages() int { return d.f.PageCount() }
+
+// GoToPage is 1-based.
+func (d *Doc) GoToPage(n int) { d.f.SetPage(n) }
 
 // StampSystem writes stampSystemDocument's three metadata fields.
 func (d *Doc) StampSystem(stamp string) {
@@ -125,14 +144,14 @@ func (d *Doc) Text(x, y float64, s string, font Font, size float64, color RGB) {
 	family, style := font.family()
 	d.f.SetFont(family, style, size)
 	d.f.SetTextColor(color.ints())
-	d.f.Text(x, PageHeight-y, d.encode(s))
+	d.f.Text(x, d.h-y, d.encode(s))
 }
 
 // Line is page.drawLine.
 func (d *Doc) Line(x1, y1, x2, y2, thickness float64, color RGB) {
 	d.f.SetLineWidth(thickness)
 	d.f.SetDrawColor(color.ints())
-	d.f.Line(x1, PageHeight-y1, x2, PageHeight-y2)
+	d.f.Line(x1, d.h-y1, x2, d.h-y2)
 }
 
 // Rect is page.drawRectangle with (x, y) its bottom-left corner. A nil fill
@@ -151,7 +170,7 @@ func (d *Doc) Rect(x, y, w, h float64, border *RGB, borderWidth float64, fill *R
 	if style == "" {
 		return
 	}
-	d.f.Rect(x, PageHeight-y-h, w, h, style)
+	d.f.Rect(x, d.h-y-h, w, h, style)
 }
 
 // PNG is page.drawImage of an embedded PNG, (x, y) its bottom-left corner.
@@ -162,7 +181,7 @@ func (d *Doc) PNG(png []byte, x, y, w, h float64) error {
 	if err := d.f.Error(); err != nil {
 		return err
 	}
-	d.f.ImageOptions(name, x, PageHeight-y-h, w, h, false, fpdf.ImageOptions{ImageType: "PNG"}, 0, "")
+	d.f.ImageOptions(name, x, d.h-y-h, w, h, false, fpdf.ImageOptions{ImageType: "PNG"}, 0, "")
 	return d.f.Error()
 }
 

@@ -18,7 +18,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wrong role",
@@ -42,7 +42,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "no capability",
@@ -66,7 +66,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "home owner",
@@ -391,7 +391,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "home warden",
@@ -591,7 +591,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "home warden 12",
@@ -700,7 +700,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "bad query",
@@ -745,7 +745,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "foreign",
@@ -769,7 +769,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "period old",
@@ -904,7 +904,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "period future",
@@ -1229,7 +1229,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create invalid",
@@ -1294,7 +1294,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create other no what",
@@ -1336,7 +1336,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create custom none",
@@ -1378,7 +1378,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create cash none",
@@ -1420,7 +1420,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create cash bad warden",
@@ -1451,7 +1451,7 @@
         "errorCode": "CASH_TO_NOT_STAFF"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "warden gives cash refused",
@@ -1482,7 +1482,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "warden needs proof",
@@ -1510,7 +1510,7 @@
         "errorCode": "PROOF_REQUIRED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "future date",
@@ -1539,7 +1539,7 @@
         "errorCode": "DATE_IN_FUTURE"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "old date",
@@ -1568,7 +1568,7 @@
         "errorCode": "DATE_TOO_OLD"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "bad day",
@@ -1597,7 +1597,7 @@
         "errorCode": "INVALID_DATE"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "photo not mine",
@@ -1626,7 +1626,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "custom missing",
@@ -1655,7 +1655,7 @@
         "errorCode": "CATEGORY_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create",
@@ -1694,9 +1694,9 @@
           "cashTo": null,
           "category": "GROCERIES",
           "categoryLabel": "Groceries",
-          "createdAt": "2026-11-02T04:10:52.282Z",
+          "createdAt": "2026-11-02T04:23:56.674Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d16",
+          "id": "6ae8105c5e205a5564095d44",
           "mine": true,
           "paidBy": "CASH",
           "payer": "HOSTEL",
@@ -1715,7 +1715,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create replay",
@@ -1751,9 +1751,9 @@
           "cashTo": null,
           "category": "GROCERIES",
           "categoryLabel": "Groceries",
-          "createdAt": "2026-11-02T04:10:52.282Z",
+          "createdAt": "2026-11-02T04:23:56.674Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d16",
+          "id": "6ae8105c5e205a5564095d44",
           "mine": true,
           "paidBy": "CASH",
           "payer": "HOSTEL",
@@ -1772,7 +1772,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "salary",
@@ -1811,9 +1811,9 @@
           "cashTo": null,
           "category": "SALARY",
           "categoryLabel": "Salary",
-          "createdAt": "2026-11-02T04:10:52.433Z",
+          "createdAt": "2026-11-02T04:23:56.821Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d18",
+          "id": "6ae8105c5e205a5564095d46",
           "mine": true,
           "paidBy": "BANK",
           "payer": "HOSTEL",
@@ -1835,7 +1835,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "warden with photo",
@@ -1868,7 +1868,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "give cash",
@@ -1911,9 +1911,9 @@
           },
           "category": "STAFF_CASH",
           "categoryLabel": "Cash to warden",
-          "createdAt": "2026-11-02T04:10:52.550Z",
+          "createdAt": "2026-11-02T04:23:56.930Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d1a",
+          "id": "6ae8105c5e205a5564095d48",
           "mine": true,
           "paidBy": "CASH",
           "payer": "HOSTEL",
@@ -1932,7 +1932,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash owner refused",
@@ -1959,7 +1959,7 @@
         "errorCode": "EXPENSE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash invalid",
@@ -1998,7 +1998,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash wrong warden",
@@ -2025,7 +2025,7 @@
         "errorCode": "CASH_NOT_PENDING"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash accept",
@@ -2053,7 +2053,7 @@
         "data": {
           "amount": 700,
           "cashNote": null,
-          "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+          "cashRespondedAt": "2026-11-02T04:23:57.210Z",
           "cashStatus": "ACCEPTED",
           "cashTo": {
             "name": "Warden w10",
@@ -2061,9 +2061,9 @@
           },
           "category": "STAFF_CASH",
           "categoryLabel": "Cash to warden",
-          "createdAt": "2026-11-02T04:10:52.550Z",
+          "createdAt": "2026-11-02T04:23:56.930Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d1a",
+          "id": "6ae8105c5e205a5564095d48",
           "mine": false,
           "paidBy": "CASH",
           "payer": "HOSTEL",
@@ -2082,7 +2082,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash twice",
@@ -2109,7 +2109,7 @@
         "errorCode": "CASH_NOT_PENDING"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cash decline seeded",
@@ -2137,7 +2137,7 @@
         "data": {
           "amount": 500,
           "cashNote": "Never came",
-          "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+          "cashRespondedAt": "2026-11-02T04:23:57.330Z",
           "cashStatus": "DECLINED",
           "cashTo": {
             "name": "Warden w10",
@@ -2166,7 +2166,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void invalid",
@@ -2207,7 +2207,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void bad id",
@@ -2234,7 +2234,7 @@
         "errorCode": "EXPENSE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void other warden refused",
@@ -2261,7 +2261,7 @@
         "errorCode": "EXPENSE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void own",
@@ -2289,7 +2289,7 @@
         "errorCode": "EXPENSE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void owner",
@@ -2322,9 +2322,9 @@
           "cashTo": null,
           "category": "GROCERIES",
           "categoryLabel": "Groceries",
-          "createdAt": "2026-11-02T04:10:52.282Z",
+          "createdAt": "2026-11-02T04:23:56.674Z",
           "customCategoryId": null,
-          "id": "6ae80d4c5e205a5564095d16",
+          "id": "6ae8105c5e205a5564095d44",
           "mine": true,
           "paidBy": "CASH",
           "payer": "HOSTEL",
@@ -2338,12 +2338,12 @@
           "spentOn": "2026-11-02",
           "status": "VOID",
           "voidReason": "Wrong amount",
-          "voidedAt": "2026-11-02T04:11:13.524Z",
+          "voidedAt": "2026-11-02T04:23:57.659Z",
           "what": "Rice"
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "void twice",
@@ -2370,7 +2370,7 @@
         "errorCode": "EXPENSE_ALREADY_VOID"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category warden refused",
@@ -2397,7 +2397,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category invalid",
@@ -2438,7 +2438,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category builtin",
@@ -2465,7 +2465,7 @@
         "errorCode": "CATEGORY_EXISTS"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category",
@@ -2494,12 +2494,12 @@
         "message": "Category added",
         "data": {
           "hidden": false,
-          "id": "6ae80d695e205a5564095d22",
+          "id": "6ae8105d5e205a5564095d50",
           "name": "Snacks"
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category twice",
@@ -2526,7 +2526,7 @@
         "errorCode": "CATEGORY_EXISTS"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category empty edit",
@@ -2563,7 +2563,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category missing",
@@ -2590,7 +2590,7 @@
         "errorCode": "CATEGORY_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category bad id",
@@ -2617,7 +2617,7 @@
         "errorCode": "CATEGORY_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "category hide",
@@ -2644,12 +2644,12 @@
         "message": "Category saved",
         "data": {
           "hidden": true,
-          "id": "6ae80d695e205a5564095d22",
+          "id": "6ae8105d5e205a5564095d50",
           "name": "Snacks two"
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cook switch warden",
@@ -2676,7 +2676,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cook switch invalid",
@@ -2715,7 +2715,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cook switch",
@@ -2744,7 +2744,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "cook switch off",
@@ -2773,7 +2773,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wallet owner needs user",
@@ -2797,7 +2797,7 @@
         "errorCode": "WALLET_USER_REQUIRED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wallet bad",
@@ -2835,7 +2835,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wallet owner",
@@ -2861,7 +2861,7 @@
             {
               "amount": 700,
               "cashNote": null,
-              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.210Z",
               "cashStatus": "ACCEPTED",
               "cashTo": {
                 "name": "Warden w10",
@@ -2869,9 +2869,9 @@
               },
               "category": "STAFF_CASH",
               "categoryLabel": "Cash to warden",
-              "createdAt": "2026-11-02T04:10:52.550Z",
+              "createdAt": "2026-11-02T04:23:56.930Z",
               "customCategoryId": null,
-              "id": "6ae80d4c5e205a5564095d1a",
+              "id": "6ae8105c5e205a5564095d48",
               "mine": true,
               "paidBy": "CASH",
               "payer": "HOSTEL",
@@ -2921,7 +2921,7 @@
             {
               "amount": 500,
               "cashNote": "Never came",
-              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.330Z",
               "cashStatus": "DECLINED",
               "cashTo": {
                 "name": "Warden w10",
@@ -2988,7 +2988,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wallet warden",
@@ -3014,7 +3014,7 @@
             {
               "amount": 700,
               "cashNote": null,
-              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.210Z",
               "cashStatus": "ACCEPTED",
               "cashTo": {
                 "name": "Warden w10",
@@ -3022,9 +3022,9 @@
               },
               "category": "STAFF_CASH",
               "categoryLabel": "Cash to warden",
-              "createdAt": "2026-11-02T04:10:52.550Z",
+              "createdAt": "2026-11-02T04:23:56.930Z",
               "customCategoryId": null,
-              "id": "6ae80d4c5e205a5564095d1a",
+              "id": "6ae8105c5e205a5564095d48",
               "mine": false,
               "paidBy": "CASH",
               "payer": "HOSTEL",
@@ -3074,7 +3074,7 @@
             {
               "amount": 500,
               "cashNote": "Never came",
-              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.330Z",
               "cashStatus": "DECLINED",
               "cashTo": {
                 "name": "Warden w10",
@@ -3141,7 +3141,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wallet none",
@@ -3165,7 +3165,7 @@
         "errorCode": "WALLET_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "receipt invalid",
@@ -3206,7 +3206,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "receipt not mine",
@@ -3233,7 +3233,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "receipt unread",
@@ -3260,7 +3260,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "read back",
@@ -3293,7 +3293,7 @@
             },
             {
               "hidden": true,
-              "id": "6ae80d695e205a5564095d22",
+              "id": "6ae8105d5e205a5564095d50",
               "name": "Snacks two"
             }
           ],
@@ -3302,7 +3302,7 @@
             {
               "amount": 700,
               "cashNote": null,
-              "cashRespondedAt": "2026-11-02T04:11:08.967Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.210Z",
               "cashStatus": "ACCEPTED",
               "cashTo": {
                 "name": "Warden w10",
@@ -3310,9 +3310,9 @@
               },
               "category": "STAFF_CASH",
               "categoryLabel": "Cash to warden",
-              "createdAt": "2026-11-02T04:10:52.550Z",
+              "createdAt": "2026-11-02T04:23:56.930Z",
               "customCategoryId": null,
-              "id": "6ae80d4c5e205a5564095d1a",
+              "id": "6ae8105c5e205a5564095d48",
               "mine": true,
               "paidBy": "CASH",
               "payer": "HOSTEL",
@@ -3337,9 +3337,9 @@
               "cashTo": null,
               "category": "SALARY",
               "categoryLabel": "Salary",
-              "createdAt": "2026-11-02T04:10:52.433Z",
+              "createdAt": "2026-11-02T04:23:56.821Z",
               "customCategoryId": null,
-              "id": "6ae80d4c5e205a5564095d18",
+              "id": "6ae8105c5e205a5564095d46",
               "mine": true,
               "paidBy": "BANK",
               "payer": "HOSTEL",
@@ -3367,9 +3367,9 @@
               "cashTo": null,
               "category": "GROCERIES",
               "categoryLabel": "Groceries",
-              "createdAt": "2026-11-02T04:10:52.282Z",
+              "createdAt": "2026-11-02T04:23:56.674Z",
               "customCategoryId": null,
-              "id": "6ae80d4c5e205a5564095d16",
+              "id": "6ae8105c5e205a5564095d44",
               "mine": true,
               "paidBy": "CASH",
               "payer": "HOSTEL",
@@ -3383,7 +3383,7 @@
               "spentOn": "2026-11-02",
               "status": "VOID",
               "voidReason": "Wrong amount",
-              "voidedAt": "2026-11-02T04:11:13.524Z",
+              "voidedAt": "2026-11-02T04:23:57.659Z",
               "what": "Rice"
             },
             {
@@ -3419,7 +3419,7 @@
             {
               "amount": 500,
               "cashNote": "Never came",
-              "cashRespondedAt": "2026-11-02T04:11:09.227Z",
+              "cashRespondedAt": "2026-11-02T04:23:57.330Z",
               "cashStatus": "DECLINED",
               "cashTo": {
                 "name": "Warden w10",
@@ -3652,6 +3652,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   }
 ]

@@ -8,6 +8,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelreferrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/serviceproviders"
+	"github.com/softmato/hostelpalika/server/internal/modules/stock"
 	"github.com/softmato/hostelpalika/server/internal/modules/wardens"
 )
 
@@ -20,4 +21,5 @@ func mountAdminStock(v1 *gin.RouterGroup, s *shared) {
 	(&serviceproviders.Handler{DB: s.D.DB}).RegisterAdmin(v1, s.Guards)
 	spend := &expenses.Handler{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, Audit: s.Audit, RT: s.RT, Bump: s.Cache}
 	(&expenses.Admin{Handler: spend, Cache: s.Cache, R2: s.R2, Evidence: s.Evidence}).Register(v1)
+	(&stock.Admin{Handler: &stock.Handler{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, RT: s.RT, Bump: s.Cache}, Expenses: spend, Cache: s.Cache}).Register(v1)
 }

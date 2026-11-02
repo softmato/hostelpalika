@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "warden refused",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "list",
@@ -136,7 +136,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "filter",
@@ -168,7 +168,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "bad",
@@ -212,7 +212,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "foreign",
@@ -235,7 +235,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create invalid",
@@ -301,7 +301,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create",
@@ -333,12 +333,12 @@
         "data": {
           "accountCreated": true,
           "accountUpgraded": false,
-          "temporaryPassword": "g_54ktDXM-Sh",
+          "temporaryPassword": "_Rrim_HaghJd",
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.314Z",
+            "createdAt": "2026-11-02T04:24:36.092Z",
             "email": "new.w@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d34",
+            "id": "6ae810845e205a5564095d8f",
             "name": "New W",
             "permissions": [
               "registerResidents",
@@ -358,13 +358,13 @@
             "phone": "9811111111",
             "role": "WARDEN",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T04:12:12.314Z",
-            "userId": "6ae80d9c5e205a5564095d32"
+            "updatedAt": "2026-11-02T04:24:36.092Z",
+            "userId": "6ae810845e205a5564095d8d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create custom",
@@ -395,12 +395,12 @@
         "data": {
           "accountCreated": true,
           "accountUpgraded": false,
-          "temporaryPassword": "9jcwACJ6yhFu",
+          "temporaryPassword": "RQwUkJ-2ZL0x",
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.874Z",
+            "createdAt": "2026-11-02T04:24:36.476Z",
             "email": "new.x@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d39",
+            "id": "6ae810845e205a5564095d94",
             "name": "New X",
             "permissions": [
               "manageFood"
@@ -408,13 +408,13 @@
             "phone": "",
             "role": "WARDEN",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T04:12:12.874Z",
-            "userId": "6ae80d9c5e205a5564095d37"
+            "updatedAt": "2026-11-02T04:24:36.476Z",
+            "userId": "6ae810845e205a5564095d92"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "create again reactivates",
@@ -444,10 +444,10 @@
           "accountUpgraded": false,
           "temporaryPassword": null,
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.314Z",
+            "createdAt": "2026-11-02T04:24:36.092Z",
             "email": "new.w@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d34",
+            "id": "6ae810845e205a5564095d8f",
             "name": "New W",
             "permissions": [
               "registerResidents",
@@ -467,13 +467,13 @@
             "phone": "9811111111",
             "role": "WARDEN",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T04:12:12.983Z",
-            "userId": "6ae80d9c5e205a5564095d32"
+            "updatedAt": "2026-11-02T04:24:36.558Z",
+            "userId": "6ae810845e205a5564095d8d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "update empty",
@@ -509,7 +509,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "update invalid",
@@ -549,7 +549,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "update bad id",
@@ -575,7 +575,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "update missing",
@@ -601,7 +601,7 @@
         "errorCode": "WARDEN_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "update",
@@ -630,10 +630,10 @@
         "message": "Warden updated",
         "data": {
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.314Z",
+            "createdAt": "2026-11-02T04:24:36.092Z",
             "email": "new.w@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d34",
+            "id": "6ae810845e205a5564095d8f",
             "name": "New W",
             "permissions": [
               "manageFood",
@@ -642,13 +642,13 @@
             "phone": "9811111111",
             "role": "WARDEN",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-02T04:12:13.245Z",
-            "userId": "6ae80d9c5e205a5564095d32"
+            "updatedAt": "2026-11-02T04:24:36.756Z",
+            "userId": "6ae810845e205a5564095d8d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reinstate",
@@ -673,10 +673,10 @@
         "message": "Warden updated",
         "data": {
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.314Z",
+            "createdAt": "2026-11-02T04:24:36.092Z",
             "email": "new.w@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d34",
+            "id": "6ae810845e205a5564095d8f",
             "name": "New W",
             "permissions": [
               "manageFood",
@@ -685,13 +685,13 @@
             "phone": "9811111111",
             "role": "WARDEN",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T04:12:13.338Z",
-            "userId": "6ae80d9c5e205a5564095d32"
+            "updatedAt": "2026-11-02T04:24:36.819Z",
+            "userId": "6ae810845e205a5564095d8d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "deactivate",
@@ -713,10 +713,10 @@
         "message": "Warden deactivated",
         "data": {
           "warden": {
-            "createdAt": "2026-11-02T04:12:12.314Z",
+            "createdAt": "2026-11-02T04:24:36.092Z",
             "email": "new.w@contract.test",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d9c5e205a5564095d34",
+            "id": "6ae810845e205a5564095d8f",
             "name": "New W",
             "permissions": [
               "manageFood",
@@ -725,13 +725,13 @@
             "phone": "9811111111",
             "role": "WARDEN",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-02T04:12:13.429Z",
-            "userId": "6ae80d9c5e205a5564095d32"
+            "updatedAt": "2026-11-02T04:24:36.881Z",
+            "userId": "6ae810845e205a5564095d8d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "read back",
@@ -761,10 +761,10 @@
           },
           "wardens": [
             {
-              "createdAt": "2026-11-02T04:12:12.874Z",
+              "createdAt": "2026-11-02T04:24:36.476Z",
               "email": "new.x@contract.test",
               "hostelId": "6d0300000000000000000002",
-              "id": "6ae80d9c5e205a5564095d39",
+              "id": "6ae810845e205a5564095d94",
               "name": "New X",
               "permissions": [
                 "manageFood"
@@ -772,14 +772,14 @@
               "phone": "",
               "role": "WARDEN",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-02T04:12:12.874Z",
-              "userId": "6ae80d9c5e205a5564095d37"
+              "updatedAt": "2026-11-02T04:24:36.476Z",
+              "userId": "6ae810845e205a5564095d92"
             },
             {
-              "createdAt": "2026-11-02T04:12:12.314Z",
+              "createdAt": "2026-11-02T04:24:36.092Z",
               "email": "new.w@contract.test",
               "hostelId": "6d0300000000000000000002",
-              "id": "6ae80d9c5e205a5564095d34",
+              "id": "6ae810845e205a5564095d8f",
               "name": "New W",
               "permissions": [
                 "manageFood",
@@ -788,8 +788,8 @@
               "phone": "9811111111",
               "role": "WARDEN",
               "status": "SUSPENDED",
-              "updatedAt": "2026-11-02T04:12:13.429Z",
-              "userId": "6ae80d9c5e205a5564095d32"
+              "updatedAt": "2026-11-02T04:24:36.881Z",
+              "userId": "6ae810845e205a5564095d8d"
             },
             {
               "createdAt": "2026-10-18T06:00:00.000Z",
@@ -858,7 +858,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "deactivate missing",
@@ -881,6 +881,6 @@
         "errorCode": "WARDEN_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   }
 ]

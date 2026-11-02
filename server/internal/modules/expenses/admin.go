@@ -1089,3 +1089,16 @@ func (h *Handler) receiptHostel(ctx context.Context, hostel bson.ObjectID) (any,
 	}
 	return ordered.Map{{Key: "area", Value: row.Location.Area}, {Key: "kind", Value: kind}, {Key: "name", Value: row.Name}}, nil
 }
+
+// ActorFor is the ExpenseActor stock builds for hostel staff.
+func (h *Handler) ActorFor(p *authz.Principal, hostel bson.ObjectID, owner bool) *Actor {
+	if owner {
+		return &Actor{hostel, p, "HOSTEL_ADMIN", true}
+	}
+	return &Actor{hostel, p, "WARDEN", false}
+}
+
+// NewInput is an expense stock writes on someone's behalf.
+func NewInput(amount int64, category, request, paidBy, photo, spentOn, what string) *Input {
+	return &Input{amount: amount, category: category, clientRequest: request, paidBy: paidBy, photoAssetID: photo, spentOn: spentOn, what: what}
+}

@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "wrong role",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "list",
@@ -54,6 +54,7 @@
     "masks": [
       "**dates"
     ],
+    "unorderedKeys": true,
     "response": {
       "status": 200,
       "contentType": "application/json",
@@ -115,8 +116,8 @@
           },
           "summary": {
             "byStatus": {
-              "INQUIRY_CREATED": 1,
-              "JOINED": 1
+              "JOINED": 1,
+              "INQUIRY_CREATED": 1
             },
             "converted": 0,
             "joined": 1,
@@ -139,8 +140,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510",
-    "unorderedKeys": true
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "filter",
@@ -154,6 +154,7 @@
     "masks": [
       "**dates"
     ],
+    "unorderedKeys": true,
     "response": {
       "status": 200,
       "contentType": "application/json",
@@ -222,8 +223,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510",
-    "unorderedKeys": true
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "bad",
@@ -260,7 +260,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "foreign",
@@ -283,7 +283,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward unconfirmed",
@@ -310,7 +310,7 @@
         "errorCode": "REFERRAL_NOT_CONFIRMED"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward invalid",
@@ -339,7 +339,7 @@
           "formErrors": [],
           "fieldErrors": {
             "amount": [
-              "Too small: expected number to be >=0"
+              "Too small: expected number to be \u003e=0"
             ],
             "status": [
               "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"PAID\"|\"CANCELLED\""
@@ -347,7 +347,7 @@
           },
           "issues": [
             {
-              "message": "Too small: expected number to be >=0",
+              "message": "Too small: expected number to be \u003e=0",
               "path": "amount"
             },
             {
@@ -358,7 +358,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward foreign",
@@ -384,7 +384,7 @@
         "errorCode": "REFERRAL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward bad id",
@@ -410,7 +410,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward approved",
@@ -449,7 +449,7 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T04:12:08.086Z"
+            "updatedAt": "2026-11-02T04:24:04.563Z"
           },
           "reward": {
             "amount": 1500,
@@ -464,7 +464,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "reward paid",
@@ -500,11 +500,11 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "REWARDED",
-            "updatedAt": "2026-11-02T04:12:08.229Z"
+            "updatedAt": "2026-11-02T04:24:04.661Z"
           },
           "reward": {
             "amount": 1500,
-            "approvedAt": "2026-11-02T04:12:08.212Z",
+            "approvedAt": "2026-11-02T04:24:04.650Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
             "id": "6d03000000000000000000a8",
@@ -517,7 +517,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "confirm invalid",
@@ -550,7 +550,7 @@
               "Invalid object id."
             ],
             "rewardAmount": [
-              "Too small: expected number to be >=0"
+              "Too small: expected number to be \u003e=0"
             ],
             "rewardType": [
               "Invalid option: expected one of \"DISCOUNT\"|\"CASH\"|\"SERVICE_CREDIT\"|\"OTHER\""
@@ -562,7 +562,7 @@
               "path": "joinedResidentId"
             },
             {
-              "message": "Too small: expected number to be >=0",
+              "message": "Too small: expected number to be \u003e=0",
               "path": "rewardAmount"
             },
             {
@@ -573,7 +573,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "confirm wrong resident",
@@ -599,7 +599,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "confirm",
@@ -626,7 +626,7 @@
         "message": "Referral confirmed",
         "data": {
           "referral": {
-            "confirmedAt": "2026-11-02T04:12:08.456Z",
+            "confirmedAt": "2026-11-02T04:24:04.801Z",
             "confirmedBy": "6c0000000000000000000005",
             "converted": false,
             "createdAt": "2026-10-01T06:00:00.000Z",
@@ -640,14 +640,14 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T04:12:08.456Z"
+            "updatedAt": "2026-11-02T04:24:04.801Z"
           },
           "reward": {
             "amount": 300,
-            "approvedAt": "2026-11-02T04:12:08.467Z",
+            "approvedAt": "2026-11-02T04:24:04.811Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d98e87b32a4a6cd6d25",
+            "id": "6ae81064e87b32a4a6cd6d2b",
             "notes": "Thanks",
             "referralId": "6d03000000000000000000a5",
             "referrerResidentId": "6d03000000000000000000a0",
@@ -657,7 +657,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "confirm twice",
@@ -680,7 +680,7 @@
         "message": "Referral confirmed",
         "data": {
           "referral": {
-            "confirmedAt": "2026-11-02T04:12:08.564Z",
+            "confirmedAt": "2026-11-02T04:24:04.873Z",
             "confirmedBy": "6c0000000000000000000005",
             "converted": false,
             "createdAt": "2026-10-01T06:00:00.000Z",
@@ -694,14 +694,14 @@
             "referralCodeId": "6d03000000000000000000a4",
             "referrerResidentId": "6d03000000000000000000a0",
             "status": "JOINED",
-            "updatedAt": "2026-11-02T04:12:08.564Z"
+            "updatedAt": "2026-11-02T04:24:04.873Z"
           },
           "reward": {
             "amount": 0,
-            "approvedAt": "2026-11-02T04:12:08.577Z",
+            "approvedAt": "2026-11-02T04:24:04.881Z",
             "approvedBy": "6c0000000000000000000005",
             "hostelId": "6d0300000000000000000002",
-            "id": "6ae80d98e87b32a4a6cd6d25",
+            "id": "6ae81064e87b32a4a6cd6d2b",
             "notes": "Thanks",
             "referralId": "6d03000000000000000000a5",
             "referrerResidentId": "6d03000000000000000000a0",
@@ -711,7 +711,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510"
+    "recorded": "http://localhost:3100 0a96a5ef"
   },
   {
     "name": "read back",
@@ -725,6 +725,7 @@
     "masks": [
       "**dates"
     ],
+    "unorderedKeys": true,
     "response": {
       "status": 200,
       "contentType": "application/json",
@@ -734,7 +735,7 @@
         "data": {
           "referrals": [
             {
-              "confirmedAt": "2026-11-02T04:12:08.564Z",
+              "confirmedAt": "2026-11-02T04:24:04.873Z",
               "confirmedBy": "6c0000000000000000000005",
               "converted": false,
               "createdAt": "2026-10-01T06:00:00.000Z",
@@ -748,15 +749,15 @@
               "referralCodeId": "6d03000000000000000000a4",
               "referrerResidentId": "6d03000000000000000000a0",
               "status": "JOINED",
-              "updatedAt": "2026-11-02T04:12:08.564Z",
+              "updatedAt": "2026-11-02T04:24:04.873Z",
               "referrerName": "Ravi Rai",
               "referrerPhone": "9800000090",
               "reward": {
                 "amount": 0,
-                "approvedAt": "2026-11-02T04:12:08.577Z",
+                "approvedAt": "2026-11-02T04:24:04.881Z",
                 "approvedBy": "6c0000000000000000000005",
                 "hostelId": "6d0300000000000000000002",
-                "id": "6ae80d98e87b32a4a6cd6d25",
+                "id": "6ae81064e87b32a4a6cd6d2b",
                 "notes": "Thanks",
                 "referralId": "6d03000000000000000000a5",
                 "referrerResidentId": "6d03000000000000000000a0",
@@ -776,12 +777,12 @@
               "referralCodeId": "6d03000000000000000000a4",
               "referrerResidentId": "6d03000000000000000000a0",
               "status": "REWARDED",
-              "updatedAt": "2026-11-02T04:12:08.229Z",
+              "updatedAt": "2026-11-02T04:24:04.661Z",
               "referrerName": "Ravi Rai",
               "referrerPhone": "9800000090",
               "reward": {
                 "amount": 1500,
-                "approvedAt": "2026-11-02T04:12:08.212Z",
+                "approvedAt": "2026-11-02T04:24:04.650Z",
                 "approvedBy": "6c0000000000000000000005",
                 "hostelId": "6d0300000000000000000002",
                 "id": "6d03000000000000000000a8",
@@ -802,8 +803,8 @@
           },
           "summary": {
             "byStatus": {
-              "REWARDED": 1,
-              "JOINED": 1
+              "JOINED": 1,
+              "REWARDED": 1
             },
             "converted": 0,
             "joined": 2,
@@ -826,7 +827,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 edde3510",
-    "unorderedKeys": true
+    "recorded": "http://localhost:3100 0a96a5ef"
   }
 ]
