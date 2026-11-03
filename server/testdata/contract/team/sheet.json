@@ -1,0 +1,420 @@
+[
+  {
+    "name": "sheet agent",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Track sheet loaded",
+        "data": {
+          "nextSequence": 3,
+          "rows": [
+            {
+              "canEdit": true,
+              "hostelName": "Mine Hostel",
+              "id": "6d0c00000000000000000032",
+              "location": "Baneshwor",
+              "notes": "",
+              "ownerName": "Ram",
+              "phone": "9800000000",
+              "refCode": "SMT/HP/2026/001",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-09-30T00:00:00.000Z",
+              "status": "SIGNED"
+            },
+            {
+              "canEdit": false,
+              "hostelName": "Their Hostel",
+              "id": "6d0c00000000000000000033",
+              "location": "Baneshwor",
+              "notes": "",
+              "ownerName": "Ram",
+              "phone": "9800000000",
+              "refCode": "SMT/HP/2026/002",
+              "signedBy": "Other Agent",
+              "signedOn": "2026-09-30T00:00:00.000Z",
+              "status": "SIGNED"
+            }
+          ],
+          "you": "Contract Agent"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "sheet super",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Track sheet loaded",
+        "data": {
+          "nextSequence": 3,
+          "rows": [
+            {
+              "canEdit": true,
+              "hostelName": "Mine Hostel",
+              "id": "6d0c00000000000000000032",
+              "location": "Baneshwor",
+              "notes": "",
+              "ownerName": "Ram",
+              "phone": "9800000000",
+              "refCode": "SMT/HP/2026/001",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-09-30T00:00:00.000Z",
+              "status": "SIGNED"
+            },
+            {
+              "canEdit": true,
+              "hostelName": "Their Hostel",
+              "id": "6d0c00000000000000000033",
+              "location": "Baneshwor",
+              "notes": "",
+              "ownerName": "Ram",
+              "phone": "9800000000",
+              "refCode": "SMT/HP/2026/002",
+              "signedBy": "Other Agent",
+              "signedOn": "2026-09-30T00:00:00.000Z",
+              "status": "SIGNED"
+            }
+          ],
+          "you": "Contract Super"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "focus",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/registration-track-sheet/focus",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "at": 1700000000000,
+        "line": "new-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Line shared",
+        "data": {
+          "at": 1700000000000,
+          "line": "new-3"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "focus none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/registration-track-sheet/focus",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "at": 5,
+        "line": null
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Line shared",
+        "data": {
+          "at": 5,
+          "line": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "focus bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/registration-track-sheet/focus",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "line": "row 1"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "line": [
+              "Invalid string: must match pattern /^([a-f\\d]{24}|new-\\d{1,4})$/i"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^([a-f\\d]{24}|new-\\d{1,4})$/i",
+              "path": "line"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "save not mine",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "id": "6d0c00000000000000000033",
+            "hostelName": "X",
+            "signedOn": "2026-10-01T00:00:00.000Z",
+            "status": "ACTIVE"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only a superadmin or the team member who signed a line can change it.",
+        "errorCode": "AGREEMENT_NOT_YOURS"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "save bad",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "hostelName": " ",
+            "signedOn": "2026-10-01",
+            "status": "DONE"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rows": [
+              "Write the hostel name.",
+              "Invalid option: expected one of \"SIGNED\"|\"ACTIVE\"|\"ENDED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write the hostel name.",
+              "path": "rows.0.hostelName"
+            },
+            {
+              "message": "Invalid option: expected one of \"SIGNED\"|\"ACTIVE\"|\"ENDED\"",
+              "path": "rows.0.status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "id": "6d0c00000000000000000032",
+            "hostelName": " Mine Renamed ",
+            "location": "Koteshwor",
+            "signedOn": "2026-10-02T00:00:00.000Z",
+            "status": "ACTIVE"
+          },
+          {
+            "hostelName": "Brand New",
+            "ownerName": "Sita",
+            "phone": "9811111111",
+            "notes": "call back",
+            "signedOn": "2026-10-03T00:00:00.000Z",
+            "status": "SIGNED"
+          }
+        ],
+        "removed": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Track sheet saved",
+        "data": {
+          "nextSequence": 4,
+          "rows": [
+            {
+              "canEdit": true,
+              "hostelName": "Mine Renamed",
+              "id": "6d0c00000000000000000032",
+              "location": "Koteshwor",
+              "notes": "",
+              "ownerName": "",
+              "phone": "",
+              "refCode": "SMT/HP/2026/001",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-10-02T00:00:00.000Z",
+              "status": "ACTIVE"
+            },
+            {
+              "canEdit": false,
+              "hostelName": "Their Hostel",
+              "id": "6d0c00000000000000000033",
+              "location": "Baneshwor",
+              "notes": "",
+              "ownerName": "Ram",
+              "phone": "9800000000",
+              "refCode": "SMT/HP/2026/002",
+              "signedBy": "Other Agent",
+              "signedOn": "2026-09-30T00:00:00.000Z",
+              "status": "SIGNED"
+            },
+            {
+              "canEdit": true,
+              "hostelName": "Brand New",
+              "id": "6ae9651f1f30c6531f069c71",
+              "location": "",
+              "notes": "call back",
+              "ownerName": "Sita",
+              "phone": "9811111111",
+              "refCode": "SMT/HP/2026/003",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-10-03T00:00:00.000Z",
+              "status": "SIGNED"
+            }
+          ],
+          "you": "Contract Agent"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "super removes",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/registration-track-sheet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "rows": [],
+        "removed": [
+          "6d0c00000000000000000033"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Track sheet saved",
+        "data": {
+          "nextSequence": 4,
+          "rows": [
+            {
+              "canEdit": true,
+              "hostelName": "Mine Renamed",
+              "id": "6d0c00000000000000000032",
+              "location": "Koteshwor",
+              "notes": "",
+              "ownerName": "",
+              "phone": "",
+              "refCode": "SMT/HP/2026/001",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-10-02T00:00:00.000Z",
+              "status": "ACTIVE"
+            },
+            {
+              "canEdit": true,
+              "hostelName": "Brand New",
+              "id": "6ae9651f1f30c6531f069c71",
+              "location": "",
+              "notes": "call back",
+              "ownerName": "Sita",
+              "phone": "9811111111",
+              "refCode": "SMT/HP/2026/003",
+              "signedBy": "Contract Agent",
+              "signedOn": "2026-10-03T00:00:00.000Z",
+              "status": "SIGNED"
+            }
+          ],
+          "you": "Contract Super"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  }
+]

@@ -1,0 +1,319 @@
+[
+  {
+    "name": "team agent refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/team",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "team",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/team",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Team loaded",
+        "data": {
+          "members": [
+            {
+              "cashCollected": 1000,
+              "deletable": false,
+              "email": "agent@contract.test",
+              "hostelsRegistered": 1,
+              "id": "6d0c00000000000000000001",
+              "joinedAt": "2026-09-30T04:15:00.000Z",
+              "lastLoginAt": null,
+              "name": "Contract Agent",
+              "phone": "",
+              "previousRole": null,
+              "status": "ACTIVE"
+            },
+            {
+              "cashCollected": 0,
+              "deletable": true,
+              "email": "agent2@contract.test",
+              "hostelsRegistered": 0,
+              "id": "6d0c00000000000000000002",
+              "joinedAt": "2026-09-30T04:15:00.000Z",
+              "lastLoginAt": null,
+              "name": "Other Agent",
+              "phone": "",
+              "previousRole": null,
+              "status": "ACTIVE"
+            }
+          ],
+          "registrations": [
+            {
+              "agentEmail": "agent@contract.test",
+              "agentName": "Contract Agent",
+              "cashCollected": 1000,
+              "dueBy": "2026-10-31T04:15:00.000Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "hostelStatus": "",
+              "invoiceNumber": "INV-0001",
+              "onlineCollected": 900,
+              "outstanding": 4000,
+              "paid": 1900,
+              "planName": "Team Plan",
+              "price": 4900,
+              "registeredAt": "2026-10-01T04:15:00.000Z",
+              "setupFee": {
+                "amount": 1000,
+                "collected": 1000
+              },
+              "subscriptionStatus": "ACTIVE"
+            }
+          ],
+          "invites": [
+            {
+              "email": "new.agent@contract.test",
+              "expired": false,
+              "expiresAt": "2030-01-01T00:00:00.000Z",
+              "id": "6d0c0000000000000000003c",
+              "invitedAt": "2026-10-01T04:15:00.000Z",
+              "name": "New Agent"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "wallets",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/team/wallets",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wallets loaded",
+        "data": {
+          "ratePercent": 40,
+          "setupFee": 500,
+          "wallets": [
+            {
+              "agentId": "6d0c00000000000000000001",
+              "balance": 70.5,
+              "earned": 100.5,
+              "email": "agent@contract.test",
+              "lastPayoutAt": "2026-10-01T04:15:00.000Z",
+              "name": "Contract Agent",
+              "paidOut": 30
+            },
+            {
+              "agentId": "6d0c00000000000000000002",
+              "balance": 0,
+              "earned": 0,
+              "email": "agent2@contract.test",
+              "lastPayoutAt": null,
+              "name": "Other Agent",
+              "paidOut": 0
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "payout bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/team/wallets/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "amount": 0,
+        "method": "GOLD"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Too small: expected number to be \u003e0"
+            ],
+            "method": [
+              "Invalid option: expected one of \"CASH\"|\"BANK\"|\"ESEWA\"|\"KHALTI\"|\"OTHER\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid option: expected one of \"CASH\"|\"BANK\"|\"ESEWA\"|\"KHALTI\"|\"OTHER\"",
+              "path": "method"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "payout too much",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/team/wallets/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "amount": 1000,
+        "method": "CASH"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only Rs 70.5 is in this wallet.",
+        "errorCode": "PAYOUT_EXCEEDS_BALANCE"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "payout unknown agent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/team/wallets/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "amount": 1,
+        "method": "CASH"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Team member was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "payout",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/team/wallets/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "amount": 20.25,
+        "method": "ESEWA",
+        "reference": " TX9 "
+      }
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout recorded",
+        "data": {
+          "balance": 50.25
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "wallets after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/team/wallets",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wallets loaded",
+        "data": {
+          "ratePercent": 40,
+          "setupFee": 500,
+          "wallets": [
+            {
+              "agentId": "6d0c00000000000000000001",
+              "balance": 50.25,
+              "earned": 100.5,
+              "email": "agent@contract.test",
+              "lastPayoutAt": "2026-11-03T04:37:32.106Z",
+              "name": "Contract Agent",
+              "paidOut": 50.25
+            },
+            {
+              "agentId": "6d0c00000000000000000002",
+              "balance": 0,
+              "earned": 0,
+              "email": "agent2@contract.test",
+              "lastPayoutAt": null,
+              "name": "Other Agent",
+              "paidOut": 0
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  }
+]

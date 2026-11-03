@@ -1,0 +1,593 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/summary"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "hostel admin refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/summary",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "collection qr",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/collection-qr",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Collection QR loaded",
+        "data": {
+          "qr": {
+            "label": "",
+            "url": "https://cdn.contract.test/qr.png"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "setup fee",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/setup-fee",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Setup fee loaded",
+        "data": {
+          "setupFee": 500,
+          "trialDays": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "email bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/email-check?email=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "email hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/email-check?email=ADMIN@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "available": false,
+          "status": "HOSTEL",
+          "usedBy": "Contract Hostel"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "email free",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/email-check?email=fresh@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "available": true,
+          "status": "AVAILABLE",
+          "usedBy": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "email other role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/email-check?email=agent2@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "available": false,
+          "status": "OTHER_ROLE",
+          "usedBy": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "email public",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/email-check?email=public@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "available": true,
+          "status": "EXISTING_ACCOUNT",
+          "usedBy": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "summary",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/summary",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Summary loaded",
+        "data": {
+          "summary": {
+            "cashCollected": 1000,
+            "collected": 1900,
+            "hostelsRegistered": 1,
+            "outstanding": 4000,
+            "pastDue": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "hostels",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Registrations loaded",
+        "data": {
+          "registrations": [
+            {
+              "area": "",
+              "cashCollected": 1000,
+              "city": "",
+              "dueBy": "2026-10-31T04:15:00.000Z",
+              "freeUntil": null,
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "hostelStatus": "",
+              "onlineCollected": 900,
+              "outstanding": 4000,
+              "ownerEmail": "",
+              "ownerPhone": "",
+              "paid": 1900,
+              "planName": "Team Plan",
+              "price": 4900,
+              "registeredAt": "2026-10-01T04:15:00.000Z",
+              "setupFee": {
+                "amount": 1000,
+                "collected": 1000
+              },
+              "slug": "contract-hostel",
+              "subscriptionStatus": "ACTIVE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "hostels other agent",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Registrations loaded",
+        "data": {
+          "registrations": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "wallet",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/wallet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wallet loaded",
+        "data": {
+          "wallet": {
+            "balance": 70.5,
+            "earned": 100.5,
+            "paidOut": 30,
+            "pending": 0,
+            "ratePercent": 40,
+            "today": {
+              "commission": 0,
+              "due": 0,
+              "hostels": 0,
+              "paid": 0
+            }
+          },
+          "entries": [
+            {
+              "amount": 100.5,
+              "at": "2026-10-01T04:15:00.000Z",
+              "hostelName": "Contract Hostel",
+              "id": "6d0c00000000000000000028",
+              "method": null,
+              "ratePercent": 10,
+              "reference": "",
+              "type": "COMMISSION"
+            },
+            {
+              "amount": 30,
+              "at": "2026-10-01T04:15:00.000Z",
+              "hostelName": "",
+              "id": "6d0c00000000000000000029",
+              "method": "CASH",
+              "ratePercent": null,
+              "reference": "R1",
+              "type": "PAYOUT"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "wallet empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/wallet",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Wallet loaded",
+        "data": {
+          "wallet": {
+            "balance": 0,
+            "earned": 0,
+            "paidOut": 0,
+            "pending": 0,
+            "ratePercent": 40,
+            "today": {
+              "commission": 0,
+              "due": 0,
+              "hostels": 0,
+              "paid": 0
+            }
+          },
+          "entries": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "existing filed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List loaded",
+        "data": {
+          "check": null,
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": null,
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "existing not filed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "existing bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/nope/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "existing superadmin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List loaded",
+        "data": {
+          "check": null,
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": null,
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  },
+  {
+    "name": "existing template",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/template",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    },
+    "recorded": "http://localhost:3100 f8ca9022"
+  }
+]

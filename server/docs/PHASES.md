@@ -159,9 +159,12 @@ moves last within it:
 **Status 2026-11-03: in progress.** Done and contract-green: the server log store and
 `/platform/logs` (+summary), `users` (account deletion + `/platform/account-deletions`,
 expert consultation, temporary logins; group `platform`), and the whole supply store —
-`store/*` and `platform/store/*` (group `store`). Findings P7-1..P7-9 in
-`review_fixes_needed.md`. Next: team, then the rest of `platform/*`, then the log viewer
-pages.
+`store/*` and `platform/store/*` (group `store`), and the team (group `team`): own routes,
+track sheet, wallets and payouts, `GET /platform/team`, the field-team existing-residents
+copies. Findings P7-1..P7-10 in `review_fixes_needed.md`. Left: `POST /team/hostels`,
+`/platform/team/members/:id`, the rest of `platform/*`, the config editors, the log viewer
+pages. `team/prepayments*` and `team/hostels/:id/checkout` moved to Phase 8: they run the
+Softmato plan payment, like `hostel-registration`.
 
 - ☐ `platform` (99)
 , `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
@@ -186,7 +189,9 @@ pages.
 
 - ☐ `webhooks/:provider` (eSewa, Khalti, Fonepay), `webhooks/softmato`, `integrations/questioncall/*`
 - ☐ `bookings/:id/checkout`, `bookings/:id/payment`, `bookings/:id/return`
-- ☐ `POST /public/plan-checkout` and `hostel-registration` (5: `[hostelId]/invoice|pay|plan|state`, `return`) — moved from Phase 3: they read the subscription state (Phase 7) and run the Softmato plan payment
+- ☐ `team/prepayments` (4) and `team/hostels/:id/checkout` — moved from Phase 7: the field team's Softmato setup-fee/lifetime payment
+- ☐ `POST /public/plan-checkout` and `hostel-registration`
+ (5: `[hostelId]/invoice|pay|plan|state`, `return`) — moved from Phase 3: they read the subscription state (Phase 7) and run the Softmato plan payment
 - ☐ Checkout intents, settlement, reconciliation, gateway health — **offline shadow**: replay real provider events (the stored webhook/verification payloads) against the live-data copy and compare Go's resulting rows with what TS wrote for the same events
 
 **Gate:** replaying a full `gateway-settlement-recon` window shows zero drift between Go's rows and TS's.
