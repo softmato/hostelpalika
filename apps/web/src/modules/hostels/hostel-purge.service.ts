@@ -495,8 +495,10 @@ export async function purgeHostel(
   // Written last and deliberately kept — see the note at the top of this file.
   await AuditLogModel.create({
     action: "HOSTEL_PURGED",
-    ...(actorId ? { actorId } : {}),
+    // The cron has no user; SYSTEM is what lets the validator accept no actorId.
+    ...(actorId ? { actorId } : { actorType: "SYSTEM" }),
     entityId: hostelId.toString(),
+
     entityType: "Hostel",
     metadata: {
       // Which of the two paths erased it. The cron acts on a decision taken 60
@@ -508,8 +510,6 @@ export async function purgeHostel(
       objectsFailed: storage.objectsFailed,
       slug: hostel?.slug ?? null,
     },
-    targetResource: "Hostel",
-    targetResourceId: hostelId,
   }).catch(() => {});
 
   return { documentsDeleted, ...storage };

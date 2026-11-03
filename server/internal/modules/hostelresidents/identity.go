@@ -814,3 +814,13 @@ func (s *Service) CardFromForm(ctx context.Context, residentID, owner bson.Objec
 	}
 	return "DRAFT"
 }
+
+// HasProfile is getResidentIdentity(...).identity.hasProfile alone, for callers
+// that gate on it (expert consultation): the same 404 for a missing account.
+func (s *Service) HasProfile(ctx context.Context, user bson.ObjectID) (bool, error) {
+	if _, err := s.identityUser(ctx, user); err != nil {
+		return false, err
+	}
+	rec, err := s.profileOf(ctx, user)
+	return rec != nil && rec.CompletedAt != nil, err
+}

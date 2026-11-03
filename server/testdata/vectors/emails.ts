@@ -80,5 +80,21 @@ add("bookingHostelFaultRefund", bookingPlatform.bookingHostelFaultRefundEmail as
 add("bookingsPaused", bookingHostel.bookingsPausedEmail as never, [{ bookingsUrl: "https://x.test/h", hostelName: "Royal <Rapti>", name: "Owner", strikes: 3, windowDays: 30 }]);
 add("hostelBookingsPaused", bookingPlatform.hostelBookingsPausedEmail as never, [{ hostelName: "Royal <Rapti>", reviewUrl: "https://x.test/r", strikes: 3, windowDays: 30 }]);
 
-writeFileSync(join(process.cwd(), "server/testdata/vectors/emails.json"), `${JSON.stringify(vectors, undefined, 1)}\n`);
+const delReq = await t("account/deletion-requested");
+add("accountDeletionRequested", delReq.accountDeletionRequestedEmail as never, [
+  { cancelUrl: "https://x.test/cancel-deletion?token=a%2Bb", scheduledDeletionDate: "2026-12-31", userName: "Sita <&>" },
+  { cancelUrl: "https://x.test/c", scheduledDeletionDate: "2027-01-01" },
+]);
+const delReview = await t("platform/account-deletion-review");
+add("accountDeletionReview", delReview.accountDeletionReviewEmail as never, [
+  { hostelNames: ["Royal <Rapti>", "Two"], queueUrl: "https://x.test/q", reason: "Closing \"down\" & out", requesterEmail: "o@x.test", requesterName: "Owner <O>", requesterRole: "HOSTEL_ADMIN" },
+  { hostelNames: [], queueUrl: "https://x.test/q", reason: "r", requesterEmail: "o@x.test", requesterRole: "PUBLIC" },
+]);
+const teamReq = await t("platform/team-requests");
+add("consultationRequest", teamReq.consultationRequestEmail as never, [
+  { details: [{ label: "Name", value: "Sita <S>" }, { label: "Phone", value: "9800000000" }, { label: "Budget", value: "5k & up" }], name: "Sita <S>" },
+]);
+
+writeFileSync(join(process.cwd(), "server/testdata/vectors/emails.json")
+, `${JSON.stringify(vectors, undefined, 1)}\n`);
 console.log(`emails.json: ${vectors.length} vectors`);

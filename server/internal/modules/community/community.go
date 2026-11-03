@@ -308,35 +308,6 @@ func (h *Handler) decorate(ctx context.Context, posts []post, p *authz.Principal
 
 var objectIDRe = regexp.MustCompile(`(?i)^[a-f\d]{24}$`)
 
-// readPage is paginationQuerySchema; a bad value is a validation issue.
-func readPage(q map[string]string, is *valid.Issues) pagination.Query {
-	out := pagination.Query{}
-	read := func(key string, max float64) *int {
-		v := valid.QueryNumber(q, key, false, is)
-		if v == nil {
-			return nil
-		}
-		n := *v
-		if n != float64(int(n)) {
-			is.Add(key, valid.Type("int", "number"))
-			return nil
-		}
-		if n <= 0 {
-			is.Add(key, valid.TooSmall("number", 0, false))
-			return nil
-		}
-		if max > 0 && n > max {
-			is.Add(key, valid.TooBig("number", max, true))
-			return nil
-		}
-		i := int(n)
-		return &i
-	}
-	out.Page = read("page", 0)
-	out.PageSize = read("pageSize", pagination.MaxPageSize)
-	return out
-}
-
 type feedOut struct {
 	Pagination pagination.Meta `json:"pagination"`
 	Posts      []ordered.Map   `json:"posts"`
@@ -350,7 +321,7 @@ func (h *Handler) feed(c *gin.Context) {
 	}
 	q := valid.Query(c)
 	var is valid.Issues
-	page := readPage(q, &is)
+	page := valid.Page(q, &is)
 	search := valid.QueryString(q, "q", 0, 120, &is)
 	space := "all"
 	if v, ok := q["space"]; ok {
@@ -753,7 +724,7 @@ func (h *Handler) comments(c *gin.Context) {
 		return
 	}
 	var is valid.Issues
-	page := readPage(valid.Query(c), &is)
+	page := valid.Page(valid.Query(c), &is)
 	if err := is.Err(); err != nil {
 		httpx.Fail(c, err)
 		return

@@ -175,7 +175,10 @@ describe("purgeAccount — what is erased", () => {
 
     expect(mocks.auditCreate.mock.calls[0][0]).toMatchObject({
       action: "ACCOUNT_PURGED",
-      targetResourceId: userId,
+      actorType: "SYSTEM",
+      entityId: String(userId),
+      entityType: "User",
+
     });
   });
 });

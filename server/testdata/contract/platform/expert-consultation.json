@@ -1,0 +1,180 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/expert-consultation-requests"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "none yet",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/expert-consultation-requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Consultation request loaded",
+        "data": {
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/expert-consultation-requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "fullName": "S",
+        "email": "nope"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "fullName": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "fullName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "no profile",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/expert-consultation-requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "fullName": "New Person",
+        "phone": "9800000000"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Save your resident profile first so our team knows who to call.",
+        "errorCode": "PROFILE_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/expert-consultation-requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "fullName": " Card Holder ",
+        "phone": "9800000000",
+        "budgetRange": "5k-8k",
+        "likedSpots": "Near campus"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent — our team will call you soon.",
+        "data": {
+          "id": "6ae954ba82585fd146cd2d4f"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "latest",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/expert-consultation-requests",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Consultation request loaded",
+        "data": {
+          "request": {
+            "budgetRange": "5k-8k",
+            "createdAt": "2026-11-03T03:27:54.586Z",
+            "environment": null,
+            "id": "6ae954ba82585fd146cd2d4f",
+            "likedSpots": "Near campus",
+            "preferredCollege": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  }
+]

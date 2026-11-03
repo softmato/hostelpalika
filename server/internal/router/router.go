@@ -27,6 +27,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/guardian"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelleave"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelreferrals"
+	"github.com/softmato/hostelpalika/server/internal/modules/hostelresidents"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
 	"github.com/softmato/hostelpalika/server/internal/modules/khata"
 	"github.com/softmato/hostelpalika/server/internal/modules/kitchen"
@@ -173,6 +174,21 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
 	platformlogs.NewHandler(d.DB, guards).Register(v1)
+	(&users.Deletion{DB: d.DB, Guards: guards, Tokens: tokens, Mail: sender, Audit: log, Notify: notify, Now: time.Now,
+		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}).Register(v1)
+	(&users.SelfService{DB: d.DB, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, Now: time.Now,
+		HasProfile: (&hostelresidents.Service{DB: d.DB}).HasProfile,
+		SupportEmail: func(ctx context.Context) string {
+			v, err := siteConfig.Section(ctx, "identity")
+			var id struct {
+				SupportEmail string `json:"supportEmail"`
+			}
+			if err != nil || platformconfig.Decode(v, &id) != nil {
+				return ""
+			}
+			return id.SupportEmail
+		}}).Register(v1)
+
 	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis),
 		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
 	safetySvc.Register(v1)

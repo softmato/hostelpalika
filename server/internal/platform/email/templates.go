@@ -74,3 +74,53 @@ func AccountDeletionCancelled(loginURL, userName string) Content {
 		}, "\n"),
 	})}
 }
+
+// AccountDeletionRequested is accountDeletionRequestedEmail.
+func AccountDeletionRequested(cancelURL, scheduledDeletionDate, userName string) Content {
+	who := "You"
+	if userName != "" {
+		who = EscapeHTML(userName) + ", you"
+	}
+	date := EscapeHTML(scheduledDeletionDate)
+	return Content{Category: Security, Subject: "Your account will be deleted in 60 days", HTML: EmailLayout(Layout{
+		Heading: "Your account will be deleted",
+		BodyHTML: strings.Join([]string{
+			Paragraph(who + " asked us to delete your " + PlatformName + " account. Your account is now closed. You cannot log in."),
+			Paragraph("Nothing is deleted yet. We keep your data until <strong>" + date + "</strong> (60 days). After that, it is deleted forever."),
+			Paragraph("We will delete: your account, your profile, your location and attendance history, and your devices. Your posts stay, but without your name."),
+			Paragraph("We will keep: payment and receipt records, without your name. Hostels must keep these for their accounts."),
+			Paragraph("<strong>Not you, or changed your mind? Cancel before " + date + ".</strong> Your account will come back as it was."),
+			CTAButton(cancelURL, "Keep my account"),
+		}, "\n"),
+	})}
+}
+
+// AccountDeletionReview is accountDeletionReviewEmail.
+func AccountDeletionReview(hostelNames []string, queueURL, reason, requesterEmail, requesterName, requesterRole string) Content {
+	who, subjectWho := EscapeHTML(requesterEmail), requesterEmail
+	if requesterName != "" {
+		who, subjectWho = EscapeHTML(requesterName)+" ("+EscapeHTML(requesterEmail)+")", requesterName
+	}
+	hostels := Paragraph("No hostels are on this account.")
+	if len(hostelNames) > 0 {
+		hostels = Paragraph("Hostels on this account: <strong>" + EscapeHTML(strings.Join(hostelNames, ", ")) + "</strong>. If you delete it first, these hostels will have no admin.")
+	}
+	return Content{Category: Alert, Subject: "Account deletion request from " + subjectWho, HTML: EmailLayout(Layout{
+		Heading: "Someone wants to delete their account",
+		BodyHTML: strings.Join([]string{
+			Paragraph(who + " — <strong>" + EscapeHTML(requesterRole) + "</strong> — has asked for their account to be deleted."),
+			hostels,
+			Paragraph("Their reason: “" + EscapeHTML(reason) + "”"),
+			Paragraph("Nothing has changed yet. They can still log in until you say yes."),
+			CTAButton(queueURL, "Check request"),
+		}, "\n"),
+	})}
+}
+
+// ConsultationRequest is consultationRequestEmail (platform/team-requests.ts).
+func ConsultationRequest(details []DetailRow, name string) Content {
+	return Content{Category: Support, Subject: "Help choosing a hostel — " + name, HTML: EmailLayout(Layout{
+		Heading:  "Someone wants help choosing a hostel",
+		BodyHTML: DetailsTable(details) + "\n" + Paragraph("Please call or email them."),
+	})}
+}

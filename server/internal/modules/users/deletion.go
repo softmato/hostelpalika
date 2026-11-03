@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/auth"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
@@ -81,7 +82,7 @@ func serialize(r deletionRow) DeletionRequest {
 
 // CancelByToken is cancelAccountDeletionByToken. The link's purpose token is
 // the credential: the account is suspended and cannot sign in.
-func CancelByToken(ctx context.Context, db *mongo.Database, tokens *auth.Tokens, sender *email.Sender, outbound, token string, now time.Time) (map[string]any, error) {
+func CancelByToken(ctx context.Context, db *mongo.Database, tokens *auth.Tokens, sender *email.Sender, log *audit.Log, outbound, token string, now time.Time) (map[string]any, error) {
 	claims, err := tokens.VerifyPurpose(token, auth.CancelAccountDeletion)
 	if err != nil {
 		return nil, httpx.NewError(400, "INVALID_TOKEN", "This cancellation link is invalid or has expired.", nil)
@@ -116,9 +117,9 @@ func CancelByToken(ctx context.Context, db *mongo.Database, tokens *auth.Tokens,
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, err
 	}
-	// TS also tries an AuditLog row here, but with fields the schema doesn't
-	// have and no actorId, so its validator refuses it and the .catch swallows
-	// it — no row is ever written. Go writes none either.
+	// TS wrote this row with field names the schema lacks, so it never landed;
+	// fixed on both sides in Phase 7.
+	_ = log.Write(ctx, audit.Entry{ActorID: id, Action: "ACCOUNT_DELETION_CANCELLED", EntityType: "User", EntityID: id.Hex()})
 	if user.Email != "" {
 		content := email.AccountDeletionCancelled(outbound+"/login", user.Name)
 		// sendNotificationEmail passes only subject and html: info@, not the template's security@.

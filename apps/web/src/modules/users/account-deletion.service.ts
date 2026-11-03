@@ -301,9 +301,7 @@ export async function requestAccountDeletion(
     {
       $set: {
         cancelled: false,
-        cancelledAt: undefined,
         executed: false,
-        executedAt: undefined,
         hostelIds: user.hostelIds ?? [],
         kind: platformReview ? "PLATFORM_REVIEW" : "SELF_SERVICE",
         reason: input.reason,
@@ -311,11 +309,17 @@ export async function requestAccountDeletion(
         requestedEmail: user.email ?? "",
         requestedName: user.name,
         requestedRole: user.role,
-        reviewNote: undefined,
-        reviewStatus: platformReview ? "PENDING" : undefined,
-        reviewedAt: undefined,
-        reviewedBy: undefined,
-        scheduledDeletionAt,
+        ...(platformReview ? { reviewStatus: "PENDING" } : { scheduledDeletionAt }),
+      },
+      // Mongoose drops `undefined` from $set, so a reopened row (cancelled or
+      // rejected before) kept its old review and cancellation; unset them.
+      $unset: {
+        cancelledAt: 1,
+        executedAt: 1,
+        reviewNote: 1,
+        reviewedAt: 1,
+        reviewedBy: 1,
+        ...(platformReview ? { scheduledDeletionAt: 1 } : { reviewStatus: 1 }),
       },
     },
     { new: true, upsert: true },
@@ -331,9 +335,9 @@ export async function requestAccountDeletion(
 
   await AuditLogModel.create({
     action: platformReview ? "ACCOUNT_DELETION_SUBMITTED" : "ACCOUNT_DELETION_REQUESTED",
-    performedBy: user._id,
-    targetResource: "User",
-    targetResourceId: user._id,
+    actorId: user._id,
+    entityType: "User",
+    entityId: String(user._id),
   }).catch(() => {});
 
   if (platformReview) {
@@ -399,9 +403,9 @@ export async function releaseGuardianRole(principal: ApiPrincipal) {
   );
   await AuditLogModel.create({
     action: "GUARDIAN_ACCESS_RELEASED",
-    performedBy: userId,
-    targetResource: "User",
-    targetResourceId: userId,
+    actorId: userId,
+    entityType: "User",
+    entityId: String(userId),
   }).catch(() => {});
 
   return {
@@ -520,9 +524,9 @@ export async function cancelAccountDeletionForUser(userId: string) {
 
   await AuditLogModel.create({
     action: "ACCOUNT_DELETION_CANCELLED",
-    performedBy: id,
-    targetResource: "User",
-    targetResourceId: id,
+    actorId: id,
+    entityType: "User",
+    entityId: String(id),
   }).catch(() => {});
 
   if (user?.email) {
@@ -617,26 +621,36 @@ export async function reviewAccountDeletionRequest(
     : undefined;
 
   const updated = await AccountDeletionRequestModel.findOneAndUpdate(
-    { _id: request._id },
+    // PENDING in the filter, not only checked above: two superadmins answering
+    // at once must not both act on the request.
+    { _id: request._id, reviewStatus: "PENDING" },
     {
       $set: {
         // A rejection closes the row so the owner can ask again later; the
         // unique index on userId would otherwise block a second request.
         cancelled: !approved,
-        cancelledAt: approved ? undefined : now,
-        reviewNote: input.note,
+        ...(approved ? { scheduledDeletionAt } : { cancelledAt: now }),
+        ...(input.note === undefined ? {} : { reviewNote: input.note }),
         reviewStatus: input.decision,
         reviewedAt: now,
         reviewedBy: normalizeObjectId(principal.userId, "user id"),
-        scheduledDeletionAt,
+      },
+      $unset: {
+        ...(approved ? { cancelledAt: 1 } : { scheduledDeletionAt: 1 }),
+        ...(input.note === undefined ? { reviewNote: 1 } : {}),
       },
     },
     { new: true },
   ).lean<DeletionRequestRecord | null>();
 
   if (!updated) {
-    throw new AccountDeletionError("Request was not found.", "NOT_FOUND", 404);
+    throw new AccountDeletionError(
+      "This request has already been reviewed.",
+      "ALREADY_REVIEWED",
+      409,
+    );
   }
+
 
   if (approved) {
     await applyImmediateEffects(request.userId);
@@ -644,9 +658,9 @@ export async function reviewAccountDeletionRequest(
 
   await AuditLogModel.create({
     action: approved ? "ACCOUNT_DELETION_APPROVED" : "ACCOUNT_DELETION_REJECTED",
-    performedBy: normalizeObjectId(principal.userId, "user id"),
-    targetResource: "User",
-    targetResourceId: request.userId,
+    actorId: normalizeObjectId(principal.userId, "user id"),
+    entityType: "User",
+    entityId: String(request.userId),
   }).catch(() => {});
 
   const user = await UserModel.findOne({ _id: request.userId })

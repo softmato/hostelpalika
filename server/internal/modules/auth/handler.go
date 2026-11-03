@@ -612,7 +612,7 @@ func (h *Handler) cancelAccountDeletion(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	out, err := users.CancelByToken(c, h.svc.db, h.svc.tokens, h.svc.email, h.svc.cfg.OutboundURL(), token, h.svc.now())
+	out, err := users.CancelByToken(c, h.svc.db, h.svc.tokens, h.svc.email, h.svc.audit, h.svc.cfg.OutboundURL(), token, h.svc.now())
 	if err != nil {
 		httpx.Fail(c, err)
 		return

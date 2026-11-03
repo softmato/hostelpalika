@@ -33,6 +33,11 @@ func platformStaff(now time.Time) []any {
 
 func init() {
 	groupSeeds["platform"] = func(ctx context.Context, db *mongo.Database, now time.Time) error {
+		// The ID card owners too: expert consultation needs a completed profile.
+		if err := groupSeeds["account-identity"](ctx, db, now); err != nil {
+			return err
+		}
 		return insertAll(ctx, db, map[string][]any{"users": platformStaff(fixedAt)})
 	}
+
 }

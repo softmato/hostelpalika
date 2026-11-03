@@ -39,7 +39,23 @@ func TestTemplatesMatchTS(t *testing.T) {
 		case "hostelPortalOpen":
 			days, _ := in["trialDays"].(float64)
 			got = HostelPortalOpen(s("hostelName"), s("kycUrl"), s("ownerName"), int(days), s("trialEndsOn"))
+		case "accountDeletionRequested":
+			got = AccountDeletionRequested(s("cancelUrl"), s("scheduledDeletionDate"), s("userName"))
+		case "accountDeletionReview":
+			var names []string
+			for _, n := range in["hostelNames"].([]any) {
+				names = append(names, n.(string))
+			}
+			got = AccountDeletionReview(names, s("queueUrl"), s("reason"), s("requesterEmail"), s("requesterName"), s("requesterRole"))
+		case "consultationRequest":
+			var rows []DetailRow
+			for _, r := range in["details"].([]any) {
+				m := r.(map[string]any)
+				rows = append(rows, DetailRow{Label: m["label"].(string), Value: m["value"].(string)})
+			}
+			got = ConsultationRequest(rows, s("name"))
 		case "hostelSubmissionReceived":
+
 			got = HostelSubmissionReceived(s("hostelName"), s("ownerName"))
 		case "bookingInvoice":
 			var rows []RefundRow

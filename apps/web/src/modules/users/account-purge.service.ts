@@ -98,8 +98,9 @@ export async function purgeAccount(userId: Types.ObjectId) {
   // erasure itself, or there is no evidence the platform honoured the request.
   await AuditLogModel.create({
     action: "ACCOUNT_PURGED",
-    targetResource: "User",
-    targetResourceId: userId,
+    actorType: "SYSTEM",
+    entityType: "User",
+    entityId: String(userId),
   }).catch(() => {});
 }
 

@@ -1,0 +1,719 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "resident blocked",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "blockedReason": "You are currently registered as a resident. Your hostel needs this record while you are living there — you can delete your account once you have moved out.",
+          "graceperiodDays": 60,
+          "hostelNames": [],
+          "pathway": "BLOCKED",
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "warden blocked",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000006:WARDEN:6c00000000000000000000a2}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "blockedReason": "Staff accounts are created and closed by your hostel administrator. Ask them to remove your account.",
+          "graceperiodDays": 60,
+          "hostelNames": [],
+          "pathway": "BLOCKED",
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "admin review",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "graceperiodDays": 60,
+          "hostelNames": [
+            "Contract Hostel"
+          ],
+          "pathway": "PLATFORM_REVIEW",
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "public self service",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "graceperiodDays": 60,
+          "hostelNames": [],
+          "pathway": "SELF_SERVICE",
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "superadmin blocked",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "blockedReason": "Platform accounts cannot be deleted from here. Another platform owner must remove the account.",
+          "graceperiodDays": 60,
+          "hostelNames": [],
+          "pathway": "BLOCKED",
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "reason too short",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "reason": "bye"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Tell us briefly why, in a sentence or two."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Tell us briefly why, in a sentence or two.",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "resident refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "Closing down the hostel for good."
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You are currently registered as a resident. Your hostel needs this record while you are living there — you can delete your account once you have moved out.",
+        "errorCode": "DELETION_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "public closes",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "reason": "Closing down the hostel for good."
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your account is closed. It will be permanently deleted in 60 days — use the link in your email if you change your mind.",
+        "data": {
+          "pathway": "SELF_SERVICE",
+          "request": {
+            "cancelled": false,
+            "executed": false,
+            "hostelIds": [],
+            "id": "6ae9549f87375bd7c6923410",
+            "kind": "SELF_SERVICE",
+            "reason": "Closing down the hostel for good.",
+            "requestedAt": "2026-11-03T03:27:27.279Z",
+            "requestedEmail": "public@contract.test",
+            "requestedName": "Contract public",
+            "requestedRole": "PUBLIC",
+            "scheduledDeletionAt": "2027-01-02T03:27:27.279Z",
+            "userId": "6c0000000000000000000001"
+          },
+          "message": "Your account is closed. It will be permanently deleted in 60 days — use the link in your email if you change your mind."
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "public after closing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "graceperiodDays": 60,
+          "hostelNames": [],
+          "pathway": "SELF_SERVICE",
+          "request": {
+            "cancelled": false,
+            "executed": false,
+            "hostelIds": [],
+            "id": "6ae9549f87375bd7c6923410",
+            "kind": "SELF_SERVICE",
+            "reason": "Closing down the hostel for good.",
+            "requestedAt": "2026-11-03T03:27:27.279Z",
+            "requestedEmail": "public@contract.test",
+            "requestedName": "Contract public",
+            "requestedRole": "PUBLIC",
+            "scheduledDeletionAt": "2027-01-02T03:27:27.279Z",
+            "userId": "6c0000000000000000000001"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "admin submits",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "Closing down the hostel for good."
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your request has been sent to the platform owner. Your account and hostel stay active until they review it.",
+        "data": {
+          "pathway": "PLATFORM_REVIEW",
+          "request": {
+            "cancelled": false,
+            "executed": false,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "id": "6ae9549f87375bd7c6923411",
+            "kind": "PLATFORM_REVIEW",
+            "reason": "Closing down the hostel for good.",
+            "requestedAt": "2026-11-03T03:27:27.536Z",
+            "requestedEmail": "admin@contract.test",
+            "requestedName": "Contract admin",
+            "requestedRole": "HOSTEL_ADMIN",
+            "reviewStatus": "PENDING",
+            "userId": "6c0000000000000000000005"
+          },
+          "message": "Your request has been sent to the platform owner. Your account and hostel stay active until they review it."
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "admin twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "Closing down the hostel for good."
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "A deletion request is already open on this account.",
+        "errorCode": "DELETION_ALREADY_REQUESTED"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "admin status open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/account-deletion",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion status loaded",
+        "data": {
+          "graceperiodDays": 60,
+          "hostelNames": [
+            "Contract Hostel"
+          ],
+          "pathway": "PLATFORM_REVIEW",
+          "request": {
+            "cancelled": false,
+            "executed": false,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "id": "6ae9549f87375bd7c6923411",
+            "kind": "PLATFORM_REVIEW",
+            "reason": "Closing down the hostel for good.",
+            "requestedAt": "2026-11-03T03:27:27.536Z",
+            "requestedEmail": "admin@contract.test",
+            "requestedName": "Contract admin",
+            "requestedRole": "HOSTEL_ADMIN",
+            "reviewStatus": "PENDING",
+            "userId": "6c0000000000000000000005"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "moderator refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/account-deletions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "bad filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/account-deletions?reviewStatus=NOPE",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reviewStatus": [
+              "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"REJECTED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"APPROVED\"|\"REJECTED\"",
+              "path": "reviewStatus"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "queue",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/account-deletions?reviewStatus=PENDING",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "req": "data.requests.0.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion requests loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "pendingCount": 1,
+          "requests": [
+            {
+              "cancelled": false,
+              "executed": false,
+              "hostelIds": [
+                "6c00000000000000000000a1"
+              ],
+              "id": "6ae9549f87375bd7c6923411",
+              "kind": "PLATFORM_REVIEW",
+              "reason": "Closing down the hostel for good.",
+              "requestedAt": "2026-11-03T03:27:27.536Z",
+              "requestedEmail": "admin@contract.test",
+              "requestedName": "Contract admin",
+              "requestedRole": "HOSTEL_ADMIN",
+              "reviewStatus": "PENDING",
+              "userId": "6c0000000000000000000005"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "review bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/account-deletions/nope/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "decision": "APPROVED"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid request id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "review bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/account-deletions/{{req}}/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "decision": "MAYBE"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "decision": [
+              "Invalid option: expected one of \"APPROVED\"|\"REJECTED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"APPROVED\"|\"REJECTED\"",
+              "path": "decision"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "review unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/account-deletions/6c0000000000000000000fff/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "decision": "APPROVED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Request was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "approve",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/account-deletions/{{req}}/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "decision": "APPROVED",
+        "note": " ok "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Deletion approved — the account is closed and will be erased in 60 days",
+        "data": {
+          "request": {
+            "cancelled": false,
+            "executed": false,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "id": "6ae9549f87375bd7c6923411",
+            "kind": "PLATFORM_REVIEW",
+            "reason": "Closing down the hostel for good.",
+            "requestedAt": "2026-11-03T03:27:27.536Z",
+            "requestedEmail": "admin@contract.test",
+            "requestedName": "Contract admin",
+            "requestedRole": "HOSTEL_ADMIN",
+            "reviewNote": "ok",
+            "reviewStatus": "APPROVED",
+            "reviewedAt": "2026-11-03T03:27:40.269Z",
+            "scheduledDeletionAt": "2027-01-02T03:27:40.269Z",
+            "userId": "6c0000000000000000000005"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "approve twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/account-deletions/{{req}}/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "decision": "REJECTED"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This request has already been reviewed.",
+        "errorCode": "ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  },
+  {
+    "name": "queue after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/account-deletions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion requests loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "pendingCount": 0,
+          "requests": [
+            {
+              "cancelled": false,
+              "executed": false,
+              "hostelIds": [
+                "6c00000000000000000000a1"
+              ],
+              "id": "6ae9549f87375bd7c6923411",
+              "kind": "PLATFORM_REVIEW",
+              "reason": "Closing down the hostel for good.",
+              "requestedAt": "2026-11-03T03:27:27.536Z",
+              "requestedEmail": "admin@contract.test",
+              "requestedName": "Contract admin",
+              "requestedRole": "HOSTEL_ADMIN",
+              "reviewNote": "ok",
+              "reviewStatus": "APPROVED",
+              "reviewedAt": "2026-11-03T03:27:40.269Z",
+              "scheduledDeletionAt": "2027-01-02T03:27:40.269Z",
+              "userId": "6c0000000000000000000005"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e1351790"
+  }
+]

@@ -154,3 +154,15 @@ review ran 2026-11-03 (see PHASES.md); every row below is closed in Go and TS.
 has R2 off). The parsers are tested on the seven recorded export fixtures
 (`finance/testdata/statements`, legacy `.xls` included, read by `finance/xlsread.go`);
 the import and reconcile routes are recorded for everything short of reading the file.
+
+## Phase 7 findings (2026-11-03)
+
+Found while porting Phase 7. Each row is fixed in Go and TS unless it says otherwise.
+
+| Status | Id | Finding | Go | TS |
+|---|---|---|---|---|
+| ☑ | P7-1 | Six AuditLog writes (account deletion ×4, account purge, hostel purge) used `performedBy`/`targetResource*`, fields the schema lacks; the validator refused them and `.catch` hid it, so no row ever landed. The cron purges also had no `actorType: SYSTEM` | Rows written through `platform/audit` | Field names fixed, crons write `SYSTEM` |
+| ☑ | P7-2 | A reopened deletion request (after a cancel or a rejection) kept the old `cancelledAt`, `reviewNote`, `reviewedAt`, `reviewedBy`: mongoose drops `undefined` from `$set` | `$unset` | `$unset` |
+| ☑ | P7-3 | Two superadmins reviewing one deletion request at once both acted: TS read PENDING, then wrote by id | PENDING in the update filter, in a transaction with the account's closing | PENDING in the filter, 409 when lost |
+| ☑ | P7-4 | Deletion request and the account's closing (suspend, tokens, sessions, devices) were separate writes; a failure between left a request on a live account | One transaction | Not changed (TS is discarded; the window is small) |
+| ☑ | P7-5 | Revoking a temporary login and killing its sessions were separate writes; a failed audit write after creating one returned 500 with the password lost | One transaction; audit best-effort | Not changed |

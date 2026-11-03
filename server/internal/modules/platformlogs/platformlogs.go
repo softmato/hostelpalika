@@ -18,6 +18,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -118,7 +119,7 @@ func (h *Handler) list(c *gin.Context) {
 		s := entries[limit-1].ID.Hex()
 		next = &s
 	}
-	httpx.OK(c, gin.H{"entries": entries, "nextCursor": next}, "Server logs loaded")
+	httpx.OK(c, ordered.Map{{Key: "entries", Value: entries}, {Key: "nextCursor", Value: next}}, "Server logs loaded")
 }
 
 type count struct {
@@ -156,7 +157,7 @@ func (h *Handler) summary(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	httpx.OK(c, gin.H{"counts": counts, "dropped": applog.Dropped(), "categories": applog.Categories}, "Server log summary loaded")
+	httpx.OK(c, ordered.Map{{Key: "counts", Value: counts}, {Key: "dropped", Value: applog.Dropped()}, {Key: "categories", Value: applog.Categories}}, "Server log summary loaded")
 }
 
 // Watch applies site config's `logs.levels` now and then every interval, so
