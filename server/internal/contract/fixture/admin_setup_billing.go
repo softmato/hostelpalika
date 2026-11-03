@@ -45,7 +45,7 @@ func init() {
 				setupUser(o, "pay.open@contract.test", "HOSTEL_ADMIN", bson.A{h}, now), setupUser(gid(4, 81), "pay.clear@contract.test", "HOSTEL_ADMIN", bson.A{gid(4, 80)}, now),
 				setupUser(gid(4, 91), "pay.unverified@contract.test", "HOSTEL_ADMIN", bson.A{gid(4, 90)}, now), setupUser(gid(4, 96), "pay.lifetime@contract.test", "HOSTEL_ADMIN", bson.A{gid(4, 95)}, now),
 			},
-			"hostelmembers": {member(100, h, o), member(101, gid(4, 80), gid(4, 81)), member(102, gid(4, 90), gid(4, 91)), member(103, gid(4, 95), gid(4, 96))},
+			"hostelmembers":       {member(100, h, o), member(101, gid(4, 80), gid(4, 81)), member(102, gid(4, 90), gid(4, 91)), member(103, gid(4, 95), gid(4, 96))},
 			"hostelsubscriptions": {sub(72, h, "ACTIVE"), sub(82, gid(4, 80), "ACTIVE"), sub(92, gid(4, 90), "PENDING_SELECTION"), sub(97, gid(4, 95), "ACTIVE", bson.E{Key: "lifetimeSince", Value: fixed}, bson.E{Key: "lifetime", Value: true})},
 			"subscriptioninvoices": {
 				invoice(73, h, s, "SUB-0002-0046", "PARTIAL", bson.E{Key: "localInvoiceNo", Value: "HH-INV-2083-84-000007"}, bson.E{Key: "localIssuedAt", Value: fixed}),
