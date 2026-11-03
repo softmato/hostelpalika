@@ -382,8 +382,10 @@ export async function verifyPaymentIntent(
     status: "PENDING",
   });
 
-  // A replay: the credit already exists. Point the intent at it and stop.
-  if (!created) {
+  // A replay: the credit already exists. Point the intent at it and stop. A
+  // replay whose event is still PENDING (a call that died between the append
+  // and the settle) is settled below, or it never reaches the invoice (P8-6).
+  if (!created && event.status !== "PENDING") {
     await markSucceeded(intent, event._id, now);
 
     return {
@@ -394,13 +396,26 @@ export async function verifyPaymentIntent(
     };
   }
 
-  const settled = await settleEvent(event._id, {
-    confirmation: "GATEWAY_VERIFIED",
-    principal: options.principal,
-    settledAt: now,
-  });
+  let settled: Awaited<ReturnType<typeof settleEvent>> | undefined;
+
+  try {
+    settled = await settleEvent(event._id, {
+      confirmation: "GATEWAY_VERIFIED",
+      principal: options.principal,
+      settledAt: now,
+    });
+  } catch (error) {
+    // A concurrent replay settled it first: that call sends the email.
+    if (created || !(error instanceof FinanceServiceError) || error.errorCode !== "SETTLED_EVENT_IMMUTABLE") {
+      throw error;
+    }
+  }
 
   await markSucceeded(intent, event._id, now);
+
+  if (!settled) {
+    return { eventId: event._id.toString(), reason: null, settled: true, status: "SUCCEEDED" };
+  }
 
   // Only on the call that settled it — a replay above returns before here, so a
   // retried callback never sends the email twice.
@@ -515,18 +530,10 @@ export async function handleProviderCallback(
   const adapter = getProvider(provider);
 
   // The reference has to be recovered before credentials can be resolved, since
-  // credentials are per hostel and the body is what says which hostel. Parsed
-  // twice where a provider signs: once unauthenticated to find the intent, then
-  // again with that hostel's key, and only the second result is used.
-  const unverified = adapter.parseWebhook(rawBody, headers, {
-    merchantCode: "",
-    provider,
-    sandbox: true,
-    secret: "",
-    webhookSecret: "",
-  });
-
-  const reference = unverified?.reference ?? null;
+  // credentials are per hostel and the body is what says which hostel. Read
+  // unchecked to find the intent, then parsed with that hostel's key, and only
+  // the second result is used.
+  const reference = adapter.reference(rawBody);
 
   const intent = reference
     ? await PaymentIntentModel.findOne({ provider, reference }).lean<IntentRecord | null>()

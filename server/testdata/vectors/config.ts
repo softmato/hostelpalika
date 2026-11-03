@@ -89,7 +89,7 @@ export async function configVectors(web: Web, here: string) {
  = Object.entries(schemas).flatMap(([section, schema]) =>
     [defaults[section], undefined, "nope", ...mutations(defaults[section])].map((input) => {
       const parsed = schema.safeParse(input);
-      return { section, input, ok: parsed.success, data: parsed.success ? parsed.data : null };
+      return { section, input, ok: parsed.success, data: parsed.success ? parsed.data : null, issue: parsed.success ? null : parsed.error.issues[0]?.message ?? null };
     }),
   );
   // Gzipped: every case carries a whole section, and the plans one is large.

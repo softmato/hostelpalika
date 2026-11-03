@@ -113,6 +113,13 @@ func TestProductionWarnings(t *testing.T) {
 	if c.LogLevel != "info" || len(warnings) != 4 {
 		t.Errorf("log %q, warnings %d: %v", c.LogLevel, len(warnings), warnings)
 	}
+	if c.R2.WriteRoot != "" {
+		t.Errorf("production has no R2 write fence, got %q", c.R2.WriteRoot)
+	}
+	dev, _, err := Parse(env(map[string]string{"MONGODB_URI": "mongodb://127.0.0.1", "R2_KEY_PREFIX": "/hostelproject/"}))
+	if err != nil || dev.R2.WriteRoot != "hostelproject/go-dev" {
+		t.Errorf("dev write root %q, %v", dev.R2.WriteRoot, err)
+	}
 }
 
 func TestParseTTL(t *testing.T) {

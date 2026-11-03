@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 )
 
 // Body reads the request as JSON into any. An empty body is not JSON either.
@@ -45,4 +46,18 @@ func String(m map[string]any, key string, optional bool, is *Issues) (string, bo
 		return "", false
 	}
 	return s, true
+}
+
+// OrderedBody reads the request as JSON keeping key order (ordered.Map), for
+// bodies re-parsed by a zod descriptor where order is part of the value.
+func OrderedBody(c *gin.Context) (any, error) {
+	raw, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	v, err := ordered.FromJSON(raw)
+	if err != nil || len(raw) == 0 {
+		return nil, httpx.ErrBadJSON
+	}
+	return v, nil
 }

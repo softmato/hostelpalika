@@ -54,6 +54,8 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/platform/team", super, e, h.platformTeam)
 	v1.GET("/platform/team/wallets", super, e, h.wallets)
 	v1.POST("/platform/team/wallets/:agentId", super, h.payout)
+	v1.PATCH("/platform/team/members/:id", super, h.memberAction)
+	v1.DELETE("/platform/team/members/:id", super, h.memberDelete)
 }
 
 func (h *Handler) col(n string) *mongo.Collection { return h.DB.Collection(n) }

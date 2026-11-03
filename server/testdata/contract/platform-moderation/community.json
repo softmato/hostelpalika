@@ -1,0 +1,668 @@
+[
+  {
+    "name": "community signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "community as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "community flagged",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 0,
+            "totalPages": 0
+          },
+          "posts": [],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "community all",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community?filter=all",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 4,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hidden post",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T12:29:52.905Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c3",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "PUBLIC",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Guardian",
+              "body": "Other hostel",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T12:29:52.905Z",
+              "hostelId": "6c0000000000000000000037",
+              "hostelName": "Tracked Hostel",
+              "id": "6c00000000000000000000c4",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hostel only #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T11:29:52.905Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c00000000000000000000c2",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 2,
+              "reactionCounts": {
+                "LOVE": 1
+              },
+              "reportCount": 0,
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T10:29:52.905Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "community hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community?filter=hidden",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hidden post",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T12:29:52.905Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c3",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "PUBLIC",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "community bad filter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community?filter=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "filter": [
+              "Invalid option: expected one of \"flagged\"|\"hidden\"|\"all\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"flagged\"|\"hidden\"|\"all\"",
+              "path": "filter"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide short reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/community/6c00000000000000000000c1/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide missing post",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/community/6d0effffffffffffffffffff/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Spam post"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide post",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/community/6c00000000000000000000c1/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Spam post"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post hidden",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract resident",
+            "body": "Public hello #kathmandu #food",
+            "commentCount": 2,
+            "createdAt": "2026-11-03T10:29:52.905Z",
+            "hiddenReason": "Spam post",
+            "hostelId": null,
+            "hostelName": null,
+            "id": "6c00000000000000000000c1",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "reportCount": 0,
+            "spaceType": "PUBLIC",
+            "status": "HIDDEN",
+            "viewerReaction": null,
+            "visibility": "PUBLIC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "restore post",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/community/6c00000000000000000000c3/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Looked again"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post restored",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract admin",
+            "body": "Hidden post",
+            "commentCount": 2,
+            "createdAt": "2026-11-03T12:29:52.905Z",
+            "hostelId": null,
+            "hostelName": null,
+            "id": "6c00000000000000000000c3",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "reportCount": 0,
+            "spaceType": "PUBLIC",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "PUBLIC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "restore needs reason",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/community/6c00000000000000000000c3/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hidden after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/community?filter=hidden",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community posts loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-03T10:29:52.905Z",
+              "hiddenReason": "Spam post",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "reportCount": 0,
+              "spaceType": "PUBLIC",
+              "status": "HIDDEN",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ],
+          "summary": {
+            "flagged": 0,
+            "hidden": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "complaints signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/complaints"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "complaints as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "complaints",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaints loaded",
+        "data": {
+          "complaints": [
+            {
+              "category": "OTHER",
+              "createdAt": "2026-11-03T13:29:52.905Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000042",
+              "isAnonymous": false,
+              "isOverdue": false,
+              "resolvedAt": null,
+              "slaDueAt": "2026-11-03T14:29:52.905Z",
+              "status": "RESOLVED",
+              "title": "Not yours"
+            },
+            {
+              "category": "OTHER",
+              "createdAt": "2026-11-02T13:29:52.905Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000041",
+              "isAnonymous": true,
+              "isOverdue": true,
+              "resolvedAt": null,
+              "slaDueAt": "2026-11-03T12:29:52.905Z",
+              "status": "PENDING",
+              "title": "Late"
+            },
+            {
+              "category": "MAINTENANCE",
+              "createdAt": "2026-11-01T13:29:52.905Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000040",
+              "isAnonymous": false,
+              "isOverdue": false,
+              "resolvedAt": "2026-11-03T12:29:52.905Z",
+              "slaDueAt": "2026-11-03T12:29:52.905Z",
+              "status": "RESOLVED",
+              "title": "Leak"
+            }
+          ],
+          "statusCounts": {
+            "RESOLVED": 2,
+            "PENDING": 1
+          },
+          "total": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

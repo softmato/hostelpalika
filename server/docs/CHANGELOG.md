@@ -3,6 +3,42 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Phase 7 — in progress] — 2026-11-03
+
+### Added
+- `platform/bookings/*` (`bookings/platform.go`): the queues with every count, one booking, cancel for the platform, pause and resume a hostel, screenshot review, transfers (list, mark sent, reveal), payout accounts (list with same-number twins, audited reveal, review; `hostels/payout_platform.go`), the booking terms through the email-confirmed setting change, and any booking paper for a superadmin (`serveDocument`, shared with the booker's route). Contract group `platform-bookings` (7 files), green; `team/register` and `team/members` recorded and green.
+- Emails: `BookingPaymentRejected`, `BookingRefundSent`, `BookingPayoutSent`, `PayoutAccountReviewed`.
+- System tabs (Go-only, `goOnlyAllowed`): `GET /platform/logs/health` (`obs.ReadHealth`: request rate, p95 from the histogram buckets, error rate, Mongo pool, cache hit rate, rate-limit refusals, since boot), `GET /platform/system/process`, `GET /platform/system/active-users` (DAU/WAU/MAU per Kathmandu day over `usageevents`). Web: `/platform/logs`, `/platform/system/process`, `/platform/system/active-users`, `/platform/analytics` under *System*.
+- Fixed: P7-31 and P7-33 in Go and TS, P7-32 in Go (TS was right), P7-34 in Go and TS.
+
+### Next in Phase 7
+- Contract cases for the rest of `platform/*`; the native log and system screens (owner's call); the Cron tab after Phase 9.
+
+## [Phase 8 — in progress] — 2026-11-03
+
+Started beside Phase 7 (owner's call); the two sessions split `billing` by file.
+
+### Added
+- `POST /integrations/questioncall/sso` and `/conversion` (package `questioncall`): shared secret header, constant-time compare, 503 when unset.
+- `POST /webhooks/softmato` (`billing/webhook.go`): HMAC over the raw bytes, five-minute window, pinned to the SDK's `SHARED_VECTOR`; idempotent on the transaction number. Plan invoices settle through `billing.Settler.SettlePayment` (TS `settlePayment`: receipt number, Softmato receipt read, invoice status, team commission, lifetime, renewal plan switch, plan period, publish, suspension lift, referral go-live, owner access hook, receipt email for money Softmato never saw, audit). Booking fees settle through `bookings.Signed.SettleFromSoftmato` / `MarkPaid`; team prepayments through `Settler.MarkTeamPrepaymentPaid`.
+- Hostel referral go-live rewards (`hostelreferrals.Service.GoLive`, TS `settleHostelReferrals`).
+- Softmato client: `GetReceipt`, invoice `status` and `payments`. Email: `SubscriptionReceipt`, `BookingPaymentVerified`, `BookingRequest`.
+- Verified: unit tests on the webhook signature (SDK vector) and money parsing; an integration test against local Mongo (settles once on a duplicate delivery, suspension lifted, SYSTEM audit, prepayment and unknown-number branches); `TestRoutesMatchWeb`, `TestAnonymousIsRefused`.
+- Fixed: P8-1 in Go and TS; P8-2..P8-4 in Go (`review_fixes_needed.md`).
+
+### Added (late 2026-11-03)
+- Gateway stack (`modules/gateway`): eSewa/Khalti adapters, intents, `POST /resident/finance/invoices/:id/checkout`, `GET /resident/finance/checkout/:reference`, `POST /webhooks/:provider`.
+- `bookings/:id/checkout|payment|return` (`bookings/checkout.go`); booking creation raises the Softmato invoice straight away instead of the placeholder retry task.
+- `hostel-registration/*` (5) and `team/hostels/:id/checkout` (`hostels/registration_billing.go`); `billing.Settler.ReadReturnState` and `Reconcile` (TS `readReturnState`, `reconcileInvoiceFromSoftmato`).
+- `POST /public/plan-checkout` (`billing/plancheckout.go`): email + Hostel ID → OTP (resumes inside the resend cooldown) or signed pay link → one-hour token → invoice/months/resume/pay/claim. `billing/renewal.go`: `RaiseRenewalInvoice` with defer/reshape, `ChangeOpenInvoiceMonths`, `InvoiceMonthsLocked`, `PlanAfterPayment`; the portal's renew button now goes through it.
+- `team/prepayments` (4, `billing/prepayment.go` + `hostels/team_prepayments.go`); `IssueSubscriptionInvoice` / `IssueSetupFeeInvoice` take a prepaid document; the team registration publishes on a paid online prepayment (claim before writing, release on failure).
+- Contract group `billing-online` (71 cases) with its fixture.
+- Fixed in Go and TS: P8-5 (eSewa callbacks never resolved), P8-6 (a died-midway gateway verify never settled), P8-7 (booking screenshot left in review with no row). Also fixed: the account and admin `hostel-leave` handlers had no background runner, so records were never rebuilt.
+
+### Next in Phase 8
+- Record contract cases for `hostel-admin/finance/payment-gateways`.
+- The offline shadow replay of real provider events (the gate).
+
 ## [Phase 6 — done] — 2026-11-03
 
 ### Closed

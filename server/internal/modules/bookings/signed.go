@@ -26,6 +26,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/softmato"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -46,6 +47,8 @@ type Signed struct {
 	FinanceKeys func() ([]crypto.MasterKey, error)
 	// SoftmatoOn is isSoftmatoConfigured.
 	SoftmatoOn bool
+	// Softmato reads a booking fee's invoice when its webhook arrives; nil when unconfigured.
+	Softmato *softmato.Client
 }
 
 // Booking is BookingRecord.
@@ -580,6 +583,11 @@ func newBookingCode() string {
 
 // allocateInvoice is allocate("BOOKING_INVOICE"): the fiscal year's next number.
 func (s *Signed) allocateInvoice(ctx context.Context, now time.Time) (string, error) {
+	return s.allocate(ctx, "BOOKING_INVOICE", "HH-BKI", now)
+}
+
+// allocate is booking-documents' allocate: <prefix>-<fiscal year>-<6-digit sequence>.
+func (s *Signed) allocate(ctx context.Context, kind, prefix string, now time.Time) (string, error) {
 	fy := bs.FiscalYear(now)
 	if fy == "" {
 		return "", fmt.Errorf("cannot number a document dated %s: outside the Bikram Sambat table", httpx.ISO(now))
@@ -588,14 +596,19 @@ func (s *Signed) allocateInvoice(ctx context.Context, now time.Time) (string, er
 	var row struct {
 		Sequence int64 `bson:"sequence"`
 	}
-	err := s.db.Collection("platformdocumentsequences").FindOneAndUpdate(ctx, bson.D{{Key: "fiscalYear", Value: fy}, {Key: "kind", Value: "BOOKING_INVOICE"}},
+	err := s.db.Collection("platformdocumentsequences").FindOneAndUpdate(ctx, bson.D{{Key: "fiscalYear", Value: fy}, {Key: "kind", Value: kind}},
 		bson.D{{Key: "$inc", Value: bson.D{{Key: "sequence", Value: 1}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: stamp}}},
 			{Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: stamp}, {Key: "__v", Value: 0}}}},
 		options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)).Decode(&row)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("HH-BKI-%s-%06d", fy, row.Sequence), nil
+	// issue.ts WIDTH: invoices 6 digits, receipts, refund and payout slips 8.
+	width := 8
+	if kind == "BOOKING_INVOICE" {
+		width = 6
+	}
+	return fmt.Sprintf("%s-%s-%0*d", prefix, fy, width, row.Sequence), nil
 }
 
 type refundInput struct{ BankName, Branch, HolderName, Method, Number string }
@@ -851,10 +864,12 @@ func (s *Signed) createBooking(ctx *gin.Context, body any, p *authz.Principal, s
 
 	policy := policySummary(terms, fee)
 	paper := s.attachment(ctx, &created)
-	// ponytail: Softmato's invoice is raised by its retry job off this task row;
-	// the first email goes without their number until the client lands in Phase 8.
-	if s.SoftmatoOn {
-		s.rememberTask(ctx, "BOOKING_PAYMENT", bookingID.Hex(), *user.Email, user.Name, s.appURL("/bookings/"+bookingID.Hex()))
+	// Softmato raises the fee's invoice now, so the first email already carries its number.
+	if s.SoftmatoOn && s.Softmato != nil {
+		s.raiseInvoiceSoon(ctx, &created)
+		if err := s.db.Collection("bookings").FindOne(ctx, bson.D{{Key: "_id", Value: bookingID}}).Decode(&created); err != nil {
+			return nil, err
+		}
 	}
 	rows := make([]email.RefundRow, len(policy.Rows))
 	for i, row := range policy.Rows {
@@ -1487,4 +1502,5 @@ func (s *Signed) Register(v1 *gin.RouterGroup) {
 	b.GET("/documents/:kind/:number", s.document)
 	b.GET("/:id", httpx.ETag(), s.detail)
 	b.POST("/:id/cancel", s.cancel)
+	s.registerCheckout(b)
 }

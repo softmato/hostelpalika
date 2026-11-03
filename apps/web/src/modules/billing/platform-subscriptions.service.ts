@@ -175,6 +175,14 @@ export async function getPlatformSubscriptionLedger(options: {
   );
 
   const invoiceById = new Map(invoices.map((row) => [String(row._id), row]));
+  // A payment whose invoice is older than this page still names it (P7-27).
+  const missing = payments.map((row) => row.invoiceId).filter((id) => !invoiceById.has(String(id)));
+
+  if (missing.length > 0) {
+    for (const row of await SubscriptionInvoiceModel.find({ _id: { $in: missing } }).lean<InvoiceLean[]>()) {
+      invoiceById.set(String(row._id), row);
+    }
+  }
 
   const [billedAgg, collectedAgg, outstandingAgg, activePlans] =
     await Promise.all([

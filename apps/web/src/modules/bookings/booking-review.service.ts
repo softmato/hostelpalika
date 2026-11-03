@@ -6,6 +6,7 @@ import { Types } from "mongoose";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { BookingModel, type BookingStatus } from "@hostel/db/models/Booking";
 import { BookingPaymentModel } from "@hostel/db/models/BookingPayment";
+import { BookingTransferModel } from "@hostel/db/models/BookingTransfer";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import {
   bookingPaymentRejectedEmail,
@@ -31,7 +32,12 @@ import {
 import { bookingDocumentAttachment } from "@/modules/bookings/booking-documents.service";
 import { HOUR_MS, hostelAnswerDeadline } from "@/modules/bookings/booking-terms";
 import { reviewBookingPaymentSchema } from "@/modules/bookings/booking.validation";
-import { hostelShareIfCheckedIn, type BookingRecord } from "@/modules/bookings/booking-views";
+import {
+  hostelShareIfCheckedIn,
+  toPlatformView,
+  type BookingRecord,
+  type TransferRecord,
+} from "@/modules/bookings/booking-views";
 import { stayDatesText } from "@/modules/bookings/short-stay";
 import { BookingError } from "@/modules/bookings/booking.errors";
 
@@ -185,9 +191,35 @@ export async function reviewBookingPayment(
     metadata: { amount: payment.amount, code: booking.code, note },
   }).catch(() => undefined);
 
-  return input.approve
+  // The claim is given back when the booking's move is lost (P7-31), so the row
+  // never says "checked" for a booking that did not take the payment.
+  const decided = await (input.approve
     ? markBookingPaid(booking, principal.userId, now)
-    : reject(booking, note ?? "", now);
+    : reject(booking, note ?? "", now)
+  ).catch(async (error: unknown) => {
+    if (error instanceof BookingError && error.errorCode === "BOOKING_NOT_IN_REVIEW") {
+      await BookingPaymentModel.updateOne(
+        { _id: payment._id, reviewedBy: principal.userId, status: claimed.status },
+        { $set: { reviewNote: null, reviewedAt: null, reviewedBy: null, status: "IN_REVIEW" } },
+      );
+    }
+
+    throw error;
+  });
+
+  // The platform view, as every other platform booking route answers: the raw
+  // row carried the sealed refund account (P7-34). A paid booking whose hostel
+  // left may already have been ended by someone else: read it as it stands.
+  const final =
+    decided ?? (await BookingModel.findById(booking._id).lean<BookingRecord | null>());
+
+  if (!final) {
+    throw new BookingError("Booking not found.", "BOOKING_NOT_FOUND", 404);
+  }
+
+  const transfers = await BookingTransferModel.find({ bookingId: final._id }).lean<TransferRecord[]>();
+
+  return toPlatformView(final, transfers, now);
 }
 
 /**

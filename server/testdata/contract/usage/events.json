@@ -26,7 +26,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
   },
   {
     "name": "bad body",
@@ -61,7 +61,7 @@
           "formErrors": [],
           "fieldErrors": {
             "client": [
-              "Invalid option: expected one of \"app\"|\"web\""
+              "Invalid option: expected one of \"app\"|\"pwa\"|\"web\""
             ],
             "events": [
               "Invalid input: expected date, received Date",
@@ -72,7 +72,7 @@
           },
           "issues": [
             {
-              "message": "Invalid option: expected one of \"app\"|\"web\"",
+              "message": "Invalid option: expected one of \"app\"|\"pwa\"|\"web\"",
               "path": "client"
             },
             {
@@ -95,7 +95,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
   },
   {
     "name": "empty events",
@@ -134,7 +134,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
   },
   {
     "name": "too many events",
@@ -978,7 +978,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
   },
   {
     "name": "stale events dropped",
@@ -1019,7 +1019,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
   },
   {
     "name": "recorded",
@@ -1066,6 +1066,38 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "pwa recorded",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1}}",
+        "user-agent": "us-5"
+      },
+      "body": {
+        "client": "pwa",
+        "events": [
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Usage recorded",
+        "data": {
+          "recorded": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
   }
 ]

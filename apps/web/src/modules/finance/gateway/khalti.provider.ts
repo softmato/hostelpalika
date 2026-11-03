@@ -204,6 +204,11 @@ export const khaltiProvider: GatewayProvider = {
    * the expiry sweep, both of which call `verify`. Nothing is lost by refusing
    * the unsigned path, because the unsigned path was never evidence.
    */
+  // Nothing to resolve either: the resident's return page polls `verify`.
+  reference(): string | null {
+    return null;
+  },
+
   parseWebhook(): WebhookClaim | null {
     return null;
   },

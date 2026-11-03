@@ -325,7 +325,8 @@ export async function deleteTeamMember(memberId: string, principal: ApiPrincipal
   await Promise.all([
     SessionModel.deleteMany({ userId: member._id }),
     OAuthAccountModel.deleteMany({ userId: member._id }),
-    PlatformAdminInviteModel.deleteMany({ email: member.email }),
+    // Without an email mongoose drops the key and this deletes every invite (P7-13).
+    member.email ? PlatformAdminInviteModel.deleteMany({ email: member.email }) : null,
   ]);
 
   await UserModel.deleteOne({ _id: member._id });

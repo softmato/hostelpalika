@@ -147,6 +147,11 @@ var goOnlyAllowed = map[string]bool{
 	// The superadmin log viewer (PHASES.md Phase 7): TS never stored its logs.
 	"GET /api/v1/platform/logs":         true,
 	"GET /api/v1/platform/logs/summary": true,
+	// Its health strip and the superadmin system tabs (PHASES.md Phase 7): runtime
+	// figures and usage aggregations TS never had.
+	"GET /api/v1/platform/logs/health":         true,
+	"GET /api/v1/platform/system/process":      true,
+	"GET /api/v1/platform/system/active-users": true,
 }
 
 // TestRouteBudgetsAreRoutes: a typo in routeBudgets would silently leave a long

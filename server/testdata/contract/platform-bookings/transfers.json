@@ -1,0 +1,565 @@
+[
+  {
+    "name": "unknown action",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unknown transfer",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b000000000000000000ff/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Transfer not found.",
+        "errorCode": "TRANSFER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "transaction id too short",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": " ab "
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "transactionId": [
+              "Enter the transaction ID."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the transaction ID.",
+              "path": "transactionId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "proof not a valid id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": "TX-901",
+        "proofAssetId": "nope"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "proofAssetId": [
+              "Not a valid id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Not a valid id.",
+              "path": "proofAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "proof someone else uploaded",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": "TX-901",
+        "proofAssetId": "6d0b00000000000000000007"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Attach the screenshot of the transfer you sent.",
+        "errorCode": "PROOF_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal refund account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account number",
+        "data": {
+          "account": {
+            "bankName": "",
+            "holderName": "Guest Holder",
+            "maskedNumber": "••••1111",
+            "method": "ESEWA",
+            "methodLabel": "eSewa",
+            "branch": "",
+            "number": "9800001111"
+          },
+          "kind": "REFUND"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal payout account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000003/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt",
+      "data.account.reviewedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account number",
+        "data": {
+          "account": {
+            "bankName": "",
+            "branch": "",
+            "holderName": "Lakeside Owner",
+            "maskedNumber": "••••5678",
+            "method": "ESEWA",
+            "methodLabel": "eSewa",
+            "reviewNote": null,
+            "reviewedAt": "2026-10-26T03:30:11.702Z",
+            "status": "VERIFIED",
+            "submittedAt": "2026-10-21T23:30:11.702Z",
+            "number": "9812345678"
+          },
+          "kind": "PAYOUT"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "refund sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": " TX-901 ",
+        "proofAssetId": "6d0b00000000000000000005",
+        "note": " Sent from Nabil. "
+      }
+    },
+    "masks": [
+      "data.transfer.dueSince",
+      "data.transfer.sentAt",
+      "data.transfer.documentNumber"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Marked sent.",
+        "data": {
+          "transfer": {
+            "amount": 1500,
+            "blocked": null,
+            "bookingCode": "BK-0dTEST",
+            "bookingId": "6b000000000000000000000d",
+            "destination": {
+              "bankName": "",
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••1111",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "documentNumber": "HH-BRF-2083/84-00000001",
+            "dueSince": "2026-11-02T15:30:11.702Z",
+            "guestName": "Guest 0d",
+            "hostelName": "Fixture Lakeside Hostel",
+            "id": "6d0b00000000000000000002",
+            "kind": "REFUND",
+            "roomType": "Single",
+            "sentAt": "2026-11-03T11:31:02.204Z",
+            "status": "SENT",
+            "transactionId": "TX-901"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "refund sent again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000002/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": "TX-902"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This has already been marked sent.",
+        "errorCode": "TRANSFER_ALREADY_SENT"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "payout sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/transfers/6d0b00000000000000000003/sent",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "transactionId": "TX-903"
+      }
+    },
+    "masks": [
+      "data.transfer.dueSince",
+      "data.transfer.sentAt",
+      "data.transfer.documentNumber"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Marked sent.",
+        "data": {
+          "transfer": {
+            "amount": 188,
+            "blocked": null,
+            "bookingCode": "BK-09TEST",
+            "bookingId": "6b0000000000000000000009",
+            "destination": {
+              "bankName": "",
+              "holderName": "Lakeside Owner",
+              "maskedNumber": "••••5678",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "documentNumber": "HH-BPO-2083/84-00000001",
+            "dueSince": "2026-11-03T01:30:11.702Z",
+            "guestName": "Guest 09",
+            "hostelName": "Fixture Lakeside Hostel",
+            "id": "6d0b00000000000000000003",
+            "kind": "PAYOUT",
+            "roomType": "Single",
+            "sentAt": "2026-11-03T11:31:02.479Z",
+            "status": "SENT",
+            "transactionId": "TX-903"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "nothing left",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/bookings/transfers",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Money to send",
+        "data": {
+          "transfers": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "booking shows its transfers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/bookings/6b0000000000000000000009",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.paymentRejection.at",
+      "data.booking.transfers.*.sentAt",
+      "data.booking.transfers.*.documentNumber"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": false,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-09TEST",
+            "confirmedAt": "2026-11-02T15:30:06.991Z",
+            "createdAt": "2026-11-01T11:30:06.991Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": "2026-11-03T01:30:06.991Z",
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000009",
+            "invoiceNumber": "HH-BKI-2083-84-000009",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-03T17:30:06.991Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": "2026-11-02T11:30:06.991Z",
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": "HH-BKR-2083-84-00000009",
+            "refund": {
+              "amount": 1125,
+              "documentNumber": "HH-BRF-2083-84-00000009",
+              "sentAt": "2026-11-03T09:30:06.991Z",
+              "status": "SENT",
+              "transactionId": "TX-555"
+            },
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": {
+              "noShow": {
+                "after": "2026-11-09T15:30:06.991Z",
+                "refund": 0,
+                "refundPercent": 0
+              },
+              "steps": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2,
+                  "until": "2026-11-04T15:30:06.991Z"
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5,
+                  "until": "2026-11-07T15:30:06.991Z"
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7,
+                  "until": "2026-11-09T15:30:06.991Z"
+                }
+              ]
+            },
+            "settlement": {
+              "refund": 1125,
+              "refundPercent": 75
+            },
+            "status": "CANCELLED_BY_USER",
+            "statusLabel": "Cancelled",
+            "stay": null,
+            "total": 1500,
+            "guest": {
+              "email": "guest09@contract.test",
+              "name": "Guest 09",
+              "phone": "9800000000"
+            },
+            "hostelShareIfKept": 750,
+            "platformSettlement": {
+              "hostelShare": 188,
+              "kept": 375,
+              "platformShare": 187,
+              "refund": 1125
+            },
+            "strike": false,
+            "transfers": [
+              {
+                "amount": 1125,
+                "documentNumber": "HH-BRF-2083-84-00000009",
+                "id": "6b00000000000000000000a9",
+                "kind": "REFUND",
+                "sentAt": "2026-11-03T09:30:06.991Z",
+                "status": "SENT",
+                "transactionId": "TX-555"
+              },
+              {
+                "amount": 188,
+                "documentNumber": "HH-BPO-2083/84-00000001",
+                "id": "6d0b00000000000000000003",
+                "kind": "PAYOUT",
+                "sentAt": "2026-11-03T11:31:02.479Z",
+                "status": "SENT",
+                "transactionId": "TX-903"
+              }
+            ],
+            "userId": "6b0000000000000000000009"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

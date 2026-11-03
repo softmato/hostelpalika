@@ -20,7 +20,7 @@ type Branch struct {
 func ParseBranch(body any) (Branch, error) {
 	f := valid.NewForm(body)
 	var in Reg
-	parseCreateBase(f, &in, true)
+	parseCreateBase(f, &in, true, false)
 	in.AltPhone = regStr(f, "alternatePhone", valid.S{Min: 7, Max: 24})
 	regNum(f, "cookCount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(100)})
 	in.Landmark = regStr(f, "landmark", valid.S{Max: 240})

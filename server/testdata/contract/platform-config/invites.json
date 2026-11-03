@@ -1,0 +1,633 @@
+[
+  {
+    "name": "invites as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invites",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitations loaded",
+        "data": {
+          "invites": [
+            {
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "email": "invitee@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-08T13:30:42.669Z",
+              "id": "6d0e00000000000000000001",
+              "name": "Invitee",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "email": "late@contract.test",
+              "expired": true,
+              "expiresAt": "2026-11-02T13:30:42.669Z",
+              "id": "6d0e00000000000000000002",
+              "name": "Invitee",
+              "phone": "",
+              "role": "SUPERADMIN",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "email": "public@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-08T13:30:42.669Z",
+              "id": "6d0e00000000000000000008",
+              "name": "Invitee",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invite bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "nope",
+        "role": "SUPERADMIN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invite",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "fresh@contract.test",
+        "name": "Fresh",
+        "role": "SUPERADMIN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation sent",
+        "data": {
+          "delivered": false,
+          "deliveryReason": "not_configured",
+          "invite": {
+            "createdAt": "2026-11-03T13:30:42.987Z",
+            "email": "fresh@contract.test",
+            "expired": false,
+            "expiresAt": "2026-11-10T13:30:42.985Z",
+            "id": "6ae9e2020f6d781fa7b2ef8a",
+            "name": "Fresh",
+            "phone": "",
+            "role": "SUPERADMIN",
+            "status": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invite already admin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "moderator@contract.test",
+        "role": "SUPERADMIN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "moderator@contract.test is already a platform moderator. Change their access level on the admin roster instead.",
+        "errorCode": "OTHER_PLATFORM_ROLE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invite bulk empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "invitations": [],
+        "role": "PLATFORM_MODERATOR"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "invitations": [
+              "Add at least one address."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Add at least one address.",
+              "path": "invitations"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invite bulk",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "invitations": [
+          {
+            "email": "bulk1@contract.test"
+          },
+          {
+            "email": "bulk2@contract.test",
+            "name": "Bulk Two"
+          },
+          {
+            "email": "moderator@contract.test"
+          }
+        ],
+        "role": "PLATFORM_MODERATOR"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "2 of 3 invitations sent",
+        "data": {
+          "results": [
+            {
+              "delivered": false,
+              "email": "bulk1@contract.test",
+              "error": null,
+              "sent": true
+            },
+            {
+              "delivered": false,
+              "email": "bulk2@contract.test",
+              "error": null,
+              "sent": true
+            },
+            {
+              "delivered": false,
+              "email": "moderator@contract.test",
+              "error": "moderator@contract.test is already a platform moderator. There is nothing left for an invitation to grant.",
+              "sent": false
+            }
+          ],
+          "sent": 2,
+          "total": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "withdraw missing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/admins/invites/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That invitation is no longer outstanding.",
+        "errorCode": "INVITE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "withdraw",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/admins/invites/6d0e00000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation withdrawn",
+        "data": {
+          "revoked": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invites after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/admins/invites",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitations loaded",
+        "data": {
+          "invites": [
+            {
+              "createdAt": "2026-11-03T13:30:43.151Z",
+              "email": "bulk2@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-10T13:30:43.150Z",
+              "id": "6ae9e2030f6d781fa7b2ef8e",
+              "name": "Bulk Two",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-11-03T13:30:43.110Z",
+              "email": "bulk1@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-10T13:30:43.109Z",
+              "id": "6ae9e2030f6d781fa7b2ef8c",
+              "name": "",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-11-03T13:30:42.987Z",
+              "email": "fresh@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-10T13:30:42.985Z",
+              "id": "6ae9e2020f6d781fa7b2ef8a",
+              "name": "Fresh",
+              "phone": "",
+              "role": "SUPERADMIN",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "email": "invitee@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-08T13:30:42.669Z",
+              "id": "6d0e00000000000000000001",
+              "name": "Invitee",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            },
+            {
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "email": "public@contract.test",
+              "expired": false,
+              "expiresAt": "2026-11-08T13:30:42.669Z",
+              "id": "6d0e00000000000000000008",
+              "name": "Invitee",
+              "phone": "",
+              "role": "PLATFORM_MODERATOR",
+              "status": "PENDING"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invitation no token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform-admin/invitation"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid. It may have been withdrawn or already used.",
+        "errorCode": "INVITE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invitation bad token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform-admin/invitation?token=nope"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid. It may have been withdrawn or already used.",
+        "errorCode": "INVITE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invitation",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform-admin/invitation?token=contract-invite-new"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation loaded",
+        "data": {
+          "invitation": {
+            "email": "invitee@contract.test",
+            "expiresAt": "2026-11-08T13:30:42.669Z",
+            "role": "PLATFORM_MODERATOR",
+            "roleLabel": "Platform Moderator"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "accept no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform-admin/accept-invitation",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "token": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "accept bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform-admin/accept-invitation",
+      "body": {
+        "token": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid. It may have been withdrawn or already used.",
+        "errorCode": "INVITE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "accept existing account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform-admin/accept-invitation",
+      "body": {
+        "token": "contract-invite-user"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation accepted",
+        "data": {
+          "accepted": true,
+          "accountCreated": false,
+          "displacedRole": "PUBLIC",
+          "email": "public@contract.test",
+          "role": "PLATFORM_MODERATOR",
+          "roleLabel": "Platform Moderator"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "accept new account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform-admin/accept-invitation",
+      "body": {
+        "token": "contract-invite-new"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation accepted",
+        "data": {
+          "accepted": true,
+          "accountCreated": false,
+          "displacedRole": "PUBLIC",
+          "email": "invitee@contract.test",
+          "role": "PLATFORM_MODERATOR",
+          "roleLabel": "Platform Moderator"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "accept twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform-admin/accept-invitation",
+      "body": {
+        "token": "contract-invite-new"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid. It may have been withdrawn or already used.",
+        "errorCode": "INVITE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

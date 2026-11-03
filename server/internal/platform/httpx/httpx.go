@@ -22,8 +22,11 @@ import (
 const defaultMessage = "Request successful"
 
 // enc matches JSON.stringify: no HTML escaping, so ">=" stays ">=" instead of
-// Gin's ">=". Every envelope goes through write, never c.JSON.
-var enc = sonic.ConfigDefault
+// Gin's ">=". Every envelope goes through write, never c.JSON. Map keys are
+// sorted: a gin.H or map has no insertion order to keep, and an unsorted one came
+// out in a different order on every request (an ETag that never matched).
+// Where TS's order is not alphabetical, the handler uses ordered.Map.
+var enc = sonic.Config{SortMapKeys: true}.Froze()
 
 // write sends v with Next's exact content type (NextResponse.json sets no charset).
 func write(c *gin.Context, status int, v any) {
@@ -106,6 +109,13 @@ var (
 // not a form, a malformed id, a deadline. Anything else is a 500 whose reason
 // goes to the log, never the body.
 func Fail(c *gin.Context, err error) {
+	status, f := describe(c, err)
+	abort(c, status, f)
+}
+
+// describe is Fail's mapping without the write, for a stream that reports the
+// error as one of its lines (Progress).
+func describe(c *gin.Context, err error) (int, failure) {
 	var (
 		v      *ValidationError
 		e      *Error
@@ -115,34 +125,34 @@ func Fail(c *gin.Context, err error) {
 	switch {
 	case errors.As(err, &v):
 		slog.WarnContext(c, "Request validation failed", "issues", v.Issues)
-		abort(c, http.StatusUnprocessableEntity, failure{false, "Validation failed", "VALIDATION_ERROR", v.details()})
+		return http.StatusUnprocessableEntity, failure{false, "Validation failed", "VALIDATION_ERROR", v.details()}
 	case errors.As(err, &e):
-		abort(c, e.Status, failure{false, e.Message, e.ErrorCode, e.Details})
+		return e.Status, failure{false, e.Message, e.ErrorCode, e.Details}
 	case errors.As(err, &s):
 		slog.ErrorContext(c, "Softmato refused a request", "error", err)
-		abort(c, http.StatusBadGateway, failure{false, "Our payment server could not accept this: " + s.Error(), "SOFTMATO_REJECTED", nil})
+		return http.StatusBadGateway, failure{false, "Our payment server could not accept this: " + s.Error(), "SOFTMATO_REJECTED", nil}
 	case mongo.IsDuplicateKeyError(err):
 		slog.WarnContext(c, "Duplicate value refused", "error", err)
 		msg, ok := duplicateMessages[duplicateField(err)]
 		if !ok {
 			msg = "This is already saved. Refresh and check before adding it again."
 		}
-		abort(c, http.StatusConflict, failure{false, msg, "DUPLICATE_VALUE", nil})
+		return http.StatusConflict, failure{false, msg, "DUPLICATE_VALUE", nil}
 	case errors.As(err, &tooBig):
-		abort(c, http.StatusRequestEntityTooLarge, failure{false, "The request is too large.", "PAYLOAD_TOO_LARGE", nil})
+		return http.StatusRequestEntityTooLarge, failure{false, "The request is too large.", "PAYLOAD_TOO_LARGE", nil}
 	case errors.Is(err, http.ErrNotMultipart), errors.Is(err, http.ErrMissingBoundary), errors.Is(err, multipart.ErrMessageTooLarge):
-		abort(c, ErrBadForm.Status, failure{false, ErrBadForm.Message, ErrBadForm.ErrorCode, nil})
+		return ErrBadForm.Status, failure{false, ErrBadForm.Message, ErrBadForm.ErrorCode, nil}
 	case errors.Is(err, bson.ErrInvalidHex):
-		abort(c, http.StatusNotFound, failure{false, "Not found", "NOT_FOUND", nil})
+		return http.StatusNotFound, failure{false, "Not found", "NOT_FOUND", nil}
 	case errors.Is(err, context.Canceled):
 		// The client left; nobody reads this and it is not a fault of ours.
-		abort(c, statusClientClosed, failure{false, "Request cancelled", "CLIENT_CLOSED", nil})
+		return statusClientClosed, failure{false, "Request cancelled", "CLIENT_CLOSED", nil}
 	case errors.Is(err, context.DeadlineExceeded), mongo.IsTimeout(err):
 		slog.ErrorContext(c, "Request ran out of time", "error", err, "path", c.FullPath())
-		abort(c, http.StatusGatewayTimeout, failure{false, "This took too long. Please try again.", "TIMEOUT", nil})
+		return http.StatusGatewayTimeout, failure{false, "This took too long. Please try again.", "TIMEOUT", nil}
 	default:
 		slog.ErrorContext(c, "Unhandled API route error", "error", err, "path", c.FullPath())
-		abort(c, http.StatusInternalServerError, failure{false, "Internal server error", "INTERNAL_SERVER_ERROR", nil})
+		return http.StatusInternalServerError, failure{false, "Internal server error", "INTERNAL_SERVER_ERROR", nil}
 	}
 }
 

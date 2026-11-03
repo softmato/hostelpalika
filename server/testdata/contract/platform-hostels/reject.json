@@ -1,0 +1,492 @@
+[
+  {
+    "name": "reject short reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "no"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reject missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "Not a hostel"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reject",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Not a hostel"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel rejected",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "email": "queue-owner@contract.test",
+              "phone": "9800000131"
+            },
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000001",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Queue Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "queue-hostel-kalanki",
+            "status": "REJECTED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:28:46.596Z",
+            "verificationStatus": "REJECTED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "request documents none",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/request-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "documents": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Request at least one document."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Request at least one document.",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "request documents",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/request-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "documents": [
+          {
+            "documentType": "PAN certificate",
+            "note": "Clear photo"
+          }
+        ],
+        "note": "Please send these"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Documents requested, but the owner could not be emailed",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "email": "queue-owner@contract.test",
+              "phone": "9800000131"
+            },
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000001",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Queue Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "queue-hostel-kalanki",
+            "status": "REJECTED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:28:53.674Z",
+            "verificationStatus": "PENDING"
+          },
+          "notification": {
+            "reason": "not_configured",
+            "sent": false,
+            "to": "queue-owner@contract.test"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "request documents missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/request-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "documents": [
+          {
+            "documentType": "PAN certificate"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "rejected in the queue",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel application loaded",
+        "data": {
+          "application": {
+            "applicantId": "6d0d00000000000000000002",
+            "hostelId": "6d0d00000000000000000001",
+            "id": "6d0d00000000000000000007",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "Not a hostel",
+            "requestedDocuments": [],
+            "reviewedAt": "2026-11-03T13:28:46.688Z",
+            "snapshot": {},
+            "status": "REJECTED",
+            "submittedAt": "2026-10-01T04:15:00.000Z",
+            "submittedBy": "6d0d00000000000000000002"
+          },
+          "applicant": {
+            "email": "queue-owner@contract.test",
+            "id": "6d0d00000000000000000002",
+            "name": "Queue Owner",
+            "phone": "",
+            "registeredAt": "2026-09-30T04:15:00.000Z",
+            "role": "HOSTEL_ADMIN"
+          },
+          "documents": [],
+          "branchOf": null,
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "email": "queue-owner@contract.test",
+              "phone": "9800000131"
+            },
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000001",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Queue Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "queue-hostel-kalanki",
+            "status": "REJECTED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:28:53.674Z",
+            "verificationStatus": "PENDING"
+          },
+          "owner": {
+            "email": "queue-owner@contract.test",
+            "id": "6d0d00000000000000000002",
+            "name": "Queue Owner",
+            "phone": "",
+            "registeredAt": "2026-09-30T04:15:00.000Z",
+            "role": "HOSTEL_ADMIN"
+          },
+          "portals": [
+            {
+              "accounts": 1,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "HOSTEL_ADMIN"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "WARDEN"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "COOK"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "RESIDENT"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "GUARDIAN"
+            }
+          ],
+          "submitter": {
+            "email": "queue-owner@contract.test",
+            "id": "6d0d00000000000000000002",
+            "name": "Queue Owner",
+            "phone": "",
+            "registeredAt": "2026-09-30T04:15:00.000Z",
+            "role": "HOSTEL_ADMIN"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -145,11 +145,20 @@ export async function listListingFlags(query: ListingFlagListQuery) {
   const { limit, skip } = paginationRange(query);
 
   const [flags, total] = await Promise.all([
-    ListingFlagModel.find(filter)
-      .sort({ status: 1, riskLevel: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean<ListingFlagRecord[]>(),
+    // Open first, then the riskiest (P7-19): sorting the enum strings put
+    // DISMISSED before OPEN and MEDIUM before HIGH.
+    ListingFlagModel.aggregate<ListingFlagRecord>([
+      { $match: filter },
+      {
+        $addFields: {
+          _riskRank: { $indexOfArray: [["HIGH", "MEDIUM", "LOW"], "$riskLevel"] },
+          _statusRank: { $indexOfArray: [["OPEN", "RESOLVED", "DISMISSED"], "$status"] },
+        },
+      },
+      { $sort: { _statusRank: 1, _riskRank: 1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ]),
     ListingFlagModel.countDocuments(filter),
   ]);
 
@@ -225,18 +234,23 @@ export async function runDuplicateCheck(hostelId: string, principal: ApiPrincipa
   let flag: ListingFlagRecord | null = null;
 
   if (matchedHostelIds.length > 0) {
-    flag = (await ListingFlagModel.create({
-      createdBy: principal.userId,
-      hostelId: objectId,
-      matchedHostelIds,
-      reason: "Possible duplicate or ghost listing detected.",
-      riskLevel,
-      signals: matchedSignals,
-      status: "OPEN",
-      updatedBy: principal.userId,
-    })) as ListingFlagRecord;
+    // One open flag per hostel, brought up to date on a re-run (P7-20).
+    flag = await ListingFlagModel.findOneAndUpdate(
+      { hostelId: objectId, isDeleted: false, status: "OPEN" },
+      {
+        $set: {
+          matchedHostelIds,
+          reason: "Possible duplicate or ghost listing detected.",
+          riskLevel,
+          signals: matchedSignals,
+          updatedBy: principal.userId,
+        },
+        $setOnInsert: { createdBy: principal.userId },
+      },
+      { new: true, upsert: true },
+    ).lean<ListingFlagRecord>();
 
-    await auditListingFlagAction(principal, flag, "LISTING_DUPLICATE_FLAG_CREATED", {
+    await auditListingFlagAction(principal, flag as ListingFlagRecord, "LISTING_DUPLICATE_FLAG_CREATED", {
       matchedHostelIds: matchedHostelIds.map((id) => id.toString()),
       riskLevel,
     });

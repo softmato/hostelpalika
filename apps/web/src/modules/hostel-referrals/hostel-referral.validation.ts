@@ -28,16 +28,19 @@ const partnerCodeFields = z.object({
   contact: z.string().trim().max(160).optional(),
   name: z.string().trim().min(2).max(120),
   note: z.string().trim().max(500).optional(),
-  offerDays: days.default(0),
-  offerMonths: months.default(0),
+  offerDays: days,
+  offerMonths: months,
 });
 
 const percentCap = (input: { commissionType?: string; commissionValue?: number }) =>
   input.commissionType !== "PERCENT" || (input.commissionValue ?? 0) <= 100;
 const percentIssue = { message: "A percent commission is 100 at most.", path: ["commissionValue"] };
 
-export const partnerCodeCreateSchema = partnerCodeFields.refine(percentCap, percentIssue);
+export const partnerCodeCreateSchema = partnerCodeFields
+  .extend({ offerDays: days.default(0), offerMonths: months.default(0) })
+  .refine(percentCap, percentIssue);
 
+/** Built from the fields without defaults: `.partial()` kept them, so every edit reset the offer to 0 (P7-24). */
 export const partnerCodeUpdateSchema = partnerCodeFields
   .omit({ code: true })
   .partial()

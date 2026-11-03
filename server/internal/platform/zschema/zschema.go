@@ -37,6 +37,8 @@ type Desc struct {
 	Val      *Desc   `json:"val"`
 	Fn       string  `json:"fn"`
 	Values   []any   `json:"values"`
+	// Msg is a custom message on the type itself.
+	Msg string `json:"msg"`
 	// Value is a default's (or catch's) value, decoded in key order on Load.
 	Value json.RawMessage `json:"value"`
 	def   any
@@ -48,7 +50,9 @@ type Check struct {
 	Src   string `json:"src"`
 	Flags string `json:"flags"`
 	Fn    string `json:"fn"`
-	re    *regexp.Regexp
+	// Msg is the check's custom message, when it has one.
+	Msg string `json:"msg"`
+	re  *regexp.Regexp
 }
 
 // Field is one [key, schema] pair of an object shape, in declared order.

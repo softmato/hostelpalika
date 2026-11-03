@@ -97,15 +97,19 @@ func (c *Client) warnExpiring(res *http.Response) {
 }
 
 func (c *Client) do(ctx context.Context, method, path string, payload any, out any) error {
+	return c.doKeyed(ctx, method, path, "", payload, out)
+}
+
+// doKeyed is do with a caller's Idempotency-Key, so a repeat after a restart is the same request.
+func (c *Client) doKeyed(ctx context.Context, method, path, key string, payload any, out any) error {
 	var body []byte
-	key := ""
 	if payload != nil {
 		var err error
 		if body, err = json.Marshal(payload); err != nil {
 			return err
 		}
 	}
-	if method == http.MethodPost {
+	if method == http.MethodPost && key == "" {
 		// One key across the retries: a repeat is the same request, never a second one.
 		var raw [16]byte
 		if _, err := rand.Read(raw[:]); err != nil {
@@ -209,6 +213,25 @@ func (c *Client) CreateInvoice(ctx context.Context, in CreateInvoice) (*Invoice,
 	return &out, nil
 }
 
+// OfflinePayment is recordOfflinePayment's body: cash a field agent collected.
+type OfflinePayment struct {
+	AmountMinor int64  `json:"amount_minor"`
+	CollectedBy string `json:"collected_by"`
+	InvoiceID   string `json:"invoice_id"`
+	Reference   string `json:"reference,omitempty"`
+}
+
+// RecordOfflinePayment files cash with Softmato; their admin confirms it.
+func (c *Client) RecordOfflinePayment(ctx context.Context, in OfflinePayment, key string) (string, error) {
+	var out struct {
+		TransactionID string `json:"transaction_id"`
+	}
+	if err := c.doKeyed(ctx, http.MethodPost, "/offline-payments", key, in, &out); err != nil {
+		return "", err
+	}
+	return out.TransactionID, nil
+}
+
 type CheckoutSession struct {
 	AllowedProviders []string `json:"allowed_providers"`
 	CheckoutURL      string   `json:"checkout_url"`
@@ -234,7 +257,37 @@ func pathFor(ref string) string {
 }
 
 type InvoiceDetail struct {
-	DueMinor int64 `json:"due_minor"`
+	DueMinor   int64  `json:"due_minor"`
+	PaidMinor  int64  `json:"paid_minor"`
+	TotalMinor int64  `json:"total_minor"`
+	Status     string `json:"status"` // unpaid, partially_paid, paid, past_due, void, written_off
+	// Nil when an older Softmato does not name the payments behind paid_minor.
+	Payments []struct {
+		AmountMinor   float64 `json:"amount_minor"`
+		PaidAt        string  `json:"paid_at"`
+		Provider      *string `json:"provider"`
+		TransactionID string  `json:"transaction_id"`
+	} `json:"payments"`
+}
+
+// Receipt is the ReceiptDetail fields a settlement keeps.
+type Receipt struct {
+	AmountMinor int64   `json:"amount_minor"`
+	PaidAt      string  `json:"paid_at"`
+	Provider    string  `json:"provider"`
+	ProviderRef *string `json:"provider_ref"`
+}
+
+// GetReceipt is the receipt for a settled transaction; nil when Softmato has none.
+func (c *Client) GetReceipt(ctx context.Context, transactionNo string) (*Receipt, error) {
+	var out Receipt
+	if err := c.do(ctx, http.MethodGet, "/receipts/"+pathFor(transactionNo), nil, &out); err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &out, nil
 }
 
 // GetInvoice is nil when Softmato has no such invoice.

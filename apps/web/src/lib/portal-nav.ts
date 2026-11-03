@@ -95,11 +95,37 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Dashboard",
       },
       {
-        description: "Our own usage watcher: app opens per person, time on each screen, features used, by role and hostel.",
-        href: "/platform/analytics",
+        children: [
+          {
+            description: "The Go server's stored log lines: level, category, request id, user, hostel, text; health strip and level per category.",
+            href: "/platform/logs",
+            keywords: ["logs", "errors", "warnings", "request id", "server", "debug", "health", "p95", "error rate", "log level"],
+            label: "Logs",
+          },
+          {
+            description: "The API process: uptime, version, goroutines, memory, GC, Mongo, and its boot and job lines.",
+            href: "/platform/system/process",
+            keywords: ["process", "uptime", "memory", "heap", "goroutines", "gc", "version", "commit", "instance"],
+            label: "Process",
+          },
+          {
+            description: "Daily, weekly and monthly active users by role and client, and who was active on a day.",
+            href: "/platform/system/active-users",
+            keywords: ["dau", "wau", "mau", "active users", "daily active", "who was online"],
+            label: "Active users",
+          },
+          {
+            description: "Our own usage watcher: app opens per person, time on each screen, features used, by role and hostel.",
+            href: "/platform/analytics",
+            keywords: ["usage", "screens", "time", "features", "opens", "activity"],
+            label: "Analytics",
+          },
+        ],
+        description: "Logs, process, active users and usage of the server and the apps.",
+        href: "/platform/logs",
         icon: "chart",
-        keywords: ["usage", "screens", "time", "features", "opens", "activity"],
-        label: "Analytics",
+        keywords: ["system", "monitoring"],
+        label: "System",
       },
     ],
     icon: "dashboard",
@@ -1227,10 +1253,12 @@ const SUPERADMIN_ONLY_PREFIXES = [
   "/platform/bookings",
   "/platform/config",
   "/platform/hostel-leaves",
+  "/platform/logs",
   "/platform/offer-program",
   "/platform/push",
   "/platform/referrals",
   "/platform/settings",
+  "/platform/system",
 ];
 
 function isSuperadminOnlyHref(href: string) {

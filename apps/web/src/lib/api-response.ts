@@ -114,6 +114,14 @@ export function handleRouteError(error: unknown) {
    * "Internal server error" while the reason sat in Softmato's own logs.
    * Matched by name so this module does not import the SDK.
    */
+  // A deployment with no Softmato keys: an outage of ours, not a crash. The
+  // thrown text names the env vars, which a browser has no business reading.
+  if (error instanceof Error && error.name === "SoftmatoNotConfiguredError") {
+    logger.error("Softmato is not configured", { error });
+
+    return errorResponse("Softmato is not configured.", "SOFTMATO_NOT_CONFIGURED", 503);
+  }
+
   if (error instanceof Error && error.name === "SoftmatoApiError") {
     const extra = Object.fromEntries(
       Object.entries(error).filter(

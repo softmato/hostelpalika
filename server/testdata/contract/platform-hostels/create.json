@@ -1,0 +1,307 @@
+[
+  {
+    "name": "create signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "location": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "ownerId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "location"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "ownerId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create unknown owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "New Desk Hostel",
+        "ownerId": "6d0dffffffffffffffffffff",
+        "location": {
+          "area": "Kalanki"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That owner account was not found.",
+        "errorCode": "OWNER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "name": "New Desk Hostel",
+        "ownerId": "6d0d00000000000000000002",
+        "location": {
+          "area": "Kalanki",
+          "city": "Kathmandu"
+        },
+        "hostelType": "BOYS",
+        "contact": {
+          "phone": "9800000999"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel application created",
+        "data": {
+          "application": {
+            "applicantId": "6d0d00000000000000000002",
+            "hostelId": "6ae9e0f80f6d781fa7b2ef53",
+            "id": "6ae9e0f90f6d781fa7b2ef54",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "contact": {
+                "phone": "9800000999"
+              },
+              "location": {
+                "area": "Kalanki",
+                "city": "Kathmandu"
+              },
+              "name": "New Desk Hostel"
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-11-03T13:26:17.126Z",
+            "submittedBy": "6d0a00000000000000000002"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000999"
+            },
+            "createdAt": "2026-11-03T13:26:17.028Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae9e0f80f6d781fa7b2ef53",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "locationSource": "GEOCODED"
+            },
+            "name": "New Desk Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR"
+            },
+            "roomConfigurations": [],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "new-desk-hostel-kalanki",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:26:17.028Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create same name again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "New Desk Hostel",
+        "ownerId": "6d0d00000000000000000002",
+        "location": {
+          "area": "Kalanki"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel application created",
+        "data": {
+          "application": {
+            "applicantId": "6d0d00000000000000000002",
+            "hostelId": "6ae9e0fa0f6d781fa7b2ef57",
+            "id": "6ae9e0fa0f6d781fa7b2ef58",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "location": {
+                "area": "Kalanki",
+                "city": "Kathmandu"
+              },
+              "name": "New Desk Hostel"
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-11-03T13:26:18.163Z",
+            "submittedBy": "6d0a00000000000000000001"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-11-03T13:26:18.069Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "CO_LIVING",
+            "id": "6ae9e0fa0f6d781fa7b2ef57",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "locationSource": "GEOCODED"
+            },
+            "name": "New Desk Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR"
+            },
+            "roomConfigurations": [],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "new-desk-hostel-kalanki-2",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:26:18.069Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

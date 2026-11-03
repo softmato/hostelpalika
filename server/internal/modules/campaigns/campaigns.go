@@ -45,6 +45,7 @@ type record struct {
 	CreatedAt     *time.Time      `bson:"createdAt"`
 	FailureReason string          `bson:"failureReason"`
 	HostelID      *bson.ObjectID  `bson:"hostelId"`
+	HostelIDs     []bson.ObjectID `bson:"hostelIds"`
 	Priority      string          `bson:"priority"`
 	Recipients    int             `bson:"recipientCount"`
 	ResidentIDs   []bson.ObjectID `bson:"residentIds"`
@@ -82,7 +83,11 @@ func serialize(r *record, st stats) ordered.Map {
 // GuardianAccess says they have a login, not every contact the hostel holds.
 func (s *Service) recipients(ctx context.Context, r *record) ([]string, error) {
 	filter := bson.D{{Key: "isDeleted", Value: false}, {Key: "status", Value: "ACTIVE"}, {Key: "userId", Value: bson.D{{Key: "$exists", Value: true}, {Key: "$ne", Value: nil}}}}
-	if r.HostelID != nil {
+	if r.Scope == "PLATFORM" {
+		if len(r.HostelIDs) > 0 {
+			filter = append(filter, bson.E{Key: "hostelId", Value: bson.D{{Key: "$in", Value: r.HostelIDs}}})
+		}
+	} else if r.HostelID != nil {
 		filter = append(filter, bson.E{Key: "hostelId", Value: *r.HostelID})
 	}
 	if r.Audience == "SPECIFIC" {
@@ -295,6 +300,11 @@ func (s *Service) list(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	s.listWhere(c, filter, page, "Notification campaigns loaded")
+}
+
+// listWhere is one page of campaigns with their delivered/read counts.
+func (s *Service) listWhere(c *gin.Context, filter bson.D, page pagination.Query, message string) {
 	r := pagination.RangeOf(page)
 	cur, err := s.DB.Collection("notificationcampaigns").Find(c, filter, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}).SetSkip(int64(r.Skip)).SetLimit(int64(r.Limit)))
 	if err != nil {
@@ -342,7 +352,7 @@ func (s *Service) list(c *gin.Context) {
 	for i := range rows {
 		out.Campaigns[i] = serialize(&rows[i], byCampaign[rows[i].ID])
 	}
-	httpx.Write(c, 200, out, "Notification campaigns loaded")
+	httpx.Write(c, 200, out, message)
 }
 
 func itoa(i int) string {

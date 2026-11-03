@@ -1,0 +1,308 @@
+[
+  {
+    "name": "refuse needs a note",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Say why, so the person knows what to fix.",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve is required",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "note": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "approve": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "approve"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unknown payment",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": true
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment not found.",
+        "errorCode": "PAYMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": true
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment not found.",
+        "errorCode": "PAYMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "approve": true
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "refuse",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": "  No Rs 1,500 arrived with that reference. "
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.paymentRejection.at",
+      "data.booking.transfers.*.sentAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment checked.",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-04TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-11-01T11:24:11.122Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000004",
+            "invoiceNumber": "HH-BKI-2083-84-000004",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-04T11:24:25.795Z",
+            "paymentRejection": {
+              "at": "2026-11-03T11:24:25.795Z",
+              "reason": "No Rs 1,500 arrived with that reference."
+            },
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_PAYMENT",
+            "statusLabel": "Waiting for payment",
+            "stay": null,
+            "total": 1500,
+            "guest": {
+              "email": "guest04@contract.test",
+              "name": "Guest 04",
+              "phone": "9800000000"
+            },
+            "hostelShareIfKept": 750,
+            "platformSettlement": null,
+            "strike": false,
+            "transfers": [],
+            "userId": "6b0000000000000000000004"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "refuse again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payments/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": "Again"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This payment has already been checked.",
+        "errorCode": "PAYMENT_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "queue is empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/bookings/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payments to check",
+        "data": {
+          "payments": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

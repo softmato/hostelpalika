@@ -1,0 +1,905 @@
+[
+  {
+    "name": "ledger signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "ledger as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "ledger",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Subscription ledger loaded",
+        "data": {
+          "invoices": [
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0001-0001",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0001-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 0,
+              "paid": 4900,
+              "planName": "Pro",
+              "printedNumber": "LIN-1",
+              "source": "PUBLIC",
+              "status": "PAID"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0002-0001",
+              "dueAt": "2030-01-01T00:00:00.000Z",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0002-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 3900,
+              "paid": 1000,
+              "planName": "Pro",
+              "printedNumber": "SUB-0002-0001",
+              "source": "PUBLIC",
+              "status": "PARTIAL"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0002-0046",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 3900,
+              "paid": 1000,
+              "planName": "Pro",
+              "printedNumber": "HH-INV-2083-84-000007",
+              "source": "PUBLIC",
+              "status": "PARTIAL"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0001-0046",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0001-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 0,
+              "paid": 4900,
+              "planName": "Pro",
+              "printedNumber": "SUB-0001-0046",
+              "source": "PUBLIC",
+              "status": "PAID"
+            }
+          ],
+          "payments": [
+            {
+              "amount": 3900,
+              "currency": "NPR",
+              "documentUrl": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": null,
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": null,
+              "status": "IN_REVIEW"
+            },
+            {
+              "amount": 3900,
+              "currency": "NPR",
+              "documentUrl": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "CASH",
+              "paidAt": null,
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": null,
+              "status": "PENDING"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/SRC-0001-0001",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0001-0001",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-0001-0001",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 1000,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/SRC-0002-0001",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0002-0001",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-0002-0001",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 1000,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/HH-TXN-2083-84-00000009",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": "HH-TXN-2083-84-00000009",
+              "provider": null,
+              "receiptNumber": null,
+              "status": "SETTLED"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/SRC-0001-0046",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0001-0046",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-0001-0046",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 500,
+              "currency": "NPR",
+              "documentUrl": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": null,
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-NOPE",
+              "status": "FAILED"
+            }
+          ],
+          "totals": {
+            "activePlans": 6,
+            "billed": 19600,
+            "collected": 11800,
+            "issuedByPlatform": 2,
+            "outstanding": 7800
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash queue",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash to confirm loaded",
+        "data": {
+          "cash": [
+            {
+              "amount": 3900,
+              "collectedAt": "2026-10-01T04:15:00.000Z",
+              "collectedBy": "Contract Super",
+              "hostelName": "Pay pay-open",
+              "id": "6d0e00000000000000000004",
+              "invoiceNumber": "SUB-0002-0046",
+              "planName": "Pro",
+              "reference": "CASH-77",
+              "transactionNo": null
+            }
+          ],
+          "confirmUrl": "https://admin.softmato.com/cash"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash check unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/cash/6d0effffffffffffffffffff/check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash checked",
+        "data": {
+          "result": "waiting"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash check bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/cash/nope/check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash check softmato off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/cash/6d0e00000000000000000004/check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Softmato is not configured.",
+        "errorCode": "SOFTMATO_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash check settled one",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/cash/6d040000000000000000004c/check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash checked",
+        "data": {
+          "result": "settled"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "claims",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims loaded",
+        "data": {
+          "claims": [
+            {
+              "amount": 3900,
+              "claimedAt": "2026-10-01T04:15:00.000Z",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "id": "6d0e00000000000000000003",
+              "invoiceNumber": "SUB-0002-0046",
+              "note": "Paid by QR",
+              "planName": "Pro",
+              "proofAssetId": "6d040000000000000000006e",
+              "reference": "QR-REF-77"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "review no decision",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0e00000000000000000003/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Say whether this claim is approved.",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "review missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0effffffffffffffffffff/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "approve": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment not found.",
+        "errorCode": "PAYMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "review settled one",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d040000000000000000004b/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "approve": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This claim has already been reviewed.",
+        "errorCode": "CLAIM_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0e00000000000000000003/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "approve": true,
+        "note": "Seen on the statement"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment confirmed",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Pay pay-open",
+            "hostelStatus": "PUBLISHED",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": null,
+              "id": "6d0400000000000000000049",
+              "invoiceNumber": "SUB-0002-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PAID"
+            },
+            "outstanding": 0,
+            "paid": 4900,
+            "payments": [
+              {
+                "amount": 3900,
+                "id": "6d0e00000000000000000003",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": "SRC-0001-0046",
+                "settledAt": "2026-11-03T13:31:18.333Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 3900,
+                "id": "6d0e00000000000000000004",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000004b",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": null,
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000004c",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0046",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 500,
+                "id": "6d040000000000000000004d",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": "SRC-NOPE",
+                "settledAt": null,
+                "status": "FAILED"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2030-01-01T00:00:00.001Z",
+              "currentPeriodEnd": "2030-01-30T18:14:59.999Z",
+              "cycle": "monthly",
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d0400000000000000000048",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0e00000000000000000003/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": "late"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This claim has already been reviewed.",
+        "errorCode": "CLAIM_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "claims after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims loaded",
+        "data": {
+          "claims": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "ledger after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Subscription ledger loaded",
+        "data": {
+          "invoices": [
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0001-0001",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0001-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 0,
+              "paid": 4900,
+              "planName": "Pro",
+              "printedNumber": "LIN-1",
+              "source": "PUBLIC",
+              "status": "PAID"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0002-0001",
+              "dueAt": "2030-01-01T00:00:00.000Z",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0002-0001",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 3900,
+              "paid": 1000,
+              "planName": "Pro",
+              "printedNumber": "SUB-0002-0001",
+              "source": "PUBLIC",
+              "status": "PARTIAL"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0002-0046",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 0,
+              "paid": 4900,
+              "planName": "Pro",
+              "printedNumber": "HH-INV-2083-84-000007",
+              "source": "PUBLIC",
+              "status": "PAID"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "cycle": "monthly",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/invoice/SUB-0001-0046",
+              "dueAt": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0001-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "issuedBy": "platform",
+              "outstanding": 0,
+              "paid": 4900,
+              "planName": "Pro",
+              "printedNumber": "SUB-0001-0046",
+              "source": "PUBLIC",
+              "status": "PAID"
+            }
+          ],
+          "payments": [
+            {
+              "amount": 3900,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/HH-TXN-2083%2F84-00000001",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": "2026-11-03T13:31:18.333Z",
+              "printedNumber": "HH-TXN-2083/84-00000001",
+              "provider": null,
+              "receiptNumber": "SRC-0001-0046",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 3900,
+              "currency": "NPR",
+              "documentUrl": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "CASH",
+              "paidAt": null,
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": null,
+              "status": "PENDING"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/SRC-0001-0001",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0001-0001",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-0001-0001",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 1000,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/SRC-0002-0001",
+              "hostelId": "6d0400000000000000000001",
+              "hostelName": "—",
+              "invoiceNumber": "SUB-0002-0001",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-0002-0001",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 1000,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/HH-TXN-2083-84-00000009",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": "HH-TXN-2083-84-00000009",
+              "provider": null,
+              "receiptNumber": null,
+              "status": "SETTLED"
+            },
+            {
+              "amount": 4900,
+              "currency": "NPR",
+              "documentUrl": "http://localhost:3000/api/v1/platform/subscriptions/documents/receipt/HH-TXN-2083%2F84-00000002",
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0001-0046",
+              "method": "CASH",
+              "paidAt": "2026-09-01T06:00:00.000Z",
+              "printedNumber": "HH-TXN-2083/84-00000002",
+              "provider": null,
+              "receiptNumber": "SRC-0001-0046",
+              "status": "SETTLED"
+            },
+            {
+              "amount": 500,
+              "currency": "NPR",
+              "documentUrl": null,
+              "hostelId": "6d0400000000000000000046",
+              "hostelName": "Pay Hostel",
+              "invoiceNumber": "SUB-0002-0046",
+              "method": "MANUAL",
+              "paidAt": null,
+              "printedNumber": null,
+              "provider": null,
+              "receiptNumber": "SRC-NOPE",
+              "status": "FAILED"
+            }
+          ],
+          "totals": {
+            "activePlans": 6,
+            "billed": 19600,
+            "collected": 15700,
+            "issuedByPlatform": 2,
+            "outstanding": 3900
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "document bad kind",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/documents/nope/SUB-0002-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "document missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/documents/invoice/SUB-9999-0000",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

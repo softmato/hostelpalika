@@ -145,6 +145,13 @@ export type GatewayProvider = {
   ): WebhookClaim | null;
 
   /**
+   * Reads the attempt reference out of a callback without checking anything,
+   * only to find whose keys verify it. Running `parseWebhook` with an empty
+   * secret for this dropped every eSewa callback (P8-5).
+   */
+  reference(rawBody: string): string | null;
+
+  /**
    * Asks the provider directly what happened. **This is what settles money.**
    *
    * Called even when the webhook signature verified, because a valid signature

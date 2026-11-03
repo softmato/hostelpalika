@@ -296,3 +296,20 @@ func ResidentQRActivation(activationURL, code string, expiresAt time.Time, hoste
 			Paragraph("This code works till <strong>" + EscapeHTML(expiresAt.UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")) + "</strong>. After that, ask your hostel for a new one."),
 		}, "\n")})}
 }
+
+// OfferAwarded is offerAwardedEmail.
+func OfferAwarded(kind, offerProgramURL string, percentOff float64, quarterLabel, residentName, title string) Content {
+	how := "Our team will contact you to hand it over."
+	if kind == "FEE_OFF" {
+		how = "It comes off your next monthly fee: " + EscapeHTML("HostelPalika") + " pays " + strconv.FormatFloat(percentOff, 'f', -1, 64) + "% of it to your hostel for you. You do not need to do anything."
+	}
+	return Content{Category: Info, Subject: "You got an offer: " + title + " · Resident Offer Program", HTML: EmailLayout(Layout{
+		Heading: "You got an offer",
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(residentName) + ", thank you for paying with your reference code in <strong>" + EscapeHTML(quarterLabel) + "</strong>. " + EscapeHTML("HostelPalika") + " is giving you:"),
+			Paragraph("<strong>" + EscapeHTML(title) + "</strong>"),
+			Paragraph(how),
+			CTAButton(offerProgramURL, "See your offers"),
+		}, "\n"),
+	})}
+}

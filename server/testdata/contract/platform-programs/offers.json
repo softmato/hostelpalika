@@ -1,0 +1,945 @@
+[
+  {
+    "name": "offers signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "offers as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "offers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer Program",
+        "data": {
+          "awards": [],
+          "eligible": [],
+          "owedToHostels": {
+            "amount": 25000,
+            "count": 1
+          },
+          "perks": [
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000063",
+              "imageUrl": "",
+              "isActive": false,
+              "kind": "GIFT",
+              "partner": "HostelPalika",
+              "percentOff": null,
+              "sortOrder": 0,
+              "title": "Retired"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "sortOrder": 1,
+              "title": "Half off"
+            },
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "sortOrder": 1,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "sortOrder": 2,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": {
+            "from": "2026-10-18T00:00:00.000Z",
+            "isCurrent": true,
+            "key": "2083-Q3",
+            "label": "Kartik – Poush 2083 BS",
+            "next": null,
+            "previous": "2083-Q2",
+            "to": "2027-01-14T23:59:59.999Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "offers quarter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program?quarter=2083-Q2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer Program",
+        "data": {
+          "awards": [
+            {
+              "appliedAmount": 25000,
+              "appliedAt": null,
+              "appliedPeriod": "Bhadra 2083 BS",
+              "awardedAt": "2026-09-01T00:00:00.000Z",
+              "deliveredAt": null,
+              "hostelPaidAt": null,
+              "id": "6c00000000000000000000a9",
+              "kind": "FEE_OFF",
+              "note": "",
+              "percentOff": 50,
+              "quarter": "2083-Q2",
+              "quarterLabel": "Shrawan – Aswin 2083 BS",
+              "status": "APPLIED",
+              "title": "Half off",
+              "hostelName": "Contract Hostel",
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "residentStatus": "ACTIVE"
+            }
+          ],
+          "eligible": [],
+          "owedToHostels": {
+            "amount": 25000,
+            "count": 1
+          },
+          "perks": [
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000063",
+              "imageUrl": "",
+              "isActive": false,
+              "kind": "GIFT",
+              "partner": "HostelPalika",
+              "percentOff": null,
+              "sortOrder": 0,
+              "title": "Retired"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "sortOrder": 1,
+              "title": "Half off"
+            },
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "sortOrder": 1,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "sortOrder": 2,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": {
+            "from": "2026-07-17T00:00:00.000Z",
+            "isCurrent": false,
+            "key": "2083-Q2",
+            "label": "Shrawan – Aswin 2083 BS",
+            "next": "2083-Q3",
+            "previous": "2083-Q1",
+            "to": "2026-10-17T23:59:59.999Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "offers bad quarter",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program?quarter=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer Program",
+        "data": {
+          "awards": [],
+          "eligible": [],
+          "owedToHostels": {
+            "amount": 25000,
+            "count": 1
+          },
+          "perks": [
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000063",
+              "imageUrl": "",
+              "isActive": false,
+              "kind": "GIFT",
+              "partner": "HostelPalika",
+              "percentOff": null,
+              "sortOrder": 0,
+              "title": "Retired"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "sortOrder": 1,
+              "title": "Half off"
+            },
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "sortOrder": 1,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "sortOrder": 2,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": {
+            "from": "2026-10-18T00:00:00.000Z",
+            "isCurrent": true,
+            "key": "2083-Q3",
+            "label": "Kartik – Poush 2083 BS",
+            "next": null,
+            "previous": "2083-Q2",
+            "to": "2027-01-14T23:59:59.999Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/perks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "",
+        "kind": "GIFT"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "title": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "title"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk fee off needs percent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/perks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Quarter off",
+        "kind": "FEE_OFF"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "percentOff": [
+              "A fee-off perk needs a percent off, 1–100."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A fee-off perk needs a percent off, 1–100.",
+              "path": "percentOff"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/perks",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Movie ticket",
+        "kind": "GIFT",
+        "giftValue": 400,
+        "partner": "QFX"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "perk": "data.perk.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Perk created",
+        "data": {
+          "description": "",
+          "giftValue": 400,
+          "id": "6ae9e23a0f6d781fa7b2efb8",
+          "imageUrl": "",
+          "isActive": true,
+          "kind": "GIFT",
+          "partner": "QFX",
+          "percentOff": null,
+          "sortOrder": 0,
+          "title": "Movie ticket"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk edit",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/perks/{{perk}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Two movie tickets",
+        "giftValue": 800
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid perk id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk edit missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/perks/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Perk was not found.",
+        "errorCode": "OFFER_PERK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award invalid quarter",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/awards",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "perkId": "{{perk}}",
+        "quarter": "2083",
+        "residentId": "6c00000000000000000000c1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "quarter": [
+              "Quarter looks like 2083-Q2."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Quarter looks like 2083-Q2.",
+              "path": "quarter"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award unknown resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/awards",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "perkId": "{{perk}}",
+        "quarter": "2083-Q3",
+        "residentId": "6d0effffffffffffffffffff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid perk id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/awards",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "perkId": "{{perk}}",
+        "quarter": "2083-Q3",
+        "residentId": "6c00000000000000000000c1",
+        "note": "Top payer"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "award": "data.award.id"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid perk id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/offer-program/awards",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "perkId": "{{perk}}",
+        "quarter": "2083-Q3",
+        "residentId": "6c00000000000000000000c1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid perk id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "deliver",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/awards/{{award}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "deliver"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid award id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hostel paid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/awards/{{award}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "hostel-paid"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid award id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cancel delivered",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/awards/{{award}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "cancel"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid award id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award bad action",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/awards/{{award}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"cancel\"|\"deliver\"|\"hostel-paid\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"cancel\"|\"deliver\"|\"hostel-paid\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "award missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/offer-program/awards/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "cancel"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That offer cannot be changed that way now.",
+        "errorCode": "OFFER_AWARD_STATE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk delete in use",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/offer-program/perks/{{perk}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid perk id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk delete unused",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/offer-program/perks/6c0000000000000000000063",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Perk deleted",
+        "data": {
+          "deleted": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "perk delete missing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/offer-program/perks/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Perk was not found.",
+        "errorCode": "OFFER_PERK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "offers after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/offer-program?quarter=2083-Q3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer Program",
+        "data": {
+          "awards": [],
+          "eligible": [],
+          "owedToHostels": {
+            "amount": 25000,
+            "count": 1
+          },
+          "perks": [
+            {
+              "description": "",
+              "giftValue": 400,
+              "id": "6ae9e23a0f6d781fa7b2efb8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "QFX",
+              "percentOff": null,
+              "sortOrder": 0,
+              "title": "Movie ticket"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "sortOrder": 1,
+              "title": "Half off"
+            },
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "sortOrder": 1,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "sortOrder": 2,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": {
+            "from": "2026-10-18T00:00:00.000Z",
+            "isCurrent": true,
+            "key": "2083-Q3",
+            "label": "Kartik – Poush 2083 BS",
+            "next": null,
+            "previous": "2083-Q2",
+            "to": "2027-01-14T23:59:59.999Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

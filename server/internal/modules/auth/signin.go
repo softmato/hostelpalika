@@ -349,3 +349,25 @@ func (s *Service) Register(ctx context.Context, emailAddr, name, challengeID, pa
 	}
 	return s.issueSession(ctx, u, rc, "")
 }
+
+// PlanCheckoutOTP is requestOtpChallenge for the public plan checkout: a code to
+// the hostel's email. devCode is empty in production.
+func (s *Service) PlanCheckoutOTP(ctx context.Context, email, ip, userAgent string) (id, expiresAt, devCode string, err error) {
+	ch, err := s.OTPRequest(ctx, "email", email, "plan-checkout", reqCtx{IP: ip, UserAgent: userAgent})
+	if err != nil {
+		return "", "", "", err
+	}
+	return ch.ChallengeID, ch.ExpiresAt, ch.DevCode, nil
+}
+
+// VerifiedIdentifier is verifyOtpChallenge's identifier.
+func (s *Service) VerifiedIdentifier(ctx context.Context, challengeID, code string) (string, error) {
+	v, err := s.OTPVerify(ctx, challengeID, code)
+	if err != nil {
+		return "", err
+	}
+	return v.Identifier, nil
+}
+
+// ResendCooldown is otpResendCooldownMs.
+func (s *Service) ResendCooldown() time.Duration { return s.cfg.OTP.ResendCooldown }

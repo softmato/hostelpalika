@@ -14,7 +14,7 @@ import { Schema, model, models } from "mongoose";
 export const USAGE_EVENT_TTL_DAYS = 90;
 
 export const USAGE_EVENT_KINDS = ["open", "screen", "feature"] as const;
-export const USAGE_CLIENTS = ["app", "web"] as const;
+export const USAGE_CLIENTS = ["app", "pwa", "web"] as const;
 
 const usageEventSchema = new Schema(
   {

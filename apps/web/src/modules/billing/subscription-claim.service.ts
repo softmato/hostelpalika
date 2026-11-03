@@ -576,7 +576,7 @@ export async function reviewPlanPaymentClaim(
     return state;
   }
 
-  await SubscriptionPaymentModel.updateOne(
+  const refused = await SubscriptionPaymentModel.updateOne(
     { _id: claim._id, status: "IN_REVIEW" },
     {
       $set: {
@@ -588,6 +588,15 @@ export async function reviewPlanPaymentClaim(
       },
     },
   );
+
+  // Approved by someone else a moment earlier: no "we could not find it" email (P7-26).
+  if (refused.modifiedCount === 0) {
+    throw new SubscriptionError(
+      "This claim has already been reviewed.",
+      "CLAIM_ALREADY_REVIEWED",
+      409,
+    );
+  }
 
   await AuditLogModel.create({
     action: "SUBSCRIPTION_PAYMENT_CLAIM_REJECTED",

@@ -1411,12 +1411,7 @@ type sponsorOut struct {
 }
 
 func (h *Handler) liveSponsors(c *gin.Context) ([]sponsorOut, error) {
-	now := time.Now()
-	filter := bson.D{{Key: "$and", Value: bson.A{
-		bson.D{{Key: "isActive", Value: true}},
-		bson.D{{Key: "$or", Value: bson.A{bson.D{{Key: "startsAt", Value: bson.D{{Key: "$lte", Value: now}}}}, bson.D{{Key: "startsAt", Value: nil}}}}},
-		bson.D{{Key: "$or", Value: bson.A{bson.D{{Key: "endsAt", Value: bson.D{{Key: "$gte", Value: now}}}}, bson.D{{Key: "endsAt", Value: nil}}}}},
-	}}}
+	filter := liveSponsorFilter(time.Now())
 	coll := h.DB.Collection("sponsors")
 	cur, err := coll.Find(c, filter, options.Find().SetSort(bson.D{{Key: "priority", Value: -1}, {Key: "createdAt", Value: -1}}).SetLimit(4))
 	if err != nil {

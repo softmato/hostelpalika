@@ -1,6 +1,7 @@
 package serviceproviders
 
 import (
+	"context"
 	"errors"
 	"regexp"
 	"time"
@@ -121,6 +122,16 @@ func (h *Handler) adminOne(c *gin.Context, guards *authz.Guards) {
 		httpx.Fail(c, err)
 		return
 	}
+	out, err := h.bundle(c, &row)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	httpx.Write(c, 200, out, "Service provider loaded")
+}
+
+// bundle is providerBundle: the provider, its latest application and its documents.
+func (h *Handler) bundle(ctx context.Context, row *provider) (ordered.Map, error) {
 	var app struct {
 		ID              bson.ObjectID `bson:"_id"`
 		ProviderID      bson.ObjectID `bson:"providerId"`
@@ -129,18 +140,16 @@ func (h *Handler) adminOne(c *gin.Context, guards *authz.Guards) {
 		SubmittedAt     *time.Time    `bson:"submittedAt"`
 	}
 	var application any
-	err = h.DB.Collection("serviceproviderapplications").FindOne(c, bson.D{{Key: "providerId", Value: row.ID}, {Key: "isDeleted", Value: false}}, options.FindOne().SetSort(bson.D{{Key: "createdAt", Value: -1}})).Decode(&app)
+	err := h.DB.Collection("serviceproviderapplications").FindOne(ctx, bson.D{{Key: "providerId", Value: row.ID}, {Key: "isDeleted", Value: false}}, options.FindOne().SetSort(bson.D{{Key: "createdAt", Value: -1}})).Decode(&app)
 	switch {
 	case err == nil:
 		application = ordered.Map{{Key: "id", Value: app.ID.Hex()}, {Key: "providerId", Value: app.ProviderID.Hex()}, {Key: "rejectionReason", Value: app.RejectionReason}, {Key: "status", Value: app.Status}, {Key: "submittedAt", Value: iso(app.SubmittedAt)}}
 	case !errors.Is(err, mongo.ErrNoDocuments):
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
-	cur, err := h.DB.Collection("serviceproviderdocuments").Find(c, bson.D{{Key: "providerId", Value: row.ID}, {Key: "isDeleted", Value: false}}, options.Find().SetLimit(200))
+	cur, err := h.DB.Collection("serviceproviderdocuments").Find(ctx, bson.D{{Key: "providerId", Value: row.ID}, {Key: "isDeleted", Value: false}}, options.Find().SetLimit(200))
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
 	var docs []struct {
 		ID         bson.ObjectID  `bson:"_id"`
@@ -151,9 +160,8 @@ func (h *Handler) adminOne(c *gin.Context, guards *authz.Guards) {
 		ProviderID bson.ObjectID  `bson:"providerId"`
 		Status     string         `bson:"status"`
 	}
-	if err := cur.All(c, &docs); err != nil {
-		httpx.Fail(c, err)
-		return
+	if err := cur.All(ctx, &docs); err != nil {
+		return nil, err
 	}
 	documents := make([]ordered.Map, len(docs))
 	for i, d := range docs {
@@ -166,5 +174,5 @@ func (h *Handler) adminOne(c *gin.Context, guards *authz.Guards) {
 		}
 		documents[i] = ordered.Map{{Key: "createdAt", Value: created}, {Key: "documentType", Value: d.Type}, {Key: "fileAssetId", Value: asset}, {Key: "fileUrl", Value: d.FileURL}, {Key: "id", Value: d.ID.Hex()}, {Key: "providerId", Value: d.ProviderID.Hex()}, {Key: "status", Value: d.Status}}
 	}
-	httpx.Write(c, 200, ordered.Map{{Key: "application", Value: application}, {Key: "documents", Value: documents}, {Key: "provider", Value: row.serialized()}}, "Service provider loaded")
+	return ordered.Map{{Key: "application", Value: application}, {Key: "documents", Value: documents}, {Key: "provider", Value: row.serialized()}}, nil
 }

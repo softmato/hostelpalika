@@ -17,25 +17,40 @@ const linkUrl = z
     "Link must start with / or http(s)://",
   );
 
-export const sponsorCreateSchema = z.object({
-  accentColor: hexColor.default("#0a8a4b"),
-  ctaLabel: z.string().trim().max(40).default("View"),
+/** The fields with no defaults; create adds them, update must not (P7-23). */
+const sponsorFields = {
+  accentColor: hexColor,
+  ctaLabel: z.string().trim().max(40),
   endsAt: z.coerce.date().optional(),
   highlight: z.string().trim().max(80).optional(),
   imageAssetId: z.string().trim().max(120).optional(),
   imageUrl: linkUrl.optional(),
-  isActive: z.boolean().default(true),
-  kind: z.enum(["COLLEGE", "HOSTEL", "BUSINESS", "OTHER"]).default("COLLEGE"),
+  isActive: z.boolean(),
+  kind: z.enum(["COLLEGE", "HOSTEL", "BUSINESS", "OTHER"]),
   linkUrl: linkUrl.optional(),
   name: z.string().trim().min(1).max(120),
   /** Higher wins. Negative is allowed — it parks a sponsor below the default 0. */
-  priority: z.coerce.number().int().min(-1000).max(1000).default(0),
+  priority: z.coerce.number().int().min(-1000).max(1000),
   startsAt: z.coerce.date().optional(),
   subtitle: z.string().trim().max(160).optional(),
+};
+
+export const sponsorCreateSchema = z.object({
+  ...sponsorFields,
+  accentColor: sponsorFields.accentColor.default("#0a8a4b"),
+  ctaLabel: sponsorFields.ctaLabel.default("View"),
+  isActive: sponsorFields.isActive.default(true),
+  kind: sponsorFields.kind.default("COLLEGE"),
+  priority: sponsorFields.priority.default(0),
 });
 
-/** Every field optional, but an empty body is a mistake rather than a no-op. */
-export const sponsorUpdateSchema = sponsorCreateSchema
+/**
+ * Every field optional, but an empty body is a mistake rather than a no-op.
+ * Built from the fields without defaults: `.partial()` on the create schema
+ * kept them, so every edit reset colour, label, kind, priority and isActive.
+ */
+export const sponsorUpdateSchema = z
+  .object(sponsorFields)
   .partial()
   .refine((value) => Object.keys(value).length > 0, "Nothing to update.");
 

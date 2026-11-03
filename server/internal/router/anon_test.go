@@ -16,23 +16,29 @@ import (
 // reach, each read against its TS route. Everything else must answer 401, so a
 // new hostel-admin route that forgets its guard fails here.
 var openToAnyone = map[string]bool{
-	"GET /api/v1/hostel-admin/backup/drive/callback":   true, // Google redirects here; the state parameter carries the session
-	"GET /api/v1/health":                               true,
-	"GET /api/v1/bookings/availability":                true,
-	"GET /api/v1/bookings/guide":                       true,
-	"GET /api/v1/bookings/policy":                      true,
-	"GET /api/v1/bookings/quote":                       true,
-	"GET /api/v1/community":                            true,
-	"GET /api/v1/community/sidebar":                    true,
-	"GET /api/v1/community/spaces":                     true,
-	"GET /api/v1/community/:postId":                    true,
-	"GET /api/v1/community/:postId/comments":           true,
-	"POST /api/v1/community/sponsors/:sponsorId/click": true,
-	"POST /api/v1/email-preferences":                   true, // signed link in the body
-	"POST /api/v1/email-preferences/unsubscribe":       true, // signed link in the body
-	"GET /api/v1/files/:assetId/url":                   true, // public assets; private ones check inside
-	"POST /api/v1/cook/accept-invitation":              true, // invitation token in the body
-	"POST /api/v1/guardian/accept-invitation":          true, // invitation token in the body
+	"GET /api/v1/hostel-admin/backup/drive/callback":    true, // Google redirects here; the state parameter carries the session
+	"GET /api/v1/health":                                true,
+	"GET /api/v1/bookings/availability":                 true,
+	"GET /api/v1/bookings/guide":                        true,
+	"GET /api/v1/bookings/policy":                       true,
+	"GET /api/v1/bookings/quote":                        true,
+	"GET /api/v1/community":                             true,
+	"GET /api/v1/community/sidebar":                     true,
+	"GET /api/v1/community/spaces":                      true,
+	"GET /api/v1/community/:postId":                     true,
+	"GET /api/v1/community/:postId/comments":            true,
+	"POST /api/v1/community/sponsors/:sponsorId/click":  true,
+	"POST /api/v1/email-preferences":                    true, // signed link in the body
+	"POST /api/v1/email-preferences/unsubscribe":        true, // signed link in the body
+	"GET /api/v1/files/:assetId/url":                    true, // public assets; private ones check inside
+	"POST /api/v1/cook/accept-invitation":               true, // invitation token in the body
+	"POST /api/v1/guardian/accept-invitation":           true, // invitation token in the body
+	"GET /api/v1/platform-admin/invitation":             true, // invitation token in the query
+	"POST /api/v1/platform-admin/accept-invitation":     true, // invitation token in the body
+	"POST /api/v1/integrations/questioncall/sso":        true, // QuestionCall's shared secret header
+	"POST /api/v1/integrations/questioncall/conversion": true, // QuestionCall's shared secret header
+	"POST /api/v1/webhooks/softmato":                    true, // HMAC over the raw body
+	"POST /api/v1/webhooks/:provider":                   true, // the provider's signature, then its own API
 }
 
 func TestAnonymousIsRefused(t *testing.T) {

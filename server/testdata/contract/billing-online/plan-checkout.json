@@ -1,0 +1,589 @@
+[
+  {
+    "name": "no step",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "step": [
+              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'",
+              "path": "step"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad step",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "steal"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "step": [
+              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'",
+              "path": "step"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start bad email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": "nope",
+        "hostelCode": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Enter the hostel's email address."
+            ],
+            "hostelCode": [
+              "Enter your Hostel ID."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the hostel's email address.",
+              "path": "email"
+            },
+            {
+              "message": "Enter your Hostel ID.",
+              "path": "hostelCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start email not a string",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": 5,
+        "hostelCode": "HH-1"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start not matched",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": "nobody@contract.test",
+        "hostelCode": "HH-00000001"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This email and Hostel ID don't match. Please check both.",
+        "errorCode": "HOSTEL_NOT_MATCHED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start wrong code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": "public@contract.test",
+        "hostelCode": "HH-00000002"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This email and Hostel ID don't match. Please check both.",
+        "errorCode": "HOSTEL_NOT_MATCHED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": " PUBLIC@contract.test ",
+        "hostelCode": "hh-00000001"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.expiresAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "challengeId": "6aea101d8327c86edbcdf0c1",
+          "expiresAt": "2026-11-03T16:57:25.930Z",
+          "resendInSeconds": 60,
+          "resumed": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start again resumes",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": "public@contract.test",
+        "hostelCode": "00000001"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.expiresAt",
+      "data.resendInSeconds"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "challengeId": "6aea101d8327c86edbcdf0c1",
+          "expiresAt": "2026-11-03T16:57:25.930Z",
+          "resendInSeconds": 60,
+          "resumed": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "start by contact email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "start",
+        "email": "FRONT@owned.test",
+        "hostelCode": "HH-00000001"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.expiresAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "challengeId": "6aea101e8327c86edbcdf0c2",
+          "expiresAt": "2026-11-03T16:57:26.069Z",
+          "resendInSeconds": 60,
+          "resumed": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "verify bad code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "verify",
+        "challengeId": "x",
+        "code": "12ab",
+        "hostelCode": "HH-00000001"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "code": [
+              "Enter the 6-digit code."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the 6-digit code.",
+              "path": "code"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "verify unknown challenge",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "verify",
+        "challengeId": "6d0f000000000000000000ff",
+        "code": "123456",
+        "hostelCode": "HH-00000001"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "OTP challenge is invalid or expired.",
+        "errorCode": "OTP_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invoice bad cycle",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "invoice",
+        "cycle": "weekly",
+        "token": "t"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cycle": [
+              "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\"",
+              "path": "cycle"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invoice bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "invoice",
+        "cycle": "monthly",
+        "token": "not-a-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "months out of range",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "months",
+        "months": 13,
+        "token": "t"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "months": [
+              "Too big: expected number to be \u003c=12"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=12",
+              "path": "months"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "months bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "months",
+        "months": "3",
+        "token": "not-a-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resume bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "resume",
+        "token": "not-a-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "pay bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "pay",
+        "token": "not-a-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "link expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "link",
+        "link": "not-a-link"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This payment link has expired. Enter your hostel's email and ID to get a fresh one.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "claim missing fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "claim",
+        "token": "t"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "claimToken": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "fileAssetId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "fileAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "claim bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/plan-checkout",
+      "body": {
+        "step": "claim",
+        "token": "nope",
+        "claimToken": "c",
+        "fileAssetId": "f"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

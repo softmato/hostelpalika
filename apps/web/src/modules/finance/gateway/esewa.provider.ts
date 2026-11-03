@@ -51,6 +51,19 @@ const ENDPOINTS = {
  */
 const SIGNED_FIELDS = ["total_amount", "transaction_uuid", "product_code"] as const;
 
+/** eSewa's callback: JSON, or the base64 `data` it appends to the success URL. */
+function esewaPayload(rawBody: string): Record<string, unknown> | null {
+  try {
+    const text = rawBody.trim().startsWith("{")
+      ? rawBody
+      : Buffer.from(rawBody.trim(), "base64").toString("utf8");
+
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 /** eSewa's own timeout is generous; ours is not. A hung verify blocks a resident. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -196,20 +209,18 @@ export const esewaProvider: GatewayProvider = {
    * anything that does not verify, and the caller's only correct response to
    * null is to reject.
    */
+  reference(rawBody: string): string | null {
+    return String(esewaPayload(rawBody)?.transaction_uuid ?? "").trim() || null;
+  },
+
   parseWebhook(
     rawBody: string,
     _headers: Record<string, string>,
     credentials: GatewayCredentials,
   ): WebhookClaim | null {
-    let payload: Record<string, unknown>;
+    const payload = esewaPayload(rawBody);
 
-    try {
-      const text = rawBody.trim().startsWith("{")
-        ? rawBody
-        : Buffer.from(rawBody.trim(), "base64").toString("utf8");
-
-      payload = JSON.parse(text) as Record<string, unknown>;
-    } catch {
+    if (!payload || !credentials.secret) {
       return null;
     }
 

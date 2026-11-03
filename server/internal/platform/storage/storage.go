@@ -78,6 +78,17 @@ func (r *R2) ready() error {
 	return nil
 }
 
+// writable is ready plus, outside production, the WriteRoot fence.
+func (r *R2) writable(key string) error {
+	if err := r.ready(); err != nil {
+		return err
+	}
+	if root := r.cfg.WriteRoot; root != "" && !strings.HasPrefix(key, root+"/") {
+		return fmt.Errorf("storage: %q is outside the dev write root %q; outside production only test objects are written or deleted", key, root)
+	}
+	return nil
+}
+
 func bucketName(name, env string) (string, error) {
 	if name == "" {
 		return "", fmt.Errorf("%s must be set. See docs/ENVIRONMENT.md: %w", env, ErrNotConfigured)
@@ -111,16 +122,21 @@ func (r *R2) WithKeyPrefix(key string) string {
 	return prefix + "/" + bare
 }
 
-// GenerateFileKey is <prefix>/<uuid>.<ext>, the extension lower-cased from fileName.
+// GenerateFileKey is <prefix>/<uuid>.<ext>, the extension lower-cased from fileName,
+// under WriteRoot when one is set.
 func (r *R2) GenerateFileKey(prefix, fileName string) string {
 	parts := strings.Split(fileName, ".")
 	ext := strings.ToLower(parts[len(parts)-1])
-	return r.WithKeyPrefix(prefix + "/" + uuid4() + "." + ext)
+	key := prefix + "/" + uuid4() + "." + ext
+	if r.cfg.WriteRoot != "" {
+		return r.cfg.WriteRoot + "/" + key
+	}
+	return r.WithKeyPrefix(key)
 }
 
 // PresignUpload is a PUT URL valid for ten minutes.
 func (r *R2) PresignUpload(ctx context.Context, bucket, key, contentType string) (string, error) {
-	if err := r.ready(); err != nil {
+	if err := r.writable(key); err != nil {
 		return "", err
 	}
 	req, err := r.presign.PresignPutObject(ctx, &s3.PutObjectInput{
@@ -158,7 +174,7 @@ func (r *R2) PublicURL(key string) (string, error) {
 
 // Put stores an object; cacheControl "" leaves the header off.
 func (r *R2) Put(ctx context.Context, bucket, key string, body []byte, contentType, cacheControl string) error {
-	if err := r.ready(); err != nil {
+	if err := r.writable(key); err != nil {
 		return err
 	}
 	in := &s3.PutObjectInput{
@@ -199,7 +215,7 @@ func (r *R2) ReadStoredObject(ctx context.Context, bucket, key string) []byte {
 }
 
 func (r *R2) Delete(ctx context.Context, bucket, key string) error {
-	if err := r.ready(); err != nil {
+	if err := r.writable(key); err != nil {
 		return err
 	}
 	_, err := r.client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &bucket, Key: &key})

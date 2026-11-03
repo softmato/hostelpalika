@@ -225,3 +225,61 @@ func BookingConfirmed(b BookingFacts, address, bookingURL, directionsURL, holdEn
 	return Content{Category: Billing, Subject: "Your bed is booked at " + b.HostelName + " — move in by " + holdEndsAt, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Booked", Heading: "Your bed is booked",
 		Preheader: "One " + RoomTypeLabel(b.RoomType) + " bed at " + b.HostelName + " is kept for you until " + holdEndsAt + "."})}
 }
+
+func payable(f BookingFacts) int64 {
+	if f.Total != 0 {
+		return f.Total
+	}
+	return f.Fee
+}
+
+// BookingPaymentVerified is bookingPaymentVerifiedEmail: the guest's receipt.
+func BookingPaymentVerified(b BookingFacts, bookingURL, hostelAnswerBy, name, paidOn, receiptNumber string) Content {
+	body := strings.Join([]string{Greeting(name),
+		Paragraph("We got your booking fee. " + PlatformName + " keeps it safe until the booking ends."),
+		bookingFactsTable(b, []DetailRow{{Label: "Receipt", Value: receiptNumber}, {Label: "Paid on", Value: paidOn}, {Label: "Hostel answers by", Value: hostelAnswerBy}}, false),
+		Paragraph("Now " + EscapeHTML(b.HostelName) + " will say yes or no. If it says no or does not answer by " + EscapeHTML(hostelAnswerBy) + ", you get all " + Rupees(payable(b)) + " back."),
+		CTAButton(bookingURL, "View booking"),
+	}, "")
+	return Content{Category: Billing, Subject: "We got your booking fee — " + b.HostelName, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Receipt", Heading: "We got your booking fee",
+		Preheader: "Receipt " + receiptNumber + ": " + Rupees(payable(b)) + " for booking " + b.Code + "."})}
+}
+
+// BookingRequest is bookingRequestEmail: a paid booking for the hostel to answer.
+func BookingRequest(answerBy string, answerHours float64, bookingsURL, code, guestName, guestPhone string, holdDays float64, hostelName string, hostelShare int64, name, roomType string) Content {
+	num := func(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) }
+	body := strings.Join([]string{Greeting(name),
+		Paragraph("<strong>" + EscapeHTML(guestName) + "</strong> booked a <strong>" + EscapeHTML(roomType) + "</strong> at " + EscapeHTML(hostelName) + " and paid the booking fee to " + PlatformName + "."),
+		DetailsTable([]DetailRow{{Label: "Booking", Value: code}, {Label: "Guest", Value: guestName}, {Label: "Phone", Value: guestPhone}, {Label: "Room type", Value: roomType},
+			{Emphasis: true, Label: "Answer by", Value: answerBy}, {Label: "You get after they move in", Value: Rupees(hostelShare)}}),
+		Paragraph("Say yes to keep one bed for " + num(holdDays) + " days. They move in when you scan their " + PlatformName + " ID card."),
+		CTAButton(bookingsURL, "Say yes or no"),
+		SmallPrint("If you do not answer in " + num(answerHours) + " hours, the booking is cancelled, the guest gets all the money back, and it counts as a missed booking."),
+	}, "")
+	return Content{Category: Billing, Subject: "New booking from " + guestName + " — please answer by " + answerBy, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "New booking", Heading: "You have a new booking",
+		Preheader: guestName + " booked a " + RoomTypeLabel(roomType) + ". Answer by " + answerBy + "."})}
+}
+
+// BookingProofReceived is bookingProofReceivedEmail: the screenshot arrived; nothing is confirmed yet.
+func BookingProofReceived(b BookingFacts, bookingURL, checkBy, name, reference string) Content {
+	body := strings.Join([]string{Greeting(name),
+		Paragraph("We got your payment screenshot. We are checking it now."),
+		bookingFactsTable(b, []DetailRow{{Label: "Your reference", Value: reference}, {Label: "We check by", Value: checkBy}}, false),
+		Paragraph("We will email you when it is checked."),
+		CTAButton(bookingURL, "View booking"),
+	}, "")
+	return Content{Category: Billing, Subject: "We got your payment screenshot — booking " + b.Code, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Payment", Heading: "We got your screenshot",
+		Preheader: "We are checking your " + Rupees(payable(b)) + " payment for booking " + b.Code + "."})}
+}
+
+// BookingProofToCheck is bookingProofToCheckEmail: a screenshot for the platform to match against money received.
+func BookingProofToCheck(amount int64, checkBy, code, guestName, hostelName, queueURL, reference string) Content {
+	body := strings.Join([]string{
+		Paragraph("A booking fee screenshot is waiting. Check it with our bank account."),
+		DetailsTable([]DetailRow{{Label: "Booking", Value: code}, {Label: "Guest", Value: guestName}, {Label: "Hostel", Value: hostelName},
+			{Label: "Amount", Value: Rupees(amount), Emphasis: true}, {Label: "Their reference", Value: reference}, {Label: "Check by", Value: checkBy}}),
+		CTAButton(queueURL, "Check payment"),
+	}, "")
+	return Content{Category: Alert, Subject: "Booking payment to check — " + Rupees(amount) + " (" + code + ")", HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Bookings", Heading: "Booking payment to check",
+		Preheader: guestName + " sent a screenshot for " + Rupees(amount) + " (" + code + ")."})}
+}

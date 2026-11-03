@@ -695,6 +695,8 @@ export async function submitBookingPayment(
     throw new BookingError("This booking is not waiting for payment.", "BOOKING_NOT_AWAITING_PAYMENT", 409);
   }
 
+  // A failed row puts the booking back, or it sits in review with nothing to
+  // check (P8-7; Go does both in one transaction).
   const payment = await BookingPaymentModel.create({
     amount: amountDue(booking),
     bookingId: booking._id,
@@ -705,6 +707,9 @@ export async function submitBookingPayment(
     status: "IN_REVIEW",
     submittedAt: now,
     userId: booking.userId,
+  }).catch(async (error: unknown) => {
+    await moveBooking(booking._id, "PAYMENT_IN_REVIEW", { paymentSubmittedAt: null, status: "AWAITING_PAYMENT" });
+    throw error;
   });
 
   await AuditLogModel.create({

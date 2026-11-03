@@ -23,19 +23,38 @@ import (
 // RegisterAdmin is the hostel portal's moderation queue and announcements.
 func (h *Handler) RegisterAdmin(v1 *gin.RouterGroup, log *audit.Log) {
 	g := v1.Group("/hostel-admin/community")
-	g.GET("", httpx.ETag(), h.moderation)
+	staff := h.Guards.RequireHostelStaff
+	g.GET("", httpx.ETag(), func(c *gin.Context) { h.moderation(c, staff) })
 	g.POST("", h.announce)
-	g.PATCH("/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, true) })
-	g.DELETE("/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, false) })
+	g.PATCH("/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, true, staff) })
+	g.DELETE("/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, false, staff) })
+}
+
+// RegisterPlatform is the same queue for platform staff, over every hostel.
+func (h *Handler) RegisterPlatform(v1 *gin.RouterGroup, log *audit.Log) {
+	staff := h.Guards.RequirePlatform
+	v1.GET("/platform/community", httpx.ETag(), func(c *gin.Context) { h.moderation(c, staff) })
+	v1.PATCH("/platform/community/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, true, staff) })
+	v1.DELETE("/platform/community/:postId/hide", func(c *gin.Context) { h.setHidden(c, log, false, staff) })
 }
 
 func scopeRequired() error {
 	return httpx.NewError(http.StatusUnprocessableEntity, "HOSTEL_SCOPE_REQUIRED", "A hostelId is required for this hostel admin action.", nil)
 }
 
-// moderationScope is moderationScopeFilter for hostel staff; platform roles never
-// reach these routes.
+// moderationScope is moderationScopeFilter: platform staff see every hostel, or
+// the one they ask for; hostel staff their own.
 func moderationScope(p *authz.Principal, requested string) (bson.D, error) {
+	if p.Role == "SUPERADMIN" || p.Role == "PLATFORM_MODERATOR" {
+		if requested == "" {
+			return bson.D{}, nil
+		}
+		id, err := httpx.OID(requested, "hostel id")
+		if err != nil {
+			return nil, err
+		}
+		return bson.D{{Key: "hostelId", Value: id}}, nil
+	}
 	if requested == "" && len(opsscope.IDs(p)) == 0 {
 		return nil, scopeRequired()
 	}
@@ -88,8 +107,8 @@ type moderationOut struct {
 	Summary    moderationSummary `json:"summary"`
 }
 
-func (h *Handler) moderation(c *gin.Context) {
-	p, err := h.Guards.RequireHostelStaff(c)
+func (h *Handler) moderation(c *gin.Context, guard func(*gin.Context) (*authz.Principal, error)) {
+	p, err := guard(c)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
@@ -149,8 +168,8 @@ func (h *Handler) moderation(c *gin.Context) {
 	httpx.Write(c, 200, out, "Community posts loaded")
 }
 
-func (h *Handler) setHidden(c *gin.Context, log *audit.Log, hide bool) {
-	p, err := h.Guards.RequireHostelStaff(c)
+func (h *Handler) setHidden(c *gin.Context, log *audit.Log, hide bool, guard func(*gin.Context) (*authz.Principal, error)) {
+	p, err := guard(c)
 	if err != nil {
 		httpx.Fail(c, err)
 		return

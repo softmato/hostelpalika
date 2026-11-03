@@ -30,7 +30,20 @@ function named(fn: unknown): string {
   return hit[1];
 }
 
+/** A custom message (`.max(5, "msg")`, `{ message }`), so Go can report it. */
+function message(d: Record<string, unknown>): string | undefined {
+  if (typeof d.error !== "function") return undefined;
+  const m = (d.error as (issue: unknown) => unknown)({});
+  return typeof m === "string" ? m : (m as { message?: string } | undefined)?.message;
+}
+
 function check(c: { _zod: { def: Record<string, unknown> } }): Desc {
+  const out = checkDesc(c);
+  const msg = message(c._zod.def);
+  return msg ? { ...out, msg } : out;
+}
+
+function checkDesc(c: { _zod: { def: Record<string, unknown> } }): Desc {
   const d = c._zod.def;
   switch (d.check) {
     case "overwrite":
@@ -83,6 +96,8 @@ export function nameSuperRefine(desc: Desc, id: string): Desc {
 export function describe(schema: unknown): Desc {
   const d = (schema as { _zod: { def: Record<string, any> } })._zod.def;
   const out: Desc = { t: d.type };
+  const msg = message(d);
+  if (msg) out.msg = msg;
   if (d.checks?.length) out.checks = d.checks.map(check);
   switch (d.type) {
     case "object":

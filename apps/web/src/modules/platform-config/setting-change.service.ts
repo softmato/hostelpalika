@@ -161,11 +161,6 @@ export async function requestSettingChange(
   }
 
   // One live request per setting: the newest is the one the superadmin means.
-  await PlatformSettingChangeModel.updateMany(
-    { key, status: "PENDING" },
-    { $set: { status: "SUPERSEDED" } },
-  );
-
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SETTING_CHANGE_LINK_MINUTES * 60_000);
 
@@ -208,6 +203,13 @@ export async function requestSettingChange(
       502,
     );
   }
+
+  // The older request is replaced only once this one's email is out (P7-21):
+  // superseding it first left neither link usable when the send failed.
+  await PlatformSettingChangeModel.updateMany(
+    { _id: { $ne: record._id }, key, status: "PENDING" },
+    { $set: { status: "SUPERSEDED" } },
+  );
 
   await AuditLogModel.create({
     action: "PLATFORM_SETTING_CHANGE_REQUESTED",

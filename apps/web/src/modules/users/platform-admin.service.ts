@@ -6,6 +6,7 @@ import { connectToDatabase } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { Role } from "@/lib/roles";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
+import { SessionModel } from "@hostel/db/models/Session";
 import { UserModel } from "@hostel/db/models/User";
 import { sendEmail } from "@hostel/shared/email/sender";
 import { credentialsIssuedEmail } from "@hostel/shared/email/templates/auth/credentials-issued";
@@ -298,8 +299,10 @@ export async function revokePlatformAdmin(adminId: string, principal: ApiPrincip
   // trail keeps pointing at a real account.
   await UserModel.updateOne(
     { _id: adminId },
-    { $set: { role: Role.PUBLIC, status: "SUSPENDED" } },
+    { $inc: { tokenVersion: 1 }, $set: { role: Role.PUBLIC, status: "SUSPENDED" } },
   );
+  // Signed out with it: the revoked admin kept access until the token ran out (P7-29).
+  await SessionModel.deleteMany({ userId: new Types.ObjectId(adminId) });
 
   await AuditLogModel.create({
     action: "PLATFORM_ADMIN_REVOKED",

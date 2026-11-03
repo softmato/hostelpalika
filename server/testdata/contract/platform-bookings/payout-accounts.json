@@ -1,0 +1,287 @@
+[
+  {
+    "name": "reveal, bad hostel id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/nope/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal, unknown hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000ff/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal, no account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a2/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel has no payout account.",
+        "errorCode": "PAYOUT_ACCOUNT_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal, moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reveal",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/reveal",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "data.account.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account",
+        "data": {
+          "account": {
+            "bankName": "",
+            "branch": "",
+            "holderName": "Kyc Owner",
+            "maskedNumber": "••••5678",
+            "method": "ESEWA",
+            "methodLabel": "eSewa",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING_REVIEW",
+            "submittedAt": "2026-11-02T05:31:52.546Z",
+            "number": "9812345678"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "review needs approve",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "approve": [
+              "Invalid input: expected boolean, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "approve"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "send back needs a note",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": "   "
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Say what is wrong so the hostel can fix it.",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "send back",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": " The name does not match the KYC. "
+      }
+    },
+    "masks": [
+      "data.account.submittedAt",
+      "data.account.reviewedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout account sent back",
+        "data": {
+          "account": {
+            "bankName": "",
+            "branch": "",
+            "holderName": "Kyc Owner",
+            "maskedNumber": "••••5678",
+            "method": "ESEWA",
+            "methodLabel": "eSewa",
+            "reviewNote": "The name does not match the KYC.",
+            "reviewedAt": "2026-11-03T11:32:03.774Z",
+            "status": "REJECTED",
+            "submittedAt": "2026-11-02T05:31:52.546Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "review again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a1/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": true
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no payout account waiting for review on this hostel.",
+        "errorCode": "PAYOUT_ACCOUNT_NOT_IN_REVIEW"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "verified one is not in review",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/payout-accounts/6c00000000000000000000a3/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": true
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no payout account waiting for review on this hostel.",
+        "errorCode": "PAYOUT_ACCOUNT_NOT_IN_REVIEW"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "queue is empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/bookings/payout-accounts?status=PENDING_REVIEW",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payout accounts",
+        "data": {
+          "accounts": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -2,7 +2,7 @@ import { type PipelineStage, Types } from "mongoose";
 
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { UsageDailyModel } from "@hostel/db/models/UsageDaily";
-import { UsageEventModel } from "@hostel/db/models/UsageEvent";
+import { USAGE_CLIENTS, UsageEventModel } from "@hostel/db/models/UsageEvent";
 import { UserModel } from "@hostel/db/models/User";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
@@ -94,7 +94,7 @@ export function rollUpUsage(events: UsageEventInput[], now = Date.now()) {
 
 export async function recordUsage(
   principal: ApiPrincipal,
-  client: "app" | "web",
+  client: (typeof USAGE_CLIENTS)[number],
   events: UsageEventInput[],
 ) {
   const { events: kept, rows } = rollUpUsage(events);

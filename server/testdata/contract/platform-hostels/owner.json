@@ -1,0 +1,498 @@
+[
+  {
+    "name": "suspend as moderator",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "PLAN_PAYMENT"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend bad reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "SPAM"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Invalid input: expected \"PLAN_PAYMENT\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected \"PLAN_PAYMENT\"",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "PLAN_PAYMENT"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "PLAN_PAYMENT"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel's plan is paid for the period it is in. There is nothing to collect.",
+        "errorCode": "PLAN_PAID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "lift suspension",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not suspended.",
+        "errorCode": "NOT_SUSPENDED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "lift not suspended",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/suspend",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not suspended.",
+        "errorCode": "NOT_SUSPENDED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "recharge bad months",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/recharge",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "months": 13,
+        "planId": "go"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "months": [
+              "Too big: expected number to be \u003c=12"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=12",
+              "path": "months"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "recharge unknown plan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/recharge",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "months": 1,
+        "planId": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That plan is no longer available. Choose another one.",
+        "errorCode": "PLAN_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "recharge as moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/recharge",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "months": 1,
+        "planId": "go"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "recharge",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/recharge",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "months": 2,
+        "planId": "go"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Plan recharged",
+        "data": {
+          "currentPeriodEnd": "2027-01-20T18:14:59.999Z",
+          "planName": "Go"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "billing after recharge",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a5/billing",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel billing loaded",
+        "data": {
+          "docsUrl": null,
+          "invoices": [],
+          "payments": [],
+          "plan": {
+            "activatedAt": "2026-11-23T13:27:46.872Z",
+            "amountDue": 0,
+            "amountPaid": 0,
+            "cycle": "monthly",
+            "cycleMonths": 2,
+            "cycleLabel": "2 months",
+            "currentPeriodEnd": "2027-01-20T18:14:59.999Z",
+            "daysRemaining": 79,
+            "daysToDue": null,
+            "dueBy": null,
+            "dueFrom": null,
+            "lifetime": false,
+            "periodDays": 59,
+            "planId": "go",
+            "planName": "Go",
+            "price": 1998,
+            "status": "ACTIVE",
+            "trialEndsAt": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner email bad",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/owner-email",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Enter a valid email address."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a valid email address.",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner email taken",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/owner-email",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "admin@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Owner email updated",
+        "data": {
+          "changed": true,
+          "email": "admin@contract.test",
+          "notification": {
+            "google": false,
+            "loginIssued": false,
+            "reason": "not_configured",
+            "sent": false,
+            "to": "admin@contract.test"
+          },
+          "ownerId": "6c0000000000000000000005"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner email",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/owner-email",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "email": "Queue.New@Contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Owner email updated",
+        "data": {
+          "changed": true,
+          "email": "queue.new@contract.test",
+          "notification": {
+            "google": false,
+            "loginIssued": false,
+            "reason": "not_configured",
+            "sent": false,
+            "to": "queue.new@contract.test"
+          },
+          "ownerId": "6c0000000000000000000005"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner invite",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/owner-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The owner has already set their own password. They can sign in, or use Forgot password.",
+        "errorCode": "HOSTEL_OWNER_ALREADY_CLAIMED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner invite missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/owner-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -18,16 +18,16 @@ const CSV_COLUMNS = [
 
 export async function GET(request: NextRequest) {
   try {
+    // Signed in before the query is read: an anonymous caller learns nothing
+    // from a 422. A moderator reads reports; exporting them is a superadmin
+    // action (PHASES.md §5.1 — "Can view reports (read-only, no export)").
+    await requirePlatformPrincipal(request);
     const query = questionCallAnalyticsQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams),
     );
 
-    // A moderator reads reports; exporting them is a superadmin action
-    // (PHASES.md §5.1 — "Can view reports (read-only, no export)").
     if (query.format === "csv") {
       await requireSuperadminPrincipal(request);
-    } else {
-      await requirePlatformPrincipal(request);
     }
 
     const result = await getQuestionCallAnalytics(query);

@@ -1,0 +1,477 @@
+[
+  {
+    "name": "reviews signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reviews as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reviews",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 3,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-11-02T13:30:18.047Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000073",
+              "overallRating": 1,
+              "residentId": "6c00000000000000000000c1",
+              "status": "HIDDEN",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "comment": "",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000072",
+              "overallRating": 5,
+              "residentId": "6c00000000000000000000c9",
+              "safetyRating": 4,
+              "status": "VISIBLE",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "cleanlinessRating": 5,
+              "comment": "Clean rooms.",
+              "createdAt": "2026-09-28T04:15:00.000Z",
+              "foodRating": 3,
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000071",
+              "overallRating": 4,
+              "residentId": "6c00000000000000000000c1",
+              "status": "VISIBLE",
+              "userId": "6c0000000000000000000007"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reviews hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews?status=HIDDEN",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-11-02T13:30:18.047Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000073",
+              "overallRating": 1,
+              "residentId": "6c00000000000000000000c1",
+              "status": "HIDDEN",
+              "userId": "6c0000000000000000000007"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reviews of a hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews?hostelId=6c00000000000000000000a3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 3,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-11-02T13:30:18.047Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000073",
+              "overallRating": 1,
+              "residentId": "6c00000000000000000000c1",
+              "status": "HIDDEN",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "comment": "",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000072",
+              "overallRating": 5,
+              "residentId": "6c00000000000000000000c9",
+              "safetyRating": 4,
+              "status": "VISIBLE",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "cleanlinessRating": 5,
+              "comment": "Clean rooms.",
+              "createdAt": "2026-09-28T04:15:00.000Z",
+              "foodRating": 3,
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000071",
+              "overallRating": 4,
+              "residentId": "6c00000000000000000000c1",
+              "status": "VISIBLE",
+              "userId": "6c0000000000000000000007"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reviews bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/6d0effffffffffffffffffff/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Review was not found.",
+        "errorCode": "REVIEW_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/nope/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid review id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/6c0000000000000000000071/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Abusive"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Review hidden",
+        "data": {
+          "review": {
+            "cleanlinessRating": 5,
+            "comment": "Clean rooms.",
+            "createdAt": "2026-09-28T04:15:00.000Z",
+            "foodRating": 3,
+            "hiddenAt": "2026-11-03T13:30:23.132Z",
+            "hiddenBy": "6d0a00000000000000000002",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6c0000000000000000000071",
+            "overallRating": 4,
+            "residentId": "6c00000000000000000000c1",
+            "status": "HIDDEN",
+            "updatedAt": "2026-11-03T13:30:23.132Z",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/6c0000000000000000000071/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Review hidden",
+        "data": {
+          "review": {
+            "cleanlinessRating": 5,
+            "comment": "Clean rooms.",
+            "createdAt": "2026-09-28T04:15:00.000Z",
+            "foodRating": 3,
+            "hiddenAt": "2026-11-03T13:30:23.231Z",
+            "hiddenBy": "6d0a00000000000000000002",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6c0000000000000000000071",
+            "overallRating": 4,
+            "residentId": "6c00000000000000000000c1",
+            "status": "HIDDEN",
+            "updatedAt": "2026-11-03T13:30:23.231Z",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unhide",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/6c0000000000000000000073/unhide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unhide missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/reviews/6d0effffffffffffffffffff/unhide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "public listing after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reviews?hostelId=6c00000000000000000000a3\u0026status=VISIBLE",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c0000000000000000000072",
+              "overallRating": 5,
+              "residentId": "6c00000000000000000000c9",
+              "safetyRating": 4,
+              "status": "VISIBLE",
+              "userId": "6c0000000000000000000007"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

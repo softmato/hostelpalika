@@ -1,0 +1,291 @@
+[
+  {
+    "name": "checkout signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/checkout",
+      "body": {
+        "provider": "ESEWA"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "checkout public refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "provider": "ESEWA"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "checkout unknown invoice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6d0f000000000000000000ee/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "provider": "ESEWA"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "checkout bad provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6d0f000000000000000000ee/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "provider": "PAYPAL"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"FONEPAY\"|\"KHALTI\"",
+              "path": "provider"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "status signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/checkout/HP-NONE-1"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "status unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/checkout/HP-NONE-1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment attempt was not found.",
+        "errorCode": "INTENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "webhook unknown provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/webhooks/paypal",
+      "body": {
+        "a": 1
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unknown payment provider.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "webhook esewa junk dropped",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/webhooks/esewa",
+      "body": {
+        "data": "not-base64"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Received",
+        "data": {
+          "received": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "webhook khalti dropped",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/webhooks/khalti",
+      "body": {
+        "pidx": "x",
+        "purchase_order_id": "HP-NONE-1"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Received",
+        "data": {
+          "received": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "booking checkout signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings/6d0f000000000000000000ee/checkout"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "booking checkout unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings/6d0f000000000000000000ee/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Online payment is not set up on this deployment yet.",
+        "errorCode": "ONLINE_PAYMENT_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "booking payment unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings/6d0f000000000000000000ee/payment",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "proofAssetId": "6d0f000000000000000000ef"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "booking return unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6d0f000000000000000000ee/return",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Return state read",
+        "data": {
+          "state": {
+            "kind": "unknown"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

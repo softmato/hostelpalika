@@ -61,6 +61,7 @@ vi.mock("@/modules/finance/gateway/registry", () => ({
     createIntent: mocks.createIntent,
     name: "ESEWA",
     parseWebhook: mocks.parseWebhook,
+    reference: (raw: string) => (raw === "not json" ? null : "EDU-0001-F-1"),
     verify: mocks.verify,
   }),
 }));
@@ -473,13 +474,8 @@ describe("a provider callback", () => {
   });
 
   it("rejects a callback whose signature does not verify", async () => {
-    // Parsed twice: once unauthenticated to find the hostel, then with that
-    // hostel's key. Only the second result may be acted on.
-    mocks.parseWebhook.mockReturnValueOnce({
-      amount: 12000,
-      providerTxnId: "ESW-77123",
-      reference: "EDU-0001-F-1",
-    });
+    // The reference is read unchecked to find the hostel; only the parse with
+    // that hostel's key may be acted on.
     mocks.parseWebhook.mockReturnValueOnce(null);
 
     await expect(handleProviderCallback("ESEWA", "{}", {})).rejects.toMatchObject({

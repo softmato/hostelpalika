@@ -54,6 +54,8 @@ type Reg struct {
 	Plan         *PlanChoice
 	ShortStays   *ShortStaysIn
 	Payout       *Payout
+	FoodRoutine  *FoodRoutine
+	OwnerHex     string
 	RefDisc      *float64
 	TotalCap     *float64
 	Year         *string
@@ -154,7 +156,69 @@ func each(f *valid.Form, key string, items []any, fill func(i int, sub *valid.Fo
 func ParseRegistration(body any) (Reg, error) {
 	f := valid.NewForm(body)
 	var in Reg
-	parseCreateBase(f, &in, false)
+	parseRegFields(f, &in, true)
+	if v, ok := f.Str("referralCode", valid.S{Opt: true, Trim: true, Max: 32}); ok {
+		in.RefCode = v
+	}
+	if !f.Hard {
+		refineRegistration(f, in)
+	}
+	return in, f.Err()
+}
+
+// TeamPayment is the team form's payment: what the agent collected.
+type TeamPayment struct {
+	Amount       float64
+	Method       string
+	PrepaymentID string
+	Reference    string
+}
+
+// TeamReg is teamHostelRegistrationSchema's output.
+type TeamReg struct {
+	Reg
+	Payment       TeamPayment
+	ConfirmSecond bool
+}
+
+// ParseTeamRegistration is teamHostelRegistrationSchema: the same body, the plan
+// required, plus the payment and the second-building tick.
+func ParseTeamRegistration(body any) (TeamReg, error) {
+	f := valid.NewForm(body)
+	var in TeamReg
+	parseRegFields(f, &in.Reg, false)
+	f.Nest("payment", false, func(s *valid.Form) {
+		p := &in.Payment
+		p.Amount, _ = s.Num("amount", valid.N{Coerce: true, Int: true, Min: valid.P(0), Max: valid.P(10_000_000)})
+		p.Method, _ = s.Enum("method", false, nil, "SOFTMATO", "CASH")
+		p.PrepaymentID, _ = s.Str("prepaymentId", valid.S{Opt: true, Trim: true, Max: 64})
+		p.Reference, _ = s.Str("reference", valid.S{Opt: true, Trim: true, Max: 120})
+		if s.Hard {
+			return
+		}
+		if p.Method != "CASH" && p.Amount != 0 {
+			s.Is.Add("amount", "Online payments are made through Softmato checkout, not typed in.")
+		}
+		if p.Method != "SOFTMATO" && !(p.Amount > 0) {
+			s.Is.Add("amount", "Enter the cash collected. A hostel does not publish unpaid.")
+		}
+		if p.Method != "SOFTMATO" && p.PrepaymentID != "" {
+			s.Is.Add("prepaymentId", "An online payment cannot be filed as cash.")
+		}
+	})
+	if f.Present("confirmSecondHostel") {
+		in.ConfirmSecond, _ = f.Bool("confirmSecondHostel", true, nil)
+	}
+	if !f.Hard {
+		refineRegistration(f, in.Reg)
+	}
+	return in, f.Err()
+}
+
+// parseRegFields is registrationFields, in declared order; planOptional is the
+// public desk (the team form names a plan, it is a step in the form).
+func parseRegFields(f *valid.Form, in *Reg, planOptional bool) {
+	parseCreateBase(f, in, false, false)
 	in.AltPhone = regStr(f, "alternatePhone", valid.S{Min: 7, Max: 24})
 	f.Nest("applicant", false, func(s *valid.Form) {
 		in.Applicant.Age = regStr(s, "age", valid.S{Max: 3})
@@ -177,7 +241,7 @@ func ParseRegistration(body any) (Reg, error) {
 	in.Landmark = regStr(f, "landmark", valid.S{Max: 240})
 	in.MapLink = regStr(f, "mapLink", valid.S{Max: 500})
 	in.PAN = regStr(f, "panNumber", valid.S{Re: panShape, ReMsg: "A PAN/VAT number is 9 digits."})
-	f.Nest("plan", true, func(s *valid.Form) {
+	f.Nest("plan", planOptional, func(s *valid.Form) {
 		monthly := "monthly"
 		cycle, _ := s.Enum("cycle", true, &monthly, "monthly", "halfYearly", "annual")
 		pc := PlanChoice{Cycle: cycle}
@@ -189,19 +253,12 @@ func ParseRegistration(body any) (Reg, error) {
 		pc.PlanID, _ = s.Str("planId", valid.S{Trim: true, Min: 1, Max: 40})
 		in.Plan = &pc
 	})
-	parseShortStays(f, &in)
-	parseFoodRoutine(f)
+	parseShortStays(f, in)
+	in.FoodRoutine = parseFoodRoutine(f)
 	f.Nest("payoutAccount", true, func(s *valid.Form) { in.Payout = parsePayout(s) })
 	in.RefDisc = regNum(f, "referralAdmissionDiscount", valid.N{Int: true, Min: valid.P(0), Max: valid.P(1_000_000)})
 	in.TotalCap = regNum(f, "totalCapacity", valid.N{Int: true, Min: valid.P(0), Max: valid.P(10_000)})
 	in.Year = regStr(f, "yearEstablished", valid.S{Re: yearShape, ReMsg: "Year established should be four digits."})
-	if v, ok := f.Str("referralCode", valid.S{Opt: true, Trim: true, Max: 32}); ok {
-		in.RefCode = v
-	}
-	if !f.Hard {
-		refineRegistration(f, in)
-	}
-	return in, f.Err()
 }
 
 // parseShortStays is the shortStays object both the registration and branch schemas carry.
@@ -225,7 +282,7 @@ func parseShortStays(f *valid.Form, in *Reg) {
 
 // parseCreateBase is platformHostelCreateSchema without ownerId, fields in declared order; the
 // registration and branch schemas are both built on it.
-func parseCreateBase(f *valid.Form, in *Reg, branch bool) {
+func parseCreateBase(f *valid.Form, in *Reg, branch, owner bool) {
 	f.Nest("capacitySummary", true, func(s *valid.Form) {
 		for _, k := range []string{"totalBeds", "totalRooms", "vacantBeds"} {
 			if v := regNum(s, k, valid.N{Int: true, Min: nonneg()}); v != nil {
@@ -309,6 +366,9 @@ func parseCreateBase(f *valid.Form, in *Reg, branch bool) {
 	})
 	in.Name, _ = f.Str("name", valid.S{Trim: true, Min: 2, Max: 160})
 	in.Notes = regStr(f, "notes", valid.S{Max: 1000})
+	if owner {
+		in.OwnerHex, _ = valid.ObjectID(f.M["ownerId"], "ownerId", "Expected a MongoDB ObjectId.", &f.Is, !f.Present("ownerId"))
+	}
 	in.Photos = parsePhotos(f)
 	if f.Nest("pricing", true, func(s *valid.Form) {
 		if v := regNum(s, "admissionFee", valid.N{Min: nonneg()}); v != nil {
@@ -395,45 +455,68 @@ var (
 	weekdays  = []string{"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"}
 )
 
+// FoodRoutine is the kitchen's week a registration collected, as saveFoodRoutine writes it.
+type FoodRoutine struct {
+	Timings   bson.D
+	Meals     bson.A
+	MonthEnd  []string
+	MonthNote string
+}
+
 // parseFoodRoutine is foodRoutineSaveSchema without hostelId. Public registration
 // only validates it; the team desk stores it.
-func parseFoodRoutine(f *valid.Form) {
+func parseFoodRoutine(f *valid.Form) *FoodRoutine {
+	var out *FoodRoutine
 	f.Nest("foodRoutine", true, func(s *valid.Form) {
+		r := &FoodRoutine{Timings: bson.D{}, Meals: bson.A{}}
+		out = r
 		s.Nest("timings", false, func(t *valid.Form) {
 			for _, k := range mealTypes {
 				if t.Present(k) {
-					t.Str(k, valid.S{Trim: true, Max: 80})
+					v, _ := t.Str(k, valid.S{Trim: true, Max: 80})
+					r.Timings = append(r.Timings, bson.E{Key: k, Value: v})
 				}
 			}
 		})
 		if items, ok := s.Array("meals", false, false); ok {
 			each(s, "meals", items, func(_ int, m *valid.Form) {
-				m.Enum("dayOfWeek", false, nil, weekdays...)
-				m.Enum("mealType", false, nil, mealTypes...)
+				day, _ := m.Enum("dayOfWeek", false, nil, weekdays...)
+				meal, _ := m.Enum("mealType", false, nil, mealTypes...)
+				var got []string
 				if list, ok := m.Array("items", false, false); ok {
-					for i, raw := range list {
-						sub := &valid.Form{M: map[string]any{"v": raw}}
-						sub.Str("v", valid.S{Trim: true, Min: 1, Max: 80})
-						m.JoinScalar("items."+strconv.Itoa(i), sub)
-					}
+					got = itemList(m, list)
 					m.Size("items", len(list), 1, 20, "", false)
 				}
-				regStr(m, "note", valid.S{Max: 500})
+				note := ""
+				if n := regStr(m, "note", valid.S{Max: 500}); n != nil {
+					note = *n
+				}
+				r.Meals = append(r.Meals, bson.D{{Key: "dayOfWeek", Value: day}, {Key: "items", Value: got}, {Key: "mealType", Value: meal}, {Key: "note", Value: note}})
 			})
 			s.Size("meals", len(items), 0, 28, "", false)
 		}
 		s.Nest("monthEndSpecial", true, func(m *valid.Form) {
 			if list, ok := m.Array("items", false, false); ok {
-				for i, raw := range list {
-					sub := &valid.Form{M: map[string]any{"v": raw}}
-					sub.Str("v", valid.S{Trim: true, Min: 1, Max: 80})
-					m.JoinScalar("items."+strconv.Itoa(i), sub)
-				}
+				r.MonthEnd = itemList(m, list)
 				m.Size("items", len(list), 0, 20, "", false)
 			}
-			regStr(m, "note", valid.S{Max: 500})
+			if n := regStr(m, "note", valid.S{Max: 500}); n != nil {
+				r.MonthNote = *n
+			}
 		})
 	})
+	return out
+}
+
+func itemList(m *valid.Form, list []any) []string {
+	out := make([]string, 0, len(list))
+	for i, raw := range list {
+		sub := &valid.Form{M: map[string]any{"v": raw}}
+		v, _ := sub.Str("v", valid.S{Trim: true, Min: 1, Max: 80})
+		m.JoinScalar("items."+strconv.Itoa(i), sub)
+		out = append(out, v)
+	}
+	return out
 }
 
 // parsePayout is payoutAccountInputSchema: normalised number, per-method checks.

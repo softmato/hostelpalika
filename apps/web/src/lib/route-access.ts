@@ -80,6 +80,15 @@ export const protectedRouteRules: ProtectedRouteRule[] = [
     roles: [Role.SUPERADMIN],
   },
   {
+    // The server's logs and the process: superadmin-only, like the Go routes.
+    prefix: "/platform/logs",
+    roles: [Role.SUPERADMIN],
+  },
+  {
+    prefix: "/platform/system",
+    roles: [Role.SUPERADMIN],
+  },
+  {
     // Free plan time and partner commission are HostelPalika's money too.
     prefix: "/platform/referrals",
     roles: [Role.SUPERADMIN],

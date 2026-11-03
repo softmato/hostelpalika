@@ -1,0 +1,1282 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hostel admin refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "location": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "applicant": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "plan": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "payment": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "location"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "applicant"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "plan"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "payment"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "no plan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "plan": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "plan"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash of zero",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 0
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "payment": [
+              "Enter the cash collected. A hostel does not publish unpaid."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the cash collected. A hostel does not publish unpaid.",
+              "path": "payment.amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "online with an amount",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "SOFTMATO",
+          "amount": 100
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "payment": [
+              "Online payments are made through Softmato checkout, not typed in."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Online payments are made through Softmato checkout, not typed in.",
+              "path": "payment.amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cash with a prepayment",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 100,
+          "prepaymentId": "x"
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "payment": [
+              "An online payment cannot be filed as cash."
+            ]
+          },
+          "issues": [
+            {
+              "message": "An online payment cannot be filed as cash.",
+              "path": "payment.prepaymentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "setup fee over the cap",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 501
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The setup fee is at most Rs 500. Collect no more than that.",
+        "errorCode": "SETUP_FEE_TOO_HIGH"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "online not arrived",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "SOFTMATO",
+          "amount": 0
+        }
+      }
+    },
+    "response": {
+      "status": 402,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The online payment has not arrived. Take the payment before publishing.",
+        "errorCode": "PAYMENT_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "lifetime cash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly",
+          "lifetime": true
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That plan has no lifetime offer. Choose another one.",
+        "errorCode": "LIFETIME_NOT_OFFERED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "filed and published",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111",
+          "email": "teamowner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.temporaryPassword",
+      "data.hostel.referencePrefix",
+      "data.hostel.slug"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registered and published",
+        "data": {
+          "application": {
+            "applicantId": "6ae9c39c771e9ae33990e955",
+            "hostelId": "6ae9c39c771e9ae33990e956",
+            "id": "6ae9c39c771e9ae33990e958",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": "2026-11-03T11:21:00.278Z",
+            "snapshot": {
+              "applicant": {
+                "email": "teamowner@reg.test",
+                "name": "Team Owner",
+                "phone": "9811111111"
+              },
+              "contact": {
+                "phone": "9811111111"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Koteshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Team Filed Hostel",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": "pro"
+            },
+            "status": "APPROVED",
+            "submittedAt": "2026-11-03T11:21:00.281Z",
+            "submittedBy": "6ae9c39c771e9ae33990e955"
+          },
+          "billing": {
+            "canPayNow": false,
+            "hostelName": "Team Filed Hostel",
+            "hostelStatus": "PUBLISHED",
+            "invoice": null,
+            "outstanding": 0,
+            "paid": 0,
+            "payments": [
+              {
+                "amount": 500,
+                "id": "6ae9c39c771e9ae33990e95f",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-11-03T11:21:00.660Z",
+              "currentPeriodEnd": "2026-11-06T18:14:59.999Z",
+              "cycle": "monthly",
+              "cycleTotal": 1699,
+              "dueBy": null,
+              "freeMonths": 0,
+              "freeUntil": "2026-11-06T18:14:59.999Z",
+              "freeMonthNow": null,
+              "id": "6ae9c39c771e9ae33990e95a",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "TEAM",
+              "status": "ACTIVE",
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-06T18:14:59.999Z"
+            },
+            "verified": true
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9811111111"
+            },
+            "createdAt": "2026-11-03T11:21:00.250Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae9c39c771e9ae33990e956",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Koteshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED",
+              "lat": 27.6755462,
+              "lng": 85.3383181
+            },
+            "name": "Team Filed Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6ae9c39c771e9ae33990e955",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000,
+              "formFee": 0,
+              "monthlyRentMax": 9000,
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae9c39c771e9ae33990e957",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "team-filed-hostel-koteshwor",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T11:21:09.358Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "temporaryPassword": "j14gttBuBGkg"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "same building again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Team Filed Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Someone",
+          "phone": "9822222222"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Team Filed Hostel\" in Koteshwor is already on HostelPalika. If this is a different building, give it a name that tells them apart.",
+        "errorCode": "HOSTEL_ALREADY_LISTED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "owner email in use",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Another Place",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Xy Person",
+          "phone": "9833333333",
+          "email": "TeamOwner@reg.test"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "TeamOwner@reg.test is already used by \"Team Filed Hostel\". Use a different email for this owner.",
+        "errorCode": "OWNER_EMAIL_IN_USE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "same owner second building",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Second Place",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 500,
+          "reference": "SLIP-1"
+        }
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This owner already has \"Team Filed Hostel\" in Koteshwor on HostelPalika. Confirm this is a second, separate building to register it.",
+        "errorCode": "OWNER_ALREADY_HAS_HOSTEL"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "second building confirmed, with the kitchen",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "name": "Second Place",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Koteshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Team Owner",
+          "phone": "9811111111"
+        },
+        "contact": {
+          "phone": "9811111111"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "securityDeposit": 5000,
+        "plan": {
+          "planId": "pro",
+          "cycle": "monthly"
+        },
+        "payment": {
+          "method": "CASH",
+          "amount": 300
+        },
+        "confirmSecondHostel": true,
+        "foodRoutine": {
+          "timings": {
+            "BREAKFAST": "7 AM"
+          },
+          "meals": [
+            {
+              "dayOfWeek": "SUNDAY",
+              "mealType": "BREAKFAST",
+              "items": [
+                "Tea",
+                "Roti"
+              ]
+            }
+          ],
+          "monthEndSpecial": {
+            "items": [
+              "Feast"
+            ],
+            "note": "Last day"
+          }
+        }
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.temporaryPassword",
+      "data.hostel.referencePrefix",
+      "data.hostel.slug"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registered and published",
+        "data": {
+          "application": {
+            "applicantId": "6ae9c39c771e9ae33990e955",
+            "hostelId": "6ae9c3a6771e9ae33990e965",
+            "id": "6ae9c3a6771e9ae33990e967",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": "2026-11-03T11:21:10.284Z",
+            "snapshot": {
+              "applicant": {
+                "name": "Team Owner",
+                "phone": "9811111111"
+              },
+              "contact": {
+                "phone": "9811111111"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Koteshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Second Place",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": "pro"
+            },
+            "status": "APPROVED",
+            "submittedAt": "2026-11-03T11:21:10.286Z",
+            "submittedBy": "6ae9c39c771e9ae33990e955"
+          },
+          "billing": {
+            "canPayNow": false,
+            "hostelName": "Second Place",
+            "hostelStatus": "PUBLISHED",
+            "invoice": null,
+            "outstanding": 0,
+            "paid": 0,
+            "payments": [
+              {
+                "amount": 300,
+                "id": "6ae9c3a6771e9ae33990e96f",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-11-03T11:21:10.694Z",
+              "currentPeriodEnd": "2026-11-06T18:14:59.999Z",
+              "cycle": "monthly",
+              "cycleTotal": 1699,
+              "dueBy": null,
+              "freeMonths": 0,
+              "freeUntil": "2026-11-06T18:14:59.999Z",
+              "freeMonthNow": null,
+              "id": "6ae9c3a6771e9ae33990e96a",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "TEAM",
+              "status": "ACTIVE",
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-06T18:14:59.999Z"
+            },
+            "verified": true
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9811111111"
+            },
+            "createdAt": "2026-11-03T11:21:10.254Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae9c3a6771e9ae33990e965",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Koteshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED",
+              "lat": 27.6755462,
+              "lng": 85.3383181
+            },
+            "name": "Second Place",
+            "nameChangeCount": 0,
+            "ownerId": "6ae9c39c771e9ae33990e955",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000,
+              "formFee": 0,
+              "monthlyRentMax": 9000,
+              "monthlyRentMin": 9000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae9c3a6771e9ae33990e966",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "second-place-koteshwor",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T11:21:12.603Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "temporaryPassword": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

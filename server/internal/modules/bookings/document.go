@@ -355,13 +355,19 @@ func (s *Signed) document(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	kind, number := c.Param("kind"), c.Param("number")
-	if number == "" || (kind != "invoice" && kind != "receipt" && kind != "refund") {
+	s.serveDocument(c, c.Param("kind"), c.Param("number"), func(kind string, b *Booking) bool { return kind != "payout" && b.UserID.Hex() == p.UserID })
+}
+
+// serveDocument is resolveBookingDocument + bookingDocumentResponse: allow is
+// the caller's scope, and a paper outside it is the same 404 as one that does not exist.
+func (s *Signed) serveDocument(c *gin.Context, kind, number string, allow func(kind string, b *Booking) bool) {
+	if number == "" || (kind != "invoice" && kind != "receipt" && kind != "refund" && kind != "payout") {
 		notFoundPlain(c)
 		return
 	}
 	var b Booking
 	var transfer *Transfer
+	var err error
 	bookings := s.db.Collection("bookings")
 	switch kind {
 	case "invoice":
@@ -370,13 +376,13 @@ func (s *Signed) document(c *gin.Context) {
 		err = bookings.FindOne(c, bson.D{{Key: "paymentVerifiedAt", Value: bson.D{{Key: "$ne", Value: nil}}}, {Key: "receiptNumber", Value: number}}).Decode(&b)
 	default:
 		var t Transfer
-		err = s.db.Collection("bookingtransfers").FindOne(c, bson.D{{Key: "documentNumber", Value: number}, {Key: "kind", Value: "REFUND"}, {Key: "status", Value: "SENT"}}).Decode(&t)
+		err = s.db.Collection("bookingtransfers").FindOne(c, bson.D{{Key: "documentNumber", Value: number}, {Key: "kind", Value: strings.ToUpper(kind)}, {Key: "status", Value: "SENT"}}).Decode(&t)
 		if err == nil {
 			transfer = &t
 			err = bookings.FindOne(c, bson.D{{Key: "_id", Value: t.BookingID}}).Decode(&b)
 		}
 	}
-	if errors.Is(err, mongo.ErrNoDocuments) || (err == nil && b.UserID.Hex() != p.UserID) {
+	if errors.Is(err, mongo.ErrNoDocuments) || (err == nil && !allow(kind, &b)) {
 		notFoundPlain(c)
 		return
 	}

@@ -36,7 +36,9 @@ export function platformAdminInvitationEmail(input: {
         paragraph(
           isSuperadmin
             ? "A superadmin can see and change everything: all hostels, all payments, the website, and who is admin."
-            : "A moderator approves and checks hostels and can read reports. They cannot change the website, plans, settings or admins.",
+            : input.roleLabel === "Team Member"
+              ? "A team member registers hostels in the field and records the cash they collect. They cannot see the platform's payments, settings or admins."
+              : "A moderator approves and checks hostels and can read reports. They cannot change the website, plans, settings or admins.",
         ),
         paragraph(
           "Tap the button below to accept. No form and no password. Confirm on the page, then log in with Google using this email.",

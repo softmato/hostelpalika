@@ -36,6 +36,9 @@ func NewHandler(db *mongo.Database, guards *authz.Guards) *Handler {
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/platform/logs", h.list)
 	v1.GET("/platform/logs/summary", h.summary)
+	v1.GET("/platform/logs/health", h.health)
+	v1.GET("/platform/system/process", h.process)
+	v1.GET("/platform/system/active-users", h.activeUsers)
 }
 
 // timeRange reads from/to (RFC 3339); summary defaults to the last day.

@@ -1,0 +1,896 @@
+[
+  {
+    "name": "notifications signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/notifications"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "notifications",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform notification campaigns loaded",
+        "data": {
+          "campaigns": [],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 0,
+            "totalPages": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "campaign as moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "title": "Hi",
+        "body": "Hello"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "campaign invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "title": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "body"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "title"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "campaign to one hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Water cut",
+        "body": "No water from 10 to 2",
+        "hostelIds": [
+          "6c00000000000000000000a1"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform notification sent",
+        "data": {
+          "campaign": {
+            "audience": "ALL",
+            "body": "No water from 10 to 2",
+            "category": "ANNOUNCEMENT",
+            "createdAt": "2026-11-03T13:30:59.310Z",
+            "failureReason": "",
+            "id": "6ae9e2130f6d781fa7b2ef98",
+            "priority": "NORMAL",
+            "recipientCount": 2,
+            "scope": "PLATFORM",
+            "sentAt": "2026-11-03T13:30:59.341Z",
+            "stats": {
+              "delivered": 0,
+              "read": 0,
+              "sent": 0
+            },
+            "status": "SENT",
+            "title": "Water cut"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "notifications after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform notification campaigns loaded",
+        "data": {
+          "campaigns": [
+            {
+              "audience": "ALL",
+              "body": "No water from 10 to 2",
+              "category": "ANNOUNCEMENT",
+              "createdAt": "2026-11-03T13:30:59.310Z",
+              "failureReason": "",
+              "id": "6ae9e2130f6d781fa7b2ef98",
+              "priority": "NORMAL",
+              "recipientCount": 2,
+              "scope": "PLATFORM",
+              "sentAt": "2026-11-03T13:30:59.341Z",
+              "stats": {
+                "delivered": 2,
+                "read": 0,
+                "sent": 2
+              },
+              "status": "SENT",
+              "title": "Water cut"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notifications loaded",
+        "data": {
+          "automatic": [
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "PLAN_DUE_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins whose plan payment is due or late, and an email to the owner with the website link to pay. 7 and 5 days before the due day, then every day from 3 days before until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94073",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Plan payment reminder · morning",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "PLAN_DUE_EVENING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins whose plan payment is due or late. Every day from 3 days before the due day until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94075",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-03T15:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "21:00",
+              "title": "Plan payment reminder · evening",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "RESIDENTS",
+              "automatic": "FEE_DUE_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Residents with an unpaid hostel fee: \"Please pay your hostel fee for \u003cmonth\u003e.\" 7 and 5 days before the due day, then every day from 3 days before until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94074",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Hostel fee reminder · morning",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "RESIDENTS",
+              "automatic": "FEE_DUE_EVENING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Residents with an unpaid hostel fee. Every day from 3 days before the due day until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94072",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-03T15:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "21:00",
+              "title": "Hostel fee reminder · evening",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "FREE_MONTH_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins on their plan's free months, once in each free month: \"Welcome — enjoy the free \u003cplan\u003e plan this month\", with how many free months are left.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94076",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Free month welcome",
+              "urgency": "NORMAL",
+              "weekdays": []
+            }
+          ],
+          "pushes": [],
+          "schedules": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "x",
+        "body": "y"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "body"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push weekly needs days",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Weekly",
+        "body": "Every week",
+        "repeat": "WEEKLY",
+        "time": "07:30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "weekdays": [
+              "Pick at least one day."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick at least one day.",
+              "path": "weekdays"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push schedule",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Daily",
+        "body": "Every morning",
+        "repeat": "DAILY",
+        "time": "07:30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "schedule": "data.schedule.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notification sent",
+        "data": {
+          "schedule": {
+            "audience": "EVERYONE",
+            "automatic": null,
+            "lastDevices": 0,
+            "lastRecipients": 0,
+            "body": "Every morning",
+            "endsOn": null,
+            "id": "6ae9e2130f6d781fa7b2ef9c",
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T01:45:00.000Z",
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-03",
+            "status": "ACTIVE",
+            "time": "07:30",
+            "title": "Daily",
+            "urgency": "NORMAL",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "pause",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/push/schedules/{{schedule}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "PAUSE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Schedule updated",
+        "data": {
+          "schedule": {
+            "audience": "EVERYONE",
+            "automatic": null,
+            "lastDevices": 0,
+            "lastRecipients": 0,
+            "body": "Every morning",
+            "endsOn": null,
+            "id": "6ae9e2130f6d781fa7b2ef9c",
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T01:45:00.000Z",
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-03",
+            "status": "PAUSED",
+            "time": "07:30",
+            "title": "Daily",
+            "urgency": "NORMAL",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resume",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/push/schedules/{{schedule}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "RESUME"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Schedule updated",
+        "data": {
+          "schedule": {
+            "audience": "EVERYONE",
+            "automatic": null,
+            "lastDevices": 0,
+            "lastRecipients": 0,
+            "body": "Every morning",
+            "endsOn": null,
+            "id": "6ae9e2130f6d781fa7b2ef9c",
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T01:45:00.000Z",
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-03",
+            "status": "ACTIVE",
+            "time": "07:30",
+            "title": "Daily",
+            "urgency": "NORMAL",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad action",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/push/schedules/{{schedule}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "STOP"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"PAUSE\"|\"RESUME\"|\"CANCEL\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PAUSE\"|\"RESUME\"|\"CANCEL\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/push/schedules/{{schedule}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "CANCEL"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Schedule updated",
+        "data": {
+          "schedule": {
+            "audience": "EVERYONE",
+            "automatic": null,
+            "lastDevices": 0,
+            "lastRecipients": 0,
+            "body": "Every morning",
+            "endsOn": null,
+            "id": "6ae9e2130f6d781fa7b2ef9c",
+            "lastRunAt": null,
+            "nextRunAt": null,
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-03",
+            "status": "CANCELLED",
+            "time": "07:30",
+            "title": "Daily",
+            "urgency": "NORMAL",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cancel missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/push/schedules/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "CANCEL"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Schedule not found.",
+        "errorCode": "PUSH_SCHEDULE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push now to staff",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "title": "Portal down",
+        "body": "Back in ten minutes",
+        "audience": "HOSTEL_STAFF"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notification sent",
+        "data": {
+          "push": {
+            "audience": "HOSTEL_STAFF",
+            "body": "Back in ten minutes",
+            "devices": 0,
+            "id": "6ae9e2160f6d781fa7b2efb2",
+            "recipients": 20,
+            "scheduled": false,
+            "sentAt": "2026-11-03T13:31:02.539Z",
+            "title": "Portal down",
+            "urgency": "NORMAL"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "push list after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/push",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notifications loaded",
+        "data": {
+          "automatic": [
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "PLAN_DUE_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins whose plan payment is due or late, and an email to the owner with the website link to pay. 7 and 5 days before the due day, then every day from 3 days before until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94073",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Plan payment reminder · morning",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "PLAN_DUE_EVENING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins whose plan payment is due or late. Every day from 3 days before the due day until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94075",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-03T15:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "21:00",
+              "title": "Plan payment reminder · evening",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "RESIDENTS",
+              "automatic": "FEE_DUE_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Residents with an unpaid hostel fee: \"Please pay your hostel fee for \u003cmonth\u003e.\" 7 and 5 days before the due day, then every day from 3 days before until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94074",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Hostel fee reminder · morning",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "RESIDENTS",
+              "automatic": "FEE_DUE_EVENING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Residents with an unpaid hostel fee. Every day from 3 days before the due day until paid.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94072",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-03T15:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "21:00",
+              "title": "Hostel fee reminder · evening",
+              "urgency": "NORMAL",
+              "weekdays": []
+            },
+            {
+              "audience": "HOSTEL_STAFF",
+              "automatic": "FREE_MONTH_MORNING",
+              "lastDevices": 0,
+              "lastRecipients": 0,
+              "body": "Hostel admins on their plan's free months, once in each free month: \"Welcome — enjoy the free \u003cplan\u003e plan this month\", with how many free months are left.",
+              "endsOn": null,
+              "id": "6ae9e213dc4ed65874a94076",
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T02:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-03",
+              "status": "ACTIVE",
+              "time": "08:00",
+              "title": "Free month welcome",
+              "urgency": "NORMAL",
+              "weekdays": []
+            }
+          ],
+          "pushes": [
+            {
+              "audience": "HOSTEL_STAFF",
+              "body": "Back in ten minutes",
+              "devices": 0,
+              "id": "6ae9e2160f6d781fa7b2efb2",
+              "recipients": 20,
+              "scheduled": false,
+              "sentAt": "2026-11-03T13:31:02.566Z",
+              "title": "Portal down",
+              "urgency": "NORMAL"
+            }
+          ],
+          "schedules": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

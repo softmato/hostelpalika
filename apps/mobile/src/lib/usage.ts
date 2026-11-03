@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 import { api } from "@/lib/api";
 import { store } from "@/store";
@@ -62,6 +63,12 @@ export function trackScreen(screen: string, durationMs: number) {
   if (durationMs >= MIN_SCREEN_MS) push({ durationMs: Math.round(durationMs), kind: "screen", screen });
 }
 
+/**
+ * The PWA is this same app exported for the web (`/app`), so it counts as its
+ * own client: Active users splits app, PWA and the website.
+ */
+const CLIENT = Platform.OS === "web" ? "pwa" : "app";
+
 /** Sends what is queued. Safe to call any time; overlapping calls are dropped. */
 export async function flushUsage() {
   if (sending || queue.length === 0 || !signedIn()) return;
@@ -71,7 +78,7 @@ export async function flushUsage() {
   queue = queue.slice(BATCH);
 
   try {
-    await api.post("/usage/events", { client: "app", events: batch });
+    await api.post("/usage/events", { client: CLIENT, events: batch });
   } catch {
     queue = [...batch, ...queue].slice(-MAX_QUEUE);
   } finally {

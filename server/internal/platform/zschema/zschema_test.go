@@ -47,6 +47,7 @@ func TestSiteConfigVectors(t *testing.T) {
 		Input   json.RawMessage `json:"input"`
 		OK      bool            `json:"ok"`
 		Data    json.RawMessage `json:"data"`
+		Issue   *string         `json:"issue"`
 	}
 	if err := json.Unmarshal(body, &cases); err != nil {
 		t.Fatal(err)
@@ -64,7 +65,13 @@ func TestSiteConfigVectors(t *testing.T) {
 			continue
 		}
 		if !ok {
+			if m := file.Sections[c.Section].Issue(in); c.Issue != nil && m != *c.Issue {
+				t.Errorf("case %d (%s): issue %q, want %q; input %.300s", i, c.Section, m, *c.Issue, c.Input)
+			}
 			continue
+		}
+		if m := file.Sections[c.Section].Issue(in); m != "" {
+			t.Errorf("case %d (%s): parses, but Issue says %q", i, c.Section, m)
 		}
 		got, _ := sonic.ConfigDefault.Marshal(out)
 		var want bytes.Buffer

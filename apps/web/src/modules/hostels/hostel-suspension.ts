@@ -257,6 +257,8 @@ export async function liftHostelSuspension(
   await AuditLogModel.create({
     action: "HOSTEL_SUSPENSION_LIFTED",
     actorId: options.actorId ?? null,
+    // A verified webhook settles with no actor; USER with none fails validation.
+    actorType: options.actorId ? "USER" : "SYSTEM",
     entityId: objectId.toString(),
     entityType: "Hostel",
     hostelId: objectId,

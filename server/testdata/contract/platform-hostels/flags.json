@@ -1,0 +1,577 @@
+[
+  {
+    "name": "flags signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/listing-flags"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "flags as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/listing-flags",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "flags empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/listing-flags",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Listing flags loaded",
+        "data": {
+          "flags": [],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 0,
+            "totalPages": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "duplicate check missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/run-duplicate-check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "duplicate check",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000005/run-duplicate-check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "flag": "data.flag.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Duplicate check completed",
+        "data": {
+          "flag": {
+            "createdAt": "2026-11-03T13:26:41.500Z",
+            "hostelId": "6d0d00000000000000000005",
+            "id": "6ae9e111dc4ed65874a9406a",
+            "matchedHostelIds": [
+              "6c000000000000000000001d",
+              "6c000000000000000000001e",
+              "6c000000000000000000001f",
+              "6c0000000000000000000020",
+              "6c00000000000000000000a3",
+              "6c00000000000000000000a4",
+              "6c00000000000000000000a5",
+              "6c00000000000000000000a6",
+              "6d0d00000000000000000001"
+            ],
+            "reason": "Possible duplicate or ghost listing detected.",
+            "resolutionNote": "",
+            "riskLevel": "HIGH",
+            "signals": [
+              "same_address",
+              "same_owner",
+              "similar_name_same_area"
+            ],
+            "status": "OPEN",
+            "updatedAt": "2026-11-03T13:26:41.500Z"
+          },
+          "result": {
+            "checkedBy": "6d0a00000000000000000002",
+            "createdAt": "2026-11-03T13:26:41.933Z",
+            "flagId": "6ae9e111dc4ed65874a9406a",
+            "hostelId": "6d0d00000000000000000005",
+            "id": "6ae9e1110f6d781fa7b2ef5c",
+            "matchedHostelIds": [
+              "6c000000000000000000001d",
+              "6c000000000000000000001e",
+              "6c000000000000000000001f",
+              "6c0000000000000000000020",
+              "6c00000000000000000000a3",
+              "6c00000000000000000000a4",
+              "6c00000000000000000000a5",
+              "6c00000000000000000000a6",
+              "6d0d00000000000000000001"
+            ],
+            "riskLevel": "HIGH",
+            "signals": [
+              "same_address",
+              "same_owner",
+              "similar_name_same_area"
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "duplicate check again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000005/run-duplicate-check",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Duplicate check completed",
+        "data": {
+          "flag": {
+            "createdAt": "2026-11-03T13:26:41.500Z",
+            "hostelId": "6d0d00000000000000000005",
+            "id": "6ae9e111dc4ed65874a9406a",
+            "matchedHostelIds": [
+              "6c000000000000000000001d",
+              "6c000000000000000000001e",
+              "6c000000000000000000001f",
+              "6c0000000000000000000020",
+              "6c00000000000000000000a3",
+              "6c00000000000000000000a4",
+              "6c00000000000000000000a5",
+              "6c00000000000000000000a6",
+              "6d0d00000000000000000001"
+            ],
+            "reason": "Possible duplicate or ghost listing detected.",
+            "resolutionNote": "",
+            "riskLevel": "HIGH",
+            "signals": [
+              "same_address",
+              "same_owner",
+              "similar_name_same_area"
+            ],
+            "status": "OPEN",
+            "updatedAt": "2026-11-03T13:26:42.256Z"
+          },
+          "result": {
+            "checkedBy": "6d0a00000000000000000002",
+            "createdAt": "2026-11-03T13:26:42.286Z",
+            "flagId": "6ae9e111dc4ed65874a9406a",
+            "hostelId": "6d0d00000000000000000005",
+            "id": "6ae9e1120f6d781fa7b2ef5e",
+            "matchedHostelIds": [
+              "6c000000000000000000001d",
+              "6c000000000000000000001e",
+              "6c000000000000000000001f",
+              "6c0000000000000000000020",
+              "6c00000000000000000000a3",
+              "6c00000000000000000000a4",
+              "6c00000000000000000000a5",
+              "6c00000000000000000000a6",
+              "6d0d00000000000000000001"
+            ],
+            "riskLevel": "HIGH",
+            "signals": [
+              "same_address",
+              "same_owner",
+              "similar_name_same_area"
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "flags after check",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/listing-flags",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Listing flags loaded",
+        "data": {
+          "flags": [
+            {
+              "createdAt": "2026-11-03T13:26:41.500Z",
+              "hostelId": "6d0d00000000000000000005",
+              "id": "6ae9e111dc4ed65874a9406a",
+              "matchedHostelIds": [
+                "6c000000000000000000001d",
+                "6c000000000000000000001e",
+                "6c000000000000000000001f",
+                "6c0000000000000000000020",
+                "6c00000000000000000000a3",
+                "6c00000000000000000000a4",
+                "6c00000000000000000000a5",
+                "6c00000000000000000000a6",
+                "6d0d00000000000000000001"
+              ],
+              "reason": "Possible duplicate or ghost listing detected.",
+              "resolutionNote": "",
+              "riskLevel": "HIGH",
+              "signals": [
+                "same_address",
+                "same_owner",
+                "similar_name_same_area"
+              ],
+              "status": "OPEN",
+              "updatedAt": "2026-11-03T13:26:42.256Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "flags open only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/listing-flags?status=OPEN",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Listing flags loaded",
+        "data": {
+          "flags": [
+            {
+              "createdAt": "2026-11-03T13:26:41.500Z",
+              "hostelId": "6d0d00000000000000000005",
+              "id": "6ae9e111dc4ed65874a9406a",
+              "matchedHostelIds": [
+                "6c000000000000000000001d",
+                "6c000000000000000000001e",
+                "6c000000000000000000001f",
+                "6c0000000000000000000020",
+                "6c00000000000000000000a3",
+                "6c00000000000000000000a4",
+                "6c00000000000000000000a5",
+                "6c00000000000000000000a6",
+                "6d0d00000000000000000001"
+              ],
+              "reason": "Possible duplicate or ghost listing detected.",
+              "resolutionNote": "",
+              "riskLevel": "HIGH",
+              "signals": [
+                "same_address",
+                "same_owner",
+                "similar_name_same_area"
+              ],
+              "status": "OPEN",
+              "updatedAt": "2026-11-03T13:26:42.256Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resolve bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/listing-flags/nope/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "DISMISSED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "resolutionNote": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "resolutionNote"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resolve missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/listing-flags/6d0dffffffffffffffffffff/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "DISMISSED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "resolutionNote": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "resolutionNote"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resolve",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/listing-flags/{{flag}}/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "DISMISSED",
+        "note": "Same owner's branch"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "resolutionNote": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "resolutionNote"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resolve twice",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/listing-flags/{{flag}}/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "RESOLVED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "resolutionNote": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "resolutionNote"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "resolve bad status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/listing-flags/6d0dffffffffffffffffffff/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "NOPE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "resolutionNote": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "status": [
+              "Invalid option: expected one of \"RESOLVED\"|\"DISMISSED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "resolutionNote"
+            },
+            {
+              "message": "Invalid option: expected one of \"RESOLVED\"|\"DISMISSED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

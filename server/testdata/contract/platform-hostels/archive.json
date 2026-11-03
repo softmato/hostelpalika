@@ -1,0 +1,1080 @@
+[
+  {
+    "name": "archive as moderator",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/archive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Owner asked"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "archive short reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/archive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "archive missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/archive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "Owner asked"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found, or is already archived.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "archive",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/archive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "Owner asked"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel archived",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": "2026-11-03T13:25:36.815Z",
+            "archiveReason": "Owner asked",
+            "capacitySummary": {},
+            "contact": {
+              "email": "queue-owner@contract.test",
+              "phone": "9800000131"
+            },
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000001",
+            "isArchived": true,
+            "isDemoData": false,
+            "purgeScheduledAt": "2027-01-02T13:25:36.815Z",
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Queue Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "queue-hostel-kalanki",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:25:36.815Z",
+            "verificationStatus": "PENDING"
+          },
+          "sessionsRevoked": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "archive twice",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/archive",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "reason": "Owner asked"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found, or is already archived.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "archived list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostels?archived=only",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel applications loaded",
+        "data": {
+          "hostels": [
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-09-01T00:00:00.000Z",
+              "archiveReason": "",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [],
+              "food": {},
+              "hostelType": "CO_LIVING",
+              "id": "6c0000000000000000000062",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": null,
+              "name": "Hostel left-main",
+              "nameChangeCount": 0,
+              "ownerId": "6c0000000000000000000001",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {},
+              "roomConfigurations": [],
+              "roomTypes": [],
+              "rules": [],
+              "slug": "left-main",
+              "status": "DRAFT",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "verificationStatus": "UNVERIFIED",
+              "applicationStatus": "",
+              "branchOf": null,
+              "owner": {
+                "email": "public@contract.test",
+                "name": "Contract public",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-10-01T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-09-01T00:00:00.000Z",
+              "archiveReason": "",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [],
+              "food": {},
+              "hostelType": "CO_LIVING",
+              "id": "6c0000000000000000000063",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": null,
+              "name": "Hostel left-branch",
+              "nameChangeCount": 0,
+              "ownerId": "6c0000000000000000000001",
+              "panNumber": null,
+              "parentHostelId": "6c0000000000000000000062",
+              "photos": [],
+              "pricing": {},
+              "roomConfigurations": [],
+              "roomTypes": [],
+              "rules": [],
+              "slug": "left-branch",
+              "status": "DRAFT",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "verificationStatus": "UNVERIFIED",
+              "applicationStatus": "",
+              "branchOf": {
+                "id": "6c0000000000000000000062",
+                "name": "Hostel left-main",
+                "panNumber": null,
+                "slug": "left-main"
+              },
+              "owner": {
+                "email": "public@contract.test",
+                "name": "Contract public",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-10-01T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-09-01T00:00:00.000Z",
+              "archiveReason": "",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [],
+              "food": {},
+              "hostelType": "CO_LIVING",
+              "id": "6c0000000000000000000069",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": null,
+              "name": "Hostel left-past-hold",
+              "nameChangeCount": 0,
+              "ownerId": "6c0000000000000000000001",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {},
+              "roomConfigurations": [],
+              "roomTypes": [],
+              "rules": [],
+              "slug": "left-past-hold",
+              "status": "DRAFT",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "verificationStatus": "UNVERIFIED",
+              "applicationStatus": "",
+              "branchOf": null,
+              "owner": {
+                "email": "public@contract.test",
+                "name": "Contract public",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-10-01T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-09-01T00:00:00.000Z",
+              "archiveReason": "",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [],
+              "food": {},
+              "hostelType": "CO_LIVING",
+              "id": "6c0000000000000000000078",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": "2026-11-03T12:25:21.727Z",
+              "name": "Hostel left-purge-due",
+              "nameChangeCount": 0,
+              "ownerId": "6c0000000000000000000001",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {},
+              "roomConfigurations": [],
+              "roomTypes": [],
+              "rules": [],
+              "slug": "left-purge-due",
+              "status": "DRAFT",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "verificationStatus": "UNVERIFIED",
+              "applicationStatus": "",
+              "branchOf": null,
+              "owner": {
+                "email": "public@contract.test",
+                "name": "Contract public",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-10-01T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-11-03T13:25:36.815Z",
+              "archiveReason": "Owner asked",
+              "capacitySummary": {},
+              "contact": {
+                "email": "queue-owner@contract.test",
+                "phone": "9800000131"
+              },
+              "createdAt": "2026-09-21T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "id": "6d0d00000000000000000001",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": "2027-01-02T13:25:36.815Z",
+              "location": {
+                "address": "Ring Road",
+                "area": "Kalanki",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Queue Hostel",
+              "nameChangeCount": 0,
+              "ownerId": "6d0d00000000000000000002",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 7000,
+                "monthlyRentMax": 9000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "queue-hostel-kalanki",
+              "status": "PENDING_APPROVAL",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-11-03T13:25:36.815Z",
+              "verificationStatus": "PENDING",
+              "applicationStatus": "PENDING",
+              "branchOf": null,
+              "owner": {
+                "email": "queue-owner@contract.test",
+                "name": "Queue Owner",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-10-01T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-10-01T04:15:00.000Z",
+              "archiveReason": "Owner closed",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-09-21T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "id": "6d0d00000000000000000003",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": "2026-11-23T13:25:25.816Z",
+              "location": {
+                "address": "Ring Road",
+                "area": "Chabahil",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Gone Hostel",
+              "nameChangeCount": 0,
+              "ownerId": "6d0d00000000000000000004",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 6000,
+                "monthlyRentMax": 8000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "gone-hostel-chabahil",
+              "status": "PUBLISHED",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-09-30T04:15:00.000Z",
+              "verificationStatus": "VERIFIED",
+              "applicationStatus": "",
+              "branchOf": null,
+              "owner": {
+                "email": "gone-owner@contract.test",
+                "name": "Gone Owner",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-09-21T04:15:00.000Z"
+            },
+            {
+              "arrivalGuide": null,
+              "archivedAt": "2026-10-01T04:15:00.000Z",
+              "archiveReason": "Owner closed",
+              "capacitySummary": {},
+              "contact": {},
+              "createdAt": "2026-09-21T04:15:00.000Z",
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "id": "6d0d00000000000000000006",
+              "isArchived": true,
+              "isDemoData": false,
+              "purgeScheduledAt": "2026-11-02T13:25:25.816Z",
+              "location": {
+                "address": "Ring Road",
+                "area": "Chabahil",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Overdue Hostel",
+              "nameChangeCount": 0,
+              "ownerId": "6d0d00000000000000000004",
+              "panNumber": null,
+              "parentHostelId": null,
+              "photos": [],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 6000,
+                "monthlyRentMax": 8000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "overdue-hostel-chabahil",
+              "status": "PUBLISHED",
+              "suspension": null,
+              "kyc": null,
+              "totalFloors": 0,
+              "updatedAt": "2026-09-30T04:15:00.000Z",
+              "verificationStatus": "VERIFIED",
+              "applicationStatus": "",
+              "branchOf": null,
+              "owner": {
+                "email": "gone-owner@contract.test",
+                "name": "Gone Owner",
+                "phone": ""
+              },
+              "portals": [
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "HOSTEL_ADMIN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "WARDEN"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "COOK"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "RESIDENT"
+                },
+                {
+                  "accounts": 0,
+                  "lastOpenedAt": null,
+                  "opened": 0,
+                  "role": "GUARDIAN"
+                }
+              ],
+              "submittedAt": "2026-09-21T04:15:00.000Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 7,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "restore live hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found, or is not archived.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "restore grace ran out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000006/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel's grace period has run out and it is queued for erasure. It can no longer be restored.",
+        "errorCode": "HOSTEL_PURGE_DUE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "restore",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000003/restore",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel restored",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000003",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Chabahil",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Gone Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000004",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 6000,
+              "monthlyRentMax": 8000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "gone-hostel-chabahil",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:25:49.017Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "purge as moderator",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "purge live hostel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Archive this hostel first. A live hostel cannot be erased directly.",
+        "errorCode": "HOSTEL_NOT_ARCHIVED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "purge",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "\"Queue Hostel\" erased permanently — 1 records and 0 files.",
+        "data": {
+          "name": "Queue Hostel",
+          "documentsDeleted": 1,
+          "objectsDeleted": 0,
+          "objectsFailed": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "purged is gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

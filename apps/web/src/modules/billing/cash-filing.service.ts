@@ -4,7 +4,7 @@ import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice"
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
 import { sendEmail } from "@hostel/shared/email/sender";
 import { formatRupees } from "@hostel/shared/email/templates/billing/subscription-invoice";
-import { detailsTable, emailLayout, paragraph, smallPrint } from "@hostel/shared/email/templates/layout";
+import { detailsTable, emailLayout, escapeHtml, paragraph, smallPrint } from "@hostel/shared/email/templates/layout";
 
 import { connectToDatabase } from "@/lib/db";
 import { isSoftmatoDown, softmato } from "@/modules/billing/softmato/client";
@@ -45,9 +45,21 @@ export async function fileFieldCash(
     subscriptionId: invoice.subscriptionId,
   });
 
+  /*
+   * Filed automatically once Softmato answers (`softmato/retry.ts`). Any failure
+   * is remembered, not only an outage (P7-11): the hostel is already published
+   * when this runs, and rethrowing failed a registration that had gone live.
+   */
   await submitFieldCash(String(payment._id), agent.name).catch(async (error: unknown) => {
-    if (!isSoftmatoDown(error)) throw error;
-    // Filed automatically once Softmato answers (`softmato/retry.ts`).
+    console.error(
+      JSON.stringify({
+        action: "field_cash_filing_deferred",
+        down: isSoftmatoDown(error),
+        level: "error",
+        message: error instanceof Error ? error.message : String(error),
+        paymentId: String(payment._id),
+      }),
+    );
     await rememberTask({ kind: "CASH_FILING", name: agent.name, ref: String(payment._id) });
   });
 }
@@ -92,7 +104,7 @@ export async function submitFieldCash(paymentId: string, collectedBy: string | n
     category: "billing",
     html: emailLayout({
       bodyHtml: [
-        paragraph(`We have your cash payment for <strong>${invoice.planName}</strong>.`),
+        paragraph(`We have your cash payment for <strong>${escapeHtml(invoice.planName)}</strong>.`),
         detailsTable([
           { emphasis: true, label: "Amount", value: formatRupees(payment.amount) },
           { label: "Received by", value: collectedBy || "Field agent" },

@@ -1,0 +1,173 @@
+[
+  {
+    "name": "nothing changed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Nothing was changed.",
+        "errorCode": "SETTING_UNCHANGED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "not a number",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "feePercent": "ten"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "feePercent": [
+              "Invalid input: expected number, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received string",
+              "path": "feePercent"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "feePercent": 12
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "ask to change the fee",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/bookings/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "feePercent": 12
+      }
+    },
+    "masks": [
+      "data.pending.expiresAt",
+      "data.pending.id"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "We could not send the confirmation email, so nothing was changed. Try again.",
+        "errorCode": "SETTING_CHANGE_EMAIL_FAILED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "pending shows",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/bookings/settings",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "data.pending.expiresAt",
+      "data.pending.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking settings loaded",
+        "data": {
+          "config": {
+            "enabled": true,
+            "feePercent": 7,
+            "hostelSharePercent": 60,
+            "holdDays": 7,
+            "hostelAnswerHours": 24,
+            "paymentCheckHours": 24,
+            "unpaidWindowHours": 24,
+            "cancelSteps": [
+              {
+                "refundPercent": 75,
+                "throughDay": 2
+              },
+              {
+                "refundPercent": 50,
+                "throughDay": 5
+              },
+              {
+                "refundPercent": 25,
+                "throughDay": 7
+              }
+            ],
+            "noShowRefundPercent": 0,
+            "strikeLimit": 3,
+            "strikeWindowDays": 30,
+            "hostelReminderHoursLeft": [
+              12,
+              2
+            ],
+            "moveInReminderHoursLeft": [
+              24
+            ],
+            "shortStayMinMarkupPercent": 20,
+            "shortStayHostelSharePercent": 70,
+            "shortStayMaxNights": 29,
+            "shortStayMaxAdvanceDays": 60
+          },
+          "pending": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  }
+]

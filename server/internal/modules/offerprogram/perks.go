@@ -1,5 +1,5 @@
-// Package offerprogram: so far the public perk catalogue
-// (offer-program.service.ts getPublicOfferPerks); awards land with Phase 7.
+// Package offerprogram is the Resident Offer Program: the public perk catalogue
+// and the superadmin's quarter view, perks and awards (offer-program.service.ts).
 package offerprogram
 
 import (

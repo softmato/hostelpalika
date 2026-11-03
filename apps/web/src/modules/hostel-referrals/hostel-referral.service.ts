@@ -642,7 +642,11 @@ export async function getPlatformReferralOverview() {
     HostelReferralModel.find().sort({ createdAt: -1 }).limit(200).lean<ReferralRecord[]>(),
   ]);
 
-  const statsByCode = new Map(stats.map((row) => [row._id.toString(), row]));
+  // The group key is not a stat (it was sent to the page as `stats._id`), and a
+  // referral with no code groups under null, which has no toString.
+  const statsByCode = new Map(
+    stats.flatMap(({ _id, ...row }) => (_id ? [[_id.toString(), row] as const] : [])),
+  );
   const codeNames = new Map(partnerCodes.map((code) => [code._id.toString(), code.name ?? ""]));
   const names = await hostelNames(
     rows.flatMap((row) => [row.refereeHostelId, ...(row.referrerHostelId ? [row.referrerHostelId] : [])]),

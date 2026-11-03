@@ -1,5 +1,5 @@
-import { PlatformUsagePageContent } from "@/app/_components/platform-usage-page";
+import { PlatformSystemPage } from "@/app/_components/platform-system-page";
 
 export default function PlatformAnalyticsPage() {
-  return <PlatformUsagePageContent />;
+  return <PlatformSystemPage tab="analytics" />;
 }

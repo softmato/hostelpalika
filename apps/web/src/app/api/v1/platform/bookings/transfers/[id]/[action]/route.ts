@@ -27,7 +27,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     if (action === "reveal") {
-      return successResponse(await revealTransferDestination(id, principal), "Account number");
+      // A full account number is never cached (P7-33).
+      return successResponse(await revealTransferDestination(id, principal), "Account number", {
+        headers: { "cache-control": "no-store" },
+      });
     }
 
     return new Response("Not found", { status: 404 });

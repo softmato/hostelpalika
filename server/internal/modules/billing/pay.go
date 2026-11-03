@@ -2,7 +2,6 @@ package billing
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -32,7 +31,7 @@ const (
 	evidenceMaxAge    = 14 * 24 * time.Hour
 	claimNoteMax      = 500
 	claimReferenceMax = 64
-	softmatoDownMsg   = "Our parent company's server is not responding right now. We have saved this and will email you to complete it as soon as the server is back. Thank you for your patience."
+	softmatoDownMsg   = softmato.DownMessage
 )
 
 func payErr(status int, code, message string) error {
@@ -68,6 +67,7 @@ type planInvoice struct {
 	PeriodStart    *time.Time    `bson:"periodStart"`
 	PlanID         string        `bson:"planId"`
 	PlanName       string        `bson:"planName"`
+	Source         string        `bson:"source"`
 	SoftmatoID     *string       `bson:"softmatoInvoiceId"`
 	SoftmatoNo     *string       `bson:"softmatoInvoiceNo"`
 	Status         string        `bson:"status"`
@@ -481,26 +481,13 @@ func (s *Service) openCheckout(ctx context.Context, hostelID bson.ObjectID, user
 
 // softmatoFailure is unlessSoftmatoDown: down is remembered and said plainly; a refusal is said as one.
 func (s *Service) softmatoFailure(ctx context.Context, inv *planInvoice, err error) error {
-	var api *softmato.APIError
-	if errors.As(err, &api) && !softmato.IsDown(err) {
-		slog.ErrorContext(ctx, "softmato_request_rejected", "code", api.Code, "status", api.Status, "error", api.Message)
-		msg := api.Message
-		if msg == "" {
-			msg = "the request was refused."
+	return softmato.Unless(ctx, err, func(ctx context.Context) error {
+		mail, _, hostelName, err := s.billingContact(ctx, inv.HostelID)
+		if err != nil {
+			return err
 		}
-		return payErr(502, "SOFTMATO_REJECTED", "Our payment server could not accept this: "+msg)
-	}
-	if !softmato.IsDown(err) {
-		return err
-	}
-	mail, _, hostelName, cerr := s.billingContact(ctx, inv.HostelID)
-	if cerr == nil {
-		cerr = s.rememberTask(ctx, mail, hostelName, inv.ID.Hex())
-	}
-	if cerr != nil {
-		return cerr
-	}
-	return payErr(503, "SOFTMATO_UNAVAILABLE", softmatoDownMsg)
+		return s.rememberTask(ctx, mail, hostelName, inv.ID.Hex())
+	})
 }
 
 func noHostel() error { return payErr(400, "NO_HOSTEL", "No hostel in scope.") }
@@ -515,40 +502,7 @@ func (a *Admin) checkout(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	if !strings.Contains(c.GetHeader("accept"), "application/x-ndjson") {
-		out, err := a.Service.openCheckout(c, id, p.UserID, func(string) {})
-		if err != nil {
-			httpx.Fail(c, err)
-			return
-		}
-		httpx.OK(c, out, "Checkout opened")
-		return
-	}
-	// progressResponse: each stage as it starts, for the hand-off screen.
-	c.Header("Cache-Control", "private, no-store")
-	c.Header("Content-Type", "application/x-ndjson; charset=utf-8")
-	c.Header("X-Accel-Buffering", "no")
-	c.Status(200)
-	send := func(v any) {
-		line, err := json.Marshal(v)
-		if err == nil {
-			_, _ = c.Writer.Write(append(line, '\n'))
-			c.Writer.Flush()
-		}
-	}
-	out, err := a.Service.openCheckout(c, id, p.UserID, func(name string) { send(gin.H{"step": name}) })
-	if err != nil {
-		code, message := "INTERNAL_SERVER_ERROR", "Something went wrong."
-		var he *httpx.Error
-		if errors.As(err, &he) {
-			code, message = he.ErrorCode, he.Message
-		} else {
-			slog.ErrorContext(c, "billing_checkout_failed", "error", err.Error())
-		}
-		send(gin.H{"error": gin.H{"errorCode": code, "message": message}})
-		return
-	}
-	send(gin.H{"data": out})
+	httpx.Progress(c, "Checkout opened", func(step func(string)) (any, error) { return a.Service.openCheckout(c, id, p.UserID, step) })
 }
 
 type claimOut struct {
@@ -634,71 +588,70 @@ func (a *Admin) claim(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	proofID := stringField(body, "proofAssetId")
-	if proofID == "" {
-		httpx.Fail(c, payErr(422, "PROOF_REQUIRED", "Attach a screenshot of your payment before submitting."))
-		return
-	}
-	s := a.Service
-	inv, err := s.payableInvoice(c, hostelID)
+	out, err := a.Service.SubmitClaim(c, hostelID, p.UserID, stringField(body, "proofAssetId"), stringField(body, "reference"), stringField(body, "note"))
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
-	outstanding, err := s.outstanding(c, inv)
+	httpx.OK(c, struct {
+		Claim claimOut `json:"claim"`
+	}{out}, "Payment proof submitted")
+}
+
+// SubmitClaim is submitPlanPaymentClaim: the portal's and the public checkout's.
+func (s *Service) SubmitClaim(ctx context.Context, hostelID bson.ObjectID, userID, proofID, reference, note string) (claimOut, error) {
+	if proofID == "" {
+		return claimOut{}, payErr(422, "PROOF_REQUIRED", "Attach a screenshot of your payment before submitting.")
+	}
+	inv, err := s.payableInvoice(ctx, hostelID)
+	if err != nil {
+		return claimOut{}, err
+	}
+	outstanding, err := s.outstanding(ctx, inv)
 	if err == nil && outstanding <= 0 {
 		err = payErr(409, "ALREADY_SETTLED", "This invoice is already settled in full.")
 	}
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
-	err = s.DB.Collection("subscriptionpayments").FindOne(c, bson.D{{Key: "invoiceId", Value: inv.ID}, {Key: "status", Value: "IN_REVIEW"}}, options.FindOne().SetProjection(bson.D{{Key: "_id", Value: 1}})).Err()
+	inReview := payErr(409, "CLAIM_ALREADY_IN_REVIEW", "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified.")
+	err = s.DB.Collection("subscriptionpayments").FindOne(ctx, bson.D{{Key: "invoiceId", Value: inv.ID}, {Key: "status", Value: "IN_REVIEW"}}, options.FindOne().SetProjection(bson.D{{Key: "_id", Value: 1}})).Err()
 	if err == nil {
-		httpx.Fail(c, payErr(409, "CLAIM_ALREADY_IN_REVIEW", "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified."))
-		return
+		return claimOut{}, inReview
 	}
 	if !errors.Is(err, mongo.ErrNoDocuments) {
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
-	proof, err := s.loadProof(c, proofID, hostelID.Hex(), p.UserID)
+	proof, err := s.loadProof(ctx, proofID, hostelID.Hex(), userID)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
-	actor, err := httpx.OID(p.UserID, "user id")
+	actor, err := httpx.OID(userID, "user id")
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
-	reference := stringField(body, "reference")
 	id := bson.NewObjectID()
 	now := time.Now().UTC().Truncate(time.Millisecond)
-	if _, err := s.DB.Collection("subscriptionpayments").InsertOne(c, bson.D{{Key: "_id", Value: id}, {Key: "amount", Value: outstanding}, {Key: "currency", Value: "NPR"}, {Key: "claimNote", Value: optionalText(stringField(body, "note"), claimNoteMax)}, {Key: "claimedAt", Value: now},
+	if _, err := s.DB.Collection("subscriptionpayments").InsertOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "amount", Value: outstanding}, {Key: "currency", Value: "NPR"}, {Key: "claimNote", Value: optionalText(note, claimNoteMax)}, {Key: "claimedAt", Value: now},
 		{Key: "gatewayReference", Value: optionalText(reference, claimReferenceMax)}, {Key: "hostelId", Value: inv.HostelID}, {Key: "invoiceId", Value: inv.ID}, {Key: "isMocked", Value: false}, {Key: "method", Value: "MANUAL"}, {Key: "proofAssetId", Value: proof},
 		{Key: "recordedBy", Value: actor}, {Key: "status", Value: "IN_REVIEW"}, {Key: "subscriptionId", Value: inv.SubscriptionID}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}); err != nil {
 		// PLAN-1: the partial unique index on {invoiceId} while IN_REVIEW refuses the
 		// second of two claims sent at once; it reads as the check above would have.
 		if mongo.IsDuplicateKeyError(err) {
-			httpx.Fail(c, payErr(409, "CLAIM_ALREADY_IN_REVIEW", "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified."))
-			return
+			return claimOut{}, inReview
 		}
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
-	if err := a.Audit.Write(c, audit.Entry{Action: "SUBSCRIPTION_PAYMENT_CLAIM_SUBMITTED", ActorID: actor, ActorType: "USER", EntityID: id.Hex(), EntityType: "SubscriptionPayment", HostelID: inv.HostelID,
+	if err := s.Audit.Write(ctx, audit.Entry{Action: "SUBSCRIPTION_PAYMENT_CLAIM_SUBMITTED", ActorID: actor, ActorType: "USER", EntityID: id.Hex(), EntityType: "SubscriptionPayment", HostelID: inv.HostelID,
 		Metadata: bson.D{{Key: "amount", Value: outstanding}, {Key: "invoiceNumber", Value: inv.InvoiceNumber}, {Key: "proofAssetId", Value: proof.Hex()}}}); err != nil {
-		httpx.Fail(c, err)
-		return
+		return claimOut{}, err
 	}
 	var sub struct {
 		CurrentPeriodEnd *time.Time `bson:"currentPeriodEnd"`
 		DueBy            *time.Time `bson:"dueBy"`
 	}
-	if err := s.DB.Collection("hostelsubscriptions").FindOne(c, bson.D{{Key: "_id", Value: inv.SubscriptionID}}).Decode(&sub); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		httpx.Fail(c, err)
-		return
+	if err := s.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "_id", Value: inv.SubscriptionID}}).Decode(&sub); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return claimOut{}, err
 	}
 	// A claim that was accepted was accepted, mail or no mail.
 	if inv.BilledTo.Email != "" {
@@ -713,13 +666,11 @@ func (a *Admin) claim(c *gin.Context) {
 			hostel = "your hostel"
 		}
 		m := email.SubscriptionClaimReceived(outstanding, hostel, inv.InvoiceNumber, inv.BilledTo.Name, inv.PlanName, strings.TrimSpace(reference), until)
-		if r := a.Mail.Send(c, email.Message{Category: m.Category, To: []string{inv.BilledTo.Email}, Subject: m.Subject, HTML: m.HTML}); !r.Sent {
-			slog.WarnContext(c, "subscription_claim_received_email_failed", "reason", r.Reason)
+		if r := s.Mail.Send(ctx, email.Message{Category: m.Category, To: []string{inv.BilledTo.Email}, Subject: m.Subject, HTML: m.HTML}); !r.Sent {
+			slog.WarnContext(ctx, "subscription_claim_received_email_failed", "reason", r.Reason)
 		}
 	}
-	httpx.OK(c, struct {
-		Claim claimOut `json:"claim"`
-	}{claimOut{outstanding, httpx.ISO(now), id.Hex(), inv.InvoiceNumber}}, "Payment proof submitted")
+	return claimOut{outstanding, httpx.ISO(now), id.Hex(), inv.InvoiceNumber}, nil
 }
 
 type instructionsClaim struct {
@@ -763,14 +714,23 @@ func (a *Admin) payInstructions(c *gin.Context) {
 		httpx.OK(c, instructionsWrap{}, "No hostel in scope")
 		return
 	}
-	s := a.Service
-	state, err := s.State(c, id)
+	out, err := a.Service.Instructions(c, id)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
+	httpx.OK(c, instructionsWrap{out}, "Payment instructions loaded")
+}
+
+// Instructions is getPlanPaymentInstructions: the QR, the amount and the
+// reference to quote, and any claim already waiting.
+func (s *Service) Instructions(ctx context.Context, id bson.ObjectID) (instructions, error) {
+	state, err := s.State(ctx, id)
+	if err != nil {
+		return instructions{}, err
+	}
 	var out instructions
-	ops := s.Config.OperationsTyped(c)
+	ops := s.Config.OperationsTyped(ctx)
 	if ops.CollectionQrURL != "" {
 		label := ops.CollectionQrLabel
 		if label == "" {
@@ -782,25 +742,22 @@ func (a *Admin) payInstructions(c *gin.Context) {
 		out.DueBy = state.Subscription.DueBy
 	}
 	if state == nil || state.Invoice == nil {
-		httpx.OK(c, instructionsWrap{out}, "Payment instructions loaded")
-		return
+		return out, nil
 	}
 	invoiceID, err := bson.ObjectIDFromHex(state.Invoice.ID)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return out, err
 	}
 	var pending struct {
 		Amount    int64      `bson:"amount"`
 		ClaimedAt *time.Time `bson:"claimedAt"`
 		Reference *string    `bson:"gatewayReference"`
 	}
-	err = s.DB.Collection("subscriptionpayments").FindOne(c, bson.D{{Key: "invoiceId", Value: invoiceID}, {Key: "status", Value: "IN_REVIEW"}}, options.FindOne().SetSort(bson.D{{Key: "claimedAt", Value: -1}})).Decode(&pending)
+	err = s.DB.Collection("subscriptionpayments").FindOne(ctx, bson.D{{Key: "invoiceId", Value: invoiceID}, {Key: "status", Value: "IN_REVIEW"}}, options.FindOne().SetSort(bson.D{{Key: "claimedAt", Value: -1}})).Decode(&pending)
 	if err == nil {
 		out.Claim = &instructionsClaim{pending.Amount, iso(pending.ClaimedAt), pending.Reference}
 	} else if !errors.Is(err, mongo.ErrNoDocuments) {
-		httpx.Fail(c, err)
-		return
+		return out, err
 	}
 	out.AmountDue = state.Outstanding
 	out.Invoice = &instructionsInvoice{state.Invoice.ID, state.Invoice.Number, state.Invoice.PlanName}
@@ -810,7 +767,7 @@ func (a *Admin) payInstructions(c *gin.Context) {
 			out.Overdue = t.Before(time.Now())
 		}
 	}
-	httpx.OK(c, instructionsWrap{out}, "Payment instructions loaded")
+	return out, nil
 }
 
 func (a *Admin) renew(c *gin.Context) {
@@ -852,103 +809,12 @@ func (a *Admin) renew(c *gin.Context) {
 // raiseRenewal is raiseRenewalInvoice for the portal's own button: extends the running
 // plan, on the same plan or a bigger one.
 func (s *Service) raiseRenewal(ctx context.Context, hostelID bson.ObjectID, cycle plans.Cycle, planID, userID string) (bool, error) {
-	got, err := GetOrCreateSubscription(ctx, s.DB, hostelID, "PUBLIC", nil)
-	if err != nil {
-		return false, err
-	}
-	if got.LifetimeSince != nil {
-		return false, payErr(409, "LIFETIME_PLAN", "This hostel is on a lifetime plan. There is nothing to renew or change.")
-	}
-	var sub struct {
-		ID               bson.ObjectID  `bson:"_id"`
-		HostelID         bson.ObjectID  `bson:"hostelId"`
-		AgentID          *bson.ObjectID `bson:"agentId"`
-		CurrentPeriodEnd *time.Time     `bson:"currentPeriodEnd"`
-		Status           string         `bson:"status"`
-	}
-	if err := s.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "_id", Value: got.ID}}).Decode(&sub); err != nil {
-		return false, err
-	}
-	open, err := s.openPlanInvoice(ctx, sub.ID)
-	if err != nil {
-		return false, err
-	}
-	if open != nil {
-		_, err := s.ensureRaised(ctx, open, false)
-		return true, err
-	}
-	var hostel struct {
-		Name     string `bson:"name"`
-		Verified string `bson:"verificationStatus"`
-	}
-	if err := s.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: sub.HostelID}}).Decode(&hostel); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false, payErr(404, "HOSTEL_NOT_FOUND", "Hostel not found.")
-		}
-		return false, err
-	}
-	if hostel.Verified != "VERIFIED" {
-		return false, payErr(409, "NOT_VERIFIED", "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.")
-	}
-	stored, err := s.catalog(ctx)
-	if err != nil {
-		return false, err
-	}
-	period, err := bs.CurrentPeriod(time.Now())
-	if err != nil {
-		return false, err
-	}
-	plan := plans.GetPlan(plans.SellingCatalog(stored, period), planID)
-	if plan == nil {
-		return false, payErr(404, "PLAN_NOT_FOUND", "That plan is no longer available. Choose another one.")
-	}
-	total := plans.CycleTotal(*plan, cycle)
-	if total <= 0 {
-		return false, payErr(409, "PLAN_NOT_PRICED", "That plan has no price set, so it cannot be invoiced. Ask the platform team to price it.")
-	}
-	if err := s.assertBranchesFit(ctx, sub.HostelID, stored, plan.ID); err != nil {
-		return false, err
-	}
-	months := plans.CycleMonths(cycle)
-	now := time.Now().UTC().Truncate(time.Millisecond)
-	start, end, err := servicePeriod(months, sub.CurrentPeriodEnd, now)
-	if err != nil {
-		return false, err
-	}
-	mail, ownerName, _, err := s.billingContact(ctx, sub.HostelID)
-	if err != nil {
-		return false, err
-	}
-	number, err := s.allocateInvoiceNumber(ctx, sub.HostelID)
-	if err != nil {
-		return false, err
-	}
-	amount := int64(total)
-	inv := &planInvoice{ID: bson.NewObjectID(), Amount: amount, Cycle: string(cycle), CycleMonths: months, HostelID: sub.HostelID, InvoiceNumber: number, IssuedAt: &now, Kind: "PLAN", PeriodEnd: &end, PeriodStart: &start, PlanID: plan.ID, PlanName: plan.Name, Status: "OPEN", SubscriptionID: sub.ID}
-	inv.BilledTo.Email, inv.BilledTo.HostelName, inv.BilledTo.Name = mail, hostel.Name, ownerName
-	due := bs.DayEnd(now, s.Config.OperationsTyped(ctx).SubscriptionDueGraceDays)
-	inv.DueAt = &due
-	if _, err := s.DB.Collection("subscriptioninvoices").InsertOne(ctx, bson.D{{Key: "_id", Value: inv.ID}, {Key: "agentId", Value: sub.AgentID}, {Key: "amount", Value: amount}, {Key: "billedTo", Value: bson.D{{Key: "email", Value: mail}, {Key: "hostelName", Value: hostel.Name}, {Key: "name", Value: ownerName}}},
-		{Key: "currency", Value: "NPR"}, {Key: "cycle", Value: string(cycle)}, {Key: "cycleMonths", Value: months}, {Key: "dueAt", Value: due}, {Key: "hostelId", Value: sub.HostelID}, {Key: "invoiceNumber", Value: number}, {Key: "issuedAt", Value: now}, {Key: "kind", Value: "PLAN"}, {Key: "lifetime", Value: false},
-		{Key: "periodEnd", Value: end}, {Key: "periodStart", Value: start}, {Key: "planId", Value: plan.ID}, {Key: "planName", Value: plan.Name}, {Key: "source", Value: "PUBLIC"}, {Key: "status", Value: "OPEN"}, {Key: "subscriptionId", Value: sub.ID},
-		{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}); err != nil {
-		return false, err
-	}
-	if _, err := s.ensureRaised(ctx, inv, false); err != nil {
-		return false, err
-	}
-	// A running plan stays ACTIVE while its renewal is open: that is paying early, not owing.
-	if sub.Status != "ACTIVE" {
-		if _, err := s.DB.Collection("hostelsubscriptions").UpdateOne(ctx, bson.D{{Key: "_id", Value: sub.ID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "AWAITING_PAYMENT"}, {Key: "updatedAt", Value: now}}}}); err != nil {
-			return false, err
-		}
-	}
 	actor, err := httpx.OID(userID, "user id")
 	if err != nil {
 		return false, err
 	}
-	return false, s.Audit.Write(ctx, audit.Entry{Action: "SUBSCRIPTION_RENEWAL_INVOICE_ISSUED", ActorID: actor, ActorType: "USER", EntityID: inv.ID.Hex(), EntityType: "SubscriptionInvoice", HostelID: sub.HostelID,
-		Metadata: bson.D{{Key: "amount", Value: amount}, {Key: "cycle", Value: string(cycle)}, {Key: "invoiceNumber", Value: number}, {Key: "lifetime", Value: false}, {Key: "planId", Value: plan.ID}}})
+	_, reused, err := s.RaiseRenewalInvoice(ctx, hostelID, RenewalIn{Cycle: cycle, PlanID: planID}, &actor, RenewalOptions{})
+	return reused, err
 }
 
 // allocateInvoiceNumber is allocateNumber: per hostel for life, with a hostel suffix, so

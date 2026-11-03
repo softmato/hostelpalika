@@ -1,6 +1,6 @@
-// Package hostelleave is the signed-in owner's side of a hostel that left: what they
-// can still claim back and the files kept for them. Filing and reviewing a request
-// land with Phases 6 and 7.
+// Package hostelleave is a hostel leaving the platform: the owner's request
+// (/hostel-admin/leave), the superadmin's review (/platform/hostel-leaves), and
+// afterwards what the owner can still claim back and the files kept for them.
 package hostelleave
 
 import (
@@ -20,6 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
+	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
@@ -54,6 +55,7 @@ type Handler struct {
 	DB     *mongo.Database
 	Guards *authz.Guards
 	R2     *storage.R2
+	BG     *background.Runner
 	Mail   *email.Sender
 	Audit  *audit.Log
 	AppURL func(string) string
@@ -113,6 +115,7 @@ type request struct {
 	Reason      string          `bson:"reason"`
 	ReclaimedAt *time.Time      `bson:"reclaimedAt"`
 	RequestedAt time.Time       `bson:"requestedAt"`
+	RequestedBy *bson.ObjectID  `bson:"requestedBy"`
 	ReviewNote  *string         `bson:"reviewNote"`
 	ReviewedAt  *time.Time      `bson:"reviewedAt"`
 	Status      string          `bson:"status"`
@@ -556,9 +559,8 @@ type held struct {
 	req     *request
 }
 
-// held is heldFiles. A hostel that left before its records were filed asks for them
-// to be built; ponytail: Go only reports them pending, because the export is
-// platform/hostel-leaves' (Phase 7) and TS still runs the build until then.
+// held is heldFiles. A hostel that left before its records were filed (or before
+// the CSV pack) has them built again, after the response.
 func (h *Handler) held(ctx context.Context, userID, requestID string) (*held, error) {
 	id, err := oidOf(requestID)
 	if err != nil {
@@ -586,12 +588,11 @@ func (h *Handler) held(ctx context.Context, userID, requestID string) (*held, er
 		complete = complete || strings.HasSuffix(req.ExportFiles[i].FileName, ".csv")
 	}
 	pending := false
-	if !complete && len(req.Sections) > 0 {
-		err := h.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: req.HostelID}}).Err()
-		if err != nil && err != mongo.ErrNoDocuments {
+	if !complete {
+		// Built after the response, never inside it; the page polls until it clears.
+		if pending, err = h.scheduleBuild(ctx, req); err != nil {
 			return nil, err
 		}
-		pending = err == nil
 	}
 	hostels := bson.A{req.HostelID}
 	for _, b := range req.BranchIDs {

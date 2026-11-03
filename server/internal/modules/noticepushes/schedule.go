@@ -54,8 +54,8 @@ func weekdayOf(date string) int {
 }
 
 // nextOccurrence is the first run strictly after `after`, or ok=false when the
-// schedule has nothing left. A backlog is never replayed.
-func nextOccurrence(repeat, startsOn, clock string, weekdays []int, after time.Time) (time.Time, bool) {
+// schedule has nothing left (past endsOn, "" = none). A backlog is never replayed.
+func nextOccurrence(repeat, startsOn, endsOn, clock string, weekdays []int, after time.Time) (time.Time, bool) {
 	if repeat == "ONCE" {
 		at, ok := wallToUTC(startsOn, clock)
 		return at, ok && at.After(after)
@@ -70,6 +70,9 @@ func nextOccurrence(repeat, startsOn, clock string, weekdays []int, after time.T
 	}
 	// Eight days covers any weekday set; the extra one is today's time already gone.
 	for range 8 {
+		if endsOn != "" && date > endsOn {
+			return time.Time{}, false
+		}
 		at, ok := wallToUTC(date, clock)
 		if !ok {
 			return time.Time{}, false
@@ -94,7 +97,7 @@ func NextRun(t Timing, after time.Time) *time.Time {
 	if startsOn == "" {
 		startsOn = nepalDateOf(after)
 	}
-	at, ok := nextOccurrence(repeat, startsOn, t.Time, t.Weekdays, after)
+	at, ok := nextOccurrence(repeat, startsOn, "", t.Time, t.Weekdays, after)
 	if !ok {
 		return nil
 	}

@@ -433,3 +433,11 @@ func (s *Sender) SendBatch(ctx context.Context, msgs []Message) []Result {
 	}
 	return results
 }
+
+// ResetIdentity is resetEmailIdentityCache: a site-config save of `email` or
+// `identity` shows in the next email, not the next minute.
+func (s *Sender) ResetIdentity() {
+	s.mu.Lock()
+	s.cached = nil
+	s.mu.Unlock()
+}

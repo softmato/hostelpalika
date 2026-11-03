@@ -127,6 +127,31 @@ func TestPresignAndKeys(t *testing.T) {
 	}
 }
 
+// Outside production a live object is readable but never written or deleted.
+func TestWriteRootFence(t *testing.T) {
+	r, objects := fakeS3(t)
+	ctx := context.Background()
+	live := "dev/uploads/live.jpg"
+	objects["/priv/"+live] = []byte("real")
+	r.cfg.WriteRoot = "dev/go-dev"
+	if b := r.ReadStoredObject(ctx, "priv", live); string(b) != "real" {
+		t.Fatalf("live read %q", b)
+	}
+	if r.Put(ctx, "priv", live, []byte("x"), "image/jpeg", "") == nil || r.Delete(ctx, "priv", live) == nil {
+		t.Fatal("a live key must be refused")
+	}
+	if _, err := r.PresignUpload(ctx, "priv", live, "image/jpeg"); err == nil {
+		t.Fatal("a live presigned upload must be refused")
+	}
+	if string(objects["/priv/"+live]) != "real" {
+		t.Fatal("live object changed")
+	}
+	key := r.GenerateFileKey("uploads", "a.png")
+	if !strings.HasPrefix(key, "dev/go-dev/uploads/") || r.Put(ctx, "priv", key, []byte("x"), "image/png", "") != nil || r.Delete(ctx, "priv", key) != nil {
+		t.Fatalf("test key %q must be writable", key)
+	}
+}
+
 func TestSniffAndRules(t *testing.T) {
 	for b, want := range map[string]Family{
 		"\xff\xd8\xff\xe0": JPEG, "RIFF\x00\x00\x00\x00WEBPVP8 ": WEBP, "PK\x03\x04": ZIP,

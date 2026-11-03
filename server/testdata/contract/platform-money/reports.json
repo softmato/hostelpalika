@@ -1,0 +1,503 @@
+[
+  {
+    "name": "payments signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/payments"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "payments",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform payments loaded",
+        "data": {
+          "overview": {
+            "outstanding": 500000,
+            "pendingProofs": 0,
+            "statusCounts": {
+              "PAID": 1,
+              "PARTIAL": 1,
+              "PENDING_PROOF": 1
+            },
+            "totalDue": 1100000,
+            "totalPaid": 600000
+          },
+          "proofs": [],
+          "recent": [
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-11-04T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000012",
+              "month": "2083-06",
+              "paidAmount": 100000,
+              "status": "PARTIAL"
+            },
+            {
+              "dueAmount": 100000,
+              "dueDate": "2026-11-05T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000013",
+              "month": null,
+              "paidAmount": 0,
+              "status": "PENDING_PROOF"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-10-04T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000011",
+              "month": "2083-05",
+              "paidAmount": 500000,
+              "status": "PAID"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "payments page",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/payments?page=1\u0026pageSize=2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform payments loaded",
+        "data": {
+          "overview": {
+            "outstanding": 500000,
+            "pendingProofs": 0,
+            "statusCounts": {
+              "PAID": 1,
+              "PARTIAL": 1,
+              "PENDING_PROOF": 1
+            },
+            "totalDue": 1100000,
+            "totalPaid": 600000
+          },
+          "proofs": [],
+          "recent": [
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-11-04T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000012",
+              "month": "2083-06",
+              "paidAmount": 100000,
+              "status": "PARTIAL"
+            },
+            {
+              "dueAmount": 100000,
+              "dueDate": "2026-11-05T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000013",
+              "month": null,
+              "paidAmount": 0,
+              "status": "PENDING_PROOF"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-10-04T13:31:08.509Z",
+              "hostelName": "Contract Hostel",
+              "id": "6c0000000000000000000011",
+              "month": "2083-05",
+              "paidAmount": 500000,
+              "status": "PAID"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "dashboard signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/dashboard"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "dashboard as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "dashboard",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform report loaded",
+        "data": {
+          "report": {
+            "activeResidents": 9,
+            "complaints": 3,
+            "inquiries": 0,
+            "openListingFlags": 0,
+            "outstandingPayments": 500000,
+            "pendingApprovals": 1,
+            "platformPayments": 600000,
+            "reviews": 3,
+            "serviceProviders": 8,
+            "series": {
+              "bucketDays": 7,
+              "hostels": [
+                4,
+                0,
+                0,
+                8,
+                0
+              ],
+              "inquiries": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "labels": [
+                "2026-10-06T13:31:11.617Z",
+                "2026-10-13T13:31:11.617Z",
+                "2026-10-20T13:31:11.617Z",
+                "2026-10-27T13:31:11.617Z",
+                "2026-11-03T13:31:11.617Z"
+              ],
+              "revenue": [
+                500000,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            "totalHostels": 24,
+            "trends": {
+              "activeResidents": {
+                "changePercent": 66.7,
+                "current": 5,
+                "previous": 3
+              },
+              "complaints": {
+                "changePercent": null,
+                "current": 3,
+                "previous": 0
+              },
+              "inquiries": {
+                "changePercent": null,
+                "current": 0,
+                "previous": 0
+              },
+              "pendingApprovals": {
+                "changePercent": null,
+                "current": 1,
+                "previous": 0
+              },
+              "platformPayments": {
+                "changePercent": null,
+                "current": 500000,
+                "previous": 0
+              },
+              "serviceProviders": {
+                "changePercent": -100,
+                "current": 0,
+                "previous": 8
+              },
+              "totalHostels": {
+                "changePercent": 100,
+                "current": 8,
+                "previous": 4
+              }
+            },
+            "windowDays": 30
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "export as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/export?report=hostels\u0026format=csv\u0026months=3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "export bad report",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/export?report=nope\u0026format=csv\u0026months=3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "report": [
+              "Invalid option: expected one of \"hostels\"|\"residents\"|\"payments\"|\"complaints\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"hostels\"|\"residents\"|\"payments\"|\"complaints\"",
+              "path": "report"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "export hostels csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/export?report=hostels\u0026format=csv\u0026months=3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "export payments csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/reports/export?report=payments\u0026format=csv\u0026months=12",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "questioncall analytics signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/questioncall/analytics"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "questioncall analytics",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/questioncall/analytics",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "QuestionCall analytics loaded",
+        "data": {
+          "byDay": [],
+          "byHostel": [],
+          "summary": {
+            "conversionRate": 0,
+            "conversions": 0,
+            "totalClicks": 0,
+            "uniqueResidents": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "questioncall analytics bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/questioncall/analytics?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "questioncall analytics csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/questioncall/analytics?format=csv",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -113,7 +113,7 @@ func featurePath(feature string) string {
 // parse is usageBatchSchema.
 func parse(body any) (string, []event, error) {
 	f := valid.NewForm(body)
-	client, _ := f.Enum("client", false, nil, "app", "web")
+	client, _ := f.Enum("client", false, nil, "app", "pwa", "web")
 	var evs []event
 	if items, ok := f.Array("events", false, false); ok {
 		aborted := false

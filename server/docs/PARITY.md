@@ -107,7 +107,7 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | ☐ | Softmato billing | `@softmato/sdk`, `SOFTMATO_*`, `modules/billing/softmato/*` | HTTP client of the same calls |
 | ☑ | Google sign-in | Google ID token (`GOOGLE_CLIENT_ID`) | `google.golang.org/api/idtoken` |
 | ☐ | Google Drive backup | `GOOGLE_DRIVE_CLIENT_*`, `modules/backup` | `x/oauth2` + Drive v3 |
-| ☐ | QuestionCall | SSO `hp_code` handoff, conversion webhook (`QUESTIONCALL_WEBHOOK_SECRET`) | same |
+| ☑ | QuestionCall | SSO `hp_code` handoff, conversion webhook (`QUESTIONCALL_WEBHOOK_SECRET`) | same |
 | ☐ | Demo hostels | `modules/hostels/demo-hostels.json` merged server-side | same file, same merge |
 | ☐ | Site config / SEO config | `lib/site-config-server.ts`, `lib/seo-config.ts`, `modules/platform-config` | same `PlatformSetting` rows |
 
@@ -301,9 +301,9 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET POST | `/api/v1/bookings` | requireApiPrincipal, rateLimitPublicForm | etag | bookings |
 | ☑ | GET | `/api/v1/bookings/:id` | requireApiPrincipal | etag | bookings |
 | ☑ | POST | `/api/v1/bookings/:id/cancel` | requireApiPrincipal |  | bookings |
-| ☐ | POST | `/api/v1/bookings/:id/checkout` | requireApiPrincipal |  | bookings |
-| ☐ | POST | `/api/v1/bookings/:id/payment` | requireApiPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/bookings/:id/return` | requireApiPrincipal |  | bookings |
+| ☑ | POST | `/api/v1/bookings/:id/checkout` | requireApiPrincipal |  | bookings |
+| ☑ | POST | `/api/v1/bookings/:id/payment` | requireApiPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/bookings/:id/return` | requireApiPrincipal |  | bookings |
 | ☑ | GET | `/api/v1/bookings/availability` | public | etag | bookings, hostels |
 | ☑ | GET | `/api/v1/bookings/documents/:kind/:number` | requireApiPrincipal |  | bookings |
 | ☑ | GET | `/api/v1/bookings/guide` | public |  | bookings |
@@ -594,18 +594,18 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/hostel-registration/:hostelId/invoice` | requireApiPrincipal |  | billing |
-| ☐ | POST | `/api/v1/hostel-registration/:hostelId/pay` | requireApiPrincipal |  | billing |
-| ☐ | POST | `/api/v1/hostel-registration/:hostelId/plan` | requireApiPrincipal |  | billing, hostels |
-| ☐ | GET | `/api/v1/hostel-registration/:hostelId/state` | requireApiPrincipal | etag | billing |
-| ☐ | GET | `/api/v1/hostel-registration/return` | loadApiPrincipal, requireApiPrincipal |  | billing |
+| ☑ | POST | `/api/v1/hostel-registration/:hostelId/invoice` | requireApiPrincipal |  | billing |
+| ☑ | POST | `/api/v1/hostel-registration/:hostelId/pay` | requireApiPrincipal |  | billing |
+| ☑ | POST | `/api/v1/hostel-registration/:hostelId/plan` | requireApiPrincipal |  | billing, hostels |
+| ☑ | GET | `/api/v1/hostel-registration/:hostelId/state` | requireApiPrincipal | etag | billing |
+| ☑ | GET | `/api/v1/hostel-registration/return` | loadApiPrincipal, requireApiPrincipal |  | billing |
 
 ### `integrations` (2)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/integrations/questioncall/conversion` | public |  | questioncall |
-| ☐ | POST | `/api/v1/integrations/questioncall/sso` | public |  | questioncall |
+| ☑ | POST | `/api/v1/integrations/questioncall/conversion` | public |  | questioncall |
+| ☑ | POST | `/api/v1/integrations/questioncall/sso` | public |  | questioncall |
 
 ### `mobile` (1)
 
@@ -636,18 +636,18 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/platform/app-apk` | requireSuperadminPrincipal |  |  |
 | ☐ | GET | `/api/v1/platform/audit-logs` | requirePlatformPrincipal | etag | audit |
 | ☐ | GET | `/api/v1/platform/backup-status` | requireSuperadminPrincipal |  | backup |
-| ☐ | GET | `/api/v1/platform/bookings` | requireSuperadminPrincipal | etag | bookings |
-| ☐ | DELETE GET | `/api/v1/platform/bookings/:id` | requireSuperadminPrincipal | etag | bookings |
-| ☐ | GET | `/api/v1/platform/bookings/documents/:kind/:number` | requirePlatformPrincipal |  | bookings |
-| ☐ | POST | `/api/v1/platform/bookings/hostels/:hostelId/pause` | requireSuperadminPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/platform/bookings/payments` | requireSuperadminPrincipal | etag | bookings |
-| ☐ | POST | `/api/v1/platform/bookings/payments/:id` | requireSuperadminPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/platform/bookings/payout-accounts` | requireSuperadminPrincipal | etag | bookings |
-| ☐ | POST | `/api/v1/platform/bookings/payout-accounts/:hostelId/reveal` | requireSuperadminPrincipal |  | bookings |
-| ☐ | POST | `/api/v1/platform/bookings/payout-accounts/:hostelId/review` | requireSuperadminPrincipal |  | bookings |
-| ☐ | GET POST | `/api/v1/platform/bookings/settings` | requireSuperadminPrincipal | etag | bookings, platform-config |
-| ☐ | GET | `/api/v1/platform/bookings/transfers` | requireSuperadminPrincipal | etag | bookings |
-| ☐ | POST | `/api/v1/platform/bookings/transfers/:id/:action` | requireSuperadminPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/platform/bookings` | requireSuperadminPrincipal | etag | bookings |
+| ☑ | DELETE GET | `/api/v1/platform/bookings/:id` | requireSuperadminPrincipal | etag | bookings |
+| ☑ | GET | `/api/v1/platform/bookings/documents/:kind/:number` | requirePlatformPrincipal |  | bookings |
+| ☑ | POST | `/api/v1/platform/bookings/hostels/:hostelId/pause` | requireSuperadminPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/platform/bookings/payments` | requireSuperadminPrincipal | etag | bookings |
+| ☑ | POST | `/api/v1/platform/bookings/payments/:id` | requireSuperadminPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/platform/bookings/payout-accounts` | requireSuperadminPrincipal | etag | bookings |
+| ☑ | POST | `/api/v1/platform/bookings/payout-accounts/:hostelId/reveal` | requireSuperadminPrincipal |  | bookings |
+| ☑ | POST | `/api/v1/platform/bookings/payout-accounts/:hostelId/review` | requireSuperadminPrincipal |  | bookings |
+| ☑ | GET POST | `/api/v1/platform/bookings/settings` | requireSuperadminPrincipal | etag | bookings, platform-config |
+| ☑ | GET | `/api/v1/platform/bookings/transfers` | requireSuperadminPrincipal | etag | bookings |
+| ☑ | POST | `/api/v1/platform/bookings/transfers/:id/:action` | requireSuperadminPrincipal |  | bookings |
 | ☐ | GET | `/api/v1/platform/community` | requirePlatformPrincipal | etag | community |
 | ☐ | DELETE PATCH | `/api/v1/platform/community/:postId/hide` | requirePlatformPrincipal |  | community |
 | ☐ | GET | `/api/v1/platform/complaints` | requirePlatformPrincipal | etag | reports |
@@ -720,7 +720,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/platform/subscriptions/claims/:paymentId/review` | requirePlatformPrincipal |  | billing |
 | ☐ | GET | `/api/v1/platform/subscriptions/documents/:kind/:number` | requirePlatformPrincipal |  | billing |
 | ☐ | GET | `/api/v1/platform/team` | requireSuperadminPrincipal | etag | team |
-| ☐ | DELETE PATCH | `/api/v1/platform/team/members/:id` | requireSuperadminPrincipal |  | team |
+| ☑ | DELETE PATCH | `/api/v1/platform/team/members/:id` | requireSuperadminPrincipal |  | team |
 | ☐ | GET | `/api/v1/platform/team/wallets` | requireSuperadminPrincipal | etag | team |
 | ☐ | POST | `/api/v1/platform/team/wallets/:agentId` | requireSuperadminPrincipal |  | team |
 | ☐ | GET | `/api/v1/platform/usage` | requireSuperadminPrincipal |  | usage |
@@ -759,7 +759,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET | `/api/v1/public/lifetime` | public |  | billing |
 | ☑ | GET | `/api/v1/public/offer-perks` | public |  | offer-program |
 | ☑ | GET | `/api/v1/public/places` | rateLimitPublicForm | etag |  |
-| ☐ | POST | `/api/v1/public/plan-checkout` | rateLimitPublicForm |  | billing |
+| ☑ | POST | `/api/v1/public/plan-checkout` | rateLimitPublicForm |  | billing |
 | ☑ | GET | `/api/v1/public/pulse` | public |  | reports |
 | ☑ | POST | `/api/v1/public/search/parse` | public |  |  |
 | ☑ | GET | `/api/v1/public/service-providers` | public | etag | service-providers |
@@ -798,10 +798,10 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | POST | `/api/v1/resident/consent` | requireResidentPrincipal |  | attendance |
 | ☑ | GET | `/api/v1/resident/dashboard` | requireResidentPrincipal | redis etag | residents |
 | ☑ | GET | `/api/v1/resident/emergency-contacts` | requireResidentPrincipal | etag | safety |
-| ☐ | GET | `/api/v1/resident/finance/checkout/:reference` | requireResidentPrincipal | etag | finance (Phase 8) |
+| ☑ | GET | `/api/v1/resident/finance/checkout/:reference` | requireResidentPrincipal | etag | finance (Phase 8) |
 | ☑ | POST | `/api/v1/resident/finance/evidence/:assetId/read` | requireResidentPrincipal | max30s | finance, residents |
 | ☑ | GET | `/api/v1/resident/finance/invoices` | requireResidentPrincipal | etag | finance |
-| ☐ | POST | `/api/v1/resident/finance/invoices/:id/checkout` | requireResidentPrincipal |  | finance (Phase 8) |
+| ☑ | POST | `/api/v1/resident/finance/invoices/:id/checkout` | requireResidentPrincipal |  | finance (Phase 8) |
 | ☑ | POST | `/api/v1/resident/finance/invoices/:id/claims` | rateLimitPublicForm, requireResidentPrincipal |  | finance |
 | ☑ | GET | `/api/v1/resident/finance/invoices/:id/pay-instructions` | requireResidentPrincipal | etag | finance |
 | ☑ | GET POST | `/api/v1/resident/finance/khata` | requireResidentPrincipal | etag | finance |
@@ -855,14 +855,14 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | GET | `/api/v1/team/collection-qr` | requireTeamPrincipal | etag | platform-config |
 | ☐ | GET | `/api/v1/team/email-check` | requireTeamPrincipal | etag | hostels |
 | ☐ | GET | `/api/v1/team/geocode` | requireTeamPrincipal | etag | hostels |
-| ☐ | GET POST | `/api/v1/team/hostels` | requireTeamPrincipal | etag | hostels, team |
-| ☐ | POST | `/api/v1/team/hostels/:id/checkout` | requireTeamPrincipal |  | billing, team |
+| ☑ | GET POST | `/api/v1/team/hostels` | requireTeamPrincipal | etag | hostels, team |
+| ☑ | POST | `/api/v1/team/hostels/:id/checkout` | requireTeamPrincipal |  | billing, team |
 | ☐ | DELETE GET PUT | `/api/v1/team/hostels/:id/existing-residents` | in existing-residents.routes.ts |  | residents |
 | ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/add` | in existing-residents.routes.ts | max300s | residents |
 | ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/file` | in existing-residents.routes.ts |  | residents |
 | ☐ | GET | `/api/v1/team/hostels/:id/existing-residents/template` | in existing-residents.routes.ts |  | residents |
-| ☐ | GET POST | `/api/v1/team/prepayments` | requireTeamPrincipal | etag | hostels, team |
-| ☐ | GET PATCH | `/api/v1/team/prepayments/:id` | requireTeamPrincipal | etag | team |
+| ☑ | GET POST | `/api/v1/team/prepayments` | requireTeamPrincipal | etag | hostels, team |
+| ☑ | GET PATCH | `/api/v1/team/prepayments/:id` | requireTeamPrincipal | etag | team |
 | ☐ | GET PUT | `/api/v1/team/registration-track-sheet` | requireTeamPrincipal | etag | team |
 | ☐ | POST | `/api/v1/team/registration-track-sheet/focus` | requireTeamPrincipal |  |  |
 | ☐ | GET | `/api/v1/team/setup-fee` | requireTeamPrincipal | etag | platform-config |
@@ -895,8 +895,8 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/webhooks/:provider` | public |  | finance |
-| ☐ | POST | `/api/v1/webhooks/softmato` | public |  | billing |
+| ☑ | POST | `/api/v1/webhooks/:provider` | public |  | finance |
+| ☑ | POST | `/api/v1/webhooks/softmato` | public |  | billing |
 
 
 ---

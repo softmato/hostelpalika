@@ -1,0 +1,867 @@
+[
+  {
+    "name": "approve signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/approve"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve as hostel admin",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve branch as moderator",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000005/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only a superadmin approves a branch, after calling it.",
+        "errorCode": "BRANCH_NEEDS_SUPERADMIN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve kyc unsigned",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a1/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The owner has not signed the service agreement yet. It is the last step of their KYC.",
+        "errorCode": "AGREEMENT_NOT_SIGNED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve pending",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000001/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel approved",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "email": "queue-owner@contract.test",
+              "phone": "9800000131"
+            },
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000001",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Queue Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6d0d00000000000000000002",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "queue-hostel-kalanki",
+            "status": "APPROVED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:29:16.404Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve branch",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0d00000000000000000005/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel approved",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {},
+            "createdAt": "2026-09-21T04:15:00.000Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6d0d00000000000000000005",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "Balkhu",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Third",
+            "nameChangeCount": 0,
+            "ownerId": "6c0000000000000000000010",
+            "panNumber": null,
+            "parentHostelId": "6c00000000000000000000a3",
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 7000,
+              "monthlyRentMax": 9000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-third-balkhu",
+            "status": "APPROVED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:29:27.639Z",
+            "verificationStatus": "VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unpublish needs reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3/unpublish",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unpublish",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3/unpublish",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Photos are wrong"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel unpublished, but the owner could not be emailed",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "email": "owner@contract.test",
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-24T13:28:57.354Z",
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6c00000000000000000000a3",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6c0000000000000000000010",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "status": "APPROVED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:29:46.367Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "notification": {
+            "reason": "not_configured",
+            "sent": false,
+            "to": "owner@contract.test"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "publish again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3/publish",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel published, but the owner could not be emailed",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "email": "owner@contract.test",
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-24T13:28:57.354Z",
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6c00000000000000000000a3",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6c0000000000000000000010",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:29:52.149Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "notification": {
+            "reason": "not_configured",
+            "sent": false,
+            "to": "owner@contract.test"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "publish missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostels/6d0dffffffffffffffffffff/publish",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "listing back on the map",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostels/6c00000000000000000000a3",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel application loaded",
+        "data": {
+          "application": {
+            "applicantId": "6c0000000000000000000010",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6c00000000000000000000e3",
+            "infoRequestNote": "Please send your ID",
+            "infoRequestedAt": "2026-10-01T04:15:00.000Z",
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [
+              {
+                "documentType": "Citizenship",
+                "note": "Front and back"
+              },
+              {
+                "documentType": "PAN",
+                "note": ""
+              }
+            ],
+            "reviewedAt": null,
+            "snapshot": {
+              "name": "Fixture Lakeside Hostel",
+              "city": "Kathmandu",
+              "zStale": [
+                1,
+                "two"
+              ]
+            },
+            "status": "NEEDS_MORE_INFO",
+            "submittedAt": "2026-09-29T04:15:00.000Z",
+            "submittedBy": "6c0000000000000000000010"
+          },
+          "applicant": {
+            "email": "owner@contract.test",
+            "id": "6c0000000000000000000010",
+            "name": "Fixture Owner",
+            "phone": "",
+            "registeredAt": "2026-11-02T13:28:57.354Z",
+            "role": "HOSTEL_ADMIN"
+          },
+          "documents": [],
+          "branchOf": null,
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "email": "owner@contract.test",
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-24T13:28:57.354Z",
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "id": "6c00000000000000000000a3",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6c0000000000000000000010",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "status": "PUBLISHED",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-11-03T13:29:52.149Z",
+            "verificationStatus": "VERIFIED"
+          },
+          "owner": {
+            "email": "owner@contract.test",
+            "id": "6c0000000000000000000010",
+            "name": "Fixture Owner",
+            "phone": "",
+            "registeredAt": "2026-11-02T13:28:57.354Z",
+            "role": "HOSTEL_ADMIN"
+          },
+          "portals": [
+            {
+              "accounts": 1,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "HOSTEL_ADMIN"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "WARDEN"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "COOK"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "RESIDENT"
+            },
+            {
+              "accounts": 0,
+              "lastOpenedAt": null,
+              "opened": 0,
+              "role": "GUARDIAN"
+            }
+          ],
+          "submitter": {
+            "email": "owner@contract.test",
+            "id": "6c0000000000000000000010",
+            "name": "Fixture Owner",
+            "phone": "",
+            "registeredAt": "2026-11-02T13:28:57.354Z",
+            "role": "HOSTEL_ADMIN"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

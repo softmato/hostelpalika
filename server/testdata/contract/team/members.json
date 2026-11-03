@@ -1,0 +1,427 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "moderator refused",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad action",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "FIRE"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"SUSPEND\"|\"REINSTATE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"SUSPEND\"|\"REINSTATE\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid member id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "unknown member",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000099",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That team member was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend self",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0a00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot suspend your own account.",
+        "errorCode": "CANNOT_SUSPEND_SELF"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reinstate active",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "REINSTATE"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Team member reinstated",
+        "data": {
+          "member": {
+            "id": "6d0c00000000000000000001",
+            "status": "ACTIVE"
+          },
+          "reinstated": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Team member suspended",
+        "data": {
+          "member": {
+            "id": "6d0c00000000000000000001",
+            "status": "SUSPENDED"
+          },
+          "suspended": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "suspend again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Team member suspended",
+        "data": {
+          "member": {
+            "id": "6d0c00000000000000000001",
+            "status": "SUSPENDED"
+          },
+          "suspended": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reinstate",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "REINSTATE"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Team member reinstated",
+        "data": {
+          "member": {
+            "id": "6d0c00000000000000000001",
+            "status": "ACTIVE"
+          },
+          "reinstated": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "bad mode",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001?mode=fire",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Invalid option: expected one of \"remove\"|\"delete\""
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"remove\"|\"delete\"",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "delete with history",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001?mode=delete",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Contract Agent has 1 registration and 2 payments attributed to them, and the books have to keep pointing at a real account. Remove them from the team instead — that ends their access and leaves the history intact.",
+        "errorCode": "MEMBER_HAS_HISTORY"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "remove self",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0a00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot remove your own account from the team.",
+        "errorCode": "CANNOT_REMOVE_SELF"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "remove",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Removed from the team",
+        "data": {
+          "removed": true,
+          "restoredRole": "PUBLIC"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "removed is gone",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "action": "SUSPEND"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That team member was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "delete clean",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000002?mode=delete",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deleted",
+        "data": {
+          "deleted": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "deleted is gone",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/team/members/6d0c00000000000000000002?mode=delete",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That team member was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

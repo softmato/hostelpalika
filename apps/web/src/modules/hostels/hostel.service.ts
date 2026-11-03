@@ -940,6 +940,12 @@ export async function createPlatformHostelApplication(
   await connectToDatabase();
 
   const ownerId = normalizeObjectId(input.ownerId);
+
+  // A hostel filed for an id that is no account had no owner at all (P7-17).
+  if (!(await UserModel.exists({ _id: ownerId, isDeleted: { $ne: true } }))) {
+    throw new HostelServiceError("That owner account was not found.", "OWNER_NOT_FOUND", 404);
+  }
+
   const claimedDocuments = await claimRegistrationDocuments(input.documents, ownerId);
   const slug = await uniqueSlug(input.name, input.location.area);
 
@@ -3523,9 +3529,21 @@ export async function restorePlatformHostel(
     .select("userId")
     .lean<Array<{ userId?: Types.ObjectId | null }>>();
 
+  // Archiving pulled the hostel from every account, residents and cooks too;
+  // putting it back for the owner and staff only locked them out (P7-16).
+  const [residents, cooks] = await Promise.all([
+    ResidentModel.find({ hostelId: objectId, isDeleted: { $ne: true }, status: "ACTIVE", userId: { $ne: null } })
+      .select("userId")
+      .lean<Array<{ userId?: Types.ObjectId | null }>>(),
+    CookAccountModel.find({ hostelId: objectId, status: { $in: ["ACTIVE", "INVITED"] }, userId: { $ne: null } })
+      .select("userId")
+      .lean<Array<{ userId?: Types.ObjectId | null }>>(),
+  ]);
   const staffIds = [
     ...(hostel.ownerId ? [hostel.ownerId] : []),
     ...members.map((member) => member.userId).filter(Boolean),
+    ...residents.map((row) => row.userId).filter(Boolean),
+    ...cooks.map((row) => row.userId).filter(Boolean),
   ];
 
   if (staffIds.length > 0) {

@@ -163,10 +163,15 @@ export async function listFeedback(status?: string, role?: string) {
 export async function setFeedbackStatus(id: string, status: "NEW" | "SEEN" | "DONE", actorId: string) {
   await connectToDatabase();
 
-  await FeedbackModel.updateOne(
+  const result = await FeedbackModel.updateOne(
     { _id: new Types.ObjectId(objectId.parse(id)) },
     { $set: { handledAt: new Date(), handledBy: new Types.ObjectId(actorId), status } },
   );
+
+  // An unknown id used to answer success (P7-22).
+  if (result.matchedCount === 0) {
+    throw Object.assign(new Error("That feedback was not found."), { errorCode: "FEEDBACK_NOT_FOUND", status: 404 });
+  }
 
   return { id, status };
 }

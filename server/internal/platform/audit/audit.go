@@ -20,6 +20,8 @@ import (
 // Entry is one AuditLog row. Zero ActorID with ActorType USER is refused, as
 // the schema validator does; SYSTEM (cron, verified webhook) needs no actor.
 type Entry struct {
+	// ID is the row's _id when the caller needs it back; zero = a new one.
+	ID         bson.ObjectID
 	ActorID    bson.ObjectID
 	ActorType  string // "" = USER
 	HostelID   bson.ObjectID
@@ -67,7 +69,10 @@ func (l *Log) Write(ctx context.Context, e Entry) error {
 			meta = append(meta, kv)
 		}
 	}
-	doc := bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "actorId", Value: actor}, {Key: "actorType", Value: e.ActorType}}
+	if e.ID.IsZero() {
+		e.ID = bson.NewObjectID()
+	}
+	doc := bson.D{{Key: "_id", Value: e.ID}, {Key: "actorId", Value: actor}, {Key: "actorType", Value: e.ActorType}}
 	if !e.HostelID.IsZero() {
 		doc = append(doc, bson.E{Key: "hostelId", Value: e.HostelID})
 	}
@@ -140,8 +145,12 @@ func (l *Log) WriteFinance(ctx context.Context, actorID bson.ObjectID, actorRole
 		}
 		return s
 	}
+	actorType := "" // USER
+	if actorID.IsZero() {
+		actorType = "SYSTEM" // a verified gateway callback or a job: no account acted
+	}
 	return l.Write(ctx, Entry{
-		ActorID: actorID, HostelID: in.HostelID, Action: in.Action, EntityType: in.EntityType, EntityID: in.EntityID,
+		ActorID: actorID, ActorType: actorType, HostelID: in.HostelID, Action: in.Action, EntityType: in.EntityType, EntityID: in.EntityID,
 		CreatedAt:        createdAt,
 		FinanceIntegrity: IntegrityHash(prev.FinanceIntegrity, in.Action, in.EntityID, in.AmountAfter, createdAt),
 		Metadata: bson.D{

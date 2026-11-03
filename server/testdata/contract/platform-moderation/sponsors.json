@@ -1,0 +1,606 @@
+[
+  {
+    "name": "sponsors signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "sponsors as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "sponsors",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsors loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "sponsors": [
+            {
+              "accentColor": "#0a8a4b",
+              "clickCount": 0,
+              "createdAt": "2026-11-03T13:30:26.155Z",
+              "ctaLabel": "View",
+              "endsAt": null,
+              "highlight": "",
+              "id": "6c00000000000000000000c9",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "impressionCount": 0,
+              "isActive": true,
+              "kind": "COLLEGE",
+              "linkUrl": "https://acme.example",
+              "name": "Acme",
+              "priority": 1,
+              "startsAt": null,
+              "subtitle": ""
+            }
+          ],
+          "summary": {
+            "live": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "sponsors active",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors?status=active",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsors loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "sponsors": [
+            {
+              "accentColor": "#0a8a4b",
+              "clickCount": 0,
+              "createdAt": "2026-11-03T13:30:26.155Z",
+              "ctaLabel": "View",
+              "endsAt": null,
+              "highlight": "",
+              "id": "6c00000000000000000000c9",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "impressionCount": 0,
+              "isActive": true,
+              "kind": "COLLEGE",
+              "linkUrl": "https://acme.example",
+              "name": "Acme",
+              "priority": 1,
+              "startsAt": null,
+              "subtitle": ""
+            }
+          ],
+          "summary": {
+            "live": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "sponsors bad status",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors?status=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"active\"|\"inactive\"|\"all\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"active\"|\"inactive\"|\"all\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create bad colour",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Campus",
+        "accentColor": "green"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "accentColor": [
+              "Use a 6-digit hex colour, e.g. #0a8a4b."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Use a 6-digit hex colour, e.g. #0a8a4b.",
+              "path": "accentColor"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Campus Books",
+        "subtitle": "Second-hand texts",
+        "linkUrl": "https://books.example",
+        "kind": "BUSINESS",
+        "priority": 3
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "sponsor": "data.sponsor.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsor created",
+        "data": {
+          "sponsor": {
+            "accentColor": "#0a8a4b",
+            "clickCount": 0,
+            "createdAt": "2026-11-03T13:30:28.346Z",
+            "ctaLabel": "View",
+            "endsAt": null,
+            "highlight": "",
+            "id": "6ae9e1f40f6d781fa7b2ef82",
+            "imageAssetId": "",
+            "imageUrl": "",
+            "impressionCount": 0,
+            "isActive": true,
+            "kind": "BUSINESS",
+            "linkUrl": "https://books.example",
+            "name": "Campus Books",
+            "priority": 3,
+            "startsAt": null,
+            "subtitle": "Second-hand texts"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "edit nothing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/sponsors/{{sponsor}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Nothing to update."
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Nothing to update.",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "edit name only",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/sponsors/{{sponsor}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Campus Books Ltd"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsor updated",
+        "data": {
+          "sponsor": {
+            "accentColor": "#0a8a4b",
+            "clickCount": 0,
+            "createdAt": "2026-11-03T13:30:28.346Z",
+            "ctaLabel": "View",
+            "endsAt": null,
+            "highlight": "",
+            "id": "6ae9e1f40f6d781fa7b2ef82",
+            "imageAssetId": "",
+            "imageUrl": "",
+            "impressionCount": 0,
+            "isActive": true,
+            "kind": "BUSINESS",
+            "linkUrl": "https://books.example",
+            "name": "Campus Books Ltd",
+            "priority": 3,
+            "startsAt": null,
+            "subtitle": "Second-hand texts"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "edit missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/sponsors/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sponsor was not found.",
+        "errorCode": "SPONSOR_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "edit as moderator",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/sponsors/{{sponsor}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "name": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "sponsors after edit",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/sponsors",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsors loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "sponsors": [
+            {
+              "accentColor": "#0a8a4b",
+              "clickCount": 0,
+              "createdAt": "2026-11-03T13:30:28.346Z",
+              "ctaLabel": "View",
+              "endsAt": null,
+              "highlight": "",
+              "id": "6ae9e1f40f6d781fa7b2ef82",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "impressionCount": 0,
+              "isActive": true,
+              "kind": "BUSINESS",
+              "linkUrl": "https://books.example",
+              "name": "Campus Books Ltd",
+              "priority": 3,
+              "startsAt": null,
+              "subtitle": "Second-hand texts"
+            },
+            {
+              "accentColor": "#0a8a4b",
+              "clickCount": 0,
+              "createdAt": "2026-11-03T13:30:26.155Z",
+              "ctaLabel": "View",
+              "endsAt": null,
+              "highlight": "",
+              "id": "6c00000000000000000000c9",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "impressionCount": 0,
+              "isActive": true,
+              "kind": "COLLEGE",
+              "linkUrl": "https://acme.example",
+              "name": "Acme",
+              "priority": 1,
+              "startsAt": null,
+              "subtitle": ""
+            }
+          ],
+          "summary": {
+            "live": 2,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/sponsors/{{sponsor}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sponsor deleted",
+        "data": {
+          "sponsorId": "6ae9e1f40f6d781fa7b2ef82"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "delete again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/sponsors/{{sponsor}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sponsor was not found.",
+        "errorCode": "SPONSOR_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "delete bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/sponsors/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid sponsor id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -254,7 +254,7 @@ func (r *Registration) submit(ctx context.Context, in Reg, authUserID string) (o
 		return nil, err
 	}
 	hostelID := bson.NewObjectID()
-	fields := hostelFields(in, ownerID, slug, shortStays)
+	fields := hostelFields(in, ownerID, slug, shortStays, "PENDING_APPROVAL", "PENDING")
 	if _, err := r.DB.Collection("hostels").InsertOne(ctx, NewHostelDoc(hostelID, fields, now)); err != nil {
 		return nil, err
 	}
@@ -380,7 +380,7 @@ func roomSnapshot(rooms []RoomCfg) bson.A {
 }
 
 // hostelFields is hostelDocumentFrom: the hostel document both desks write.
-func hostelFields(in Reg, ownerID bson.ObjectID, slug string, shortStays bson.D) bson.D {
+func hostelFields(in Reg, ownerID bson.ObjectID, slug string, shortStays bson.D, status, verification string) bson.D {
 	capacity := append(bson.D{}, in.Capacity...)
 	if in.TotalCap != nil && *in.TotalCap != 0 {
 		if v, ok := lookup(capacity, "totalBeds"); !ok || v == nil || v == float64(0) {
@@ -426,11 +426,11 @@ func hostelFields(in Reg, ownerID bson.ObjectID, slug string, shortStays bson.D)
 		f = append(f, bson.E{Key: "securityDeposit", Value: *in.Deposit})
 	}
 	f = append(f, bson.E{Key: "roomConfigurations", Value: rooms}, bson.E{Key: "roomTypes", Value: strArray(in.RoomTypes)}, bson.E{Key: "rules", Value: strArray(in.Rules)},
-		bson.E{Key: "slug", Value: slug}, bson.E{Key: "status", Value: "PENDING_APPROVAL"})
+		bson.E{Key: "slug", Value: slug}, bson.E{Key: "status", Value: status})
 	if in.Floors != nil {
 		f = append(f, bson.E{Key: "totalFloors", Value: *in.Floors})
 	}
-	f = append(f, bson.E{Key: "createdBy", Value: ownerID}, bson.E{Key: "updatedBy", Value: ownerID}, bson.E{Key: "verificationStatus", Value: "PENDING"})
+	f = append(f, bson.E{Key: "createdBy", Value: ownerID}, bson.E{Key: "updatedBy", Value: ownerID}, bson.E{Key: "verificationStatus", Value: verification})
 	if in.Year != nil {
 		f = append(f, bson.E{Key: "yearEstablished", Value: *in.Year})
 	}

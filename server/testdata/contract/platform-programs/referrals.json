@@ -1,0 +1,768 @@
+[
+  {
+    "name": "referrals signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostel-referrals"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "referrals as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "referrals",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel referrals",
+        "data": {
+          "partnerCodes": [
+            {
+              "code": "PARTNER1",
+              "commissionType": "PERCENT",
+              "commissionValue": 5,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000a7",
+              "link": "https://hostelpalika.com/register-hostel?ref=PARTNER1",
+              "name": "Fixture Partner",
+              "note": "",
+              "offerDays": 10,
+              "offerMonths": 2,
+              "stats": {
+                "commission": 1000,
+                "live": 2,
+                "paid": 500,
+                "registered": 2
+              },
+              "status": "ACTIVE"
+            },
+            {
+              "code": "RETIRED1",
+              "commissionType": "AMOUNT",
+              "commissionValue": 0,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000a9",
+              "link": "https://hostelpalika.com/register-hostel?ref=RETIRED1",
+              "name": "Retired",
+              "note": "",
+              "offerDays": 0,
+              "offerMonths": 1,
+              "stats": {
+                "commission": 0,
+                "live": 0,
+                "paid": 0,
+                "registered": 0
+              },
+              "status": "INACTIVE"
+            },
+            {
+              "code": "GIFTONLY",
+              "commissionType": "AMOUNT",
+              "commissionValue": 0,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000ab",
+              "link": "https://hostelpalika.com/register-hostel?ref=GIFTONLY",
+              "name": "Days only",
+              "note": "",
+              "offerDays": 1,
+              "offerMonths": 0,
+              "stats": {
+                "commission": 0,
+                "live": 0,
+                "paid": 0,
+                "registered": 0
+              },
+              "status": "ACTIVE"
+            }
+          ],
+          "referrals": [
+            {
+              "code": "PARTNER1",
+              "commission": {
+                "amount": 500,
+                "paidAt": null,
+                "status": "EARNED"
+              },
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "from": "Fixture Partner",
+              "hostelName": "Budget Fixture Hostel",
+              "id": "6d0e00000000000000000006",
+              "kind": "PARTNER",
+              "liveAt": "2026-10-01T04:15:00.000Z",
+              "refereeReward": "2 months and 10 days",
+              "referrerReward": "",
+              "status": "LIVE"
+            },
+            {
+              "code": "PARTNER1",
+              "commission": {
+                "amount": 500,
+                "paidAt": null,
+                "status": "PAID"
+              },
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "from": "Fixture Partner",
+              "hostelName": "Budget Fixture Hostel",
+              "id": "6d0e00000000000000000007",
+              "kind": "PARTNER",
+              "liveAt": "2026-10-01T04:15:00.000Z",
+              "refereeReward": "2 months and 10 days",
+              "referrerReward": "",
+              "status": "LIVE"
+            }
+          ],
+          "settings": {
+            "enabled": true,
+            "referee": {
+              "days": 0,
+              "months": 1
+            },
+            "referrer": {
+              "days": 0,
+              "months": 1
+            }
+          },
+          "totals": {
+            "commissionOwed": 500,
+            "live": 2,
+            "registered": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "settings invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/platform/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "referrerMonths": -1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral settings saved",
+        "data": {
+          "settings": {
+            "enabled": true,
+            "referee": {
+              "days": 0,
+              "months": 1
+            },
+            "referrer": {
+              "days": 0,
+              "months": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "settings save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/platform/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "enabled": true,
+        "referrerMonths": 1,
+        "refereeMonths": 1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral settings saved",
+        "data": {
+          "settings": {
+            "enabled": true,
+            "referee": {
+              "days": 0,
+              "months": 1
+            },
+            "referrer": {
+              "days": 0,
+              "months": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostel-referrals/codes",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "X"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "commissionType": [
+              "Invalid option: expected one of \"AMOUNT\"|\"PERCENT\""
+            ],
+            "commissionValue": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"AMOUNT\"|\"PERCENT\"",
+              "path": "commissionType"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "commissionValue"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code percent cap",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostel-referrals/codes",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Big Cut",
+        "commissionType": "PERCENT",
+        "commissionValue": 150
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "commissionValue": [
+              "A percent commission is 100 at most."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A percent commission is 100 at most.",
+              "path": "commissionValue"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostel-referrals/codes",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "College Union",
+        "commissionType": "AMOUNT",
+        "commissionValue": 300,
+        "code": "UNION-1",
+        "offerMonths": 1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "code": "data.code.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Partner code created",
+        "data": {
+          "code": "UNION1",
+          "commissionType": "AMOUNT",
+          "commissionValue": 300,
+          "contact": "",
+          "createdAt": "2026-11-03T13:31:48.148Z",
+          "id": "6ae9e2440f6d781fa7b2efbb",
+          "link": "https://hostelpalika.com/register-hostel?ref=UNION1",
+          "name": "College Union",
+          "note": "",
+          "offerDays": 0,
+          "offerMonths": 1,
+          "stats": {
+            "commission": 0,
+            "live": 0,
+            "paid": 0,
+            "registered": 0
+          },
+          "status": "ACTIVE"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code create taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/hostel-referrals/codes",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "College Union Two",
+        "commissionType": "AMOUNT",
+        "commissionValue": 300,
+        "code": "UNION-1"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "UNION1 is already in use. Pick another.",
+        "errorCode": "CODE_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code edit keeps offer",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/codes/{{code}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "note": "Signed MoU"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That code was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code deactivate",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/codes/{{code}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "INACTIVE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That code was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "code edit missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/codes/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "note": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That code was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark paid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/6d0e00000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Commission marked paid",
+        "data": {
+          "id": "6d0e00000000000000000006"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark paid twice",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/6d0e00000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no unpaid commission on that referral.",
+        "errorCode": "NOTHING_OWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark paid already paid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/6d0e00000000000000000007",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no unpaid commission on that referral.",
+        "errorCode": "NOTHING_OWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark paid bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/hostel-referrals/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "referrals after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/hostel-referrals",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel referrals",
+        "data": {
+          "partnerCodes": [
+            {
+              "code": "UNION1",
+              "commissionType": "AMOUNT",
+              "commissionValue": 300,
+              "contact": "",
+              "createdAt": "2026-11-03T13:31:48.148Z",
+              "id": "6ae9e2440f6d781fa7b2efbb",
+              "link": "https://hostelpalika.com/register-hostel?ref=UNION1",
+              "name": "College Union",
+              "note": "",
+              "offerDays": 0,
+              "offerMonths": 1,
+              "stats": {
+                "commission": 0,
+                "live": 0,
+                "paid": 0,
+                "registered": 0
+              },
+              "status": "ACTIVE"
+            },
+            {
+              "code": "PARTNER1",
+              "commissionType": "PERCENT",
+              "commissionValue": 5,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000a7",
+              "link": "https://hostelpalika.com/register-hostel?ref=PARTNER1",
+              "name": "Fixture Partner",
+              "note": "",
+              "offerDays": 10,
+              "offerMonths": 2,
+              "stats": {
+                "commission": 1000,
+                "live": 2,
+                "paid": 1000,
+                "registered": 2
+              },
+              "status": "ACTIVE"
+            },
+            {
+              "code": "RETIRED1",
+              "commissionType": "AMOUNT",
+              "commissionValue": 0,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000a9",
+              "link": "https://hostelpalika.com/register-hostel?ref=RETIRED1",
+              "name": "Retired",
+              "note": "",
+              "offerDays": 0,
+              "offerMonths": 1,
+              "stats": {
+                "commission": 0,
+                "live": 0,
+                "paid": 0,
+                "registered": 0
+              },
+              "status": "INACTIVE"
+            },
+            {
+              "code": "GIFTONLY",
+              "commissionType": "AMOUNT",
+              "commissionValue": 0,
+              "contact": "",
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "id": "6c00000000000000000000ab",
+              "link": "https://hostelpalika.com/register-hostel?ref=GIFTONLY",
+              "name": "Days only",
+              "note": "",
+              "offerDays": 1,
+              "offerMonths": 0,
+              "stats": {
+                "commission": 0,
+                "live": 0,
+                "paid": 0,
+                "registered": 0
+              },
+              "status": "ACTIVE"
+            }
+          ],
+          "referrals": [
+            {
+              "code": "PARTNER1",
+              "commission": {
+                "amount": 500,
+                "paidAt": "2026-11-03T13:31:53.297Z",
+                "status": "PAID"
+              },
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "from": "Fixture Partner",
+              "hostelName": "Budget Fixture Hostel",
+              "id": "6d0e00000000000000000006",
+              "kind": "PARTNER",
+              "liveAt": "2026-10-01T04:15:00.000Z",
+              "refereeReward": "2 months and 10 days",
+              "referrerReward": "",
+              "status": "LIVE"
+            },
+            {
+              "code": "PARTNER1",
+              "commission": {
+                "amount": 500,
+                "paidAt": null,
+                "status": "PAID"
+              },
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "from": "Fixture Partner",
+              "hostelName": "Budget Fixture Hostel",
+              "id": "6d0e00000000000000000007",
+              "kind": "PARTNER",
+              "liveAt": "2026-10-01T04:15:00.000Z",
+              "refereeReward": "2 months and 10 days",
+              "referrerReward": "",
+              "status": "LIVE"
+            }
+          ],
+          "settings": {
+            "enabled": true,
+            "referee": {
+              "days": 0,
+              "months": 1
+            },
+            "referrer": {
+              "days": 0,
+              "months": 1
+            }
+          },
+          "totals": {
+            "commissionOwed": 0,
+            "live": 2,
+            "registered": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

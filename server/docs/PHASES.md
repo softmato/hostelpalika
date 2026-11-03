@@ -38,6 +38,7 @@ they may be revised when the code shows a better order.
 - ☑ `cmd/api` — Gin (`gin.New()`, release mode), graceful shutdown, `/api/v1/health` — Gin 1.12 + sonic 1.15.5 (JIT path covers go < 1.28; check sonic before bumping Go); health body byte-identical to TS, 405 on wrong method; `httpx` has the envelope + recover only (Phase 1 adds validation/dup/Softmato mapping); SIGTERM drain is first exercised by the `deploy/` item (Windows can't send it)
 - ☑ `deploy/` — Dockerfile (multi-stage, Debian-slim runtime with libvips + poppler), `compose.yaml` (`caddy`, `api`, `redis`), `Caddyfile` — trixie builder+runtime, non-root, `api healthcheck` probe; Caddy at static 172.28.0.10 = `TRUSTED_PROXIES`, h3 advertised, unported paths fall through to `TS_UPSTREAM`; `redis.conf` volatile-lru, unpublished; 2026-10-29: `up --build` all healthy, `stop api` → "stopped cleanly" exit 0 in <1 s
 - ☑ Local stack runs with a **local** MongoDB container holding a copy of the live data (`deploy/copy-live-db.ps1`: read-only dump from Atlas → restore into `hostelpalika_dev`) — the Go server itself never gets the production URI. No seeds: the user ruled them out (2026-10-29), real data is already there; 2026-10-29: first copy restored — 145 collections, indexes included, archive deleted
+- ☑ Real services in dev, fenced by `APP_ENV` (owner, 2026-11-02/03). `server/.env` has the real R2, encryption, LLM and Google keys. Outside production, config sets `R2.WriteRoot = <R2_KEY_PREFIX>/go-dev`: dev reads the live objects its Mongo copy points at, but put, delete and presigned upload refuse any key outside that root, and new keys are minted under it (`TestWriteRootFence`). Production has no fence, so nothing has to be changed at cut-over. Atlas is still refused outside production. Left out of dev on purpose, because they reach real people: Resend, Pusher, VAPID, Expo and the outbound Softmato secret
 - ☑ Contract test harness (`TESTING.md` §3): recorder against the TS server, replayer against Go, JSON diff with volatile-field masks — `internal/contract` (masks with `*`, media-type compare, key-order check, unit-tested), `go run ./cmd/dev record -base … <case.json>`, `router/contract_test.go` replays every file; health recorded from live TS at 541e46cf and green. First catch: Next sends a bare 405 (no body, no content type), Gin sent text — fixed with a `NoMethod` handler
 - ☑ k6 baseline recorded against the **current** TS production endpoints for the routes in DESIGN.md §2, so later numbers have something to beat — `testdata/k6/baseline.js` (5 public GETs, 2 req/s each, 60 s, from the dev machine in Nepal); results `testdata/k6/results/ts-prod-2026-10-29.json`. TTFB ms, med / p95 / p99 / max: health 88/119/1317/1601 · site-config 85/115/170/252 · hostels list 81/104/202/345 · hostel detail 84/122/201/461 · reviews 96/276/2062/2881; 0 errors. Medians ≈ network floor (health reads no DB yet sits at 88); the tails (1.3–2.9 s on health and reviews) are the cold starts Go has to remove. Compare Go from the same machine against the VPS, not localhost
 
@@ -158,13 +159,15 @@ moves last within it:
 
 **Status 2026-11-03: in progress.** Done and contract-green: the server log store and
 `/platform/logs` (+summary), `users` (account deletion + `/platform/account-deletions`,
-expert consultation, temporary logins; group `platform`), and the whole supply store —
-`store/*` and `platform/store/*` (group `store`), and the team (group `team`): own routes,
-track sheet, wallets and payouts, `GET /platform/team`, the field-team existing-residents
-copies. Findings P7-1..P7-10 in `review_fixes_needed.md`. Left: `POST /team/hostels`,
-`/platform/team/members/:id`, the rest of `platform/*`, the config editors, the log viewer
-pages. `team/prepayments*` and `team/hostels/:id/checkout` moved to Phase 8: they run the
-Softmato plan payment, like `hostel-registration`.
+expert consultation, temporary logins; group `platform`), the whole supply store —
+`store/*` and `platform/store/*` (group `store`), the team (group `team`) including
+`POST /team/hostels` and `/platform/team/members/:id`, and `platform/bookings/*` (14 routes,
+group `platform-bookings`). Ported and wired in `router/platform_admin.go` but not yet
+contract-recorded: the rest of `platform/*` (hostels, listing flags, desk, config editors,
+feedback/reviews/community, sponsors, hostel leaves, referrals, service providers, offer
+program, notifications, push, reports, subscriptions, admins and invites). Findings
+P7-1..P7-34 in `review_fixes_needed.md`. `team/prepayments*` and `team/hostels/:id/checkout`
+moved to Phase 8: they run the Softmato plan payment, like `hostel-registration`.
 
 - ☐ `platform` (99)
 , `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
@@ -178,6 +181,14 @@ Softmato plan payment, like `hostel-registration`.
   - Level per category settable by a superadmin (site config), applied without a restart
   - Portal page: `/platform/logs` on the web and a native `manage` screen in the app, in `portal-nav.ts` and its search. Filters, level and category chips, a row opens the full entry, one request id shows the whole request's lines. Beside it a health strip from the metrics: request rate, p95, error rate, Mongo pool use, cache hit rate, rate-limit refusals
   - The web page reads through `API_URL`, so it goes live with cut-over
+  - 2026-11-03: web done — `/platform/logs` with the strip (`GET /platform/logs/health`, since-boot figures from the metrics registry), chips with counts, filters, the full entry, *Whole request*, and the per-category level selects (site config `logs`). Left: the native screen. Owner, 2026-11-03: "we need the superadmin screens too, so majority of task can be done from the app via superadmin" — the app gets a superadmin shell (it sent SUPERADMIN to the browse shell until now)
+- ☐ **Superadmin system tabs** (owner, 2026-11-03: "cron, logs, process logs, analytics, daily active users … each tab so superadmin can see those"). One portal area with five tabs, web and app `manage`, all in `portal-nav.ts` and its search, superadmin guard. The Go routes are new, so each one goes in `goOnlyAllowed`:
+  - **Cron**: one row per job (schedule, last run, last status, next run, and a *missed* flag when the last success is older than its interval), then its run history from Phase 9's `cronruns`, filterable by job, status, trigger and time. A row opens the run's error and its log lines (by run id). A *Run now* button posts `/cron/{name}`
+  - **Logs**: the server log page above
+  - **Process**: the API process itself, per instance: uptime, boot and shutdown lines, version and commit, goroutines, heap and RSS, GC pauses, Mongo pool and Redis state, panics recovered. Read from the runtime, plus the stored `jobs`/`database`/`redis` lines that come from boot
+  - **Analytics**: the existing usage page (`/platform/usage`: screens, features, people, role and hostel) moved under this area, not rebuilt
+  - **Active users**: daily, weekly and monthly active users per Kathmandu day, split by user type (role) and client (app, PWA, web), plus the list of who was active on a chosen day (name, role, hostel, first and last seen, opens). An aggregation over `usageevents` (which already stores user, role, hostel, client and time), so it needs no new tracking. History reaches back as far as the usage TTL
+  - 2026-11-03: web done for Logs, Process (`GET /platform/system/process`), Active users (`GET /platform/system/active-users`) and Analytics, as children of *System* in `portal-nav.ts` (search entries come with them), superadmin-only in `route-access.ts`. Left: Cron, which reads Phase 9's `cronruns`; the PWA is counted as `app` until its beacon sends its own client value; the native screens (see above); the PWA sending its own client value
 
 **Gate:** superadmin and team flows complete on Go only, and a failing request can be found in the portal by its request id.
 
@@ -187,11 +198,16 @@ Softmato plan payment, like `hostel-registration`.
 
 **Needs:** Phase 7.
 
-- ☐ `webhooks/:provider` (eSewa, Khalti, Fonepay), `webhooks/softmato`, `integrations/questioncall/*`
-- ☐ `bookings/:id/checkout`, `bookings/:id/payment`, `bookings/:id/return`
-- ☐ `team/prepayments` (4) and `team/hostels/:id/checkout` — moved from Phase 7: the field team's Softmato setup-fee/lifetime payment
-- ☐ `POST /public/plan-checkout` and `hostel-registration`
- (5: `[hostelId]/invoice|pay|plan|state`, `return`) — moved from Phase 3: they read the subscription state (Phase 7) and run the Softmato plan payment
+**Status 2026-11-03 (late): every Phase 8 route is on Go**, contract group `billing-online`
+(71 cases, recorded from TS, green) plus the earlier `webhooks/softmato` and QuestionCall work.
+Findings P8-1..P8-7, each fixed in Go and TS. Left: contract cases for
+`hostel-admin/finance/payment-gateways` (written, not recorded), and the offline shadow below.
+Fonepay has no adapter in TS either: it waits on the bank's merchant API (outside the repo).
+
+- ☑ `webhooks/:provider` (eSewa, Khalti), `webhooks/softmato`, `integrations/questioncall/*`
+- ☑ `bookings/:id/checkout`, `bookings/:id/payment`, `bookings/:id/return`
+- ☑ `team/prepayments` (4) and `team/hostels/:id/checkout`; the team registration's online publish path claims, settles and releases the prepayment
+- ☑ `POST /public/plan-checkout` and `hostel-registration` (5: `[hostelId]/invoice|pay|plan|state`, `return`)
 - ☐ Checkout intents, settlement, reconciliation, gateway health — **offline shadow**: replay real provider events (the stored webhook/verification payloads) against the live-data copy and compare Go's resulting rows with what TS wrote for the same events
 
 **Gate:** replaying a full `gateway-settlement-recon` window shows zero drift between Go's rows and TS's.
@@ -203,6 +219,7 @@ Softmato plan payment, like `hostel-registration`.
 **Needs:** the module each job touches is on Go.
 
 - ☐ Each of the 19 jobs in `PARITY.md` §5 ported, with one observed run on the local stack against the live-data copy (outbound calls faked) matching what the TS job did for the same data
+- ☐ **Cron run history** (owner, 2026-11-03: cron-job.org runs kept failing with no record). Every run goes through one runner, whether it comes from the scheduler or from `POST /cron/{name}`. The runner writes a `cronruns` row before the job starts and finishes it afterwards: job, trigger (`schedule`, `manual` or `http`), instance, run id, start and end, duration, status (`running`, `ok`, `failed`, `skipped` when another instance holds the lock, `timeout`), error, and the job's own counts. These are plain inserts, never through the droppable log batcher, with a TTL long enough to compare months. A row still `running` after the job's deadline is closed as `timeout` at boot. Each job's lines carry the run id in the `jobs` log category. A failed or missed run logs an error, and that error is shown on the Cron tab
 - ☐ Maps nearby (Overpass) and routing in `platform/maps` — moved from Phase 3: only the nearby-places job and the owner profile call them, so they land with the first of those
 
 **Gate:** all 19 jobs proven locally; switching them on is part of the cut-over.

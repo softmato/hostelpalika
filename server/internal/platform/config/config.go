@@ -94,6 +94,10 @@ type R2 struct {
 	KeyPrefix     string
 	PublicURL     string
 	CORSOrigins   []string
+	// WriteRoot, set outside production, is the only key space a put, delete or
+	// presigned upload may touch: dev reads the live objects its Mongo copy points
+	// at but never overwrites or deletes one. Empty in production.
+	WriteRoot string
 }
 
 func (r R2) Configured() bool {
@@ -274,6 +278,9 @@ func Parse(lookup func(string) (string, bool)) (*Config, []string, error) {
 		KeyPrefix:       strings.Trim(r.str("R2_KEY_PREFIX"), "/"),
 		PublicURL:       strings.TrimRight(r.str("R2_PUBLIC_URL"), "/"),
 		CORSOrigins:     r.list("R2_CORS_ORIGINS"),
+	}
+	if !c.IsProduction() {
+		c.R2.WriteRoot = strings.TrimLeft(c.R2.KeyPrefix+"/go-dev", "/")
 	}
 
 	c.Email = Email{

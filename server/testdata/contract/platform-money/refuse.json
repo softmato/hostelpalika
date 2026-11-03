@@ -1,0 +1,167 @@
+[
+  {
+    "name": "refuse claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0e00000000000000000003/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false,
+        "note": "Not on the statement"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Claim marked unconfirmed",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Pay pay-open",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": null,
+              "id": "6d0400000000000000000049",
+              "invoiceNumber": "SUB-0002-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PARTIAL"
+            },
+            "outstanding": 3900,
+            "paid": 1000,
+            "payments": [
+              {
+                "amount": 3900,
+                "id": "6d0e00000000000000000003",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "FAILED"
+              },
+              {
+                "amount": 3900,
+                "id": "6d0e00000000000000000004",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "PENDING"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000004b",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": null,
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000004c",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0046",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 500,
+                "id": "6d040000000000000000004d",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": "SRC-NOPE",
+                "settledAt": null,
+                "status": "FAILED"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": null,
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d0400000000000000000048",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "refuse twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/subscriptions/claims/6d0e00000000000000000003/review",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "approve": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This claim has already been reviewed.",
+        "errorCode": "CLAIM_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "claims empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/subscriptions/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims loaded",
+        "data": {
+          "claims": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

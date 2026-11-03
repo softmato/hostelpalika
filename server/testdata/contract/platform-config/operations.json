@@ -1,0 +1,460 @@
+[
+  {
+    "name": "operations signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/operations-config"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Operations configuration loaded",
+        "data": {
+          "config": {
+            "maxAttendanceRetentionDays": 600,
+            "maxInsideZoneRadiusMeters": 100,
+            "maxNearbyZoneRadiusMeters": 500,
+            "foodReadyCooldownMinutes": 120,
+            "complaintSlaHours": 72,
+            "paymentReminderDaysBefore": 7,
+            "subscriptionDueGraceDays": 3,
+            "trialDays": 3,
+            "leaveHoldMinDays": 5,
+            "leaveHoldMaxDays": 15,
+            "collectionQrUrl": "https://cdn.contract.test/qr.png",
+            "collectionQrLabel": "",
+            "teamCommissionPercent": 40,
+            "teamSetupFee": 500,
+            "maintenanceMinimumCharges": {
+              "PLUMBING": 200,
+              "ELECTRICAL": 200,
+              "INTERNET": 200,
+              "CLEANING": 200,
+              "CARPENTRY": 200,
+              "PAINTING": 200,
+              "WATER": 200,
+              "APPLIANCE": 200,
+              "ROOM_REPAIR": 200,
+              "HEALTH": 200,
+              "OTHER": 200
+            },
+            "sendComplaintEmails": true,
+            "qrActivationExpiryDays": 7,
+            "receiptNumberPrefix": "RCP",
+            "sendNoticeEmails": true,
+            "sendPaymentEmails": true
+          },
+          "pendingQrChange": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "complaintSlaHours": 0
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "complaintSlaHours": [
+              "Too small: expected number to be \u003e=1"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "complaintSlaHours"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "complaintSlaHours": 48,
+        "paymentReminderDaysBefore": 3
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Operations configuration saved",
+        "data": {
+          "config": {
+            "maxAttendanceRetentionDays": 600,
+            "maxInsideZoneRadiusMeters": 100,
+            "maxNearbyZoneRadiusMeters": 500,
+            "foodReadyCooldownMinutes": 120,
+            "complaintSlaHours": 48,
+            "paymentReminderDaysBefore": 3,
+            "subscriptionDueGraceDays": 3,
+            "trialDays": 3,
+            "leaveHoldMinDays": 5,
+            "leaveHoldMaxDays": 15,
+            "collectionQrUrl": "https://cdn.contract.test/qr.png",
+            "collectionQrLabel": "",
+            "teamCommissionPercent": 40,
+            "teamSetupFee": 500,
+            "maintenanceMinimumCharges": {
+              "PLUMBING": 200,
+              "ELECTRICAL": 200,
+              "INTERNET": 200,
+              "CLEANING": 200,
+              "CARPENTRY": 200,
+              "PAINTING": 200,
+              "WATER": 200,
+              "APPLIANCE": 200,
+              "ROOM_REPAIR": 200,
+              "HEALTH": 200,
+              "OTHER": 200
+            },
+            "sendComplaintEmails": true,
+            "qrActivationExpiryDays": 7,
+            "receiptNumberPrefix": "RCP",
+            "sendNoticeEmails": true,
+            "sendPaymentEmails": true
+          },
+          "pendingQrChange": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations qr change waits",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "collectionQrUrl": "https://cdn.contract.test/new-qr.png"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "We could not send the confirmation email, so nothing was changed. Try again.",
+        "errorCode": "SETTING_CHANGE_EMAIL_FAILED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "operations after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/operations-config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Operations configuration loaded",
+        "data": {
+          "config": {
+            "maxAttendanceRetentionDays": 600,
+            "maxInsideZoneRadiusMeters": 100,
+            "maxNearbyZoneRadiusMeters": 500,
+            "foodReadyCooldownMinutes": 120,
+            "complaintSlaHours": 48,
+            "paymentReminderDaysBefore": 3,
+            "subscriptionDueGraceDays": 3,
+            "trialDays": 3,
+            "leaveHoldMinDays": 5,
+            "leaveHoldMaxDays": 15,
+            "collectionQrUrl": "https://cdn.contract.test/qr.png",
+            "collectionQrLabel": "",
+            "teamCommissionPercent": 40,
+            "teamSetupFee": 500,
+            "maintenanceMinimumCharges": {
+              "PLUMBING": 200,
+              "ELECTRICAL": 200,
+              "INTERNET": 200,
+              "CLEANING": 200,
+              "CARPENTRY": 200,
+              "PAINTING": 200,
+              "WATER": 200,
+              "APPLIANCE": 200,
+              "ROOM_REPAIR": 200,
+              "HEALTH": 200,
+              "OTHER": 200
+            },
+            "sendComplaintEmails": true,
+            "qrActivationExpiryDays": 7,
+            "receiptNumberPrefix": "RCP",
+            "sendNoticeEmails": true,
+            "sendPaymentEmails": true
+          },
+          "pendingQrChange": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "confirm preview bad token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/setting-changes/confirm?token=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This confirmation link is not valid.",
+        "errorCode": "SETTING_CHANGE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "confirm preview no token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/setting-changes/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This confirmation link is not valid.",
+        "errorCode": "SETTING_CHANGE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "confirm no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/setting-changes/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The confirmation link is missing its code.",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "confirm bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/setting-changes/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "token": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This confirmation link is not valid.",
+        "errorCode": "SETTING_CHANGE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "confirm as moderator",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/setting-changes/confirm",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "token": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cancel missing change",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/setting-changes/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no change waiting to be cancelled.",
+        "errorCode": "SETTING_CHANGE_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "cancel bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/setting-changes/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Change not found.",
+        "errorCode": "SETTING_CHANGE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

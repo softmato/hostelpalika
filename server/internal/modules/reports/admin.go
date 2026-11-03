@@ -1348,6 +1348,17 @@ func exportWindowOf(months int) (exportWindow, error) {
 func exportQuery(c *gin.Context) (format string, months int, hostel, report string, err error) {
 	q := valid.Query(c)
 	var is valid.Issues
+	format, months = exportFormatMonths(q, &is)
+	hostel = opsscope.Hostel(q, &is)
+	raw := q["report"]
+	if raw != "residents" && raw != "payments" && raw != "complaints" && raw != "occupancy" {
+		is.Add("report", `Invalid option: expected one of "residents"|"payments"|"complaints"|"occupancy"`)
+	}
+	return format, months, hostel, raw, is.Err()
+}
+
+// exportFormatMonths is reportExportFormatSchema and reportExportMonthsSchema.
+func exportFormatMonths(q map[string]string, is *valid.Issues) (format string, months int) {
 	format = "csv"
 	if raw, ok := q["format"]; ok {
 		format = raw
@@ -1375,12 +1386,7 @@ func exportQuery(c *gin.Context) (format string, months int, hostel, report stri
 		}
 		months = int(v)
 	}
-	hostel = opsscope.Hostel(q, &is)
-	raw := q["report"]
-	if raw != "residents" && raw != "payments" && raw != "complaints" && raw != "occupancy" {
-		is.Add("report", `Invalid option: expected one of "residents"|"payments"|"complaints"|"occupancy"`)
-	}
-	return format, months, hostel, raw, is.Err()
+	return format, months
 }
 
 func (a *Admin) export(c *gin.Context) {

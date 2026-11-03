@@ -1,0 +1,599 @@
+[
+  {
+    "name": "list signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "list public refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "list agent",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "data.prepayments.*.paidAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Paid, not published",
+        "data": {
+          "prepayments": [
+            {
+              "amount": 1000,
+              "chargeAmount": 1000,
+              "cycle": "monthly",
+              "id": "6d0f0000000000000000000b",
+              "kind": "SETUP_FEE",
+              "paidAt": "2026-11-03T15:47:28.459Z",
+              "planId": "pro",
+              "planName": "Pro",
+              "provider": null,
+              "reference": "TX-SUB-0002-PRE2",
+              "status": "PAID",
+              "hostelName": "Prepaid SUB-0002-PRE2",
+              "ownerName": "Owner SUB-0002-PRE2"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "read other agent",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000d",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment was not found.",
+        "errorCode": "PREPAYMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "read bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment was not found.",
+        "errorCode": "PREPAYMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "read own open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment read",
+        "data": {
+          "amount": 1000,
+          "chargeAmount": 1000,
+          "cycle": "monthly",
+          "id": "6d0f0000000000000000000a",
+          "kind": "SETUP_FEE",
+          "paidAt": null,
+          "planId": "pro",
+          "planName": "Pro",
+          "provider": null,
+          "reference": "SM-SUB-0001-PRE1",
+          "status": "OPEN",
+          "draft": {
+            "name": "Draft SUB-0001-PRE1",
+            "step": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "read own paid",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000b",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "data.paidAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment read",
+        "data": {
+          "amount": 1000,
+          "chargeAmount": 1000,
+          "cycle": "monthly",
+          "id": "6d0f0000000000000000000b",
+          "kind": "SETUP_FEE",
+          "paidAt": "2026-11-03T15:47:28.459Z",
+          "planId": "pro",
+          "planName": "Pro",
+          "provider": null,
+          "reference": "TX-SUB-0002-PRE2",
+          "status": "PAID",
+          "draft": {
+            "name": "Draft SUB-0002-PRE2",
+            "step": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "draft not an object",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "draft": [
+          1,
+          2
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "draft": [
+              "Invalid input: expected record, received array"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected record, received array",
+              "path": "draft"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "draft missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "draft": [
+              "Invalid input: expected record, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected record, received undefined",
+              "path": "draft"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "draft claimed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000c",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "draft": {
+          "a": 1
+        }
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment already belongs to a published hostel.",
+        "errorCode": "PREPAYMENT_CLAIMED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "draft saved",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "draft": {
+          "zeta": 1,
+          "alpha": {
+            "b": 2,
+            "a": 1
+          }
+        }
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Draft kept",
+        "data": {
+          "saved": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "draft read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/prepayments/6d0f0000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment read",
+        "data": {
+          "amount": 1000,
+          "chargeAmount": 1000,
+          "cycle": "monthly",
+          "id": "6d0f0000000000000000000a",
+          "kind": "SETUP_FEE",
+          "paidAt": null,
+          "planId": "pro",
+          "planName": "Pro",
+          "provider": null,
+          "reference": "SM-SUB-0001-PRE1",
+          "status": "OPEN",
+          "draft": {
+            "zeta": 1,
+            "alpha": {
+              "b": 2,
+              "a": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "open signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/prepayments",
+      "body": {
+        "area": "Baneshwor",
+        "cycle": "monthly",
+        "hostelName": "Brand New Hostel",
+        "ownerName": "New Owner",
+        "phone": "9801999001",
+        "planId": "pro"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "open empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "area": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "cycle": [
+              "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\""
+            ],
+            "hostelName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "ownerName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "planId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "area"
+            },
+            {
+              "message": "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\"",
+              "path": "cycle"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "hostelName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "ownerName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "planId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "open bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "area": "Baneshwor",
+        "cycle": "monthly",
+        "hostelName": "Brand New Hostel",
+        "ownerName": "New Owner",
+        "phone": "9801999001",
+        "planId": "pro",
+        "email": "not-mail",
+        "amount": 1.5,
+        "lifetime": "yes",
+        "draft": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "amount": [
+              "Whole rupees only."
+            ],
+            "lifetime": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "draft": [
+              "Invalid input: expected record, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Whole rupees only.",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "lifetime"
+            },
+            {
+              "message": "Invalid input: expected record, received string",
+              "path": "draft"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "open zero amount",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "area": "Baneshwor",
+        "cycle": "monthly",
+        "hostelName": "Brand New Hostel",
+        "ownerName": "New Owner",
+        "phone": "9801999001",
+        "planId": "pro",
+        "amount": 0,
+        "email": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Enter an amount above zero."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter an amount above zero.",
+              "path": "amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "open unavailable",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/prepayments",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "area": "Baneshwor",
+        "cycle": "monthly",
+        "hostelName": "Brand New Hostel",
+        "ownerName": "New Owner",
+        "phone": "9801999001",
+        "planId": "pro"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Online payment is not set up on this deployment yet.",
+        "errorCode": "ONLINE_PAYMENT_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

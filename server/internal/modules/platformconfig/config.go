@@ -24,6 +24,11 @@ import (
 var schemasJSON []byte
 
 // Sections is SITE_CONFIG_SECTIONS, in declared order.
+// defaultOrder is DEFAULT_SITE_CONFIG's key order, which the assembled config keeps
+// (a stored section replaces its default in place).
+var defaultOrder = []string{"apps", "announcement", "email", "content", "facilities", "features", "hero", "identity", "issuer", "legal",
+	"lifetime", "logs", "locations", "plans", "appNotice", "questionCall", "seo", "social", "stats", "trustPoints"}
+
 var Sections = []string{"announcement", "appNotice", "apps", "content", "email", "facilities", "features", "hero",
 	"identity", "issuer", "legal", "lifetime", "locations", "logs", "plans", "questionCall", "seo", "social", "stats", "trustPoints"}
 
@@ -132,8 +137,8 @@ func (s *Service) SiteConfig(ctx context.Context) (ordered.Map, error) {
 	if err := cur.All(ctx, &rows); err != nil {
 		return nil, err
 	}
-	config := make(ordered.Map, 0, len(Sections))
-	for _, name := range Sections {
+	config := make(ordered.Map, 0, len(defaultOrder))
+	for _, name := range defaultOrder {
 		config = append(config, ordered.Pair{Key: name, Value: Default(name)})
 	}
 	for _, r := range rows {

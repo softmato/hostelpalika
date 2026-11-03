@@ -260,6 +260,7 @@ type planPayment struct {
 	Amount    int64         `bson:"amount"`
 	Currency  *string       `bson:"currency"`
 	Reference *string       `bson:"gatewayReference"`
+	HostelID  bson.ObjectID `bson:"hostelId"`
 	InvoiceID bson.ObjectID `bson:"invoiceId"`
 	LocalNo   *string       `bson:"localTransactionNo"`
 	Method    string        `bson:"method"`
@@ -424,6 +425,15 @@ func (s *Service) softmatoDoc(ctx context.Context, kind, number, version string,
 	return &resolvedDoc{file.Bytes, file.ContentType, fileNameFor(number)}, nil
 }
 
+// scopeIn is the hostelId condition: nil is the platform's entitlement, every
+// hostel, spelled out by the platform route and never reached by omission.
+func scopeIn(hostelIDs []string) bson.D {
+	if hostelIDs == nil {
+		return bson.D{{Key: "$exists", Value: true}}
+	}
+	return bson.D{{Key: "$in", Value: scopeIDs(hostelIDs)}}
+}
+
 func scopeIDs(hostelIDs []string) bson.A {
 	ids := bson.A{}
 	for _, h := range hostelIDs {
@@ -436,7 +446,7 @@ func scopeIDs(hostelIDs []string) bson.A {
 
 func (s *Service) resolveInvoice(ctx context.Context, number string, hostelIDs []string) (*resolvedDoc, error) {
 	var inv planInvoice
-	err := s.DB.Collection("subscriptioninvoices").FindOne(ctx, bson.D{{Key: "hostelId", Value: bson.D{{Key: "$in", Value: scopeIDs(hostelIDs)}}}, {Key: "invoiceNumber", Value: number}}).Decode(&inv)
+	err := s.DB.Collection("subscriptioninvoices").FindOne(ctx, bson.D{{Key: "hostelId", Value: scopeIn(hostelIDs)}, {Key: "invoiceNumber", Value: number}}).Decode(&inv)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
@@ -526,7 +536,7 @@ func (s *Service) localReceiptNumber(ctx context.Context, pay *planPayment) (str
 
 func (s *Service) resolveReceipt(ctx context.Context, number string, hostelIDs []string) (*resolvedDoc, error) {
 	var pay planPayment
-	err := s.DB.Collection("subscriptionpayments").FindOne(ctx, bson.D{{Key: "hostelId", Value: bson.D{{Key: "$in", Value: scopeIDs(hostelIDs)}}},
+	err := s.DB.Collection("subscriptionpayments").FindOne(ctx, bson.D{{Key: "hostelId", Value: scopeIn(hostelIDs)},
 		{Key: "$or", Value: bson.A{bson.D{{Key: "softmatoTransactionNo", Value: number}}, bson.D{{Key: "localTransactionNo", Value: number}}, bson.D{{Key: "receiptNumber", Value: number}}}}}).Decode(&pay)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil

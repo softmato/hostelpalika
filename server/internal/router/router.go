@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/arrivals"
@@ -36,6 +37,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/offerprogram"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformlogs"
+	"github.com/softmato/hostelpalika/server/internal/modules/questioncall"
 	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/reports"
 	"github.com/softmato/hostelpalika/server/internal/modules/residentaccount"
@@ -66,6 +68,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/push"
 	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/softmato"
 	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 )
 
@@ -202,7 +205,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&residentaccount.Handler{DB: d.DB, Guards: guards, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
 	issuer := &users.Issuer{DB: d.DB, Mail: sender, Audit: log, AppURL: strings.TrimRight(cfg.AppURL, "/")}
 	appURL := func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }
-	(&hostelleave.Handler{DB: d.DB, Guards: guards, R2: storage.New(cfg.R2), Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
+	(&hostelleave.Handler{DB: d.DB, Guards: guards, R2: storage.New(cfg.R2), BG: bg, Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
 	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis), R2: storage.New(cfg.R2),
 		Reader: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}}).Register(v1)
 	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
@@ -215,13 +218,31 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}).Register(v1)
 	(&attendance.Handler{DB: d.DB, Guards: guards, Audit: log}).Register(v1)
 	notifications.NewHandler(d.DB, guards, sender, pushSender, rt, cfg.Pusher).Register(v1)
-	mountHostelAdmin(v1, &shared{Cfg: cfg, D: d, BG: bg, Tokens: tokens, Cookies: cookies, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, RT: rt, Push: pushSender, Notify: notify,
+	sh := &shared{Cfg: cfg, D: d, BG: bg, Tokens: tokens, Cookies: cookies, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, RT: rt, Push: pushSender, Notify: notify,
 		Cache: cache.New(d.Redis), R2: storage.New(cfg.R2), Config: siteConfig, Claims: claims, Personal: personal, Refs: refs, Bookings: bookingsSvc, Safety: safetySvc, Issuer: issuer, Auth: authSvc,
-		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL()})
-	(&bookings.Signed{Service: bookingsSvc, Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
+		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL()}
+	mountHostelAdmin(v1, sh)
+	signedBookings := &bookings.Signed{Service: bookingsSvc, Softmato: softmato.New(cfg.Softmato.BaseURL, cfg.Softmato.Secret, cfg.Softmato.WebhookSecret), Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
 		FinanceKeys: func() ([]crypto.MasterKey, error) {
 			return crypto.MasterKeys(cfg.Crypto.FinanceMasterKey, cfg.Crypto.FinanceMasterKeyPrev)
-		}, SoftmatoOn: cfg.Softmato.BaseURL != "" && cfg.Softmato.Secret != "" && cfg.Softmato.WebhookSecret != ""}).Register(v1)
+		}, SoftmatoOn: cfg.Softmato.BaseURL != "" && cfg.Softmato.Secret != "" && cfg.Softmato.WebhookSecret != ""}
+	signedBookings.Register(v1)
+	(&questioncall.Handler{DB: d.DB, Secret: cfg.QuestionCallWebhookSecret, Now: time.Now}).Register(v1)
+	settler := &billing.Settler{Service: &billing.Service{DB: d.DB, SiteURL: strings.TrimRight(cfg.AppURL, "/"), SoftmatoBase: cfg.Softmato.BaseURL,
+		Softmato: softmato.New(cfg.Softmato.BaseURL, cfg.Softmato.Secret, cfg.Softmato.WebhookSecret), Config: siteConfig, Audit: log, Mail: sender, Outbound: cfg.OutboundURL(),
+		PayLinkSecret: cfg.Auth.AccessSecret},
+		GoLive: func(ctx context.Context, hostelID bson.ObjectID) error {
+			return refs.GoLive(ctx, hostelID, notify, log, time.Now())
+		},
+		Now: time.Now}
+	(&billing.Webhooks{Settler: settler, Secret: strings.TrimSpace(cfg.Softmato.WebhookSecret),
+		SettleBooking: func(ctx context.Context, invoiceNo string) (string, string, bool, error) {
+			return signedBookings.SettleFromSoftmato(ctx, invoiceNo, time.Now())
+		}}).Register(v1)
+	(&hostels.RegistrationBilling{DB: d.DB, Guards: guards, Settler: settler}).Register(v1)
+	(&billing.PlanCheckout{Settler: settler, Limiter: limiter, RequestOTP: authSvc.PlanCheckoutOTP, VerifyOTP: authSvc.VerifiedIdentifier, Cooldown: authSvc.ResendCooldown, ClaimValid: claims.Valid}).Register(v1)
+	mountPlatform(v1, sh, settler)
+	mountGateway(v1, sh)
 }
 
 type healthData struct {

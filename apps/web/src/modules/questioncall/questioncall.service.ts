@@ -221,10 +221,6 @@ export async function recordQuestionCallConversion(input: QuestionCallConversion
   return { updated: result.modifiedCount ?? 0 };
 }
 
-function dayKey(value: Date) {
-  return value.toISOString().slice(0, 10);
-}
-
 export async function getQuestionCallAnalytics(query: QuestionCallAnalyticsQuery) {
   await connectToDatabase();
 
@@ -241,66 +237,59 @@ export async function getQuestionCallAnalytics(query: QuestionCallAnalyticsQuery
     };
   }
 
-  const clicks = await QuestionCallClickModel.find(filter)
-    .sort({ clickedAt: -1 })
-    .limit(5000)
-    .lean<ClickRecord[]>();
-
-  const perHostel = new Map<string, { clicks: number; conversions: number }>();
-  const perDay = new Map<string, { clicks: number; conversions: number }>();
-  const uniqueUsers = new Set<string>();
-  let conversions = 0;
-
-  for (const click of clicks) {
-    const hostelKey = click.hostelId.toString();
-    const hostelEntry = perHostel.get(hostelKey) ?? { clicks: 0, conversions: 0 };
-    const day = dayKey(click.clickedAt);
-    const dayEntry = perDay.get(day) ?? { clicks: 0, conversions: 0 };
-
-    hostelEntry.clicks += 1;
-    dayEntry.clicks += 1;
-    uniqueUsers.add(click.userId.toString());
-
-    if (click.converted) {
-      conversions += 1;
-      hostelEntry.conversions += 1;
-      dayEntry.conversions += 1;
-    }
-
-    perHostel.set(hostelKey, hostelEntry);
-    perDay.set(day, dayEntry);
-  }
+  // Counted in Mongo, every click: reading the newest 5,000 and summing those
+  // undercounted any busy range without saying so.
+  const counts = {
+    clicks: { $sum: 1 },
+    conversions: { $sum: { $cond: [{ $eq: ["$converted", true] }, 1, 0] } },
+  };
+  type Count = { _id: unknown; clicks: number; conversions: number };
+  const [facets] = await QuestionCallClickModel.aggregate<{
+    days: Array<Count & { _id: string }>;
+    hostels: Array<Count & { _id: Types.ObjectId }>;
+    total: Count[];
+    users: Array<{ n: number }>;
+  }>([
+    { $match: filter },
+    {
+      $facet: {
+        // Ties keep the old order: the hostel clicked most recently first.
+        hostels: [
+          { $group: { _id: "$hostelId", ...counts, last: { $max: "$clickedAt" } } },
+          { $sort: { clicks: -1, last: -1 } },
+        ],
+        days: [
+          { $group: { _id: { $dateToString: { date: "$clickedAt", format: "%Y-%m-%d" } }, ...counts } },
+          { $sort: { _id: 1 } },
+        ],
+        total: [{ $group: { _id: null, ...counts } }],
+        users: [{ $group: { _id: "$userId" } }, { $count: "n" }],
+      },
+    },
+  ]);
 
   // Names, not ObjectIds — the breakdown is read by a person.
-  const hostels = await HostelModel.find({
-    _id: { $in: [...perHostel.keys()].map((id) => new Types.ObjectId(id)) },
-  })
+  const hostels = await HostelModel.find({ _id: { $in: facets.hostels.map((row) => row._id) } })
     .select("name")
     .lean<Array<{ _id: Types.ObjectId; name: string }>>();
-  const hostelNameById = new Map(
-    hostels.map((hostel) => [hostel._id.toString(), hostel.name]),
-  );
-
-  const byHostel = [...perHostel.entries()]
-    .map(([hostelId, entry]) => ({
-      clicks: entry.clicks,
-      conversionRate: entry.clicks > 0 ? entry.conversions / entry.clicks : 0,
-      conversions: entry.conversions,
-      hostelId,
-      hostelName: hostelNameById.get(hostelId) ?? "Unknown hostel",
-    }))
-    .sort((a, b) => b.clicks - a.clicks);
+  const hostelNameById = new Map(hostels.map((hostel) => [hostel._id.toString(), hostel.name]));
+  const rate = (conversions: number, clicks: number) => (clicks > 0 ? conversions / clicks : 0);
+  const total = facets.total[0] ?? { clicks: 0, conversions: 0 };
 
   return {
-    byDay: [...perDay.entries()]
-      .map(([date, entry]) => ({ ...entry, date }))
-      .sort((a, b) => a.date.localeCompare(b.date)),
-    byHostel,
+    byDay: facets.days.map((row) => ({ clicks: row.clicks, conversions: row.conversions, date: row._id })),
+    byHostel: facets.hostels.map((row) => ({
+      clicks: row.clicks,
+      conversionRate: rate(row.conversions, row.clicks),
+      conversions: row.conversions,
+      hostelId: row._id.toString(),
+      hostelName: hostelNameById.get(row._id.toString()) ?? "Unknown hostel",
+    })),
     summary: {
-      conversionRate: clicks.length > 0 ? conversions / clicks.length : 0,
-      conversions,
-      totalClicks: clicks.length,
-      uniqueResidents: uniqueUsers.size,
+      conversionRate: rate(total.conversions, total.clicks),
+      conversions: total.conversions,
+      totalClicks: total.clicks,
+      uniqueResidents: facets.users[0]?.n ?? 0,
     },
   };
 }

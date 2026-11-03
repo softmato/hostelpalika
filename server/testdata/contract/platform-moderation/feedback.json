@@ -1,0 +1,624 @@
+[
+  {
+    "name": "feedback signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "feedback as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "feedback as moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request successful",
+        "data": {
+          "counts": {
+            "NEW": 5
+          },
+          "roleCounts": {
+            "UNKNOWN": 5
+          },
+          "items": [
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:19:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f2",
+              "kind": "BUG",
+              "message": "one",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:18:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f3",
+              "kind": "BUG",
+              "message": "two",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:17:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f4",
+              "kind": "BUG",
+              "message": "three",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:16:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f5",
+              "kind": "BUG",
+              "message": "four",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:15:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f6",
+              "kind": "BUG",
+              "message": "five",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "feedback new only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback?status=NEW",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request successful",
+        "data": {
+          "counts": {
+            "NEW": 5
+          },
+          "roleCounts": {
+            "UNKNOWN": 5
+          },
+          "items": [
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:19:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f2",
+              "kind": "BUG",
+              "message": "one",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:18:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f3",
+              "kind": "BUG",
+              "message": "two",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:17:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f4",
+              "kind": "BUG",
+              "message": "three",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:16:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f5",
+              "kind": "BUG",
+              "message": "four",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:15:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f6",
+              "kind": "BUG",
+              "message": "five",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "feedback by role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback?role=PUBLIC",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request successful",
+        "data": {
+          "counts": {},
+          "roleCounts": {
+            "UNKNOWN": 5
+          },
+          "items": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "feedback odd filters ignored",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback?status=nope\u0026role=bad-role",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request successful",
+        "data": {
+          "counts": {
+            "NEW": 5
+          },
+          "roleCounts": {
+            "UNKNOWN": 5
+          },
+          "items": [
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:19:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f2",
+              "kind": "BUG",
+              "message": "one",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:18:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f3",
+              "kind": "BUG",
+              "message": "two",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:17:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f4",
+              "kind": "BUG",
+              "message": "three",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:16:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f5",
+              "kind": "BUG",
+              "message": "four",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            },
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:15:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f6",
+              "kind": "BUG",
+              "message": "five",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "NEW"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark bad status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/feedback/6c00000000000000000000f2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "LATER"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"NEW\"|\"SEEN\"|\"DONE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"NEW\"|\"SEEN\"|\"DONE\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/feedback/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "SEEN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Invalid id."
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/feedback/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "SEEN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That feedback was not found.",
+        "errorCode": "FEEDBACK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "mark seen",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/feedback/6c00000000000000000000f2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "status": "SEEN"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Updated",
+        "data": {
+          "id": "6c00000000000000000000f2",
+          "status": "SEEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "seen ones",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/feedback?status=SEEN",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request successful",
+        "data": {
+          "counts": {
+            "NEW": 4,
+            "SEEN": 1
+          },
+          "roleCounts": {
+            "UNKNOWN": 1
+          },
+          "items": [
+            {
+              "appVersion": null,
+              "createdAt": "2026-11-03T13:19:59.066Z",
+              "hostel": null,
+              "id": "6c00000000000000000000f2",
+              "kind": "BUG",
+              "message": "one",
+              "page": null,
+              "platform": "WEB",
+              "role": null,
+              "screenshots": [],
+              "sender": {
+                "email": "provider@contract.test",
+                "name": "Contract provider",
+                "phone": null
+              },
+              "status": "SEEN"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

@@ -1,0 +1,1050 @@
+[
+  {
+    "name": "providers signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers as hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 8,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "OTHER"
+              ],
+              "category": "OTHER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000099@prov.test",
+              "experience": "",
+              "fullName": "Contract Provider",
+              "id": "6c00000000000000000000d1",
+              "phone": "9801000099",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "Twenty years",
+              "email": "9801000001@prov.test",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "phone": "9801000001",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Koteshwor",
+              "availability": "",
+              "categories": [
+                "CLEANER"
+              ],
+              "category": "CLEANER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000002@prov.test",
+              "experience": "",
+              "fullName": "Sita Cleaner",
+              "id": "6c0000000000000000000075",
+              "phone": "9801000002",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "PAINTER"
+              ],
+              "category": "PAINTER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000003@prov.test",
+              "experience": "",
+              "fullName": "Hari Painter",
+              "id": "6c0000000000000000000076",
+              "phone": "9801000003",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "PENDING_APPROVAL",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Kalanki",
+              "availability": "",
+              "categories": [
+                "CARPENTER"
+              ],
+              "category": "CARPENTER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000004@prov.test",
+              "experience": "",
+              "fullName": "Gita Carpenter",
+              "id": "6c0000000000000000000077",
+              "phone": "9801000004",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "Photo unclear",
+              "status": "REJECTED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000005@prov.test",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "phone": "9801000005",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "DOCTOR_CLINIC"
+              ],
+              "category": "DOCTOR_CLINIC",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000006@prov.test",
+              "experience": "",
+              "fullName": "Hidden Doctor",
+              "id": "6c0000000000000000000079",
+              "phone": "9801000006",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "HIDDEN",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Pokhara Lakeside",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Pokhara",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000007@prov.test",
+              "experience": "",
+              "fullName": "Other Town Plumber",
+              "id": "6c000000000000000000007a",
+              "phone": "9801000007",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers pending",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers?status=PENDING_APPROVAL",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "PAINTER"
+              ],
+              "category": "PAINTER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000003@prov.test",
+              "experience": "",
+              "fullName": "Hari Painter",
+              "id": "6c0000000000000000000076",
+              "phone": "9801000003",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "PENDING_APPROVAL",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers by area",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers?area=Baneshwor\u0026category=PLUMBER",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "Twenty years",
+              "email": "9801000001@prov.test",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "phone": "9801000001",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers bad category",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers?category=NOPE",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "category": [
+              "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\"",
+              "path": "category"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "provider",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000074",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider loaded",
+        "data": {
+          "application": null,
+          "documents": [
+            {
+              "createdAt": "2026-11-02T13:30:04.315Z",
+              "documentType": "Licence",
+              "fileAssetId": null,
+              "fileUrl": "",
+              "id": "6c000000000000000000007c",
+              "providerId": "6c0000000000000000000074",
+              "status": "APPROVED"
+            }
+          ],
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "Mornings",
+            "categories": [
+              "PLUMBER",
+              "ELECTRICIAN"
+            ],
+            "category": "PLUMBER",
+            "city": "Kathmandu",
+            "createdAt": "2026-09-29T04:15:00.000Z",
+            "description": "Twenty years",
+            "email": "9801000001@prov.test",
+            "experience": "20 yrs",
+            "fullName": "Ram Plumber",
+            "id": "6c0000000000000000000074",
+            "phone": "9801000001",
+            "photoAssetId": "6c000000000000000000007e",
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "totalReviews": 3
+            },
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "updatedAt": "2026-09-30T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "provider missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers/6d0effffffffffffffffffff",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "provider bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid service provider id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve pending",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000076/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider approved",
+        "data": {
+          "application": null,
+          "documents": [],
+          "provider": {
+            "approvedAt": "2026-11-03T13:30:12.080Z",
+            "approvedBy": "6d0a00000000000000000002",
+            "area": "Baneshwor",
+            "availability": "",
+            "categories": [
+              "PAINTER"
+            ],
+            "category": "PAINTER",
+            "city": "Kathmandu",
+            "createdAt": "2026-09-29T04:15:00.000Z",
+            "description": "",
+            "email": "9801000003@prov.test",
+            "experience": "",
+            "fullName": "Hari Painter",
+            "id": "6c0000000000000000000076",
+            "phone": "9801000003",
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "totalReviews": 3
+            },
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "updatedAt": "2026-11-03T13:30:12.080Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6d0effffffffffffffffffff/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reject short reason",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000075/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "reject",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000075/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      },
+      "body": {
+        "reason": "Phone does not answer"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider rejected",
+        "data": {
+          "application": null,
+          "documents": [],
+          "provider": {
+            "area": "Koteshwor",
+            "availability": "",
+            "categories": [
+              "CLEANER"
+            ],
+            "category": "CLEANER",
+            "city": "Kathmandu",
+            "createdAt": "2026-09-29T04:15:00.000Z",
+            "description": "",
+            "email": "9801000002@prov.test",
+            "experience": "",
+            "fullName": "Sita Cleaner",
+            "id": "6c0000000000000000000075",
+            "phone": "9801000002",
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "totalReviews": 3
+            },
+            "rejectionReason": "Phone does not answer",
+            "status": "REJECTED",
+            "updatedAt": "2026-11-03T13:30:14.992Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000074/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider hidden",
+        "data": {
+          "application": null,
+          "documents": [
+            {
+              "createdAt": "2026-11-02T13:30:04.315Z",
+              "documentType": "Licence",
+              "fileAssetId": null,
+              "fileUrl": "",
+              "id": "6c000000000000000000007c",
+              "providerId": "6c0000000000000000000074",
+              "status": "APPROVED"
+            }
+          ],
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "Mornings",
+            "categories": [
+              "PLUMBER",
+              "ELECTRICIAN"
+            ],
+            "category": "PLUMBER",
+            "city": "Kathmandu",
+            "createdAt": "2026-09-29T04:15:00.000Z",
+            "description": "Twenty years",
+            "email": "9801000001@prov.test",
+            "experience": "20 yrs",
+            "fullName": "Ram Plumber",
+            "hiddenAt": "2026-11-03T13:30:17.674Z",
+            "hiddenBy": "6d0a00000000000000000001",
+            "id": "6c0000000000000000000074",
+            "phone": "9801000001",
+            "photoAssetId": "6c000000000000000000007e",
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "totalReviews": 3
+            },
+            "rejectionReason": "",
+            "status": "HIDDEN",
+            "updatedAt": "2026-11-03T13:30:17.674Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "hide missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6d0effffffffffffffffffff/hide",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Service provider was not found.",
+        "errorCode": "SERVICE_PROVIDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "approve rejected",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/service-providers/6c0000000000000000000077/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider approved",
+        "data": {
+          "application": null,
+          "documents": [],
+          "provider": {
+            "approvedAt": "2026-11-03T13:30:17.779Z",
+            "approvedBy": "6d0a00000000000000000001",
+            "area": "Kalanki",
+            "availability": "",
+            "categories": [
+              "CARPENTER"
+            ],
+            "category": "CARPENTER",
+            "city": "Kathmandu",
+            "createdAt": "2026-09-29T04:15:00.000Z",
+            "description": "",
+            "email": "9801000004@prov.test",
+            "experience": "",
+            "fullName": "Gita Carpenter",
+            "id": "6c0000000000000000000077",
+            "phone": "9801000004",
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "totalReviews": 3
+            },
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "updatedAt": "2026-11-03T13:30:17.779Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "providers after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/service-providers",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 8,
+            "totalPages": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "OTHER"
+              ],
+              "category": "OTHER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000099@prov.test",
+              "experience": "",
+              "fullName": "Contract Provider",
+              "id": "6c00000000000000000000d1",
+              "phone": "9801000099",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "Twenty years",
+              "email": "9801000001@prov.test",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "hiddenAt": "2026-11-03T13:30:17.674Z",
+              "hiddenBy": "6d0a00000000000000000001",
+              "id": "6c0000000000000000000074",
+              "phone": "9801000001",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "HIDDEN",
+              "updatedAt": "2026-11-03T13:30:17.674Z"
+            },
+            {
+              "area": "Koteshwor",
+              "availability": "",
+              "categories": [
+                "CLEANER"
+              ],
+              "category": "CLEANER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000002@prov.test",
+              "experience": "",
+              "fullName": "Sita Cleaner",
+              "id": "6c0000000000000000000075",
+              "phone": "9801000002",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "Phone does not answer",
+              "status": "REJECTED",
+              "updatedAt": "2026-11-03T13:30:14.992Z"
+            },
+            {
+              "approvedAt": "2026-11-03T13:30:12.080Z",
+              "approvedBy": "6d0a00000000000000000002",
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "PAINTER"
+              ],
+              "category": "PAINTER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000003@prov.test",
+              "experience": "",
+              "fullName": "Hari Painter",
+              "id": "6c0000000000000000000076",
+              "phone": "9801000003",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-11-03T13:30:12.080Z"
+            },
+            {
+              "approvedAt": "2026-11-03T13:30:17.779Z",
+              "approvedBy": "6d0a00000000000000000001",
+              "area": "Kalanki",
+              "availability": "",
+              "categories": [
+                "CARPENTER"
+              ],
+              "category": "CARPENTER",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000004@prov.test",
+              "experience": "",
+              "fullName": "Gita Carpenter",
+              "id": "6c0000000000000000000077",
+              "phone": "9801000004",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-11-03T13:30:17.779Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000005@prov.test",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "phone": "9801000005",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "DOCTOR_CLINIC"
+              ],
+              "category": "DOCTOR_CLINIC",
+              "city": "Kathmandu",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000006@prov.test",
+              "experience": "",
+              "fullName": "Hidden Doctor",
+              "id": "6c0000000000000000000079",
+              "phone": "9801000006",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "HIDDEN",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            },
+            {
+              "area": "Pokhara Lakeside",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Pokhara",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "description": "",
+              "email": "9801000007@prov.test",
+              "experience": "",
+              "fullName": "Other Town Plumber",
+              "id": "6c000000000000000000007a",
+              "phone": "9801000007",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "rejectionReason": "",
+              "status": "APPROVED",
+              "updatedAt": "2026-09-30T04:15:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]

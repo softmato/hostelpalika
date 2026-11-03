@@ -1,0 +1,502 @@
+[
+  {
+    "name": "state signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/state"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "state bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/nope/state",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "state missing hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000099/state",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "state not owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000002/state",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "state owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/state",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.state.subscription.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Registration state loaded",
+        "data": {
+          "onlinePayment": false,
+          "state": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "plan bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/plan",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "cycle": "weekly",
+        "planId": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cycle": [
+              "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\""
+            ],
+            "planId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\"",
+              "path": "cycle"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "planId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "plan unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/plan",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "planId": "nope"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That plan is no longer available. Choose another one.",
+        "errorCode": "PLAN_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "plan not owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000002/plan",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "planId": "pro"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "plan picked",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/plan",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "planId": "pro",
+        "cycle": "monthly"
+      }
+    },
+    "masks": [
+      "data.state.subscription.id",
+      "data.state.subscription.activatedAt",
+      "data.state.subscription.currentPeriodEnd",
+      "data.state.subscription.freeUntil",
+      "data.state.subscription.freeMonth",
+      "data.state.subscription.trialEndsAt",
+      "data.state.subscription.dueBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Plan selected",
+        "data": {
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Owned Hostel",
+            "hostelStatus": "PUBLISHED",
+            "invoice": null,
+            "outstanding": 0,
+            "paid": 0,
+            "payments": [],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": "2026-11-03T16:47:19.222Z",
+              "currentPeriodEnd": "2026-11-06T18:14:59.999Z",
+              "cycle": "monthly",
+              "cycleTotal": 1699,
+              "dueBy": null,
+              "freeMonths": 0,
+              "freeUntil": "2026-11-06T18:14:59.999Z",
+              "freeMonthNow": null,
+              "id": "6aea10168327c86edbcdf0b0",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-06T18:14:59.999Z"
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "invoice not owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000002/invoice",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "pay not owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000002/pay",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not yours to manage.",
+        "errorCode": "NOT_HOSTEL_OWNER"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "pay owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-registration/6d0f00000000000000000001/pay",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no outstanding invoice to pay.",
+        "errorCode": "NO_OPEN_INVOICE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "return signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/return?invoice=SUB-0001"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "return bad token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/return?invoice=SUB-0001",
+      "headers": {
+        "x-checkout-token": "not-a-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This checkout has expired. Start again with your hostel's email and ID.",
+        "errorCode": "CHECKOUT_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "return no invoice",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/return",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Return state read",
+        "data": {
+          "state": {
+            "kind": "unknown"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "return unknown invoice",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-registration/return?invoice=SUB-9999-NONE",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Return state read",
+        "data": {
+          "state": {
+            "kind": "unknown"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "team checkout signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/checkout"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "team checkout public refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "team checkout not filed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6d0f00000000000000000001/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "team checkout bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/nope/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  },
+  {
+    "name": "team checkout filed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Online payment is not set up on this deployment yet.",
+        "errorCode": "ONLINE_PAYMENT_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 618f5b2f"
+  }
+]
