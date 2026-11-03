@@ -198,19 +198,18 @@ moved to Phase 8: they run the Softmato plan payment, like `hostel-registration`
 
 **Needs:** Phase 7.
 
-**Status 2026-11-03 (late): every Phase 8 route is on Go**, contract group `billing-online`
-(71 cases, recorded from TS, green) plus the earlier `webhooks/softmato` and QuestionCall work.
-Findings P8-1..P8-7, each fixed in Go and TS. Left: contract cases for
-`hostel-admin/finance/payment-gateways` (written, not recorded), and the offline shadow below.
-Fonepay has no adapter in TS either: it waits on the bank's merchant API (outside the repo).
+**Status 2026-11-03: done.** Every Phase 8 route is on Go: contract group `billing-online`
+(71 cases) plus `admin-reports/finance-gateways.json` for `payment-gateways` and
+`payment-profile`, all recorded from TS and green. Findings P8-1..P8-7, each fixed in Go and TS.
+The gate passed with zero drift (below). Fonepay has no adapter in TS either: it waits on the
+bank's merchant API (outside the repo).
 
 - ☑ `webhooks/:provider` (eSewa, Khalti), `webhooks/softmato`, `integrations/questioncall/*`
 - ☑ `bookings/:id/checkout`, `bookings/:id/payment`, `bookings/:id/return`
 - ☑ `team/prepayments` (4) and `team/hostels/:id/checkout`; the team registration's online publish path claims, settles and releases the prepayment
 - ☑ `POST /public/plan-checkout` and `hostel-registration` (5: `[hostelId]/invoice|pay|plan|state`, `return`)
-- ☐ Checkout intents, settlement, reconciliation, gateway health — **offline shadow**: replay real provider events (the stored webhook/verification payloads) against the live-data copy and compare Go's resulting rows with what TS wrote for the same events
-
-**Gate:** replaying a full `gateway-settlement-recon` window shows zero drift between Go's rows and TS's.
+- ☑ Checkout intents, settlement, reconciliation, gateway health — **offline shadow**: `dev shadow-phase8` (run from the repo root on a fresh `deploy/copy-live-db.ps1` copy) runs Go's `gateway-health` and `gateway-settlement-recon` (`gateway/jobs.go`, run rows through `modules/recon`) and the Softmato reconcile over live data, then diffs against what TS recorded. 2026-11-03: 25/25 hostels match TS's latest health and recon runs; 18 Softmato plan invoices reconciled through Go (17 read back from Softmato, one pre-integration document 404s for TS too), 33 payments before and after, no invoice or subscription moved; 2 OPEN team prepayments still unpaid at Softmato. Live data holds no eSewa/Khalti attempt yet (no hostel has a gateway switched on), so provider-event replay starts with the first real one; the unit and contract tests cover that path meanwhile
+**Gate:** replaying a full `gateway-settlement-recon` window shows zero drift between Go's rows and TS's. **Passed 2026-11-03.**
 
 ---
 

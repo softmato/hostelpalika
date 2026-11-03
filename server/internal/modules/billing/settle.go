@@ -16,6 +16,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
+	appmongo "github.com/softmato/hostelpalika/server/internal/platform/mongo"
 	"github.com/softmato/hostelpalika/server/internal/platform/plans"
 )
 
@@ -45,6 +46,7 @@ type settlingPayment struct {
 	Amount     int64         `bson:"amount"`
 	HostelID   bson.ObjectID `bson:"hostelId"`
 	InvoiceID  bson.ObjectID `bson:"invoiceId"`
+	Status     string        `bson:"status"`
 	IsMocked   bool          `bson:"isMocked"`
 	Method     string        `bson:"method"`
 	SoftmatoTx *string       `bson:"softmatoTransactionNo"`
@@ -71,16 +73,8 @@ func (s *Settler) SettlePayment(ctx context.Context, paymentID bson.ObjectID, o 
 	if err != nil {
 		return nil, err
 	}
-	now := s.now()
-	claimed, err := pays.UpdateOne(ctx, bson.D{{Key: "_id", Value: pay.ID}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"PENDING", "IN_REVIEW"}}}}},
-		bson.D{{Key: "$set", Value: bson.D{{Key: "settledAt", Value: now}, {Key: "status", Value: "SETTLED"}, {Key: "updatedAt", Value: now}}}})
-	if err != nil {
-		return nil, err
-	}
-	if claimed.ModifiedCount == 0 {
-		return s.State(ctx, pay.HostelID)
-	}
-
+	// The invoice is checked before anything is written (P8-8): a voided one used
+	// to be found after the payment was already SETTLED, settled against nothing.
 	var inv planInvoice
 	if err := s.DB.Collection("subscriptioninvoices").FindOne(ctx, bson.D{{Key: "_id", Value: pay.InvoiceID}}).Decode(&inv); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -91,13 +85,11 @@ func (s *Settler) SettlePayment(ctx context.Context, paymentID bson.ObjectID, o 
 	if inv.Status == "VOID" {
 		return nil, payErr(409, "INVOICE_VOID", "That invoice was voided, so it cannot take a payment.")
 	}
-	receiptNumber, err := s.allocateReceiptNumber(ctx, inv.HostelID, now)
-	if err != nil {
-		return nil, err
+	if pay.Status != "PENDING" && pay.Status != "IN_REVIEW" {
+		return s.State(ctx, pay.HostelID)
 	}
-
-	// Softmato issues the receipt for money that went through them; ours is
-	// allocated either way so our own sequence stays complete.
+	// Softmato issues the receipt for money that went through them. Read before
+	// the transaction: an HTTP call does not belong inside one.
 	var receipt *receiptRead
 	if pay.SoftmatoTx != nil && *pay.SoftmatoTx != "" {
 		receipt, err = s.readSettledReceipt(ctx, *pay.SoftmatoTx)
@@ -108,45 +100,70 @@ func (s *Settler) SettlePayment(ctx context.Context, paymentID bson.ObjectID, o 
 			receipt = nil
 		}
 	}
-	set := bson.D{}
-	if o.GatewayReference != "" {
-		set = append(set, bson.E{Key: "gatewayReference", Value: o.GatewayReference})
-	}
-	docURL := s.documentURL("receipt", receiptNumber)
-	if receipt != nil {
-		if receipt.ProviderRef != "" {
-			set = append(set, bson.E{Key: "gatewayReference", Value: receipt.ProviderRef})
-		}
-		if receipt.Provider != "" {
-			set = append(set, bson.E{Key: "softmatoProvider", Value: receipt.Provider})
-		}
-		docURL = receipt.DocumentURL
-	}
-	set = append(set, bson.E{Key: "receiptDocumentUrl", Value: docURL}, bson.E{Key: "receiptIssuedAt", Value: now}, bson.E{Key: "receiptNumber", Value: receiptNumber}, bson.E{Key: "updatedAt", Value: now})
-	if _, err := pays.UpdateOne(ctx, bson.D{{Key: "_id", Value: pay.ID}}, bson.D{{Key: "$set", Value: set}}); err != nil {
-		return nil, err
-	}
-	// Only money Softmato never saw keeps the receipt this app prints.
-	if receipt == nil && pay.Method != "SOFTMATO" && (pay.SoftmatoTx == nil || *pay.SoftmatoTx == "") {
-		var row planPayment
-		if err := pays.FindOne(ctx, bson.D{{Key: "_id", Value: pay.ID}}).Decode(&row); err != nil {
-			return nil, err
-		}
-		if _, err := s.localReceiptNumber(ctx, &row); err != nil {
-			return nil, err
-		}
-	}
 
-	outstanding, err := s.outstanding(ctx, &inv)
+	// The payment, its receipt number and the invoice's status land together
+	// (R28): a failure part way used to leave a SETTLED payment the invoice never
+	// counted, and the retry returned early because the claim was already taken.
+	now := s.now()
+	var receiptNumber string
+	var outstanding int64
+	errClaimed := errors.New("already settled")
+	err = appmongo.InTx(ctx, s.DB, func(ctx context.Context) error {
+		claimed, err := pays.UpdateOne(ctx, bson.D{{Key: "_id", Value: pay.ID}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"PENDING", "IN_REVIEW"}}}}},
+			bson.D{{Key: "$set", Value: bson.D{{Key: "settledAt", Value: now}, {Key: "status", Value: "SETTLED"}, {Key: "updatedAt", Value: now}}}})
+		if err != nil {
+			return err
+		}
+		if claimed.ModifiedCount == 0 {
+			return errClaimed
+		}
+		// Ours is allocated either way so our own sequence stays complete.
+		if receiptNumber, err = s.allocateReceiptNumber(ctx, inv.HostelID, now); err != nil {
+			return err
+		}
+		set := bson.D{}
+		if o.GatewayReference != "" {
+			set = append(set, bson.E{Key: "gatewayReference", Value: o.GatewayReference})
+		}
+		docURL := s.documentURL("receipt", receiptNumber)
+		if receipt != nil {
+			if receipt.ProviderRef != "" {
+				set = append(set, bson.E{Key: "gatewayReference", Value: receipt.ProviderRef})
+			}
+			if receipt.Provider != "" {
+				set = append(set, bson.E{Key: "softmatoProvider", Value: receipt.Provider})
+			}
+			docURL = receipt.DocumentURL
+		}
+		set = append(set, bson.E{Key: "receiptDocumentUrl", Value: docURL}, bson.E{Key: "receiptIssuedAt", Value: now}, bson.E{Key: "receiptNumber", Value: receiptNumber}, bson.E{Key: "updatedAt", Value: now})
+		if _, err := pays.UpdateOne(ctx, bson.D{{Key: "_id", Value: pay.ID}}, bson.D{{Key: "$set", Value: set}}); err != nil {
+			return err
+		}
+		// Only money Softmato never saw keeps the receipt this app prints.
+		if receipt == nil && pay.Method != "SOFTMATO" && (pay.SoftmatoTx == nil || *pay.SoftmatoTx == "") {
+			var row planPayment
+			if err := pays.FindOne(ctx, bson.D{{Key: "_id", Value: pay.ID}}).Decode(&row); err != nil {
+				return err
+			}
+			if _, err := s.localReceiptNumber(ctx, &row); err != nil {
+				return err
+			}
+		}
+		if outstanding, err = s.outstanding(ctx, &inv); err != nil {
+			return err
+		}
+		status := "PARTIAL"
+		if outstanding <= 0 {
+			status = "PAID"
+		}
+		_, err = s.DB.Collection("subscriptioninvoices").UpdateOne(ctx, bson.D{{Key: "_id", Value: inv.ID}},
+			bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}, {Key: "updatedAt", Value: now}}}})
+		return err
+	})
+	if errors.Is(err, errClaimed) {
+		return s.State(ctx, pay.HostelID)
+	}
 	if err != nil {
-		return nil, err
-	}
-	status := "PARTIAL"
-	if outstanding <= 0 {
-		status = "PAID"
-	}
-	if _, err := s.DB.Collection("subscriptioninvoices").UpdateOne(ctx, bson.D{{Key: "_id", Value: inv.ID}},
-		bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}, {Key: "updatedAt", Value: now}}}}); err != nil {
 		return nil, err
 	}
 	if outstanding <= 0 {

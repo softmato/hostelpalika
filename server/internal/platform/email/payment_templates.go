@@ -84,3 +84,17 @@ func PaymentReversed(amount int64, hostelName string, outstanding int64, payment
 		}, "\n"),
 	})}
 }
+
+// GatewayUnhealthy is gatewayUnhealthyEmail: the hostel's online checkout is not
+// working, which no screen the owner looks at would show them.
+func GatewayUnhealthy(detail, hostelName, providerName, setupURL, title string) Content {
+	return Content{Category: Alert, Subject: title + " · " + hostelName, HTML: EmailLayout(Layout{
+		Heading: title,
+		BodyHTML: strings.Join([]string{
+			Paragraph(EscapeHTML(detail)),
+			Paragraph("Your " + EscapeHTML(providerName) + " details may have changed (key, merchant code, or your bank turned off online payments). The money you already got is safe."),
+			Paragraph("Residents can still pay by QR, wallet or bank. That money still reaches you."),
+			CTAButton(setupURL, "Check payment settings"),
+		}, "\n"),
+	})}
+}

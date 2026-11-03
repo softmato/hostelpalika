@@ -18,7 +18,9 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -34,6 +36,9 @@ type Service struct {
 	Sandbox     map[string]config.GatewayCredentials
 	Providers   map[string]Provider
 	Now         func() time.Time
+	// Notify and Mail tell hostel admins when a gateway turns unhealthy.
+	Notify *notifications.Service
+	Mail   *email.Sender
 }
 
 const (

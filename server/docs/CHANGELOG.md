@@ -14,7 +14,7 @@ these docs.
 ### Next in Phase 7
 - Contract cases for the rest of `platform/*`; the native log and system screens (owner's call); the Cron tab after Phase 9.
 
-## [Phase 8 — in progress] — 2026-11-03
+## [Phase 8 — done] — 2026-11-03
 
 Started beside Phase 7 (owner's call); the two sessions split `billing` by file.
 
@@ -35,9 +35,11 @@ Started beside Phase 7 (owner's call); the two sessions split `billing` by file.
 - Contract group `billing-online` (71 cases) with its fixture.
 - Fixed in Go and TS: P8-5 (eSewa callbacks never resolved), P8-6 (a died-midway gateway verify never settled), P8-7 (booking screenshot left in review with no row). Also fixed: the account and admin `hostel-leave` handlers had no background runner, so records were never rebuilt.
 
-### Next in Phase 8
-- Record contract cases for `hostel-admin/finance/payment-gateways`.
-- The offline shadow replay of real provider events (the gate).
+### Closed
+- Gateway jobs in Go (`gateway/jobs.go`): `RunGatewayHealth` (verdict, profile health fields, admin in-app + `email.GatewayUnhealthy`, 24 h renotify) and `RunSettlementRecon` (14-day recheck of closed attempts, succeeded ↔ event checks). `ExpireStale` was already there. Reconciliation run rows through the new `modules/recon.WithRun`. Phase 9 schedules them and adds their `/cron/*` doors.
+- Gate: `dev shadow-phase8` on a live-data copy — zero drift (PHASES.md Phase 8).
+- P8-8 fixed in Go and TS: plan settlement checks the invoice before claiming the payment; Go writes the money rows in one transaction (closes R28).
+- `payment-gateways` / `payment-profile` ticked: already covered by `admin-reports/finance-gateways.json`.
 
 ## [Phase 6 — done] — 2026-11-03
 

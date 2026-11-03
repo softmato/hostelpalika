@@ -257,6 +257,10 @@ export async function settlePayment(
     throw new SubscriptionError("Payment not found.", "PAYMENT_NOT_FOUND", 404);
   }
 
+  // Before the claim (P8-8): a voided invoice used to be found only after the
+  // payment was already SETTLED, which left it settled against nothing.
+  const invoice = await loadInvoice(payment.invoiceId.toString());
+
   /*
    * **Claim the row before doing anything with consequences.**
    *
@@ -289,7 +293,6 @@ export async function settlePayment(
     return getSubscriptionState(payment.hostelId.toString());
   }
 
-  const invoice = await loadInvoice(payment.invoiceId.toString());
   const receiptNumber = await allocateReceiptNumber(invoice.hostelId);
 
   /*

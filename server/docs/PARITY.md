@@ -474,8 +474,8 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/hostel-admin/finance/khata/residents/:residentId` | cap:recordCash |  | finance, hostels |
 | ☐ | GET PUT | `/api/v1/hostel-admin/finance/late-fine` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
 | ☐ | GET PUT | `/api/v1/hostel-admin/finance/money-rules` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
-| ☐ | DELETE GET PUT | `/api/v1/hostel-admin/finance/payment-gateways` | cap:managePaymentProfile | etag | finance, hostels |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/finance/payment-profile` | cap:viewPayments, cap:managePaymentProfile | etag | finance, hostels |
+| ☑ | DELETE GET PUT | `/api/v1/hostel-admin/finance/payment-gateways` | cap:managePaymentProfile | etag | finance, hostels |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/finance/payment-profile` | cap:viewPayments, cap:managePaymentProfile | etag | finance, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/finance/receipts/:id/pdf` | cap:viewPayments |  | finance |
 | ☐ | GET POST | `/api/v1/hostel-admin/finance/rent-concessions` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
 | ☐ | DELETE | `/api/v1/hostel-admin/finance/rent-concessions/:id` | cap:manageFeeSchedule |  | finance, hostels |
