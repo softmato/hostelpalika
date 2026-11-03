@@ -13,8 +13,10 @@ these docs.
 - Residents: roll, record, contacts, photo, guardians, forms and Form QR, leave, move-in/out, write-off, activation codes, status change (links or returns the login, bills the move-in month), intake `POST /residents` (duplicate and live-residency checks, plan limit, room claim, held booking check-in, referral link, admission and first-month invoices, account link, registration notices and mail, pay methods), bookings admin (6), resident-scan (2), resident-lookup (1). Contract groups `admin-residents-roll` and `admin-residents-intake`.
 - Fixed in Go and TS: RES-14, RES-15, BKG-1.
 
+- Existing-residents list (list, save, clear, Excel/CSV file, template, add all, add one), join link and join requests (link, list, add, send back). Contract group `admin-residents-existing`. `TestRoutesMatchWeb` now reads `export const { GET } = x.y` re-exports, which hid 17 TS routes.
+
 ### Still to do in Phase 6
-- Existing-residents list (5 routes), join link and join requests (3), RES-16; then the review, run separately.
+- RES-16 (the ID card made from the form at intake), the field-team copies of the existing-residents routes (with the team group); then the review, run separately.
 
 ## [Review of Phases 0–5] — 2026-11-01
 

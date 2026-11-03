@@ -38,6 +38,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/hostel-admin/resident-scan/photo", reg, h.scanPhoto)
 	v1.GET("/hostel-admin/resident-lookup", reg, httpx.ETag(), h.lookup)
 	a := v1.Group("/hostel-admin/residents")
+	h.registerExisting(a, reg)
 	a.GET("", staff, h.list)
 	a.POST("", reg, h.create)
 	a.GET("/:id", staff, httpx.ETag(), h.get)

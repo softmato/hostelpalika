@@ -124,7 +124,7 @@ func Diff(c Case, status int, contentType string, setCookie []string, body []byt
 	if len(want.Body) == 0 && len(bytes.TrimSpace(body)) == 0 {
 		return diffs
 	}
-	if mediaType(want.ContentType) == "application/pdf" || mediaType(want.ContentType) == "application/x-ndjson" || mediaType(want.ContentType) == "application/zip" || mediaType(want.ContentType) == "text/plain" || mediaType(want.ContentType) == "text/csv" {
+	if mediaType(want.ContentType) == "application/pdf" || mediaType(want.ContentType) == "application/x-ndjson" || mediaType(want.ContentType) == "application/zip" || mediaType(want.ContentType) == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || mediaType(want.ContentType) == "text/plain" || mediaType(want.ContentType) == "text/csv" {
 		return diffs
 	}
 	var got, exp any

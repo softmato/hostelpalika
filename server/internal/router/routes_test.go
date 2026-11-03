@@ -19,6 +19,7 @@ import (
 var (
 	exportedMethod = regexp.MustCompile(`export\s+(?:async\s+)?(?:function|const)\s+(GET|POST|PUT|PATCH|DELETE)\b`)
 	exportList     = regexp.MustCompile(`export\s*\{([^}]*)\}`)
+	exportDestruct = regexp.MustCompile(`export\s+const\s*\{([^}]*)\}\s*=`)
 	listedMethod   = regexp.MustCompile(`(?:^|[\s,])(?:\w+\s+as\s+)?(GET|POST|PUT|PATCH|DELETE)\s*(?:,|$)`)
 	ginParam       = regexp.MustCompile(`:[^/]+`)
 )
@@ -55,7 +56,7 @@ func tsRoutes(t *testing.T, root string) map[string]bool {
 		for _, m := range exportedMethod.FindAllSubmatch(src, -1) {
 			out[string(m[1])+" "+path] = true
 		}
-		for _, list := range exportList.FindAllSubmatch(src, -1) {
+		for _, list := range append(exportList.FindAllSubmatch(src, -1), exportDestruct.FindAllSubmatch(src, -1)...) {
 			for _, m := range listedMethod.FindAllSubmatch(list[1], -1) {
 				out[string(m[1])+" "+path] = true
 			}

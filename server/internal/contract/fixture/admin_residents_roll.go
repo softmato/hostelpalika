@@ -3,6 +3,7 @@ package fixture
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -147,4 +148,34 @@ func fullProfile(user bson.ObjectID, name, mail, phone string, now time.Time) bs
 	return bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "userId", Value: user}, {Key: "encryptedData", Value: blob}, {Key: "payloadVersion", Value: 1}, {Key: "completedAt", Value: now},
 		{Key: "photoAssetId", Value: nil}, {Key: "photoUpdatedAt", Value: nil}, {Key: "shareCount", Value: 0}, {Key: "sharingEnabled", Value: true}, {Key: "isDeleted", Value: false},
 		{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}
+}
+
+// Group admin-residents-existing (testdata/contract/admin-residents-existing): the
+// intake group plus join requests waiting at HostelKyc. Rent is always paid far
+// ahead, so no case depends on which BS month it is run in.
+func init() {
+	groupSeeds["admin-residents-existing"] = func(ctx context.Context, db *mongo.Database, now time.Time) error {
+		if err := groupSeeds["admin-residents-intake"](ctx, db, now); err != nil {
+			return err
+		}
+		app := func(n, user int, card, name, phone, status string, extra ...bson.E) bson.D {
+			d := bson.D{{Key: "_id", Value: gid(1, n)}, {Key: "hostelId", Value: HostelKyc}, {Key: "userId", Value: gid(1, user)}, {Key: "cardId", Value: card}, {Key: "fullName", Value: name},
+				{Key: "phone", Value: phone}, {Key: "email", Value: name[:4] + "@contract.test"}, {Key: "roomType", Value: "Single"}, {Key: "paidTill", Value: "2084-06"}, {Key: "partPaid", Value: 0},
+				{Key: "depositPaid", Value: 1000}, {Key: "joinedDate", Value: nil}, {Key: "note", Value: ""}, {Key: "status", Value: status}, {Key: "rejectReason", Value: ""}, {Key: "sends", Value: 1},
+				{Key: "sentAt", Value: now.Add(-3 * time.Hour)}, {Key: "decidedAt", Value: nil}, {Key: "residentId", Value: nil}}
+			d = withOverrides(d, extra)
+			return append(d, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
+		}
+		rooms := make([]any, 0, 12)
+		for i := 1; i <= 12; i++ {
+			rooms = append(rooms, bson.D{{Key: "_id", Value: gid(1, 100+i)}, {Key: "hostelId", Value: HostelKyc}, {Key: "floor", Value: 3}, {Key: "number", Value: "S" + strconv.Itoa(i)}, {Key: "roomType", Value: "Single"}, {Key: "beds", Value: 1},
+				{Key: "isDeleted", Value: false}, {Key: "createdBy", Value: UserAdmin}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}})
+		}
+		return insertAll(ctx, db, map[string][]any{"hostelrooms": rooms, "residentapplications": {
+			app(70, 64, "HH-SCAN-0001", "Scan One", "9855500001", "PENDING"),
+			app(71, 65, "HH-SCAN-0002", "Scan Two", "9800000010", "PENDING"),
+			app(72, 66, "HH-SCAN-0003", "Scan Three", "9855500003", "REJECTED", bson.E{Key: "rejectReason", Value: "Fix the phone"}, bson.E{Key: "decidedAt", Value: now.Add(-time.Hour)}),
+			app(73, 67, "HH-SCAN-0004", "Scan Four", "9855500004", "ADDED", bson.E{Key: "decidedAt", Value: now.Add(-time.Hour)}),
+		}})
+	}
 }

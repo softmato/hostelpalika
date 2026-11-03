@@ -134,9 +134,11 @@ leave, agreement, profile, plan billing, backup), and all of finance (rules, lat
 khata, concessions, fee schedules, invoices and ledgers, billing runs, payment gateways
 and profile, statement import and reconcile, assign, ask-resident), and (2026-11-03) the
 residents roll, forms, leave, move-in/out, write-off, activation, status change, intake
-(`POST /residents`), bookings (6), resident-scan (2), resident-lookup (1). Left: the
-existing-residents list (5 routes), join link and join requests (3), the card made from
-a form at intake (RES-16), then the review. Findings
+(`POST /residents`), bookings (6), resident-scan (2), resident-lookup (1), the
+existing-residents list (5 routes: list, save, clear, file, template, add, one), the join
+link and join requests (3). Left: the card made from a form at intake (RES-16), the
+field-team copies of the existing-residents routes (they mount with the team group), then
+the review. Findings
 so far are in `review_fixes_needed.md` ("Phase 6 findings").
 
 The biggest group (223 routes). Port module by module, in this order, so money
