@@ -354,7 +354,7 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-02T15:56:12.072Z"
+            "updatedAt": "2026-11-03T00:44:01.993Z"
           }
         }
       }
@@ -417,7 +417,7 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-02T15:56:12.720Z"
+            "updatedAt": "2026-11-03T00:44:02.077Z"
           }
         }
       }
@@ -481,7 +481,7 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T15:56:12.802Z"
+            "updatedAt": "2026-11-03T00:44:02.126Z"
           }
         }
       }
@@ -544,7 +544,7 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "PENDING",
-            "updatedAt": "2026-11-02T15:56:12.877Z"
+            "updatedAt": "2026-11-03T00:44:02.175Z"
           }
         }
       }
@@ -584,9 +584,9 @@
             "userId": "6d010000000000000000003c"
           },
           "firstMonth": {
-            "amount": 3500,
+            "amount": 5367,
             "dueDate": "2026-11-16T00:00:00.000Z",
-            "invoiceId": "6ae8b29d5e205a5564095faa",
+            "invoiceId": "6ae92e5282585fd146cd2bb8",
             "period": "2083-07",
             "raised": true,
             "referenceCode": "CON-0001-E"
@@ -598,7 +598,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-02T15:56:10.718Z",
+            "createdAt": "2026-11-03T00:43:53.458Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "hari@contract.test",
@@ -613,14 +613,14 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-11-02T15:56:10.718Z",
+            "moveInDate": "2026-10-25T00:00:00.000Z",
             "phone": "9800000080",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T15:56:13.227Z",
+            "updatedAt": "2026-11-03T00:44:02.375Z",
             "userId": "6d010000000000000000003c"
           }
         }
@@ -654,7 +654,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-02T15:56:10.718Z",
+            "createdAt": "2026-11-03T00:43:53.458Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "hari@contract.test",
@@ -669,14 +669,14 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-11-02T15:56:10.718Z",
+            "moveInDate": "2026-10-25T00:00:00.000Z",
             "phone": "9800000080",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T15:56:13.227Z",
+            "updatedAt": "2026-11-03T00:44:02.375Z",
             "userId": "6d010000000000000000003c",
             "details": null,
             "documents": [],
@@ -726,7 +726,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-02T15:56:10.718Z",
+            "createdAt": "2026-11-03T00:43:53.458Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "",
@@ -741,14 +741,14 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-13T15:56:10.718Z",
+            "moveInDate": "2026-10-14T00:43:53.458Z",
             "phone": "9800000090",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T15:56:13.498Z"
+            "updatedAt": "2026-11-03T00:44:06.225Z"
           }
         }
       }
@@ -821,7 +821,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-02T15:56:10.718Z",
+            "createdAt": "2026-11-03T00:43:53.458Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "jay@contract.test",
@@ -836,14 +836,14 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-13T15:56:10.718Z",
+            "moveInDate": "2026-10-14T00:43:53.458Z",
             "phone": "9800099991",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T15:56:13.675Z",
+            "updatedAt": "2026-11-03T00:44:06.332Z",
             "userId": "6d010000000000000000003d"
           }
         }
@@ -907,7 +907,7 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-02T15:56:13.902Z"
+            "updatedAt": "2026-11-03T00:44:06.455Z"
           }
         }
       }
@@ -962,7 +962,7 @@
             "floor": null,
             "roomId": null,
             "roomNumber": null,
-            "moveOutDate": "2026-11-02T00:00:00.000Z",
+            "moveOutDate": "2026-11-03T00:00:00.000Z",
             "moveInDate": "2026-09-30T06:00:00.000Z",
             "phone": "9800000020",
             "photo": null,
@@ -970,7 +970,7 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-02T15:56:14.574Z"
+            "updatedAt": "2026-11-03T00:44:06.739Z"
           }
         }
       }
@@ -1025,23 +1025,23 @@
               "displayStatus": "UNPAID",
               "notBilled": null,
               "payment": {
-                "dueAmount": 1422,
+                "dueAmount": 1605,
                 "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6ae8b29e5e205a5564095fb7",
+                "id": "6ae92e5682585fd146cd2bc5",
                 "month": "2083-07",
                 "paidAmount": 0,
                 "status": "UNPAID",
                 "fineWaived": false,
                 "lines": [
                   {
-                    "amount": 2667,
+                    "amount": 2833,
                     "basis": "MANUAL",
                     "description": "Monthly rent — Kartik 2083 BS"
                   },
                   {
-                    "amount": -1245,
+                    "amount": -1228,
                     "basis": "CREDIT",
-                    "description": "Moved out Kartik 16, 2083 BS — 14 days not charged"
+                    "description": "Moved out Kartik 17, 2083 BS — 13 days not charged"
                   }
                 ]
               },
@@ -1066,7 +1066,7 @@
                 "fullName": "Clash Status",
                 "id": "6d0100000000000000000039",
                 "image": null,
-                "moveInDate": "2026-10-13T15:56:10.718Z",
+                "moveInDate": "2026-10-14T00:43:53.458Z",
                 "phone": "9800000070",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1110,16 +1110,16 @@
               "displayStatus": "UNPAID",
               "notBilled": null,
               "payment": {
-                "dueAmount": 3500,
+                "dueAmount": 5367,
                 "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6ae8b29d5e205a5564095faa",
+                "id": "6ae92e5282585fd146cd2bb8",
                 "month": "2083-07",
                 "paidAmount": 0,
                 "status": "UNPAID",
                 "fineWaived": false,
                 "lines": [
                   {
-                    "amount": 3500,
+                    "amount": 5367,
                     "basis": "MANUAL",
                     "description": "Monthly rent — Kartik 2083 BS"
                   }
@@ -1129,7 +1129,7 @@
                 "fullName": "Hari Status",
                 "id": "6d0100000000000000000030",
                 "image": null,
-                "moveInDate": "2026-11-02T15:56:10.718Z",
+                "moveInDate": "2026-10-25T00:00:00.000Z",
                 "phone": "9800000080",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1163,7 +1163,7 @@
                 "fullName": "Indu Status",
                 "id": "6d0100000000000000000031",
                 "image": null,
-                "moveInDate": "2026-10-13T15:56:10.718Z",
+                "moveInDate": "2026-10-14T00:43:53.458Z",
                 "phone": "9800000090",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1180,7 +1180,7 @@
                 "fullName": "Jay Status",
                 "id": "6d0100000000000000000033",
                 "image": null,
-                "moveInDate": "2026-10-13T15:56:10.718Z",
+                "moveInDate": "2026-10-14T00:43:53.458Z",
                 "phone": "9800099991",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1223,7 +1223,7 @@
           ],
           "totals": {
             "collected": 0,
-            "due": 504922,
+            "due": 506972,
             "notBilled": 8,
             "overdue": 0,
             "paid": 0,

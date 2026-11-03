@@ -65,7 +65,7 @@ func rollBookings(now time.Time) map[string][]any {
 		users = append(users, u)
 	}
 	held := e{Key: "bedHeld", Value: true}
-	moveIn := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(10 * day)
+	moveIn := time.Date(2030, 1, 10, 0, 0, 0, 0, time.UTC) // fixed: the recorded answers carry this date
 	return map[string][]any{
 		"users": users,
 		"bookings": {
@@ -128,7 +128,7 @@ func rollStatus(now time.Time) map[string][]any {
 		"referralcodes": {bson.D{{Key: "_id", Value: gid(1, 63)}, {Key: "hostelId", Value: HostelKyc}, {Key: "residentId", Value: gid(1, 40)}, {Key: "code", Value: "REFASHA1"}, {Key: "status", Value: "ACTIVE"}, {Key: "joinedCount", Value: 0},
 			{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}},
 		"residents": {
-			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", now),
+			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC)),
 			row(49, "Indu", "PENDING", "9800000090", "", old),
 			row(51, "Jay", "MOVED_OUT", "9800099991", "jay@contract.test", old, bson.E{Key: "userId", Value: gid(1, 61)}),
 			row(57, "Clash", "ACTIVE", "9800000070", "", old),

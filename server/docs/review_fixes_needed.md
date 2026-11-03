@@ -145,6 +145,11 @@ Opus review of Phase 6 has not run; these are only what the port itself turned u
 | ☐ | PERF-1 | Leave facts were asked once per invoice in the ledger (N+1) | one aggregate | owed |
 | ☐ | PLAN-1 | Plan payment claim checks for an `IN_REVIEW` row and then inserts, two steps: two concurrent claims on one invoice can both pass | **open** (ported as TS wrote it, `billing/pay.go`) | **open**: a partial unique index on `{invoiceId}` where `status: IN_REVIEW`, or insert-if-absent |
 
+| ☑ | RES-14 | `PATCH /residents/fees` with an empty `residentIds` applied the change to everyone | fixed | fixed |
+| ☑ | RES-15 | `leave` with a malformed resident or leave id answered 500 | fixed | fixed |
+| ☑ | BKG-1 | The hostel bookings list selected `amount bookingId status` only, so a sent payout always showed null document number, date and transaction id | fixed (reads them) | fixed (`select` widened) |
+| ☐ | RES-16 | A new resident's "card from the form" (`cardFromAdmissionForm`) is not made by the Go intake yet: it needs `saveResidentIdentity`, which belongs to the unported `/users/resident-identity` routes | open | n/a |
+
 **Not covered by this port:** a real statement read through R2 (the contract environment
 has R2 off). The parsers are tested on the seven recorded export fixtures
 (`finance/testdata/statements`, legacy `.xls` included, read by `finance/xlsread.go`);

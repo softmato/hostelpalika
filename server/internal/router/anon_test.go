@@ -16,6 +16,7 @@ import (
 // reach, each read against its TS route. Everything else must answer 401, so a
 // new hostel-admin route that forgets its guard fails here.
 var openToAnyone = map[string]bool{
+	"GET /api/v1/hostel-admin/backup/drive/callback":   true, // Google redirects here; the state parameter carries the session
 	"GET /api/v1/health":                               true,
 	"GET /api/v1/bookings/availability":                true,
 	"GET /api/v1/bookings/guide":                       true,

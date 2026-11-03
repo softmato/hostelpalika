@@ -10,8 +10,11 @@ these docs.
 - Reports: account statement PDF and all-branches PDF (cover table, then each branch's pages).
 - Fixed in Go and TS: a failed row no longer ends a statement import (FIN-11). All Phase 6 findings so far are in `review_fixes_needed.md`.
 
+- Residents: roll, record, contacts, photo, guardians, forms and Form QR, leave, move-in/out, write-off, activation codes, status change (links or returns the login, bills the move-in month), intake `POST /residents` (duplicate and live-residency checks, plan limit, room claim, held booking check-in, referral link, admission and first-month invoices, account link, registration notices and mail, pay methods), bookings admin (6), resident-scan (2), resident-lookup (1). Contract groups `admin-residents-roll` and `admin-residents-intake`.
+- Fixed in Go and TS: RES-14, RES-15, BKG-1.
+
 ### Still to do in Phase 6
-- Residents (29 routes), bookings (6), resident-scan (2), resident-lookup (1); then the review, run separately.
+- Existing-residents list (5 routes), join link and join requests (3), RES-16; then the review, run separately.
 
 ## [Review of Phases 0–5] — 2026-11-01
 

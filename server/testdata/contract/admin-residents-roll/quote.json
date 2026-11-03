@@ -3,7 +3,7 @@
     "name": "quote signed out",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single"
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25"
     },
     "masks": [
       "**dates"
@@ -17,13 +17,13 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote resident",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
       }
@@ -40,13 +40,13 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote warden no grant",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
       }
@@ -63,7 +63,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote no type",
@@ -100,7 +100,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote blank type",
@@ -137,7 +137,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote bad numbers",
@@ -209,7 +209,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote outsider hostel",
@@ -232,13 +232,13 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote single",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -262,10 +262,10 @@
             "depositAmount": 0,
             "feeScheduleId": null,
             "firstMonth": {
-              "amount": 3500,
-              "billableDays": 15,
+              "amount": 5367,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -289,13 +289,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote double",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Double%20Sharing",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Double%20Sharing\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -319,10 +319,10 @@
             "depositAmount": 0,
             "feeScheduleId": null,
             "firstMonth": {
-              "amount": 2500,
-              "billableDays": 15,
+              "amount": 3833,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -346,13 +346,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote unpriced",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Penthouse",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Penthouse\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -396,13 +396,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote upper",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=SINGLE",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=SINGLE\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -446,13 +446,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote special fee",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=3000",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=3000\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -476,10 +476,10 @@
             "depositAmount": 0,
             "feeScheduleId": null,
             "firstMonth": {
-              "amount": 1500,
-              "billableDays": 15,
+              "amount": 2300,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -503,13 +503,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote free stay",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=0",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026monthlyFee=0\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -534,9 +534,9 @@
             "feeScheduleId": null,
             "firstMonth": {
               "amount": 0,
-              "billableDays": 15,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -560,13 +560,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote overrides",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026admissionFee=1000\u0026formFee=200\u0026depositAmount=5000",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026admissionFee=1000\u0026formFee=200\u0026depositAmount=5000\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -590,10 +590,10 @@
             "depositAmount": 5000,
             "feeScheduleId": null,
             "firstMonth": {
-              "amount": 3500,
-              "billableDays": 15,
+              "amount": 5367,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -617,7 +617,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote mid month",
@@ -674,7 +674,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote same day",
@@ -731,7 +731,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote old date",
@@ -788,13 +788,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote referral unknown",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026referralCode=%20nope%20",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026referralCode=%20nope%20\u0026moveInDate=2026-10-25",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -818,10 +818,10 @@
             "depositAmount": 0,
             "feeScheduleId": null,
             "firstMonth": {
-              "amount": 3500,
-              "billableDays": 15,
+              "amount": 5367,
+              "billableDays": 23,
               "daysInMonth": 30,
-              "dayRange": "Kartik 16–30",
+              "dayRange": "Kartik 8–30",
               "period": "2083-07",
               "prorated": true
             },
@@ -845,13 +845,13 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   },
   {
     "name": "quote referral too long",
     "request": {
       "method": "GET",
-      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026referralCode=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "path": "/api/v1/hostel-admin/residents/intake-quote?roomType=Single\u0026moveInDate=2026-10-25\u0026referralCode=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       "headers": {
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
       }
@@ -882,6 +882,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 ce59b13c"
+    "recorded": "http://localhost:3100 x"
   }
 ]
