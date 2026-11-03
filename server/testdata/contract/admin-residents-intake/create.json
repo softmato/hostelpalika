@@ -1,0 +1,3311 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "body": {
+        "firstName": "New1",
+        "lastName": "Person",
+        "phone": "9811100001",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New2",
+        "lastName": "Person",
+        "phone": "9811100002",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "warden no grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New3",
+        "lastName": "Person",
+        "phone": "9811100003",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "firstName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "lastName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "moveInDate": [
+              "Invalid input: expected date, received Date"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "roomType": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "firstName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "lastName"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "moveInDate"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "",
+        "lastName": "Person",
+        "phone": "1",
+        "moveInDate": "x",
+        "roomType": "",
+        "email": "nope",
+        "residentType": "X",
+        "status": "X",
+        "billingCycle": "X",
+        "referralCode": "ab",
+        "roomId": "x",
+        "hostelId": "x",
+        "userResidentId": ""
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "roomId": [
+              "Invalid object id."
+            ],
+            "email": [
+              "Invalid email address"
+            ],
+            "firstName": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "moveInDate": [
+              "Invalid input: expected date, received Date"
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "referralCode": [
+              "Too small: expected string to have \u003e=4 characters"
+            ],
+            "residentType": [
+              "Invalid option: expected one of \"STUDENT\"|\"WORKING_PROFESSIONAL\"|\"OTHER\""
+            ],
+            "roomType": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "billingCycle": [
+              "Invalid option: expected one of \"CALENDAR_MONTH\"|\"SAME_DAY\""
+            ],
+            "status": [
+              "Invalid option: expected one of \"PENDING\"|\"ACTIVE\"|\"SUSPENDED\"|\"MOVED_OUT\""
+            ],
+            "userResidentId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "roomId"
+            },
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "firstName"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "moveInDate"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=4 characters",
+              "path": "referralCode"
+            },
+            {
+              "message": "Invalid option: expected one of \"STUDENT\"|\"WORKING_PROFESSIONAL\"|\"OTHER\"",
+              "path": "residentType"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "roomType"
+            },
+            {
+              "message": "Invalid option: expected one of \"CALENDAR_MONTH\"|\"SAME_DAY\"",
+              "path": "billingCycle"
+            },
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"ACTIVE\"|\"SUSPENDED\"|\"MOVED_OUT\"",
+              "path": "status"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "userResidentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "fee without reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New5",
+        "lastName": "Person",
+        "phone": "9811100005",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "monthlyFee": 1000
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "feeReason": [
+              "Say why this resident pays a different fee."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Say why this resident pays a different fee.",
+              "path": "feeReason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "fee negative",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New6",
+        "lastName": "Person",
+        "phone": "9811100006",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "monthlyFee": -1,
+        "feeReason": "Relative"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "monthlyFee": [
+              "Too small: expected number to be \u003e=0"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "monthlyFee"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "bad details",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New7",
+        "lastName": "Person",
+        "phone": "9811100007",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "details": {
+          "gender": "X",
+          "family": [
+            1
+          ]
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "details": [
+              "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "Invalid input: expected object, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "path": "details.gender"
+            },
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "details.family.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "bad photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New8",
+        "lastName": "Person",
+        "phone": "9811100008",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "photo": {
+          "fileAssetId": "x",
+          "claimToken": "short"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "photo": [
+              "Too small: expected string to have \u003e=10 characters",
+              "That photo could not be read."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=10 characters",
+              "path": "photo.claimToken"
+            },
+            {
+              "message": "That photo could not be read.",
+              "path": "photo.fileAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "too many documents",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New9",
+        "lastName": "Person",
+        "phone": "9811100009",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "documents": [
+          {
+            "fileAssetId": "6d0100000000000000000009",
+            "claimToken": "0123456789",
+            "kind": "APPLICANT_ID"
+          },
+          {
+            "fileAssetId": "6d0100000000000000000009",
+            "claimToken": "0123456789",
+            "kind": "APPLICANT_ID"
+          },
+          {
+            "fileAssetId": "6d0100000000000000000009",
+            "claimToken": "0123456789",
+            "kind": "APPLICANT_ID"
+          },
+          {
+            "fileAssetId": "6d0100000000000000000009",
+            "claimToken": "0123456789",
+            "kind": "APPLICANT_ID"
+          },
+          {
+            "fileAssetId": "6d0100000000000000000009",
+            "claimToken": "0123456789",
+            "kind": "APPLICANT_ID"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Too big: expected array to have \u003c=4 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=4 items",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "unclaimable photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New10",
+        "lastName": "Person",
+        "phone": "9811100010",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "photo": {
+          "fileAssetId": "6d0100000000000000000099",
+          "claimToken": "0123456789abcdef"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That photo could not be checked. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "outsider hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New11",
+        "lastName": "Person",
+        "phone": "9811100011",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "duplicate phone",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New12",
+        "lastName": "Person",
+        "phone": "9800000000",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Asha Rai is already registered here with the phone 9800000000.",
+        "errorCode": "RESIDENT_PHONE_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "duplicate email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New13",
+        "lastName": "Person",
+        "phone": "9811100013",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "email": "hari@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hari Status is already registered here with the email hari@contract.test. Use a different address, or edit the resident that already exists.",
+        "errorCode": "RESIDENT_EMAIL_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "unknown referral",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New14",
+        "lastName": "Person",
+        "phone": "9811100014",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "referralCode": "NOSUCHCODE"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Referral code was not found.",
+        "errorCode": "REFERRAL_CODE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "unknown room",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New15",
+        "lastName": "Person",
+        "phone": "9811100015",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "roomId": "6d01000000000000000000ee"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That room is not in this hostel.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "room full",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New16",
+        "lastName": "Person",
+        "phone": "9811100016",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "roomId": "6d010000000000000000001e"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room 101 is full.",
+        "errorCode": "ROOM_FULL"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "room type mismatch",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New17",
+        "lastName": "Person",
+        "phone": "9811100017",
+        "moveInDate": "2026-10-20",
+        "roomType": "Double Sharing",
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room G1 is Single Sitter Room, not Double Sharing Room.",
+        "errorCode": "ROOM_TYPE_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "unknown room type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New18",
+        "lastName": "Person",
+        "phone": "9811100018",
+        "moveInDate": "2026-10-20",
+        "roomType": "Palace"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Palace\" is not one of this hostel's room types.",
+        "errorCode": "ROOM_TYPE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "minimal",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New19",
+        "lastName": "Person",
+        "phone": "9811100019",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "emailed": false,
+            "linked": false,
+            "reason": "NO_EMAIL"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929bf82585fd146cd2b3d",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0001-E"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:31.571Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "New19",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929bf82585fd146cd2b3b",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100019",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:31.571Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "minimal pending",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New20",
+        "lastName": "Person",
+        "phone": "9811100020",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "status": "PENDING"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "emailed": false,
+            "linked": false,
+            "reason": "NO_EMAIL"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "period": "2083-07",
+            "raised": false,
+            "reason": "NOT_BILLABLE_YET"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": null
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:31.901Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "New20",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929bf82585fd146cd2b44",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100020",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "PENDING",
+            "updatedAt": "2026-11-03T00:24:31.901Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "existing account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New21",
+        "lastName": "Person",
+        "phone": "9811100021",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "email": "newbie@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
+            "emailed": false,
+            "linked": true,
+            "userId": "6d010000000000000000003e"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c082585fd146cd2b4e",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0002-N"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:32.048Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "newbie@contract.test",
+            "firstName": "New21",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c082585fd146cd2b4c",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100021",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:32.142Z",
+            "userId": "6d010000000000000000003e"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "new login",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New22",
+        "lastName": "Person",
+        "phone": "9811100022",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "email": "fresh@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
+            "emailed": false,
+            "linked": true,
+            "userId": "6ae929c082585fd146cd2b5c"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c082585fd146cd2b5a",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0003-W"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:32.299Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "fresh@contract.test",
+            "firstName": "New22",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c082585fd146cd2b58",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100022",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:32.405Z",
+            "userId": "6ae929c082585fd146cd2b5c"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lives elsewhere",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New23",
+        "lastName": "Person",
+        "phone": "9811100023",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "email": "newbie@contract.test"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "New21 Person is already registered here with the email newbie@contract.test. Use a different address, or edit the resident that already exists.",
+        "errorCode": "RESIDENT_EMAIL_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "referral",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New24",
+        "lastName": "Person",
+        "phone": "9811100024",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "referralCode": "refasha1",
+        "admissionFee": 500,
+        "formFee": 100,
+        "depositAmount": 2000,
+        "feeReason": "Friend"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "emailed": false,
+            "linked": false,
+            "reason": "NO_EMAIL"
+          },
+          "admission": {
+            "amount": 2600,
+            "invoiceId": "6ae929c082585fd146cd2b6c",
+            "raised": true,
+            "referenceCode": "CON-0004-4"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c082585fd146cd2b6d",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0005-B"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 500,
+            "admissionPayable": 500,
+            "formFee": 100,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 2000,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": "REFASHA1",
+              "discount": 0,
+              "reason": "This hostel offers no referral discount. The referrer is still credited."
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": {
+            "code": "REFASHA1",
+            "referralId": "6ae929c082585fd146cd2b6a",
+            "referrerResidentId": "6d0100000000000000000028"
+          },
+          "resident": {
+            "admissionFee": 500,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:32.582Z",
+            "demoDataLabel": "",
+            "depositAmount": 2000,
+            "email": "",
+            "firstName": "New24",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c082585fd146cd2b65",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100024",
+            "photo": null,
+            "referralCode": "REFASHA1",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:32.582Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "special fee",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New25",
+        "lastName": "Person",
+        "phone": "9811100025",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "monthlyFee": 4000,
+        "feeReason": "Relative",
+        "billingCycle": "SAME_DAY",
+        "residentType": "OTHER",
+        "roomId": "6d0100000000000000000021"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "emailed": false,
+            "linked": false,
+            "reason": "NO_EMAIL"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 4000,
+            "dueDate": "2026-11-18T00:00:00.000Z",
+            "invoiceId": "6ae929c082585fd146cd2b77",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0006-J"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": null
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 4000,
+              "billableDays": 30,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3 – Mangsir 2",
+              "period": "2083-07",
+              "prorated": false
+            },
+            "monthlyRent": 4000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "OVERRIDE",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": 7000
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "SAME_DAY",
+            "billsOn": "Bills on the 3rd",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:32.867Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "New25",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c082585fd146cd2b74",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 4000,
+            "specialFee": {
+              "amount": 4000,
+              "reason": "Relative"
+            },
+            "floor": 0,
+            "roomId": "6d0100000000000000000021",
+            "roomNumber": "G1",
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100025",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "OTHER",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:32.867Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "with details",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New26",
+        "lastName": "Person",
+        "phone": "9811100026",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "email": "detailed@contract.test",
+        "details": {
+          "gender": "MALE",
+          "district": " Lalitpur ",
+          "family": []
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
+            "emailed": false,
+            "linked": true,
+            "userId": "6ae929c182585fd146cd2b82"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c182585fd146cd2b80",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0007-S"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:33.071Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "detailed@contract.test",
+            "firstName": "New26",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c182585fd146cd2b7e",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100026",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:33.178Z",
+            "userId": "6ae929c182585fd146cd2b82"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scanned card held booking",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New27",
+        "lastName": "Person",
+        "phone": "9811100027",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "userResidentId": "HH-ABCD-1234"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
+            "emailed": false,
+            "linked": true,
+            "userId": "6b00000000000000000000d5"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c182585fd146cd2b8c",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0008-1"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:33.330Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "New27",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c182585fd146cd2b89",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100027",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:33.458Z",
+            "userId": "6b00000000000000000000d5"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scanned card unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New28",
+        "lastName": "Person",
+        "phone": "9811100028",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single",
+        "userResidentId": "HH-ZZZZ-9999"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident created",
+        "data": {
+          "accountLink": {
+            "emailed": false,
+            "linked": false,
+            "reason": "NO_EMAIL"
+          },
+          "admission": {
+            "raised": false,
+            "reason": "NO_ADMISSION_FEE"
+          },
+          "firstMonth": {
+            "amount": 6533,
+            "dueDate": "2026-11-16T00:00:00.000Z",
+            "invoiceId": "6ae929c182585fd146cd2b98",
+            "period": "2083-07",
+            "raised": true,
+            "referenceCode": "CON-0009-8"
+          },
+          "howToPay": {
+            "displayName": "Contract Hostel Pvt",
+            "instructions": "Quote the code",
+            "methods": [
+              {
+                "kind": "GATEWAY",
+                "provider": "ESEWA",
+                "sandbox": true
+              },
+              {
+                "kind": "QR",
+                "assetId": "6c0000000000000000000070",
+                "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000002"
+              },
+              {
+                "kind": "KHALTI",
+                "id": "9800000004"
+              },
+              {
+                "kind": "BANK",
+                "accountName": "Contract",
+                "accountNumber": "0001",
+                "bankName": "NIC"
+              },
+              {
+                "kind": "BANK",
+                "accountName": null,
+                "accountNumber": "0002",
+                "bankName": null
+              }
+            ],
+            "tier": "TIER_1",
+            "usable": true
+          },
+          "quote": {
+            "admissionFee": 0,
+            "admissionPayable": 0,
+            "formFee": 0,
+            "bedType": "SINGLE",
+            "currency": "NPR",
+            "depositAmount": 0,
+            "feeScheduleId": null,
+            "firstMonth": {
+              "amount": 6533,
+              "billableDays": 28,
+              "daysInMonth": 30,
+              "dayRange": "Kartik 3–30",
+              "period": "2083-07",
+              "prorated": true
+            },
+            "monthlyRent": 7000,
+            "referral": {
+              "applied": false,
+              "code": null,
+              "discount": 0,
+              "reason": null
+            },
+            "rentBasis": "ROOM_CONFIGURATION",
+            "roomType": "Single",
+            "standard": {
+              "admissionFee": 0,
+              "depositAmount": 0,
+              "formFee": 0,
+              "monthlyRent": 7000
+            },
+            "standardRent": null
+          },
+          "referral": null,
+          "resident": {
+            "admissionFee": null,
+            "admissionFeeDiscount": 0,
+            "billingCycle": "CALENDAR_MONTH",
+            "billsOn": "Bills on the 1st",
+            "leavingOn": null,
+            "leavingReason": null,
+            "createdAt": "2026-11-03T00:24:33.600Z",
+            "demoDataLabel": "",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "New28",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae929c182585fd146cd2b96",
+            "isDemoData": false,
+            "lastName": "Person",
+            "monthlyFee": 0,
+            "specialFee": null,
+            "floor": null,
+            "roomId": null,
+            "roomNumber": null,
+            "moveOutDate": null,
+            "moveInDate": "2026-10-20T00:00:00.000Z",
+            "phone": "9811100028",
+            "photo": null,
+            "referralCode": "",
+            "residentType": "STUDENT",
+            "roomType": "Single",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-03T00:24:33.600Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Residents loaded",
+        "data": {
+          "pagination": {
+            "hasMore": true,
+            "page": 1,
+            "pageSize": 20,
+            "total": 24,
+            "totalPages": 2
+          },
+          "residents": [
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:33.600Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "New28",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c182585fd146cd2b96",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100028",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:33.600Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:33.330Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "New27",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c182585fd146cd2b89",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100027",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:33.458Z",
+              "userId": "6b00000000000000000000d5",
+              "account": {
+                "email": "rolld5@contract.test",
+                "image": null,
+                "name": "Roll d5"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:33.071Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "detailed@contract.test",
+              "firstName": "New26",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c182585fd146cd2b7e",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100026",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:33.178Z",
+              "userId": "6ae929c182585fd146cd2b82",
+              "account": {
+                "email": "detailed@contract.test",
+                "image": null,
+                "name": "New26 Person"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "SAME_DAY",
+              "billsOn": "Bills on the 3rd",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:32.867Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "New25",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c082585fd146cd2b74",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 4000,
+              "specialFee": {
+                "amount": 4000,
+                "reason": "Relative"
+              },
+              "floor": 0,
+              "roomId": "6d0100000000000000000021",
+              "roomNumber": "G1",
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100025",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "OTHER",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:32.867Z",
+              "account": null
+            },
+            {
+              "admissionFee": 500,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:32.582Z",
+              "demoDataLabel": "",
+              "depositAmount": 2000,
+              "email": "",
+              "firstName": "New24",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c082585fd146cd2b65",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100024",
+              "photo": null,
+              "referralCode": "REFASHA1",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:32.582Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:32.299Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "fresh@contract.test",
+              "firstName": "New22",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c082585fd146cd2b58",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100022",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:32.405Z",
+              "userId": "6ae929c082585fd146cd2b5c",
+              "account": {
+                "email": "fresh@contract.test",
+                "image": null,
+                "name": "New22 Person"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:32.048Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "newbie@contract.test",
+              "firstName": "New21",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929c082585fd146cd2b4c",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100021",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:32.142Z",
+              "userId": "6d010000000000000000003e",
+              "account": {
+                "email": "newbie@contract.test",
+                "image": null,
+                "name": "Newbie Public"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:31.901Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "New20",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929bf82585fd146cd2b44",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100020",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "PENDING",
+              "updatedAt": "2026-11-03T00:24:31.901Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:31.571Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "New19",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae929bf82585fd146cd2b3b",
+              "isDemoData": false,
+              "lastName": "Person",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-20T00:00:00.000Z",
+              "phone": "9811100019",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:31.571Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:30.421Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "hari@contract.test",
+              "firstName": "Hari",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000030",
+              "isDemoData": false,
+              "lastName": "Status",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-11-03T00:24:30.421Z",
+              "phone": "9800000080",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "PENDING",
+              "updatedAt": "2026-11-03T00:24:30.421Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:30.421Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Indu",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000031",
+              "isDemoData": false,
+              "lastName": "Status",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-14T00:24:30.421Z",
+              "phone": "9800000090",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "PENDING",
+              "updatedAt": "2026-11-03T00:24:30.421Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:30.421Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "jay@contract.test",
+              "firstName": "Jay",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000033",
+              "isDemoData": false,
+              "lastName": "Status",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-14T00:24:30.421Z",
+              "phone": "9800099991",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "MOVED_OUT",
+              "updatedAt": "2026-11-03T00:24:30.421Z",
+              "userId": "6d010000000000000000003d",
+              "account": {
+                "email": "jay@contract.test",
+                "image": null,
+                "name": "Jay Status"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:30.421Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Clash",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0100000000000000000039",
+              "isDemoData": false,
+              "lastName": "Status",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-10-14T00:24:30.421Z",
+              "phone": "9800000070",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "updatedAt": "2026-11-03T00:24:30.421Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:28.723Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Night",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000e8",
+              "isDemoData": false,
+              "lastName": "Owl",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000077",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c00000000000000000000e7",
+              "account": {
+                "email": "owner@contract.test",
+                "image": null,
+                "name": "Fixture Owner (twin)"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:28.723Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Code",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000021",
+              "isDemoData": false,
+              "lastName": "Holder",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000021",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "DOUBLE",
+              "status": "PENDING",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-03T00:24:28.723Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "invitee@contract.test",
+              "firstName": "In",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000025",
+              "isDemoData": false,
+              "lastName": "Vitee",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000025",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-11-02T00:24:28.723Z",
+              "demoDataLabel": "",
+              "depositAmount": 500000,
+              "email": "resident@contract.test",
+              "firstName": "Res",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000c1",
+              "isDemoData": false,
+              "lastName": "Ident",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000007",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c0000000000000000000007",
+              "account": {
+                "email": "resident@contract.test",
+                "image": null,
+                "name": "Contract resident"
+              }
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Dev",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d010000000000000000002c",
+              "isDemoData": false,
+              "lastName": "Karki",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": 2,
+              "roomId": "6d0100000000000000000020",
+              "roomNumber": "201",
+              "moveOutDate": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000040",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Double Sharing",
+              "status": "ACTIVE",
+              "updatedAt": "2026-09-30T06:00:00.000Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Esha",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d010000000000000000002d",
+              "isDemoData": false,
+              "lastName": "Lama",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": 2,
+              "roomId": "6d0100000000000000000020",
+              "roomNumber": "201",
+              "moveOutDate": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000050",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Double Sharing",
+              "status": "ACTIVE",
+              "updatedAt": "2026-09-30T06:00:00.000Z",
+              "account": null
+            },
+            {
+              "admissionFee": null,
+              "admissionFeeDiscount": 0,
+              "billingCycle": "CALENDAR_MONTH",
+              "billsOn": "Bills on the 1st",
+              "leavingOn": null,
+              "leavingReason": null,
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "demoDataLabel": "",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Fiona",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d010000000000000000002e",
+              "isDemoData": false,
+              "lastName": "Moved",
+              "monthlyFee": 0,
+              "specialFee": null,
+              "floor": null,
+              "roomId": null,
+              "roomNumber": null,
+              "moveOutDate": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000060",
+              "photo": null,
+              "referralCode": "",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "MOVED_OUT",
+              "updatedAt": "2026-09-30T06:00:00.000Z",
+              "account": null
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "rooms after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/rooms",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Rooms",
+        "data": {
+          "pendingRequests": 2,
+          "rooms": [
+            {
+              "beds": 1,
+              "floor": 0,
+              "free": 0,
+              "id": "6d0100000000000000000021",
+              "number": "G1",
+              "residents": [
+                {
+                  "due": 4000,
+                  "id": "6ae929c082585fd146cd2b74",
+                  "name": "New25 Person",
+                  "photo": null,
+                  "since": "2026-10-20T00:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "residents": [],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 0,
+              "id": "6d010000000000000000001e",
+              "number": "101",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d0100000000000000000029",
+                  "name": "Bimal Thapa",
+                  "photo": "/api/v1/hostel-admin/residents/6d0100000000000000000029/photo?v=6d010000000000000000005a",
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Single"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 1,
+              "id": "6d010000000000000000001f",
+              "number": "102",
+              "residents": [
+                {
+                  "due": 500000,
+                  "id": "6d0100000000000000000028",
+                  "name": "Asha Rai",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "residents": [],
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 2,
+              "free": 0,
+              "id": "6d0100000000000000000020",
+              "number": "201",
+              "residents": [
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002c",
+                  "name": "Dev Karki",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                },
+                {
+                  "due": 0,
+                  "id": "6d010000000000000000002d",
+                  "name": "Esha Lama",
+                  "photo": null,
+                  "since": "2026-09-30T06:00:00.000Z"
+                }
+              ],
+              "roomType": "Double Sharing"
+            }
+          ],
+          "roomTypes": [
+            "Single",
+            "Double Sharing"
+          ],
+          "totals": {
+            "beds": 10,
+            "free": 2,
+            "rooms": 7
+          },
+          "tracking": true,
+          "unassigned": [
+            {
+              "id": "6c00000000000000000000c1",
+              "name": "Res Ident",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c0000000000000000000021",
+              "name": "Code Holder",
+              "roomType": "DOUBLE"
+            },
+            {
+              "id": "6c0000000000000000000025",
+              "name": "In Vitee",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6c00000000000000000000e8",
+              "name": "Night Owl",
+              "roomType": "SINGLE"
+            },
+            {
+              "id": "6d010000000000000000002a",
+              "name": "Chandra Gurung",
+              "roomType": "Double Sharing"
+            },
+            {
+              "id": "6d0100000000000000000030",
+              "name": "Hari Status",
+              "roomType": "Single"
+            },
+            {
+              "id": "6d0100000000000000000031",
+              "name": "Indu Status",
+              "roomType": "Single"
+            },
+            {
+              "id": "6d0100000000000000000039",
+              "name": "Clash Status",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929bf82585fd146cd2b3b",
+              "name": "New19 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929bf82585fd146cd2b44",
+              "name": "New20 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c082585fd146cd2b4c",
+              "name": "New21 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c082585fd146cd2b58",
+              "name": "New22 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c082585fd146cd2b65",
+              "name": "New24 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c182585fd146cd2b7e",
+              "name": "New26 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c182585fd146cd2b89",
+              "name": "New27 Person",
+              "roomType": "Single"
+            },
+            {
+              "id": "6ae929c182585fd146cd2b96",
+              "name": "New28 Person",
+              "roomType": "Single"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "bookings after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/bookings?tab=history",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Bookings",
+        "data": {
+          "bookings": [
+            {
+              "checkedInAt": "2026-11-03T00:24:33.346Z",
+              "code": "BK-d5TEST",
+              "confirmedAt": "2026-11-02T23:24:30.421Z",
+              "createdAt": "2026-11-01T00:24:30.421Z",
+              "endReason": null,
+              "endedAt": "2026-11-03T00:24:33.346Z",
+              "guest": {
+                "email": "guestd5@contract.test",
+                "name": "Guest d5",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": "2026-11-07T04:24:30.421Z",
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d5",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": {
+                "amount": 750,
+                "documentNumber": null,
+                "sentAt": null,
+                "status": "DUE",
+                "transactionId": null
+              },
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 750
+              },
+              "status": "CHECKED_IN",
+              "statusLabel": "Moved in",
+              "stay": null,
+              "strike": false
+            },
+            {
+              "checkedInAt": null,
+              "code": "BK-d7TEST",
+              "confirmedAt": "2026-11-02T04:24:30.421Z",
+              "createdAt": "2026-11-01T00:24:30.421Z",
+              "endReason": null,
+              "endedAt": "2026-11-02T14:24:30.421Z",
+              "guest": {
+                "email": "guestd7@contract.test",
+                "name": "Guest d7",
+                "phone": "9800000000"
+              },
+              "holdEndsAt": null,
+              "hostelAnswerBy": null,
+              "hostelShareIfKept": 750,
+              "id": "6b00000000000000000000d7",
+              "kind": "MONTHLY",
+              "monthlyRent": 15000,
+              "payout": {
+                "amount": 188,
+                "documentNumber": "HH-BPO-2083-84-00000007",
+                "sentAt": "2026-11-02T22:24:30.421Z",
+                "status": "SENT",
+                "transactionId": "TX-777"
+              },
+              "plannedMoveIn": null,
+              "roomType": "Single",
+              "settlement": {
+                "hostelShare": 188
+              },
+              "status": "CANCELLED_BY_USER",
+              "statusLabel": "Cancelled",
+              "stay": null,
+              "strike": false
+            }
+          ],
+          "counts": {
+            "confirmed": 1,
+            "requests": 5
+          },
+          "owed": {
+            "due": 750,
+            "sent": 188
+          },
+          "pause": {
+            "pausedAt": null,
+            "reason": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

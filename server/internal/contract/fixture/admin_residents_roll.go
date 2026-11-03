@@ -94,6 +94,10 @@ func init() {
 		if err := groupSeeds["admin-residents-roll"](ctx, db, now); err != nil {
 			return err
 		}
+		// Room for the intake cases to book beds in: the base seed has one vacant Single.
+		if _, err := db.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: HostelKyc}}, bson.D{{Key: "$set", Value: bson.D{{Key: "roomConfigurations.0.rooms", Value: 20}, {Key: "roomConfigurations.0.vacantBeds", Value: 20}}}}); err != nil {
+			return err
+		}
 		return insertAll(ctx, db, rollStatus(now))
 	}
 }
@@ -113,7 +117,9 @@ func rollStatus(now time.Time) map[string][]any {
 	}
 	old := now.Add(-20 * 24 * time.Hour)
 	return map[string][]any{
-		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now)},
+		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now), cardUser(gid(1, 62), "newbie@contract.test", "Newbie Public", "", now)},
+		"referralcodes": {bson.D{{Key: "_id", Value: gid(1, 63)}, {Key: "hostelId", Value: HostelKyc}, {Key: "residentId", Value: gid(1, 40)}, {Key: "code", Value: "REFASHA1"}, {Key: "status", Value: "ACTIVE"}, {Key: "joinedCount", Value: 0},
+			{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}},
 		"residents": {
 			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", now),
 			row(49, "Indu", "PENDING", "9800000090", "", old),

@@ -15,6 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/billing"
+	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
 	"github.com/softmato/hostelpalika/server/internal/modules/files"
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
@@ -44,6 +46,12 @@ type Service struct {
 	AppURL   func(path string) string
 	Outbound string
 	Config   *platformconfig.Service
+	Rooms    *hostelrooms.Service
+	Limits   *billing.Limits
+	Bookings *bookings.Signed
+	// PayMethods is getHostelPayMethods; After is afterResponse (nil runs inline).
+	PayMethods func(ctx context.Context, hostel bson.ObjectID, amountDue int64) (ordered.Map, error)
+	After      func(ctx context.Context, fn func(context.Context) error)
 	// ActivationSecret hashes activation codes (ACTIVATION_CODE_SECRET).
 	ActivationSecret string
 }

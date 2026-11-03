@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
+	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
@@ -33,6 +34,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	reg := hostelrooms.Cap(h.Guards, "registerResidents")
 	a := v1.Group("/hostel-admin/residents")
 	a.GET("", staff, h.list)
+	a.POST("", reg, h.create)
 	a.GET("/:id", staff, httpx.ETag(), h.get)
 	a.PATCH("/:id", reg, h.update)
 	a.PATCH("/:id/status", reg, h.status)
@@ -165,6 +167,9 @@ func calendarDate(f *valid.Form, key string, opt bool) (time.Time, bool) {
 		return time.Time{}, false
 	}
 	t, ok := valid.CoerceDate(v)
+	if v == nil {
+		ok = false
+	}
 	if !ok {
 		f.Is.Add(key, "Invalid input: expected date, received Date")
 		return time.Time{}, false
@@ -714,4 +719,92 @@ func (h *Handler) status(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, out, "Resident status updated")
+}
+
+func upload(f *valid.Form, withKind bool) Upload {
+	var u Upload
+	u.Token, _ = f.Str("claimToken", valid.S{Trim: true, Min: 10, Max: 200})
+	v, present := f.M["fileAssetId"]
+	u.AssetID, _ = valid.ObjectID(v, "fileAssetId", "That photo could not be read.", &f.Is, !present)
+	if withKind {
+		u.Kind, _ = f.Enum("kind", false, nil, "APPLICANT_ID", "GUARDIAN_ID")
+	}
+	return u
+}
+
+func (h *Handler) create(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	var in CreateIn
+	fee := valid.N{Opt: true, Coerce: true, Int: true, Min: valid.P(0), Max: valid.P(10_000_000)}
+	num := func(key string) *float64 {
+		if n, ok := f.Num(key, fee); ok {
+			return &n
+		}
+		return nil
+	}
+	in.HostelID = hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+	in.MonthlyFee, in.AdmissionFee, in.FormFee = num("monthlyFee"), num("admissionFee"), num("formFee")
+	in.FeeReason, _ = f.Str("feeReason", valid.S{Opt: true, Trim: true, Min: 3, Max: 120})
+	in.RoomID = hostelrooms.OptionalID(f, "roomId", "Invalid object id.")
+	in.DepositAmount = num("depositAmount")
+	in.Email, _ = f.Str("email", valid.S{Opt: true, Trim: true, Email: true})
+	in.First, _ = f.Str("firstName", valid.S{Trim: true, Min: 1, Max: 80})
+	in.Last, _ = f.Str("lastName", valid.S{Trim: true, Min: 1, Max: 80})
+	if t, ok := calendarDate(f, "moveInDate", false); ok {
+		in.MoveInDate = t
+	}
+	in.Phone, _ = f.Str("phone", valid.S{Trim: true, Min: 7, Max: 24})
+	in.ReferralCode, _ = f.Str("referralCode", valid.S{Opt: true, Trim: true, Min: 4, Max: 32})
+	student, active := "STUDENT", "ACTIVE"
+	in.ResidentType, _ = f.Enum("residentType", true, &student, "STUDENT", "WORKING_PROFESSIONAL", "OTHER")
+	in.RoomType, _ = f.Str("roomType", valid.S{Trim: true, Min: 1, Max: 80})
+	if s, ok := f.Enum("billingCycle", true, nil, "CALENDAR_MONTH", "SAME_DAY"); ok && s != "" {
+		in.BillingCycle = &s
+	}
+	in.Status, _ = f.Enum("status", true, &active, statuses...)
+	in.UserResidentID, _ = f.Str("userResidentId", valid.S{Opt: true, Trim: true, Min: 1, Max: 200})
+	if f.Present("details") {
+		if d, ok := residents.ParseDetails(f, "details"); ok {
+			in.Details = d
+		}
+	}
+	in.AdmissionFormID = hostelrooms.OptionalID(f, "admissionFormId", "Invalid object id.")
+	if f.Present("photo") {
+		f.Nest("photo", false, func(s *valid.Form) { u := upload(s, false); in.Photo = &u })
+	}
+	if items, ok := f.Array("documents", true, true); ok {
+		aborted := false
+		for i, raw := range items {
+			m, isObj := raw.(map[string]any)
+			if !isObj {
+				aborted = true
+				f.Is.Add("documents."+strconv.Itoa(i), valid.Type("object", valid.Received(raw, false)))
+				continue
+			}
+			sub := &valid.Form{M: m}
+			in.Documents = append(in.Documents, upload(sub, true))
+			f.Join("documents."+strconv.Itoa(i), sub)
+		}
+		f.Size("documents", len(items), 0, 4, "", aborted)
+	}
+	anyFee := in.MonthlyFee != nil || in.AdmissionFee != nil || in.FormFee != nil || in.DepositAmount != nil
+	if anyFee && in.FeeReason == "" {
+		f.Is.Add("feeReason", "Say why this resident pays a different fee.")
+	}
+	if fail(c, f.Err()) {
+		return
+	}
+	hostel, ok := hostelrooms.HostelOf(c, in.HostelID)
+	if !ok {
+		return
+	}
+	out, err := h.Create(c, hostel, in, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.Write(c, http.StatusCreated, out, "Resident created")
 }

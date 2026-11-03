@@ -498,3 +498,19 @@ func (h *Handler) statementPDF(c *gin.Context) {
 	}
 	sendPDF(c, "statement.pdf", b)
 }
+
+// HostelPayMethods is getHostelPayMethods: how this hostel takes money, priced
+// against what is being asked today.
+func (h *Handler) HostelPayMethods(ctx context.Context, hostel bson.ObjectID, amountDue int64) (ordered.Map, error) {
+	p, err := h.readProfile(ctx, hostel)
+	if err != nil {
+		return nil, err
+	}
+	methods := []ordered.Map{}
+	var name, instructions any
+	if p != nil {
+		methods = h.methods(p, amountDue)
+		name, instructions = nilable(p.DisplayName), nilable(p.Instructions)
+	}
+	return ordered.Map{{Key: "displayName", Value: name}, {Key: "instructions", Value: instructions}, {Key: "methods", Value: methods}, {Key: "tier", Value: p.tier()}, {Key: "usable", Value: p.usable()}}, nil
+}
