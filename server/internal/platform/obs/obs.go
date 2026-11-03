@@ -54,6 +54,8 @@ func Middleware() gin.HandlerFunc {
 		level := slog.LevelInfo
 		if c.Request.URL.Path == "/api/v1/health" {
 			level = slog.LevelDebug // probes every few seconds
+		} else if c.Writer.Status() >= 500 {
+			level = slog.LevelWarn // stored, so the log viewer finds a failed request by its id
 		}
 		attrs := []slog.Attr{
 			slog.String("method", c.Request.Method),

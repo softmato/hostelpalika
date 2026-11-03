@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/modules/platformlogs"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
@@ -56,6 +58,13 @@ func run() error {
 		return err
 	}
 	defer func() { _ = mc.Disconnect(context.Background()) }() // exiting; nothing left to save
+	// Stored log lines (the superadmin log viewer); flushed before Mongo closes.
+	stopLogs, err := applog.Attach(ctx, db)
+	if err != nil {
+		return err
+	}
+	defer stopLogs()
+	go platformlogs.Watch(ctx, platformconfig.New(db), 30*time.Second)
 	rdb, err := redis.Connect(ctx, cfg.RedisURL)
 	if err != nil {
 		return err

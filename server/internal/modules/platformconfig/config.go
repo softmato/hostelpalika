@@ -25,7 +25,7 @@ var schemasJSON []byte
 
 // Sections is SITE_CONFIG_SECTIONS, in declared order.
 var Sections = []string{"announcement", "appNotice", "apps", "content", "email", "facilities", "features", "hero",
-	"identity", "issuer", "legal", "lifetime", "locations", "plans", "questionCall", "seo", "social", "stats", "trustPoints"}
+	"identity", "issuer", "legal", "lifetime", "locations", "logs", "plans", "questionCall", "seo", "social", "stats", "trustPoints"}
 
 var (
 	schemas  map[string]*zschema.Desc

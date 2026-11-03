@@ -730,6 +730,20 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
    * Edited at Website Config → Locations, which is where it should be changed —
    * these are the shipped defaults for a fresh database, nothing more.
    */
+  logs: { levels: {
+    auth: "default",
+    database: "default",
+    email: "default",
+    http: "default",
+    jobs: "default",
+    llm: "default",
+    payments: "default",
+    push: "default",
+    realtime: "default",
+    redis: "default",
+    security: "default",
+    storage: "default",
+  } },
   locations: [
     {
       areas: ["Baneshwor", "Koteshwor", "Kirtipur", "Dillibazar", "Bhaisepati"],

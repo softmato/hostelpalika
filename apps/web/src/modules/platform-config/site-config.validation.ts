@@ -690,6 +690,29 @@ const seoComparisonSchema = z.object({
   title: trimmed.max(80).default(""),
 });
 
+// Per-category log levels for the Go server, applied without a restart
+// (server/docs/PHASES.md Phase 7). "default" follows the server's LOG_LEVEL.
+// The categories are the Go `platform/log` list, one for one.
+const logLevelSchema = z.enum(["default", "debug", "info", "warn", "error"]).default("default");
+export const logsSchema = z.object({
+  levels: z
+    .object({
+      http: logLevelSchema,
+      auth: logLevelSchema,
+      security: logLevelSchema,
+      payments: logLevelSchema,
+      email: logLevelSchema,
+      push: logLevelSchema,
+      realtime: logLevelSchema,
+      database: logLevelSchema,
+      redis: logLevelSchema,
+      storage: logLevelSchema,
+      jobs: logLevelSchema,
+      llm: logLevelSchema,
+    })
+    .prefault({}),
+});
+
 export const seoSchema = z.object({
   comparisons: z.array(seoComparisonSchema).max(12).default([]),
   /** Other ways people write the brand — declared as `alternateName` in structured data. */
@@ -758,6 +781,7 @@ export const siteConfigSectionSchemas = {
   legal: legalSchema,
   lifetime: lifetimeSchema,
   locations: locationsSchema,
+  logs: logsSchema,
   plans: plansSchema,
   questionCall: questionCallSchema,
   seo: seoSchema,

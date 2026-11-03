@@ -144,6 +144,9 @@ var goOnlyAllowed = map[string]bool{
 	"GET /api/v1/public/hostels/impressions":    true,
 	"GET /api/v1/public/hostels/quick-register": true,
 	"GET /api/v1/public/hostels/register":       true,
+	// The superadmin log viewer (PHASES.md Phase 7): TS never stored its logs.
+	"GET /api/v1/platform/logs":         true,
+	"GET /api/v1/platform/logs/summary": true,
 }
 
 // TestRouteBudgetsAreRoutes: a typo in routeBudgets would silently leave a long

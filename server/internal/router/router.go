@@ -34,6 +34,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/offerprogram"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/modules/platformlogs"
 	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/reports"
 	"github.com/softmato/hostelpalika/server/internal/modules/residentaccount"
@@ -171,6 +172,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 
 	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
+	platformlogs.NewHandler(d.DB, guards).Register(v1)
 	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis),
 		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
 	safetySvc.Register(v1)
