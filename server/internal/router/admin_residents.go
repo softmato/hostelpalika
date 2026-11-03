@@ -5,6 +5,7 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
+	"github.com/softmato/hostelpalika/server/internal/modules/financeadmin"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelresidents"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
 	"github.com/softmato/hostelpalika/server/internal/modules/inquiries"
@@ -28,5 +29,5 @@ func mountAdminResidents(v1 *gin.RouterGroup, s *shared) {
 	pay := &residentfinance.Handler{DB: s.D.DB, Production: s.Cfg.IsProduction()}
 	(&hostelresidents.Handler{Service: &hostelresidents.Service{DB: s.D.DB, Cap: capacity, Notify: s.Notify, Audit: s.Audit, Mail: s.Mail, Ledger: engine,
 		Personal: s.Personal, R2: s.R2, Claims: s.Claims, AppURL: s.AppURL, Outbound: s.Outbound, Config: s.Config, ActivationSecret: s.Cfg.Auth.ActivationCodeSecret,
-		Rooms: rooms, Limits: &billing.Limits{DB: s.D.DB, Config: s.Config, Notify: s.Notify}, Bookings: signed, PayMethods: pay.HostelPayMethods, After: s.BG.After}, Guards: s.Guards, Cache: s.Cache}).Register(v1)
+		Rooms: rooms, Limits: &billing.Limits{DB: s.D.DB, Config: s.Config, Notify: s.Notify}, Bookings: signed, PayMethods: pay.HostelPayMethods, Ledger2: (&financeadmin.Handler{DB: s.D.DB}).ResidentLedger, After: s.BG.After}, Guards: s.Guards, Cache: s.Cache, Limiter: s.Limiter}).Register(v1)
 }

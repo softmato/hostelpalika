@@ -1,0 +1,1941 @@
+[
+  {
+    "name": "scan signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan no id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "residentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan short id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentId": [
+              "Too small: expected string to have \u003e=8 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "residentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001\u0026hostelId=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid string: must match pattern /^[a-f\\d]{24}$/i"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan not an id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=nonsense-nonsense",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That does not look like a resident ID. It should read like HH-4K7M-9XQ2.",
+        "errorCode": "RESIDENT_ID_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan unknown card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-ZZZZ-9999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "No HostelPalika account carries that ID card.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan no profile",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0004",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan4@contract.test",
+            "hasPhoto": false,
+            "name": "Scan Four",
+            "photoUpdatedAt": null
+          },
+          "membership": null,
+          "membershipNotice": "They are not on your roll. Register them and the form fills itself in from this card.",
+          "profile": null,
+          "profileNotice": "They have not filled in their HostelPalika profile, so the card carries nothing but the number.",
+          "residentId": "HH-SCAN-0004",
+          "scannedAt": "2026-11-03T00:33:03.175Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan sharing off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0003",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan3@contract.test",
+            "hasPhoto": false,
+            "name": "Scan Three",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          },
+          "membership": null,
+          "membershipNotice": "They are not on your roll. Register them and the form fills itself in from this card.",
+          "profile": null,
+          "profileNotice": "They have turned profile sharing off. They can switch it back on from their ID card screen.",
+          "residentId": "HH-SCAN-0003",
+          "scannedAt": "2026-11-03T00:33:03.273Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan ready",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan1@contract.test",
+            "hasPhoto": false,
+            "name": "Scan One",
+            "photoUpdatedAt": null
+          },
+          "membership": {
+            "complaints": {
+              "open": 0,
+              "recent": [],
+              "total": 0
+            },
+            "contacts": {
+              "emergencyContacts": [],
+              "guardians": []
+            },
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel"
+            },
+            "ledger": {
+              "months": [
+                {
+                  "dueAmount": 0,
+                  "dueDate": null,
+                  "invoiceId": null,
+                  "lines": [],
+                  "paidAmount": 0,
+                  "payments": [],
+                  "period": "2083-07",
+                  "status": "NOT_BILLED"
+                },
+                {
+                  "dueAmount": 0,
+                  "dueDate": null,
+                  "invoiceId": null,
+                  "lines": [],
+                  "paidAmount": 0,
+                  "payments": [],
+                  "period": "2083-06",
+                  "status": "NOT_BILLED"
+                }
+              ],
+              "resident": {
+                "fullName": "Bimal Thapa",
+                "id": "6d0100000000000000000029",
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000010",
+                "roomType": "Single"
+              },
+              "totals": {
+                "monthsBilled": 0,
+                "monthsPaid": 0,
+                "outstanding": 0,
+                "paid": 0
+              }
+            },
+            "ledgerDenied": false,
+            "matchedBy": "PHONE",
+            "nightStatus": null,
+            "resident": {
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "depositAmount": 0,
+              "email": null,
+              "firstName": "Bimal",
+              "id": "6d0100000000000000000029",
+              "lastName": "Thapa",
+              "monthlyFee": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000010",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "userId": null
+            }
+          },
+          "membershipNotice": null,
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan One",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan1@contract.test",
+            "primaryPhone": "9800000010",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0001",
+          "scannedAt": "2026-11-03T00:33:03.540Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan ready again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan1@contract.test",
+            "hasPhoto": false,
+            "name": "Scan One",
+            "photoUpdatedAt": null
+          },
+          "membership": {
+            "complaints": {
+              "open": 0,
+              "recent": [],
+              "total": 0
+            },
+            "contacts": {
+              "emergencyContacts": [],
+              "guardians": []
+            },
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel"
+            },
+            "ledger": {
+              "months": [
+                {
+                  "dueAmount": 0,
+                  "dueDate": null,
+                  "invoiceId": null,
+                  "lines": [],
+                  "paidAmount": 0,
+                  "payments": [],
+                  "period": "2083-07",
+                  "status": "NOT_BILLED"
+                },
+                {
+                  "dueAmount": 0,
+                  "dueDate": null,
+                  "invoiceId": null,
+                  "lines": [],
+                  "paidAmount": 0,
+                  "payments": [],
+                  "period": "2083-06",
+                  "status": "NOT_BILLED"
+                }
+              ],
+              "resident": {
+                "fullName": "Bimal Thapa",
+                "id": "6d0100000000000000000029",
+                "moveInDate": "2026-09-30T06:00:00.000Z",
+                "phone": "9800000010",
+                "roomType": "Single"
+              },
+              "totals": {
+                "monthsBilled": 0,
+                "monthsPaid": 0,
+                "outstanding": 0,
+                "paid": 0
+              }
+            },
+            "ledgerDenied": false,
+            "matchedBy": "PHONE",
+            "nightStatus": null,
+            "resident": {
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "depositAmount": 0,
+              "email": null,
+              "firstName": "Bimal",
+              "id": "6d0100000000000000000029",
+              "lastName": "Thapa",
+              "monthlyFee": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000010",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "userId": null
+            }
+          },
+          "membershipNotice": null,
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan One",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan1@contract.test",
+            "primaryPhone": "9800000010",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0001",
+          "scannedAt": "2026-11-03T00:33:03.671Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan warden with grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan1@contract.test",
+            "hasPhoto": false,
+            "name": "Scan One",
+            "photoUpdatedAt": null
+          },
+          "membership": {
+            "complaints": {
+              "open": 0,
+              "recent": [],
+              "total": 0
+            },
+            "contacts": {
+              "emergencyContacts": [],
+              "guardians": []
+            },
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel"
+            },
+            "ledger": null,
+            "ledgerDenied": true,
+            "matchedBy": "PHONE",
+            "nightStatus": null,
+            "resident": {
+              "createdAt": "2026-09-30T06:00:00.000Z",
+              "depositAmount": 0,
+              "email": null,
+              "firstName": "Bimal",
+              "id": "6d0100000000000000000029",
+              "lastName": "Thapa",
+              "monthlyFee": null,
+              "moveInDate": "2026-09-30T06:00:00.000Z",
+              "phone": "9800000010",
+              "residentType": "STUDENT",
+              "roomType": "Single",
+              "status": "ACTIVE",
+              "userId": null
+            }
+          },
+          "membershipNotice": null,
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan One",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan1@contract.test",
+            "primaryPhone": "9800000010",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0001",
+          "scannedAt": "2026-11-03T00:33:03.786Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0001\u0026hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan1@contract.test",
+            "hasPhoto": false,
+            "name": "Scan One",
+            "photoUpdatedAt": null
+          },
+          "membership": null,
+          "membershipNotice": "They are not on your roll. Register them and the form fills itself in from this card.",
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan One",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan1@contract.test",
+            "primaryPhone": "9800000010",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0001",
+          "scannedAt": "2026-11-03T00:33:03.893Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan off roll",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=HH-SCAN-0002",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan2@contract.test",
+            "hasPhoto": false,
+            "name": "Scan Two",
+            "photoUpdatedAt": null
+          },
+          "membership": null,
+          "membershipNotice": "They are not on your roll. Register them and the form fills itself in from this card.",
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan Two",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan2@contract.test",
+            "primaryPhone": "9877777777",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0002",
+          "scannedAt": "2026-11-03T00:33:04.002Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "scan scanned url",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan?residentId=https://x.test/r/hhscan0002",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident card read",
+        "data": {
+          "account": {
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "email": "scan2@contract.test",
+            "hasPhoto": false,
+            "name": "Scan Two",
+            "photoUpdatedAt": null
+          },
+          "membership": null,
+          "membershipNotice": "They are not on your roll. Register them and the form fills itself in from this card.",
+          "profile": {
+            "bloodGroup": "O_POSITIVE",
+            "city": "Lalitpur",
+            "courseOrDesignation": "BBA",
+            "dateOfBirth": "2000-05-01",
+            "dietaryPreference": "VEGETARIAN",
+            "district": "Lalitpur",
+            "emergencyContactName": "Uncle Ram",
+            "emergencyContactPhone": "9811100002",
+            "fullName": "Scan Two",
+            "gender": "MALE",
+            "governmentIdNumber": "12-34",
+            "governmentIdType": "CITIZENSHIP",
+            "guardianName": "Gita Parent",
+            "guardianPhone": "9811100000",
+            "guardianRelation": "Mother",
+            "institution": "Campus",
+            "interests": [
+              "chess"
+            ],
+            "occupation": "STUDENT",
+            "permanentAddress": "Tole 4",
+            "primaryEmail": "scan2@contract.test",
+            "primaryPhone": "9877777777",
+            "secondGuardianName": "Hari Parent",
+            "secondGuardianPhone": "9811100001",
+            "wardNo": "5",
+            "age": 26
+          },
+          "profileNotice": null,
+          "residentId": "HH-SCAN-0002",
+          "scannedAt": "2026-11-03T00:33:04.111Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup no id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "residentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup short id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentId": [
+              "Too small: expected string to have \u003e=8 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "residentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001\u0026hostelId=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid string: must match pattern /^[a-f\\d]{24}$/i"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^[a-f\\d]{24}$/i",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup not an id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=nonsense-nonsense",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That does not look like a resident ID. It should read like HH-4K7M-9XQ2.",
+        "errorCode": "RESIDENT_ID_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup unknown card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-ZZZZ-9999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "No resident profile matches that ID.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup no profile",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0004",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That resident has not finished their profile yet.",
+        "errorCode": "RESIDENT_PROFILE_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup sharing off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0003",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That resident has turned off profile sharing.",
+        "errorCode": "RESIDENT_PROFILE_SHARING_DISABLED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup ready",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan1@contract.test",
+              "firstName": "Scan",
+              "lastName": "One",
+              "phone": "9800000010",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0001",
+          "sharedAt": "2026-11-03T00:33:08.605Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup ready again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan1@contract.test",
+              "firstName": "Scan",
+              "lastName": "One",
+              "phone": "9800000010",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0001",
+          "sharedAt": "2026-11-03T00:33:08.695Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup warden with grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan1@contract.test",
+              "firstName": "Scan",
+              "lastName": "One",
+              "phone": "9800000010",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0001",
+          "sharedAt": "2026-11-03T00:33:08.788Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0001\u0026hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan1@contract.test",
+              "firstName": "Scan",
+              "lastName": "One",
+              "phone": "9800000010",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0001",
+          "sharedAt": "2026-11-03T00:33:08.881Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup off roll",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=HH-SCAN-0002",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan2@contract.test",
+              "firstName": "Scan",
+              "lastName": "Two",
+              "phone": "9877777777",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0002",
+          "sharedAt": "2026-11-03T00:33:08.979Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "lookup scanned url",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-lookup?residentId=https://x.test/r/hhscan0002",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "occupancy": null,
+          "photo": {
+            "hasPhoto": false,
+            "updatedAt": null
+          },
+          "prefill": {
+            "emergencyContact": {
+              "isPrimary": true,
+              "name": "Uncle Ram",
+              "phone": "9811100002",
+              "relation": "Emergency contact"
+            },
+            "form": {
+              "bloodGroup": "O_POSITIVE",
+              "citizenshipNo": "12-34",
+              "dateOfBirth": "2000-05-01",
+              "district": "Lalitpur",
+              "family": [
+                {
+                  "name": "Gita Parent",
+                  "phone": "9811100000",
+                  "relation": "Mother"
+                },
+                {
+                  "name": "Hari Parent",
+                  "phone": "9811100001",
+                  "relation": "Guardian"
+                }
+              ],
+              "food": "VEGETARIAN",
+              "gender": "MALE",
+              "institution": "Campus",
+              "levelOfStudy": "BBA",
+              "localGuardian": {
+                "name": "Uncle Ram",
+                "phone": "9811100002",
+                "relation": "Local guardian"
+              },
+              "municipality": "Lalitpur",
+              "tole": "Tole 4",
+              "wardNo": "5"
+            },
+            "guardians": [
+              {
+                "firstName": "Gita",
+                "lastName": "Parent",
+                "isPrimary": true,
+                "phone": "9811100000",
+                "relation": "Mother"
+              },
+              {
+                "firstName": "Hari",
+                "lastName": "Parent",
+                "isPrimary": false,
+                "phone": "9811100001",
+                "relation": "Guardian"
+              }
+            ],
+            "resident": {
+              "email": "scan2@contract.test",
+              "firstName": "Scan",
+              "lastName": "Two",
+              "phone": "9877777777",
+              "residentType": "STUDENT"
+            },
+            "details": {
+              "age": 26,
+              "alternatePhone": null,
+              "backupEmail": null,
+              "bloodGroup": "O_POSITIVE",
+              "budgetRange": null,
+              "city": "Lalitpur",
+              "courseOrDesignation": "BBA",
+              "dateOfBirth": "2000-05-01",
+              "dietaryPreference": "VEGETARIAN",
+              "gender": "MALE",
+              "governmentIdNumber": "12-34",
+              "governmentIdType": "CITIZENSHIP",
+              "institution": "Campus",
+              "interests": [
+                "chess"
+              ],
+              "medicalNotes": null,
+              "permanentAddress": "Tole 4",
+              "province": null
+            }
+          },
+          "residentId": "HH-SCAN-0002",
+          "sharedAt": "2026-11-03T00:33:09.080Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "photo signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan/photo?residentId=HH-SCAN-0001"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "photo no id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "residentId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "residentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "photo unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan/photo?residentId=HH-ZZZZ-9999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "No HostelPalika account carries that ID card.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "photo none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan/photo?residentId=HH-SCAN-0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That card has no photo to show.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "photo sharing off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/resident-scan/photo?residentId=HH-SCAN-0003",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That card has no photo to show.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

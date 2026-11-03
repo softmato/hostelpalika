@@ -17,14 +17,16 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
 // Handler mounts /hostel-admin/residents.
 type Handler struct {
 	*Service
-	Guards *authz.Guards
-	Cache  *cache.Cache
+	Guards  *authz.Guards
+	Cache   *cache.Cache
+	Limiter *ratelimit.Limiter
 }
 
 var statuses = []string{"PENDING", "ACTIVE", "SUSPENDED", "MOVED_OUT"}
@@ -32,6 +34,9 @@ var statuses = []string{"PENDING", "ACTIVE", "SUSPENDED", "MOVED_OUT"}
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	staff := authz.Use(h.Guards.RequireHostelStaff)
 	reg := hostelrooms.Cap(h.Guards, "registerResidents")
+	v1.GET("/hostel-admin/resident-scan", reg, httpx.ETag(), h.scan)
+	v1.GET("/hostel-admin/resident-scan/photo", reg, h.scanPhoto)
+	v1.GET("/hostel-admin/resident-lookup", reg, httpx.ETag(), h.lookup)
 	a := v1.Group("/hostel-admin/residents")
 	a.GET("", staff, h.list)
 	a.POST("", reg, h.create)

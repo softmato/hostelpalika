@@ -2,10 +2,13 @@ package fixture
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
 )
 
 // Group admin-residents-roll (testdata/contract/admin-residents-roll): the
@@ -117,7 +120,11 @@ func rollStatus(now time.Time) map[string][]any {
 	}
 	old := now.Add(-20 * 24 * time.Hour)
 	return map[string][]any{
-		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now), cardUser(gid(1, 62), "newbie@contract.test", "Newbie Public", "", now)},
+		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now), cardUser(gid(1, 62), "newbie@contract.test", "Newbie Public", "", now),
+			cardUser(gid(1, 64), "scan1@contract.test", "Scan One", "HH-SCAN-0001", now), cardUser(gid(1, 65), "scan2@contract.test", "Scan Two", "HH-SCAN-0002", now),
+			cardUser(gid(1, 66), "scan3@contract.test", "Scan Three", "HH-SCAN-0003", now), cardUser(gid(1, 67), "scan4@contract.test", "Scan Four", "HH-SCAN-0004", now)},
+		"userresidentprofiles": {fullProfile(gid(1, 64), "Scan One", "scan1@contract.test", "9800000010", now), fullProfile(gid(1, 65), "Scan Two", "scan2@contract.test", "9877777777", now),
+			cardProfile(gid(1, 66), "Scan Three", "scan3@contract.test", "9866666666", false, now)},
 		"referralcodes": {bson.D{{Key: "_id", Value: gid(1, 63)}, {Key: "hostelId", Value: HostelKyc}, {Key: "residentId", Value: gid(1, 40)}, {Key: "code", Value: "REFASHA1"}, {Key: "status", Value: "ACTIVE"}, {Key: "joinedCount", Value: 0},
 			{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}},
 		"residents": {
@@ -127,4 +134,17 @@ func rollStatus(now time.Time) map[string][]any {
 			row(57, "Clash", "ACTIVE", "9800000070", "", old),
 		},
 	}
+}
+
+// fullProfile is a completed, shared ID-card profile with every field the lookup reads.
+func fullProfile(user bson.ObjectID, name, mail, phone string, now time.Time) bson.D {
+	raw, _ := json.Marshal(map[string]any{"fullName": name, "dateOfBirth": "2000-05-01", "gender": "MALE", "bloodGroup": "O_POSITIVE", "primaryPhone": phone, "primaryEmail": mail,
+		"permanentAddress": "Tole 4", "city": "Lalitpur", "district": "Lalitpur", "wardNo": "5", "occupation": "STUDENT", "institution": "Campus", "courseOrDesignation": "BBA",
+		"guardianName": "Gita Parent", "guardianRelation": "Mother", "guardianPhone": "9811100000", "secondGuardianName": "Hari Parent", "secondGuardianPhone": "9811100001",
+		"emergencyContactName": "Uncle Ram", "emergencyContactPhone": "9811100002", "dietaryPreference": "VEGETARIAN", "interests": []string{"chess"}, "governmentIdNumber": "12-34", "governmentIdType": "CITIZENSHIP"})
+	p, _ := crypto.NewPersonal(PersonalKey)
+	blob, _ := p.Encrypt(raw)
+	return bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "userId", Value: user}, {Key: "encryptedData", Value: blob}, {Key: "payloadVersion", Value: 1}, {Key: "completedAt", Value: now},
+		{Key: "photoAssetId", Value: nil}, {Key: "photoUpdatedAt", Value: nil}, {Key: "shareCount", Value: 0}, {Key: "sharingEnabled", Value: true}, {Key: "isDeleted", Value: false},
+		{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}
 }

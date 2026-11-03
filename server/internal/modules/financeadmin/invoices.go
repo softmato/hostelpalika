@@ -720,3 +720,8 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 		{Key: "moveInDate", Value: isoOrNil(r.MoveInDate)}, {Key: "phone", Value: strOrNil(r.Phone)}, {Key: "roomType", Value: roomType}}},
 		{Key: "totals", Value: ordered.Map{{Key: "monthsBilled", Value: billed}, {Key: "monthsPaid", Value: paidMonths}, {Key: "outstanding", Value: outstanding}, {Key: "paid", Value: paid}}}}, nil
 }
+
+// ResidentLedger is getResidentLedger for the resident scan card.
+func (h *Handler) ResidentLedger(ctx context.Context, hostel bson.ObjectID, residentID string) (ordered.Map, error) {
+	return h.residentLedgerOf(ctx, hostel, residentID)
+}

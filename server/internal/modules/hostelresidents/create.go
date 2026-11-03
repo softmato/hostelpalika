@@ -52,8 +52,19 @@ func nonFatal(ctx context.Context, err error) {
 
 // liveResidency is LiveResidency.
 type liveResidency struct {
-	HostelName string
-	SameHostel bool
+	HostelID, HostelName, ResidentID, Status string
+	SameHostel                               bool
+}
+
+func (l *liveResidency) JSON() any {
+	if l == nil {
+		return nil
+	}
+	var rid any
+	if l.ResidentID != "" {
+		rid = l.ResidentID
+	}
+	return ordered.Map{{Key: "hostelId", Value: l.HostelID}, {Key: "hostelName", Value: l.HostelName}, {Key: "residentId", Value: rid}, {Key: "sameHostel", Value: l.SameHostel}, {Key: "status", Value: l.Status}}
 }
 
 // FindLiveResidency is findLiveResidency: where this person already lives, by account or address.
@@ -81,12 +92,14 @@ func (s *Service) FindLiveResidency(ctx context.Context, emails []string, userID
 	}
 	cur, err := s.DB.Collection("residents").Find(ctx, bson.D{{Key: "$or", Value: or}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}},
 		{Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"ACTIVE", "PENDING", "SUSPENDED"}}}}},
-		options.Find().SetLimit(5).SetProjection(bson.D{{Key: "hostelId", Value: 1}}))
+		options.Find().SetLimit(5).SetProjection(bson.D{{Key: "hostelId", Value: 1}, {Key: "status", Value: 1}}))
 	if err != nil {
 		return nil, err
 	}
 	var rows []struct {
+		ID       bson.ObjectID `bson:"_id"`
 		HostelID bson.ObjectID `bson:"hostelId"`
+		Status   string        `bson:"status"`
 	}
 	if err := cur.All(ctx, &rows); err != nil || len(rows) == 0 {
 		return nil, err
@@ -102,7 +115,11 @@ func (s *Service) FindLiveResidency(ctx context.Context, emails []string, userID
 	if name == "your hostel" {
 		name = "another hostel"
 	}
-	return &liveResidency{HostelName: name, SameHostel: same}, nil
+	out := &liveResidency{HostelID: row.HostelID.Hex(), HostelName: name, SameHostel: same, Status: row.Status}
+	if same {
+		out.ResidentID = row.ID.Hex()
+	}
+	return out, nil
 }
 
 func liveResidencyMessage(name string, l *liveResidency) string {

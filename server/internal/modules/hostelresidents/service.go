@@ -50,6 +50,8 @@ type Service struct {
 	Limits   *billing.Limits
 	Bookings *bookings.Signed
 	// PayMethods is getHostelPayMethods; After is afterResponse (nil runs inline).
+	// Ledger2 is getResidentLedger, for staff who may see payments on the scan card.
+	Ledger2    Ledger
 	PayMethods func(ctx context.Context, hostel bson.ObjectID, amountDue int64) (ordered.Map, error)
 	After      func(ctx context.Context, fn func(context.Context) error)
 	// ActivationSecret hashes activation codes (ACTIVATION_CODE_SECRET).
