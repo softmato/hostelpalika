@@ -58,11 +58,15 @@ export async function configVectors(web: Web, here: string) {
   const bookings = await web.import<typeof import("../../../apps/web/src/modules/bookings/booking-config")>(
     "../../../apps/web/src/modules/bookings/booking-config",
   );
-  // Every platformsettings row Go re-parses: the site sections, operations, bookings.
+  const store = await web.import<typeof import("../../../apps/web/src/modules/store/store-config")>(
+    "../../../apps/web/src/modules/store/store-config",
+  );
+  // Every platformsettings row Go re-parses: the site sections, operations, bookings, store.
   const schemas = {
     ...validation.siteConfigSectionSchemas,
     operations: ops.operationsConfigSchema,
     bookings: bookings.bookingConfigSchema,
+    store: store.storeConfigSchema,
   };
   writeFileSync(
     join(here, "internal/modules/platformconfig/schemas.json"),
@@ -70,7 +74,8 @@ export async function configVectors(web: Web, here: string) {
       sections: Object.fromEntries(
         Object.entries(schemas).map(([k, s]) => [k, k === "bookings" ? nameSuperRefine(describe(s), "bookingRules") : describe(s)]),
       ),
-      defaults: { ...DEFAULT_SITE_CONFIG, operations: ops.DEFAULT_OPERATIONS_CONFIG, bookings: bookings.DEFAULT_BOOKING_CONFIG },
+      defaults: { ...DEFAULT_SITE_CONFIG, operations: ops.DEFAULT_OPERATIONS_CONFIG, bookings: bookings.DEFAULT_BOOKING_CONFIG, store: store.DEFAULT_STORE_CONFIG },
+
     })}\n`,
   );
 
@@ -78,8 +83,10 @@ export async function configVectors(web: Web, here: string) {
     ...DEFAULT_SITE_CONFIG,
     operations: ops.DEFAULT_OPERATIONS_CONFIG,
     bookings: bookings.DEFAULT_BOOKING_CONFIG,
+    store: store.DEFAULT_STORE_CONFIG,
   };
-  const cases = Object.entries(schemas).flatMap(([section, schema]) =>
+  const cases
+ = Object.entries(schemas).flatMap(([section, schema]) =>
     [defaults[section], undefined, "nope", ...mutations(defaults[section])].map((input) => {
       const parsed = schema.safeParse(input);
       return { section, input, ok: parsed.success, data: parsed.success ? parsed.data : null };

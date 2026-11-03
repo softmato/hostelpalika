@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelrooms"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
@@ -90,7 +91,7 @@ func parseRow(f *valid.Form, withID bool) RowIn {
 }
 
 func (h *Handler) existingGet(c *gin.Context) {
-	hostel, _, ok := scope(c)
+	hostel, _, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -102,7 +103,7 @@ func (h *Handler) existingGet(c *gin.Context) {
 }
 
 func (h *Handler) existingClear(c *gin.Context) {
-	hostel, _, ok := scope(c)
+	hostel, _, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -114,7 +115,7 @@ func (h *Handler) existingClear(c *gin.Context) {
 }
 
 func (h *Handler) existingPut(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -153,7 +154,7 @@ func (h *Handler) existingPut(c *gin.Context) {
 }
 
 func (h *Handler) existingAdd(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -165,7 +166,7 @@ func (h *Handler) existingAdd(c *gin.Context) {
 }
 
 func (h *Handler) existingFile(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -191,7 +192,7 @@ func (h *Handler) existingFile(c *gin.Context) {
 }
 
 func (h *Handler) existingTemplate(c *gin.Context) {
-	hostel, _, ok := scope(c)
+	hostel, _, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -205,7 +206,7 @@ func (h *Handler) existingTemplate(c *gin.Context) {
 }
 
 func (h *Handler) existingOne(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -251,7 +252,7 @@ func (h *Handler) existingOne(c *gin.Context) {
 }
 
 func (h *Handler) joinLinkGet(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -263,7 +264,7 @@ func (h *Handler) joinLinkGet(c *gin.Context) {
 }
 
 func (h *Handler) joinLinkPatch(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -298,7 +299,7 @@ func (h *Handler) joinLinkPatch(c *gin.Context) {
 }
 
 func (h *Handler) joinRequests(c *gin.Context) {
-	hostel, _, ok := scope(c)
+	hostel, _, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -310,7 +311,7 @@ func (h *Handler) joinRequests(c *gin.Context) {
 }
 
 func (h *Handler) joinDecide(c *gin.Context) {
-	hostel, p, ok := scope(c)
+	hostel, p, ok := existingScope(c)
 	if !ok {
 		return
 	}
@@ -351,3 +352,34 @@ func (h *Handler) joinDecide(c *gin.Context) {
 
 var _ = time.Now
 var _ = authz.From
+
+// filedHostelKey carries the hostel a field-team route resolved from its path.
+const filedHostelKey = "hostelresidents.filedHostel"
+
+// existingScope is the hostel staff's ?hostelId scope, or the hostel a
+// field-team copy of the route already resolved.
+func existingScope(c *gin.Context) (bson.ObjectID, *authz.Principal, bool) {
+	if v, ok := c.Get(filedHostelKey); ok {
+		return v.(bson.ObjectID), authz.From(c), true
+	}
+	return scope(c)
+}
+
+// RegisterFieldTeam mounts fieldTeamExistingResidents: the same list, for a
+// hostel the agent filed. filed is requireTeamPrincipal + assertAgentFiledHostel.
+func (h *Handler) RegisterFieldTeam(v1 *gin.RouterGroup, filed func(c *gin.Context) (*authz.Principal, bson.ObjectID, error)) {
+	guard := authz.Use(func(c *gin.Context) (*authz.Principal, error) {
+		p, hostel, err := filed(c)
+		if err == nil {
+			c.Set(filedHostelKey, hostel)
+		}
+		return p, err
+	})
+	g := v1.Group("/team/hostels/:id/existing-residents", guard)
+	g.GET("", h.existingGet)
+	g.PUT("", h.existingPut)
+	g.DELETE("", h.existingClear)
+	g.POST("/add", h.existingAdd)
+	g.POST("/file", h.existingFile)
+	g.GET("/template", h.existingTemplate)
+}

@@ -209,3 +209,37 @@ func ToBSON(v any) any {
 	}
 	return v
 }
+
+// MarshalBSONValue stores a Map as a document in its key order (nested Maps
+// and slices of them too), not as an array of pairs.
+func (m Map) MarshalBSONValue() (byte, []byte, error) {
+	t, b, err := bson.MarshalValue(toD(m))
+	return byte(t), b, err
+}
+
+func toD(v any) any {
+	switch x := v.(type) {
+	case Map:
+		d := make(bson.D, 0, len(x))
+		for _, p := range x {
+			if p.Value != Undefined { // dropped, as JSON drops it
+				d = append(d, bson.E{Key: p.Key, Value: toD(p.Value)})
+			}
+		}
+		return d
+
+	case []any:
+		out := make(bson.A, len(x))
+		for i, e := range x {
+			out[i] = toD(e)
+		}
+		return out
+	case []Map:
+		out := make(bson.A, len(x))
+		for i, e := range x {
+			out[i] = toD(e)
+		}
+		return out
+	}
+	return v
+}

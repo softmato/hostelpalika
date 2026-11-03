@@ -20,6 +20,7 @@ const NAMED: Array<[string, string]> = [
   ["filter(Boolean)", "filterBoolean"],
   ["input.trim()", "trim"],
   ["input.toLowerCase()", "lower"],
+  ["input.toUpperCase()", "upper"],
 ];
 
 function named(fn: unknown): string {

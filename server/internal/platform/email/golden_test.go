@@ -54,7 +54,14 @@ func TestTemplatesMatchTS(t *testing.T) {
 				rows = append(rows, DetailRow{Label: m["label"].(string), Value: m["value"].(string)})
 			}
 			got = ConsultationRequest(rows, s("name"))
+		case "storeOrderPlacedBuyer":
+			got = StoreOrderPlacedBuyer(storeFacts(in), s("createdAt"), s("orderUrl"))
+		case "storeOrderReceivedPlatform":
+			got = StoreOrderReceivedPlatform(storeFacts(in), s("placedByName"), s("ordersUrl"))
+		case "storeOrderStatusBuyer":
+			got = StoreOrderStatusBuyer(s("status"), s("orderNumber"), s("orderUrl"), s("deliveryPromise"), s("note"), s("cancelledReason"), int64(in["total"].(float64)), storeItems(in["items"]))
 		case "hostelSubmissionReceived":
+
 
 			got = HostelSubmissionReceived(s("hostelName"), s("ownerName"))
 		case "bookingInvoice":
@@ -96,4 +103,28 @@ func bookingFacts(v any) BookingFacts {
 		f.Stay = &BookingStay{Amount: int64(st["amount"].(float64)), Dates: st["dates"].(string), Nights: int64(st["nights"].(float64))}
 	}
 	return f
+}
+
+func storeItems(v any) []StoreItem {
+	var out []StoreItem
+	for _, r := range v.([]any) {
+		m := r.(map[string]any)
+		it := StoreItem{LineTotal: int64(m["lineTotal"].(float64)), Name: m["name"].(string), Quantity: int64(m["quantity"].(float64)), Unit: m["unit"].(string), UnitPrice: int64(m["unitPrice"].(float64))}
+		if u, ok := m["imageUrl"].(string); ok {
+			it.ImageURL = u
+		}
+		if n, ok := m["stockAfterOrder"].(float64); ok {
+			k := int64(n)
+			it.StockAfterOrder = &k
+		}
+		out = append(out, it)
+	}
+	return out
+}
+
+func storeFacts(in map[string]any) StoreOrderFacts {
+	s := func(k string) string { x, _ := in[k].(string); return x }
+	n := func(k string) int64 { x, _ := in[k].(float64); return int64(x) }
+	return StoreOrderFacts{Address: s("address"), ContactName: s("contactName"), DeliveryPromise: s("deliveryPromise"), HostelName: s("hostelName"), Note: s("note"),
+		OrderNumber: s("orderNumber"), Phone: s("phone"), DeliveryFee: n("deliveryFee"), Subtotal: n("subtotal"), Total: n("total"), Items: storeItems(in["items"])}
 }

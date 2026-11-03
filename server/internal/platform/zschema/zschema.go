@@ -110,7 +110,7 @@ func (d *Desc) Prepare() error {
 			if _, ok := refines[c.Fn]; !ok {
 				return fmt.Errorf("zschema: unknown refine %q", c.Fn)
 			}
-		case "trim", "lower", "multipleOf", "min", "max", "len", "gte", "gt", "lte", "lt", "safeint", "email", "url", "starts_with", "ends_with", "includes":
+		case "trim", "lower", "upper", "multipleOf", "min", "max", "len", "gte", "gt", "lte", "lt", "safeint", "email", "url", "starts_with", "ends_with", "includes":
 		default:
 			return fmt.Errorf("zschema: unknown check %q", c.K)
 		}
@@ -258,6 +258,8 @@ func (d *Desc) parseString(s string) (any, bool) {
 			s = jsTrim(s)
 		case "lower":
 			s = strings.ToLower(s)
+		case "upper":
+			s = strings.ToUpper(s)
 		case "min":
 			good = good && jsLen(s) >= int(num(c.V))
 		case "max":

@@ -47,6 +47,8 @@ import (
 	searchmod "github.com/softmato/hostelpalika/server/internal/modules/search"
 	"github.com/softmato/hostelpalika/server/internal/modules/serviceproviders"
 	"github.com/softmato/hostelpalika/server/internal/modules/stock"
+	"github.com/softmato/hostelpalika/server/internal/modules/store"
+	"github.com/softmato/hostelpalika/server/internal/modules/team"
 	"github.com/softmato/hostelpalika/server/internal/modules/usage"
 	"github.com/softmato/hostelpalika/server/internal/modules/users"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
@@ -174,6 +176,10 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
 	platformlogs.NewHandler(d.DB, guards).Register(v1)
+	(&team.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Audit: log, RT: rt, Now: time.Now}).Register(v1)
+	(&store.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Notify: notify, Push: pushSender, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis),
+		SiteURL: strings.TrimRight(cfg.AppURL, "/"), Now: time.Now}).Register(v1)
+
 	(&users.Deletion{DB: d.DB, Guards: guards, Tokens: tokens, Mail: sender, Audit: log, Notify: notify, Now: time.Now,
 		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}).Register(v1)
 	(&users.SelfService{DB: d.DB, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, Now: time.Now,

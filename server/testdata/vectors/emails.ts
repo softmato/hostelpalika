@@ -94,7 +94,32 @@ const teamReq = await t("platform/team-requests");
 add("consultationRequest", teamReq.consultationRequestEmail as never, [
   { details: [{ label: "Name", value: "Sita <S>" }, { label: "Phone", value: "9800000000" }, { label: "Budget", value: "5k & up" }], name: "Sita <S>" },
 ]);
+const storeBuyer = await t("store/store-order-placed-buyer");
+const storePlatform = await t("store/store-order-received-platform");
+const storeStatus = await t("store/store-order-status-buyer");
+const storeItems = [
+  { imageUrl: "https://x.test/a.png?x=1&y=<2>", lineTotal: 1234567, name: "Rice <25kg>", quantity: 3, stockAfterOrder: 0, unit: "sack", unitPrice: 411522 },
+  { lineTotal: 5050, name: "Soap & Co", quantity: 1, stockAfterOrder: null, unit: "piece", unitPrice: 5050 },
+  { lineTotal: 100, name: "Salt", quantity: 2, stockAfterOrder: 7, unit: "packet", unitPrice: 50 },
+];
+const storeOrder = { address: "Lane <3>", contactName: "Sita & Ram", deliveryFee: 15000, deliveryPromise: "today between 4 PM and 7 PM", hostelName: "Royal <Rapti>", items: storeItems, orderNumber: "SO-2611-0001-ABCD", phone: "9800000000", subtotal: 1239717, total: 1254717 };
+add("storeOrderPlacedBuyer", storeBuyer.storeOrderPlacedBuyerEmail as never, [
+  { ...storeOrder, createdAt: "2026-11-03T04:00:00.000Z", note: "Ring <twice>", orderUrl: "https://x.test/store/order/1" },
+  { ...storeOrder, createdAt: "2026-11-03T04:00:00.000Z", deliveryFee: 0, items: [], orderUrl: "https://x.test/o" },
+]);
+add("storeOrderReceivedPlatform", storePlatform.storeOrderReceivedPlatformEmail as never, [
+  { ...storeOrder, note: "Gate code 12", ordersUrl: "https://x.test/platform/store/orders", placedByName: "Owner <O>" },
+  { ...storeOrder, deliveryFee: 0, ordersUrl: "https://x.test/q", placedByName: "O" },
+]);
+add("storeOrderStatusBuyer", storeStatus.storeOrderStatusBuyerEmail as never, [
+  { deliveryPromise: "tomorrow", items: storeItems, orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "CONFIRMED", total: 1254717 },
+  { deliveryPromise: "tomorrow", items: storeItems, note: "Leave <at> gate", orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "SHIPPED", total: 100 },
+  { deliveryPromise: "tomorrow", items: [], orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "DELIVERED", total: 0 },
+  { cancelledReason: "Out of <stock>", deliveryPromise: "x", items: storeItems, orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "CANCELLED", total: 5 },
+  { deliveryPromise: "x", items: [], orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "CANCELLED", total: 5 },
+]);
 
 writeFileSync(join(process.cwd(), "server/testdata/vectors/emails.json")
+
 , `${JSON.stringify(vectors, undefined, 1)}\n`);
 console.log(`emails.json: ${vectors.length} vectors`);

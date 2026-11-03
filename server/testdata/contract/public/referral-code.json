@@ -17,7 +17,7 @@
         "errorCode": "REFERRAL_CODE_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "symbols only",
@@ -37,7 +37,7 @@
         "errorCode": "REFERRAL_CODE_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "unknown",
@@ -57,7 +57,7 @@
         "errorCode": "REFERRAL_CODE_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "inactive",
@@ -77,7 +77,7 @@
         "errorCode": "REFERRAL_CODE_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "partner",
@@ -96,6 +96,7 @@
         "message": "Referral code",
         "data": {
           "code": "PARTNER1",
+          "coverUrl": null,
           "from": "Fixture Partner",
           "kind": "PARTNER",
           "reward": {
@@ -106,7 +107,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "partner typed loosely",
@@ -125,6 +126,7 @@
         "message": "Referral code",
         "data": {
           "code": "PARTNER1",
+          "coverUrl": null,
           "from": "Fixture Partner",
           "kind": "PARTNER",
           "reward": {
@@ -135,7 +137,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "hostel code",
@@ -154,6 +156,7 @@
         "message": "Referral code",
         "data": {
           "code": "FIXT123456",
+          "coverUrl": "https://cdn.contract.test/front.webp",
           "from": "Fixture Lakeside Hostel",
           "kind": "HOSTEL",
           "reward": {
@@ -164,7 +167,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "hostel gone",
@@ -184,7 +187,7 @@
         "errorCode": "REFERRAL_CODE_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "days only",
@@ -203,6 +206,7 @@
         "message": "Referral code",
         "data": {
           "code": "GIFTONLY",
+          "coverUrl": null,
           "from": "Days only",
           "kind": "PARTNER",
           "reward": {
@@ -213,7 +217,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   },
   {
     "name": "POST refused",
@@ -229,6 +233,6 @@
       "status": 405,
       "contentType": ""
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 ee31554c"
   }
 ]

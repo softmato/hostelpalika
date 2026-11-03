@@ -523,5 +523,333 @@
    "subject": "Help choosing a hostel — Sita <S>",
    "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Someone wants help choosing a hostel</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Someone wants help choosing a hostel</h1>\n                <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:8px 0 8px;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7;\"><tr>\n        <td style=\"padding:12px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#71717a;\">Name</td>\n        <td align=\"right\" style=\"padding:12px 0 12px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18181b;\">Sita &lt;S&gt;</td>\n      </tr><tr>\n        <td style=\"padding:12px 0;border-top:1px solid #e4e4e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#71717a;\">Phone</td>\n        <td align=\"right\" style=\"padding:12px 0 12px 16px;border-top:1px solid #e4e4e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18181b;\">9800000000</td>\n      </tr><tr>\n        <td style=\"padding:12px 0;border-top:1px solid #e4e4e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#71717a;\">Budget</td>\n        <td align=\"right\" style=\"padding:12px 0 12px 16px;border-top:1px solid #e4e4e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18181b;\">5k &amp; up</td>\n      </tr></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Please call or email them.</p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
   }
+ },
+ {
+  "name": "storeOrderPlacedBuyer",
+  "input": {
+   "address": "Lane <3>",
+   "contactName": "Sita & Ram",
+   "deliveryFee": 15000,
+   "deliveryPromise": "today between 4 PM and 7 PM",
+   "hostelName": "Royal <Rapti>",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "orderNumber": "SO-2611-0001-ABCD",
+   "phone": "9800000000",
+   "subtotal": 1239717,
+   "total": 1254717,
+   "createdAt": "2026-11-03T04:00:00.000Z",
+   "note": "Ring <twice>",
+   "orderUrl": "https://x.test/store/order/1"
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-2611-0001-ABCD placed — NPR 12,547.17",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>We&#39;ve got your order</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">We&#39;ve got your order</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Royal &lt;Rapti&gt; · order <strong>SO-2611-0001-ABCD</strong> · placed 2026-11-03T04:00:00.000Z.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Placed at 2026-11-03T04:00:00.000Z — arriving <strong>today between 4 PM and 7 PM</strong>.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Subtotal: <strong>NPR 12,397.17</strong><br/>Delivery: <strong>NPR 150.00</strong><br/>Total: <strong>NPR 12,547.17</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Pay cash when it arrives. Please keep <strong>NPR 12,547.17</strong> ready.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Delivery address: Lane &lt;3&gt;<br/>Contact: Sita &amp; Ram · 9800000000<br/>Courier note: Ring &lt;twice&gt;</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">You can cancel in the app until it is sent.</p>\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/store/order/1\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Track this order</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/store/order/1\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/store/order/1</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderPlacedBuyer",
+  "input": {
+   "address": "Lane <3>",
+   "contactName": "Sita & Ram",
+   "deliveryFee": 0,
+   "deliveryPromise": "today between 4 PM and 7 PM",
+   "hostelName": "Royal <Rapti>",
+   "items": [],
+   "orderNumber": "SO-2611-0001-ABCD",
+   "phone": "9800000000",
+   "subtotal": 1239717,
+   "total": 1254717,
+   "createdAt": "2026-11-03T04:00:00.000Z",
+   "orderUrl": "https://x.test/o"
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-2611-0001-ABCD placed — NPR 12,547.17",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>We&#39;ve got your order</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">We&#39;ve got your order</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Royal &lt;Rapti&gt; · order <strong>SO-2611-0001-ABCD</strong> · placed 2026-11-03T04:00:00.000Z.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Placed at 2026-11-03T04:00:00.000Z — arriving <strong>today between 4 PM and 7 PM</strong>.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Subtotal: <strong>NPR 12,397.17</strong><br/>Delivery: <strong>Free</strong><br/>Total: <strong>NPR 12,547.17</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Pay cash when it arrives. Please keep <strong>NPR 12,547.17</strong> ready.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Delivery address: Lane &lt;3&gt;<br/>Contact: Sita &amp; Ram · 9800000000</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">You can cancel in the app until it is sent.</p>\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/o\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Track this order</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/o\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/o</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderReceivedPlatform",
+  "input": {
+   "address": "Lane <3>",
+   "contactName": "Sita & Ram",
+   "deliveryFee": 15000,
+   "deliveryPromise": "today between 4 PM and 7 PM",
+   "hostelName": "Royal <Rapti>",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "orderNumber": "SO-2611-0001-ABCD",
+   "phone": "9800000000",
+   "subtotal": 1239717,
+   "total": 1254717,
+   "note": "Gate code 12",
+   "ordersUrl": "https://x.test/platform/store/orders",
+   "placedByName": "Owner <O>"
+  },
+  "out": {
+   "category": "alert",
+   "subject": "New order · Royal <Rapti> · NPR 12,547.17 · SO-2611-0001-ABCD",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>New order to deliver</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                <p style=\"margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:#dc2626;\">Urgent</p>\n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">New order to deliver</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>Royal &lt;Rapti&gt;</strong> placed order <strong>SO-2611-0001-ABCD</strong>.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Placed by Owner &lt;O&gt; · 9800000000.<br/><strong>Deliver by today between 4 PM and 7 PM.</strong></p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#b91c1c;font-size:12px;\">Just hit zero</span><br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">7 left after order</span><br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Subtotal: <strong>NPR 12,397.17</strong><br/>Delivery: <strong>NPR 150.00</strong><br/>Total: <strong>NPR 12,547.17</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Collect <strong>NPR 12,547.17</strong> in cash on delivery.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Delivery address: Lane &lt;3&gt;<br/>Contact: Sita &amp; Ram · <a href=\"tel:9800000000\">9800000000</a><br/>Courier note: Gate code 12</p>\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/platform/store/orders\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Open orders</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/platform/store/orders\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/platform/store/orders</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderReceivedPlatform",
+  "input": {
+   "address": "Lane <3>",
+   "contactName": "Sita & Ram",
+   "deliveryFee": 0,
+   "deliveryPromise": "today between 4 PM and 7 PM",
+   "hostelName": "Royal <Rapti>",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "orderNumber": "SO-2611-0001-ABCD",
+   "phone": "9800000000",
+   "subtotal": 1239717,
+   "total": 1254717,
+   "ordersUrl": "https://x.test/q",
+   "placedByName": "O"
+  },
+  "out": {
+   "category": "alert",
+   "subject": "New order · Royal <Rapti> · NPR 12,547.17 · SO-2611-0001-ABCD",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>New order to deliver</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                <p style=\"margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:#dc2626;\">Urgent</p>\n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">New order to deliver</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>Royal &lt;Rapti&gt;</strong> placed order <strong>SO-2611-0001-ABCD</strong>.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Placed by O · 9800000000.<br/><strong>Deliver by today between 4 PM and 7 PM.</strong></p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#b91c1c;font-size:12px;\">Just hit zero</span><br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">7 left after order</span><br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Subtotal: <strong>NPR 12,397.17</strong><br/>Delivery: <strong>Free</strong><br/>Total: <strong>NPR 12,547.17</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Collect <strong>NPR 12,547.17</strong> in cash on delivery.</p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Delivery address: Lane &lt;3&gt;<br/>Contact: Sita &amp; Ram · <a href=\"tel:9800000000\">9800000000</a></p>\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/q\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Open orders</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/q\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/q</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderStatusBuyer",
+  "input": {
+   "deliveryPromise": "tomorrow",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "orderNumber": "SO-1",
+   "orderUrl": "https://x.test/o",
+   "status": "CONFIRMED",
+   "total": 1254717
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-1 — confirmed",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Order confirmed</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Order confirmed</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>SO-1</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">We&#39;re preparing your order. It is due tomorrow; please keep NPR 12,547.17 ready.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/o\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Track this order</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/o\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/o</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderStatusBuyer",
+  "input": {
+   "deliveryPromise": "tomorrow",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "note": "Leave <at> gate",
+   "orderNumber": "SO-1",
+   "orderUrl": "https://x.test/o",
+   "status": "SHIPPED",
+   "total": 100
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-1 — shipped",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Order shipped</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Order shipped</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>SO-1</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Your order is on the way. It is due tomorrow; please keep NPR 1.00 ready · courier note: Leave &lt;at&gt; gate.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/o\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Track this order</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/o\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/o</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderStatusBuyer",
+  "input": {
+   "deliveryPromise": "tomorrow",
+   "items": [],
+   "orderNumber": "SO-1",
+   "orderUrl": "https://x.test/o",
+   "status": "DELIVERED",
+   "total": 0
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-1 — delivered",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Order delivered</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Order delivered</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>SO-1</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Delivered. You paid NPR 0.00. Reply to us if anything is wrong.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"></table>\n\n<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:28px 0 12px;\">\n    <tr>\n      <td style=\"border-radius:8px;background:#0a8a4b;\">\n        <a href=\"https://x.test/o\" style=\"display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">Track this order</a>\n      </td>\n    </tr>\n  </table>\n  <p style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">If the button does not work, open this link:<br><a href=\"https://x.test/o\" style=\"color:#71717a;text-decoration:underline;word-break:break-all;\">https://x.test/o</a></p>\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderStatusBuyer",
+  "input": {
+   "cancelledReason": "Out of <stock>",
+   "deliveryPromise": "x",
+   "items": [
+    {
+     "imageUrl": "https://x.test/a.png?x=1&y=<2>",
+     "lineTotal": 1234567,
+     "name": "Rice <25kg>",
+     "quantity": 3,
+     "stockAfterOrder": 0,
+     "unit": "sack",
+     "unitPrice": 411522
+    },
+    {
+     "lineTotal": 5050,
+     "name": "Soap & Co",
+     "quantity": 1,
+     "stockAfterOrder": null,
+     "unit": "piece",
+     "unitPrice": 5050
+    },
+    {
+     "lineTotal": 100,
+     "name": "Salt",
+     "quantity": 2,
+     "stockAfterOrder": 7,
+     "unit": "packet",
+     "unitPrice": 50
+    }
+   ],
+   "orderNumber": "SO-1",
+   "orderUrl": "https://x.test/o",
+   "status": "CANCELLED",
+   "total": 5
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-1 — cancelled",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Order cancelled</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Order cancelled</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>SO-1</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Your order was cancelled. Nothing is owed.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><img src=\"https://x.test/a.png?x=1&amp;y=&lt;2&gt;\" alt=\"\" width=\"48\" height=\"48\" style=\"display:block;width:48px;height:48px;object-fit:cover;border-radius:6px;\"/></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Rice &lt;25kg&gt;<br/><span style=\"color:#64748b;font-size:12px;\">3 × sack · NPR 4,115.22</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 12,345.67</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Soap &amp; Co<br/><span style=\"color:#64748b;font-size:12px;\">1 × piece · NPR 50.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 50.50</td>\n</tr><tr>\n  <td style=\"padding:10px 0;vertical-align:top;width:60px;\"><span style=\"display:block;width:48px;height:48px;background:#e2e8f0;border-radius:6px;\"></span></td>\n  <td style=\"padding:10px 8px;vertical-align:top;font-size:14px;line-height:1.45;\">Salt<br/><span style=\"color:#64748b;font-size:12px;\">2 × packet · NPR 0.50</span></td>\n  <td style=\"padding:10px 0;vertical-align:top;text-align:right;font-size:14px;white-space:nowrap;\">NPR 1.00</td>\n</tr></table>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Reason: Out of &lt;stock&gt;</p>\n\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
+ },
+ {
+  "name": "storeOrderStatusBuyer",
+  "input": {
+   "deliveryPromise": "x",
+   "items": [],
+   "orderNumber": "SO-1",
+   "orderUrl": "https://x.test/o",
+   "status": "CANCELLED",
+   "total": 5
+  },
+  "out": {
+   "category": "info",
+   "subject": "Order SO-1 — cancelled",
+   "html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"color-scheme\" content=\"light\">\n    <meta name=\"supported-color-schemes\" content=\"light\">\n    <title>Order cancelled</title>\n  </head>\n  <body style=\"margin:0;padding:0;background:#f4f4f5;\">\n    \n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f4f5;\">\n      <tr>\n        <td align=\"center\" style=\"padding:32px 16px;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:560px;\">\n            <tr>\n              <td style=\"padding:0 4px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:24px;font-weight:700;letter-spacing:-0.2px;color:#0a8a4b;\">HostelPalika</td>\n            </tr>\n            <tr>\n              <td style=\"padding:32px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n                \n                <h1 style=\"margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:30px;font-weight:600;color:#18181b;\">Order cancelled</h1>\n                <p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\"><strong>SO-1</strong></p>\n<p style=\"margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:24px;color:#3f3f46;\">Your order was cancelled. Nothing is owed.</p>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;margin:20px 0;\"></table>\n\n\n              </td>\n            </tr>\n            <tr>\n              <td style=\"padding:20px 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#71717a;\">\n                Sent by HostelPalika · Powered by Softmato<br>\n                If you were not expecting this email, you can safely ignore it.<!--unsubscribe-->\n              </td>\n            </tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>"
+  }
  }
 ]

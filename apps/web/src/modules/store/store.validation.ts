@@ -48,18 +48,30 @@ const productImage = z
 /* Catalogue — platform owner writes, hostel staff read                       */
 /* -------------------------------------------------------------------------- */
 
-export const storeCategoryCreateSchema = z.object({
-  icon: z.string().trim().max(60).default("cube"),
+const storeCategoryFields = {
+  icon: z.string().trim().max(60),
   imageAssetId: z.string().trim().max(160).optional(),
   imageUrl: linkUrl.optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   name: z.string().trim().min(1).max(80),
-  priority: z.coerce.number().int().min(-1000).max(1000).default(0),
+  priority: z.coerce.number().int().min(-1000).max(1000),
   slug,
+};
+
+export const storeCategoryCreateSchema = z.object({
+  ...storeCategoryFields,
+  icon: storeCategoryFields.icon.default("cube"),
+  isActive: storeCategoryFields.isActive.default(true),
+  priority: storeCategoryFields.priority.default(0),
 });
 
-export const storeCategoryUpdateSchema = storeCategoryCreateSchema
+// Built from the fields without their defaults: `.partial()` keeps a
+// `.default()`, so a PATCH of just the name used to reset icon, isActive and
+// priority (review_fixes_needed P7-7).
+export const storeCategoryUpdateSchema = z
+  .object(storeCategoryFields)
   .partial()
+
   .refine((value) => Object.keys(value).length > 0, "Nothing to update.");
 
 export const storeProductCreateSchema = z

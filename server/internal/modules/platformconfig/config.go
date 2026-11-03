@@ -216,3 +216,23 @@ func (s *Service) OperationsTyped(ctx context.Context) OperationsConfig {
 	_ = Decode(s.Operations(ctx), &out)
 	return out
 }
+
+// Store is getStoreConfig: the supply store's knobs; any failure is the defaults.
+func (s *Service) Store(ctx context.Context) ordered.Map {
+	var row settingRow
+	if err := s.db.Collection("platformsettings").FindOne(ctx, bson.D{{Key: "key", Value: "store"}}).Decode(&row); err == nil {
+		if out, ok := schemas["store"].Parse(stored(row.Value)); ok {
+			return out.(ordered.Map)
+		}
+	}
+	return Default("store").(ordered.Map)
+}
+
+// ParseStore is storeConfigSchema.parse over a merged value (saveStoreConfig).
+func ParseStore(v any) (ordered.Map, bool) {
+	out, ok := schemas["store"].Parse(v)
+	if !ok {
+		return nil, false
+	}
+	return out.(ordered.Map), true
+}

@@ -24,7 +24,9 @@ export function itemsTable(
   const rows = items
     .map((item) => {
       const stock =
-        includeStock && item.stockAfterOrder !== undefined
+        // `!= null`: an untracked product's null used to print "null left after order".
+        includeStock && item.stockAfterOrder != null
+
           ? `<br/><span style="color:${item.stockAfterOrder === 0 ? "#b91c1c" : "#64748b"};font-size:12px;">${item.stockAfterOrder === 0 ? "Just hit zero" : `${item.stockAfterOrder} left after order`}</span>`
           : "";
       const image = item.imageUrl

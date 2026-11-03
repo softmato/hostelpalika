@@ -1,0 +1,1685 @@
+[
+  {
+    "name": "summary moderator",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/summary",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "summary",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/summary",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Store summary loaded",
+        "data": {
+          "summary": {
+            "categories": 3,
+            "live": 3,
+            "openOrders": 1,
+            "outOfStock": 0,
+            "products": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "config",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Store settings loaded",
+        "data": {
+          "config": {
+            "currency": "NPR",
+            "deliveryFee": 15000,
+            "freeDeliveryThreshold": 500000,
+            "isOpen": true,
+            "closedMessage": "The supply store is closed for now. Please check back soon.",
+            "deliveryEstimate": "Delivered in 2–4 working days",
+            "deliverySchedule": {
+              "morningCutoffHour": 10,
+              "morningArrivalText": "today between 4 PM and 7 PM",
+              "eveningCutoffHour": 16,
+              "eveningArrivalText": "tomorrow morning before 7 AM",
+              "timezone": "Asia/Kathmandu",
+              "cutoffCopy": "Order by 10 AM for delivery today between 4 PM and 7 PM.\nOrder after 4 PM for delivery tomorrow morning before 7 AM."
+            },
+            "maxOrderTotal": 5000000
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "config bad",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "deliveryFee": 200.5,
+        "maxOrderTotal": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "deliveryFee": [
+              "Invalid input: expected int, received number"
+            ],
+            "maxOrderTotal": [
+              "Too small: expected number to be >=100000"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "deliveryFee"
+            },
+            {
+              "message": "Too small: expected number to be >=100000",
+              "path": "maxOrderTotal"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "config close",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/config",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "isOpen": false,
+        "closedMessage": " Back Monday "
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Store settings saved",
+        "data": {
+          "config": {
+            "currency": "NPR",
+            "deliveryFee": 15000,
+            "freeDeliveryThreshold": 500000,
+            "isOpen": false,
+            "closedMessage": "Back Monday",
+            "deliveryEstimate": "Delivered in 2–4 working days",
+            "deliverySchedule": {
+              "morningCutoffHour": 10,
+              "morningArrivalText": "today between 4 PM and 7 PM",
+              "eveningCutoffHour": 16,
+              "eveningArrivalText": "tomorrow morning before 7 AM",
+              "timezone": "Asia/Kathmandu",
+              "cutoffCopy": "Order by 10 AM for delivery today between 4 PM and 7 PM.\nOrder after 4 PM for delivery tomorrow morning before 7 AM."
+            },
+            "maxOrderTotal": 5000000
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "closed shop add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/store/cart/items",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "productId": "6d0b0000000000000000000a"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Back Monday",
+        "errorCode": "STORE_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "categories",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Categories loaded",
+        "data": {
+          "categories": [
+            {
+              "icon": "bed",
+              "id": "6d0b00000000000000000001",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "isActive": true,
+              "name": "Bedding",
+              "priority": 5,
+              "slug": "bedding",
+              "productCount": 3
+            },
+            {
+              "icon": "spray",
+              "id": "6d0b00000000000000000002",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "isActive": true,
+              "name": "Cleaning",
+              "priority": 1,
+              "slug": "cleaning",
+              "productCount": 1
+            },
+            {
+              "icon": "cube",
+              "id": "6d0b00000000000000000003",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "isActive": false,
+              "name": "Old",
+              "priority": 0,
+              "slug": "old",
+              "productCount": 0
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "",
+        "slug": "Bad Slug!"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have >=1 characters"
+            ],
+            "slug": [
+              "Use lowercase letters, numbers and hyphens."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=1 characters",
+              "path": "name"
+            },
+            {
+              "message": "Use lowercase letters, numbers and hyphens.",
+              "path": "slug"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category created",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": " Kitchen ",
+        "slug": "Kitchen-Ware",
+        "priority": "3"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "cat": "data.category.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Category created",
+        "data": {
+          "category": {
+            "icon": "cube",
+            "id": "6ae95b0e82585fd146cd2d67",
+            "imageAssetId": "",
+            "imageUrl": "",
+            "isActive": true,
+            "name": "Kitchen",
+            "priority": 3,
+            "slug": "kitchen-ware"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category slug taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/categories",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Dup",
+        "slug": "bedding"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Another category already uses the handle \"bedding\".",
+        "errorCode": "SLUG_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category nothing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Nothing to update."
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Nothing to update.",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category renamed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "Kitchenware",
+        "isActive": false
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Category updated",
+        "data": {
+          "category": {
+            "icon": "cube",
+            "id": "6ae95b0e82585fd146cd2d67",
+            "imageAssetId": "",
+            "imageUrl": "",
+            "isActive": false,
+            "name": "Kitchenware",
+            "priority": 3,
+            "slug": "kitchen-ware"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c",
+    "masks": [
+      "**dates"
+    ]
+  },
+  {
+    "name": "category in use",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/store/categories/6d0b00000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "3 products are still in this category. Move or delete them first, or switch the category off instead.",
+        "errorCode": "CATEGORY_IN_USE"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category deleted",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/store/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Category deleted",
+        "data": {
+          "categoryId": "6ae95b0e82585fd146cd2d67"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c",
+    "masks": [
+      "**dates"
+    ]
+  },
+  {
+    "name": "category gone",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/store/categories/{{cat}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That category was not found.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "category bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/categories/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "name": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid category id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "products",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/products",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Products loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 4,
+            "totalPages": 1
+          },
+          "products": [
+            {
+              "categoryId": "6d0b00000000000000000001",
+              "categoryName": "Bedding",
+              "categorySlug": "bedding",
+              "compareAtPrice": null,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "description": "",
+              "id": "6d0b0000000000000000000a",
+              "images": [
+                {
+                  "assetId": "",
+                  "url": "https://x.test/m.png"
+                }
+              ],
+              "inStock": true,
+              "isFeatured": true,
+              "maxOrderQuantity": 3,
+              "minOrderQuantity": 1,
+              "name": "Mattress",
+              "price": 450000,
+              "slug": "mattress",
+              "stockQuantity": 5,
+              "summary": "",
+              "tags": [
+                "bed",
+                "gaddi"
+              ],
+              "trackStock": true,
+              "unit": "piece",
+              "isActive": true,
+              "stockOnHand": 5
+            },
+            {
+              "categoryId": "6d0b00000000000000000001",
+              "categoryName": "Bedding",
+              "categorySlug": "bedding",
+              "compareAtPrice": null,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "description": "",
+              "id": "6d0b0000000000000000000c",
+              "images": [],
+              "inStock": true,
+              "isFeatured": false,
+              "maxOrderQuantity": 0,
+              "minOrderQuantity": 2,
+              "name": "Pillow",
+              "price": 80000,
+              "slug": "pillow",
+              "stockQuantity": 1,
+              "summary": "",
+              "tags": [],
+              "trackStock": true,
+              "unit": "piece",
+              "isActive": true,
+              "stockOnHand": 1
+            },
+            {
+              "categoryId": "6d0b00000000000000000002",
+              "categoryName": "Cleaning",
+              "categorySlug": "cleaning",
+              "compareAtPrice": null,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "description": "",
+              "id": "6d0b0000000000000000000b",
+              "images": [],
+              "inStock": true,
+              "isFeatured": false,
+              "maxOrderQuantity": 0,
+              "minOrderQuantity": 2,
+              "name": "Soap",
+              "price": 5000,
+              "slug": "soap",
+              "stockQuantity": null,
+              "summary": "",
+              "tags": [],
+              "trackStock": false,
+              "unit": "piece",
+              "isActive": true,
+              "stockOnHand": 0
+            },
+            {
+              "categoryId": "6d0b00000000000000000001",
+              "categoryName": "Bedding",
+              "categorySlug": "bedding",
+              "compareAtPrice": null,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "description": "",
+              "id": "6d0b0000000000000000000d",
+              "images": [],
+              "inStock": true,
+              "isFeatured": false,
+              "maxOrderQuantity": 0,
+              "minOrderQuantity": 1,
+              "name": "Hidden",
+              "price": 100,
+              "slug": "hidden",
+              "stockQuantity": 9,
+              "summary": "",
+              "tags": [],
+              "trackStock": true,
+              "unit": "piece",
+              "isActive": false,
+              "stockOnHand": 9
+            }
+          ],
+          "summary": {
+            "live": 3,
+            "total": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "products search",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/products?search=hid",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Products loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "products": [
+            {
+              "categoryId": "6d0b00000000000000000001",
+              "categoryName": "Bedding",
+              "categorySlug": "bedding",
+              "compareAtPrice": null,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "description": "",
+              "id": "6d0b0000000000000000000d",
+              "images": [],
+              "inStock": true,
+              "isFeatured": false,
+              "maxOrderQuantity": 0,
+              "minOrderQuantity": 1,
+              "name": "Hidden",
+              "price": 100,
+              "slug": "hidden",
+              "stockQuantity": 9,
+              "summary": "",
+              "tags": [],
+              "trackStock": true,
+              "unit": "piece",
+              "isActive": false,
+              "stockOnHand": 9
+            }
+          ],
+          "summary": {
+            "live": 3,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product bad limits",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/products",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "categoryId": "6d0b00000000000000000002",
+        "name": "Mop",
+        "slug": "mop",
+        "price": 1000,
+        "minOrderQuantity": 5,
+        "maxOrderQuantity": 2,
+        "compareAtPrice": 500
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "maxOrderQuantity": [
+              "The maximum per order cannot be below the minimum."
+            ],
+            "compareAtPrice": [
+              "The struck-through price has to be above the price being charged."
+            ]
+          },
+          "issues": [
+            {
+              "message": "The maximum per order cannot be below the minimum.",
+              "path": "maxOrderQuantity"
+            },
+            {
+              "message": "The struck-through price has to be above the price being charged.",
+              "path": "compareAtPrice"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product unknown category",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/products",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "categoryId": "6c0000000000000000000fff",
+        "name": "Mop",
+        "slug": "mop",
+        "price": 1000
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Choose a category that exists.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product created",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/products",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "categoryId": "6d0b00000000000000000002",
+        "name": "Mop",
+        "slug": "mop",
+        "price": "1000",
+        "compareAtPrice": 1500,
+        "tags": [
+          " floor "
+        ],
+        "images": [
+          {
+            "url": "/img/mop.png"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "prod": "data.product.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Product created",
+        "data": {
+          "product": {
+            "categoryId": "6d0b00000000000000000002",
+            "categoryName": "Cleaning",
+            "categorySlug": "cleaning",
+            "compareAtPrice": 1500,
+            "createdAt": "2026-11-03T03:54:55.119Z",
+            "description": "",
+            "id": "6ae95b0f82585fd146cd2d6b",
+            "images": [
+              {
+                "assetId": "",
+                "url": "/img/mop.png"
+              }
+            ],
+            "inStock": false,
+            "isFeatured": false,
+            "maxOrderQuantity": 0,
+            "minOrderQuantity": 1,
+            "name": "Mop",
+            "price": 1000,
+            "slug": "mop",
+            "stockQuantity": 0,
+            "summary": "",
+            "tags": [
+              "floor"
+            ],
+            "trackStock": true,
+            "unit": "piece"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product bad image",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/platform/store/products",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "categoryId": "6d0b00000000000000000002",
+        "name": "Bucket",
+        "slug": "bucket",
+        "price": 100,
+        "images": [
+          {}
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "images": [
+              "An image needs either an uploaded asset or a URL."
+            ]
+          },
+          "issues": [
+            {
+              "message": "An image needs either an uploaded asset or a URL.",
+              "path": "images.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product clear compare",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "compareAtPrice": null
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Product updated",
+        "data": {
+          "product": {
+            "categoryId": "6d0b00000000000000000002",
+            "categoryName": "Cleaning",
+            "categorySlug": "cleaning",
+            "compareAtPrice": null,
+            "createdAt": "2026-11-03T03:54:55.119Z",
+            "description": "",
+            "id": "6ae95b0f82585fd146cd2d6b",
+            "images": [
+              {
+                "assetId": "",
+                "url": "/img/mop.png"
+              }
+            ],
+            "inStock": false,
+            "isFeatured": false,
+            "maxOrderQuantity": 0,
+            "minOrderQuantity": 1,
+            "name": "Mop",
+            "price": 1000,
+            "slug": "mop",
+            "stockQuantity": 0,
+            "summary": "",
+            "tags": [
+              "floor"
+            ],
+            "trackStock": true,
+            "unit": "piece"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product merged limits",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "minOrderQuantity": 9,
+        "maxOrderQuantity": 2
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The maximum per order cannot be below the minimum.",
+        "errorCode": "INVALID_ORDER_LIMITS"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product compare below",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "compareAtPrice": 10
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The struck-through price has to be above the price being charged.",
+        "errorCode": "INVALID_COMPARE_PRICE"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product price too big",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "price": 999999999
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "price": [
+              "Too big: expected number to be <=100000000"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be <=100000000",
+              "path": "price"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "product deleted",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Product deleted",
+        "data": {
+          "productId": "6ae95b0f82585fd146cd2d6b"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c",
+    "masks": [
+      "**dates"
+    ]
+  },
+  {
+    "name": "product gone",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/store/products/{{prod}}",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That product was not found.",
+        "errorCode": "PRODUCT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "orders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/orders",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Orders loaded",
+        "data": {
+          "orders": [
+            {
+              "cancelledAt": null,
+              "cancelledReason": "",
+              "canCancel": true,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "deliveredAt": null,
+              "delivery": {
+                "addressLine": "Lane 3",
+                "city": "Kathmandu",
+                "contactName": "Contract Admin",
+                "note": "",
+                "phone": "9800000000"
+              },
+              "deliveryFee": 0,
+              "deliveryPromise": "tomorrow morning before 7 AM",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0b00000000000000000014",
+              "itemCount": 1,
+              "items": [
+                {
+                  "imageAssetId": "",
+                  "imageUrl": "https://x.test/m.png",
+                  "lineTotal": 450000,
+                  "name": "Mattress",
+                  "productId": "6d0b0000000000000000000a",
+                  "quantity": 1,
+                  "stockAfterOrder": 4,
+                  "unit": "piece",
+                  "unitPrice": 450000
+                }
+              ],
+              "orderNumber": "SO-2610-0001-00A1",
+              "paymentMethod": "COD",
+              "paymentStatus": "PENDING",
+              "status": "PLACED",
+              "statusLabel": "Order placed",
+              "subtotal": 450000,
+              "timeline": [
+                {
+                  "at": "2026-10-01T04:15:00.000Z",
+                  "note": "",
+                  "status": "PLACED",
+                  "statusLabel": "Order placed"
+                }
+              ],
+              "total": 450000,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "hostelName": "Contract Hostel"
+            },
+            {
+              "cancelledAt": null,
+              "cancelledReason": "",
+              "canCancel": false,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "deliveredAt": null,
+              "delivery": {
+                "addressLine": "Lane 3",
+                "city": "Kathmandu",
+                "contactName": "Contract Admin",
+                "note": "",
+                "phone": "9800000000"
+              },
+              "deliveryFee": 0,
+              "deliveryPromise": "tomorrow morning before 7 AM",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0b00000000000000000015",
+              "itemCount": 1,
+              "items": [
+                {
+                  "imageAssetId": "",
+                  "imageUrl": "https://x.test/m.png",
+                  "lineTotal": 100000,
+                  "name": "Mattress",
+                  "productId": "6d0b0000000000000000000a",
+                  "quantity": 1,
+                  "stockAfterOrder": 4,
+                  "unit": "piece",
+                  "unitPrice": 100000
+                }
+              ],
+              "orderNumber": "SO-2610-0002-00A1",
+              "paymentMethod": "COD",
+              "paymentStatus": "PENDING",
+              "status": "DELIVERED",
+              "statusLabel": "Delivered",
+              "subtotal": 100000,
+              "timeline": [
+                {
+                  "at": "2026-10-01T04:15:00.000Z",
+                  "note": "",
+                  "status": "PLACED",
+                  "statusLabel": "Order placed"
+                }
+              ],
+              "total": 100000,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "hostelName": "Contract Hostel"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "summary": {
+            "deliveredRevenue": 100000,
+            "open": 1,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "orders open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/orders?status=open&hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Orders loaded",
+        "data": {
+          "orders": [
+            {
+              "cancelledAt": null,
+              "cancelledReason": "",
+              "canCancel": true,
+              "createdAt": "2026-10-01T04:15:00.000Z",
+              "deliveredAt": null,
+              "delivery": {
+                "addressLine": "Lane 3",
+                "city": "Kathmandu",
+                "contactName": "Contract Admin",
+                "note": "",
+                "phone": "9800000000"
+              },
+              "deliveryFee": 0,
+              "deliveryPromise": "tomorrow morning before 7 AM",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6d0b00000000000000000014",
+              "itemCount": 1,
+              "items": [
+                {
+                  "imageAssetId": "",
+                  "imageUrl": "https://x.test/m.png",
+                  "lineTotal": 450000,
+                  "name": "Mattress",
+                  "productId": "6d0b0000000000000000000a",
+                  "quantity": 1,
+                  "stockAfterOrder": 4,
+                  "unit": "piece",
+                  "unitPrice": 450000
+                }
+              ],
+              "orderNumber": "SO-2610-0001-00A1",
+              "paymentMethod": "COD",
+              "paymentStatus": "PENDING",
+              "status": "PLACED",
+              "statusLabel": "Order placed",
+              "subtotal": 450000,
+              "timeline": [
+                {
+                  "at": "2026-10-01T04:15:00.000Z",
+                  "note": "",
+                  "status": "PLACED",
+                  "statusLabel": "Order placed"
+                }
+              ],
+              "total": 450000,
+              "updatedAt": "2026-10-01T04:15:00.000Z",
+              "hostelName": "Contract Hostel"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "summary": {
+            "deliveredRevenue": 100000,
+            "open": 1,
+            "total": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "skip to delivered",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6d0b00000000000000000014/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "DELIVERED"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "An order that is order placed cannot move to delivered.",
+        "errorCode": "INVALID_ORDER_TRANSITION"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "confirm",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6d0b00000000000000000014/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "CONFIRMED",
+        "note": " packed soon "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Order updated",
+        "data": {
+          "order": {
+            "cancelledAt": null,
+            "cancelledReason": "",
+            "canCancel": true,
+            "createdAt": "2026-10-01T04:15:00.000Z",
+            "deliveredAt": null,
+            "delivery": {
+              "addressLine": "Lane 3",
+              "city": "Kathmandu",
+              "contactName": "Contract Admin",
+              "note": "",
+              "phone": "9800000000"
+            },
+            "deliveryFee": 0,
+            "deliveryPromise": "tomorrow morning before 7 AM",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0b00000000000000000014",
+            "itemCount": 1,
+            "items": [
+              {
+                "imageAssetId": "",
+                "imageUrl": "https://x.test/m.png",
+                "lineTotal": 450000,
+                "name": "Mattress",
+                "productId": "6d0b0000000000000000000a",
+                "quantity": 1,
+                "stockAfterOrder": 4,
+                "unit": "piece",
+                "unitPrice": 450000
+              }
+            ],
+            "orderNumber": "SO-2610-0001-00A1",
+            "paymentMethod": "COD",
+            "paymentStatus": "PENDING",
+            "status": "CONFIRMED",
+            "statusLabel": "Confirmed",
+            "subtotal": 450000,
+            "timeline": [
+              {
+                "at": "2026-10-01T04:15:00.000Z",
+                "note": "",
+                "status": "PLACED",
+                "statusLabel": "Order placed"
+              },
+              {
+                "at": "2026-11-03T03:54:56.649Z",
+                "note": "packed soon",
+                "status": "CONFIRMED",
+                "statusLabel": "Confirmed"
+              }
+            ],
+            "total": 450000,
+            "updatedAt": "2026-11-03T03:54:56.650Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "ship",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6d0b00000000000000000014/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "SHIPPED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Order updated",
+        "data": {
+          "order": {
+            "cancelledAt": null,
+            "cancelledReason": "",
+            "canCancel": false,
+            "createdAt": "2026-10-01T04:15:00.000Z",
+            "deliveredAt": null,
+            "delivery": {
+              "addressLine": "Lane 3",
+              "city": "Kathmandu",
+              "contactName": "Contract Admin",
+              "note": "",
+              "phone": "9800000000"
+            },
+            "deliveryFee": 0,
+            "deliveryPromise": "tomorrow morning before 7 AM",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0b00000000000000000014",
+            "itemCount": 1,
+            "items": [
+              {
+                "imageAssetId": "",
+                "imageUrl": "https://x.test/m.png",
+                "lineTotal": 450000,
+                "name": "Mattress",
+                "productId": "6d0b0000000000000000000a",
+                "quantity": 1,
+                "stockAfterOrder": 4,
+                "unit": "piece",
+                "unitPrice": 450000
+              }
+            ],
+            "orderNumber": "SO-2610-0001-00A1",
+            "paymentMethod": "COD",
+            "paymentStatus": "PENDING",
+            "status": "SHIPPED",
+            "statusLabel": "Out for delivery",
+            "subtotal": 450000,
+            "timeline": [
+              {
+                "at": "2026-10-01T04:15:00.000Z",
+                "note": "",
+                "status": "PLACED",
+                "statusLabel": "Order placed"
+              },
+              {
+                "at": "2026-11-03T03:54:56.649Z",
+                "note": "packed soon",
+                "status": "CONFIRMED",
+                "statusLabel": "Confirmed"
+              },
+              {
+                "at": "2026-11-03T03:54:56.831Z",
+                "note": "",
+                "status": "SHIPPED",
+                "statusLabel": "Out for delivery"
+              }
+            ],
+            "total": 450000,
+            "updatedAt": "2026-11-03T03:54:56.831Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "deliver",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6d0b00000000000000000014/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "DELIVERED"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Order updated",
+        "data": {
+          "order": {
+            "cancelledAt": null,
+            "cancelledReason": "",
+            "canCancel": false,
+            "createdAt": "2026-10-01T04:15:00.000Z",
+            "deliveredAt": "2026-11-03T03:54:56.897Z",
+            "delivery": {
+              "addressLine": "Lane 3",
+              "city": "Kathmandu",
+              "contactName": "Contract Admin",
+              "note": "",
+              "phone": "9800000000"
+            },
+            "deliveryFee": 0,
+            "deliveryPromise": "tomorrow morning before 7 AM",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6d0b00000000000000000014",
+            "itemCount": 1,
+            "items": [
+              {
+                "imageAssetId": "",
+                "imageUrl": "https://x.test/m.png",
+                "lineTotal": 450000,
+                "name": "Mattress",
+                "productId": "6d0b0000000000000000000a",
+                "quantity": 1,
+                "stockAfterOrder": 4,
+                "unit": "piece",
+                "unitPrice": 450000
+              }
+            ],
+            "orderNumber": "SO-2610-0001-00A1",
+            "paymentMethod": "COD",
+            "paymentStatus": "PAID",
+            "status": "DELIVERED",
+            "statusLabel": "Delivered",
+            "subtotal": 450000,
+            "timeline": [
+              {
+                "at": "2026-10-01T04:15:00.000Z",
+                "note": "",
+                "status": "PLACED",
+                "statusLabel": "Order placed"
+              },
+              {
+                "at": "2026-11-03T03:54:56.649Z",
+                "note": "packed soon",
+                "status": "CONFIRMED",
+                "statusLabel": "Confirmed"
+              },
+              {
+                "at": "2026-11-03T03:54:56.831Z",
+                "note": "",
+                "status": "SHIPPED",
+                "statusLabel": "Out for delivery"
+              },
+              {
+                "at": "2026-11-03T03:54:56.897Z",
+                "note": "",
+                "status": "DELIVERED",
+                "statusLabel": "Delivered"
+              }
+            ],
+            "total": 450000,
+            "updatedAt": "2026-11-03T03:54:56.897Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "bad status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6d0b00000000000000000014/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "LOST"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"CONFIRMED\"|\"PACKED\"|\"SHIPPED\"|\"DELIVERED\"|\"CANCELLED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"CONFIRMED\"|\"PACKED\"|\"SHIPPED\"|\"DELIVERED\"|\"CANCELLED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "unknown order",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/store/orders/6c0000000000000000000fff/status",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {
+        "status": "CONFIRMED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That order was not found.",
+        "errorCode": "ORDER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  },
+  {
+    "name": "summary after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/platform/store/summary",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Store summary loaded",
+        "data": {
+          "summary": {
+            "categories": 3,
+            "live": 3,
+            "openOrders": 0,
+            "outOfStock": 0,
+            "products": 4
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 ee31554c"
+  }
+]

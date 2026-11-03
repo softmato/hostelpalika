@@ -156,7 +156,15 @@ moves last within it:
 
 **Needs:** Phase 6.
 
-- ☐ `platform` (99), `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
+**Status 2026-11-03: in progress.** Done and contract-green: the server log store and
+`/platform/logs` (+summary), `users` (account deletion + `/platform/account-deletions`,
+expert consultation, temporary logins; group `platform`), and the whole supply store —
+`store/*` and `platform/store/*` (group `store`). Findings P7-1..P7-9 in
+`review_fixes_needed.md`. Next: team, then the rest of `platform/*`, then the log viewer
+pages.
+
+- ☐ `platform` (99)
+, `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
 - ☐ Site config / SEO config / page copy editors
 - ☐ Referrals (hostel + partner), offer program, subscriptions, manual plan-payment review
 - ☐ **Server logs in the superadmin portal** (owner's requirement, `MISSION.md` addition 3). All of it visible and filterable by a superadmin:
