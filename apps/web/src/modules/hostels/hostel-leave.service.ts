@@ -13,7 +13,6 @@ import { hostelCalendarDay } from "@hostel/shared/calendar/bs";
 import { safeEntryName, toReadableStream, zipStream, type ZipEntry } from "@/lib/zip-stream";
 import { billingHostelId } from "@/modules/billing/billing-hostel";
 import { ownerIdentitiesFor, resolveOwnedHostel } from "@/modules/billing/subscription-access";
-import { outstandingFor } from "@/modules/billing/subscription.service";
 import { buildLeaveExport } from "@/modules/hostels/hostel-leave-export";
 import type {
   hostelLeaveApproveSchema,
@@ -224,9 +223,18 @@ async function loadLeaveFacts(hostelId: Types.ObjectId, buildingIds: Types.Objec
     }),
   ]);
 
-  const bills = await Promise.all(
-    invoices.map(async (invoice) => ({ ...invoice, outstanding: (await outstandingFor(invoice)).outstanding })),
-  );
+  // PERF-1: one aggregate for every open bill, where this asked once per invoice.
+  const settled = invoices.length
+    ? await SubscriptionPaymentModel.aggregate<{ _id: Types.ObjectId; total: number }>([
+        { $match: { invoiceId: { $in: invoices.map((invoice) => invoice._id) }, status: "SETTLED" } },
+        { $group: { _id: "$invoiceId", total: { $sum: "$amount" } } },
+      ])
+    : [];
+  const paid = new Map(settled.map((row) => [row._id.toString(), row.total]));
+  const bills = invoices.map((invoice) => ({
+    ...invoice,
+    outstanding: Math.max(0, invoice.amount - (paid.get(invoice._id.toString()) ?? 0)),
+  }));
   const owed = owedOnPlan(bills, subscription);
   const claimInReview =
     owed > 0 &&

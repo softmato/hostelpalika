@@ -164,6 +164,8 @@ export const FINANCE_ERROR_STATUS = {
   STATEMENT_NOT_READY: 409,
   /** No such payment event, or not one this principal may act on. */
   EVENT_NOT_FOUND: 404,
+  // FIN-5b: reversing a payment that never settled is the caller's mistake, not ours.
+  EVENT_NOT_SETTLED: 409,
   /** Assigning an orphan credit that is not, in fact, unassigned. */
   EVENT_ALREADY_ASSIGNED: 409,
   /**

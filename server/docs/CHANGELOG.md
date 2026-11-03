@@ -3,6 +3,19 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Phase 6 — done] — 2026-11-03
+
+### Closed
+- Resident identity: `/users/resident-identity` (profile, sharing, QR, email and phone checks, photo, signature), `/users/:userId/avatar`, the first-card email (`email.IDCardIssued`, `idcard.Render`). Contract group `account-identity`.
+- RES-16: intake and the existing-residents add make the ID card from the admission form (or a draft the editor opens).
+- R31: `account/saved-hostels`; referral-code preview `coverUrl`.
+- Fixed in Go and TS: FIN-9 (a month discount is its own CREDIT line, backfill base is rent only), FIN-13 (assign and settle in one transaction; `InTx` joins an open one), PLAN-1 (partial unique index on an in-review claim).
+- TS fixes owed by the bug rule: FIN-2, FIN-3, FIN-4, FIN-5, FIN-5b, FIN-7, FIN-12, PERF-1, R28 billing run (`lib/transaction.ts`, `transactionAsyncLocalStorage`).
+- Contract cases whose figures follow the clock (stock projections, plan days left, bare days) are masked; `**dates` now covers `YYYY-MM-DD`.
+
+### Owner step
+- `npm --prefix apps/web run db:indexes` on production, for PLAN-1's index. It refuses to build if one invoice already has two claims `IN_REVIEW`.
+
 ## [Phase 6 — in progress] — 2026-11-02
 
 ### Added

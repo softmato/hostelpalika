@@ -64,9 +64,9 @@ func person(sub *valid.Form, withAddress bool) ordered.Map {
 	return out
 }
 
-// signature is `residentSignatureSchema`: blank or absent is fine here (the
+// Signature is `residentSignatureSchema`: blank or absent is fine here (the
 // callers decide whether one is needed); anything else must be a drawn signature.
-func signature(f *valid.Form, key string, out *ordered.Map) {
+func Signature(f *valid.Form, key string, out *ordered.Map) {
 	if !f.Present(key) || f.Blank(key) {
 		return
 	}
@@ -137,7 +137,7 @@ func ParseDetails(f *valid.Form, key string) (ordered.Map, bool) {
 		d.Nest("localGuardian", true, func(g *valid.Form) {
 			out = append(out, ordered.Pair{Key: "localGuardian", Value: person(g, true)})
 		})
-		signature(d, "signature", &out)
+		Signature(d, "signature", &out)
 	})
 	return out, ok
 }

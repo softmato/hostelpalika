@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+vi.mock("@/lib/transaction", () => ({ inTransaction: (fn: () => Promise<unknown>) => fn() }));
 vi.mock("@/lib/realtime/server", () => ({ publishResourceChange: vi.fn() }));
 vi.mock("@/modules/finance/audit-finance", () => ({ auditFinanceAction: vi.fn() }));
 vi.mock("@/modules/notifications/notification.service", () => ({

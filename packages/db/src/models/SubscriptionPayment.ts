@@ -198,6 +198,16 @@ const subscriptionPaymentSchema = new Schema(
 );
 
 subscriptionPaymentSchema.index({ invoiceId: 1, status: 1 });
+// PLAN-1: one claim in review per invoice. The claim's own check reads, then
+// writes; two sent at once both passed it. This index refuses the second.
+subscriptionPaymentSchema.index(
+  { invoiceId: 1 },
+  {
+    name: "invoiceId_1_inReview",
+    partialFilterExpression: { status: "IN_REVIEW" },
+    unique: true,
+  },
+);
 // The platform's manual-review queue reads exactly this: claims waiting on a
 // person, oldest first, across every hostel.
 subscriptionPaymentSchema.index({ status: 1, claimedAt: 1 });

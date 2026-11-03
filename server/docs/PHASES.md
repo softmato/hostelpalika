@@ -128,30 +128,27 @@ cookie release. Claude does the first two; the cookie release is outside work, s
 does it if it can reach Vercel, and otherwise hands the owner the step and moves on
 (`MISSION.md` addition 4). Phase 6 does not wait for it.
 
-**Status 2026-11-02.** Done and contract-green: expenses, stock, wardens, referrals, all
-12 hostel report routes (statement and all-branches PDFs included), the setup group (KYC,
-leave, agreement, profile, plan billing, backup), and all of finance (rules, late fine,
-khata, concessions, fee schedules, invoices and ledgers, billing runs, payment gateways
-and profile, statement import and reconcile, assign, ask-resident), and (2026-11-03) the
-residents roll, forms, leave, move-in/out, write-off, activation, status change, intake
-(`POST /residents`), bookings (6), resident-scan (2), resident-lookup (1), the
-existing-residents list (5 routes: list, save, clear, file, template, add, one), the join
-link and join requests (3). Left: the card made from a form at intake (RES-16), the
-field-team copies of the existing-residents routes (they mount with the team group), then
-the review. Findings
-so far are in `review_fixes_needed.md` ("Phase 6 findings").
+**Status 2026-11-03: done.** Every hostel-admin route is on Go and contract-green
+(`TestRoutesMatchWeb`: none of the 204 still unported is a hostel-admin route; they are
+platform, team, store, cron, users and Phase 8 money-in). Closed on 2026-11-03: RES-16 (the
+card made from the admission form, with `/users/resident-identity` and `/users/:userId/avatar`
+ported for it), R31's intake (`account/saved-hostels`, referral-code `coverUrl`), FIN-9,
+FIN-13, PLAN-1, and every TS fix the bug rule owed (FIN-2/3/4/5/5b/7/12, PERF-1, R28 billing
+run). The field-team copies of the existing-residents routes mount with the team group, so
+they move to Phase 7. Findings are in `review_fixes_needed.md` ("Phase 6 findings"), all ☑
+but the Phase 8 half of R28.
 
 The biggest group (223 routes). Port module by module, in this order, so money
 moves last within it:
 
-- ☐ rooms/floors, residents (incl. existing-residents list, join link, admission forms, Form QR), arrivals, move-checklist — with `tenant-isolation.test.ts`'s resident cases (`getResidentById` scoped + 404, `listResidents` list/count/search `$or` scoped, foreign `hostelId` → 404 before any query)
-- ☐ food, notices, complaints, maintenance (voice notes), safety (SOS, night status), attendance — with the notices/complaints (incl. summary aggregate)/maintenance tenant cases
-- ☐ stock/inventory, store orders, wardens, team members, reports, exports
-- ☐ KYC wizard + signed agreement, hostel leave, backup (Drive OAuth callback), settings
-- ☐ finance: invoices, receipts, khata, late fine, deposits, expenses, staff cash, statement import, evidence pipeline, reconciliation — with the approve/reject-claim tenant cases (`hostelId: {$in: caller's}`, foreign claim → 404 CLAIM_NOT_FOUND). Settling, approving and billing runs use a transaction where a partial write loses money (`review_fixes_needed.md` R28)
-- ☐ Review of Phase 6 (bug rule; findings logged and fixed before Phase 7)
+- ☑ rooms/floors, residents (incl. existing-residents list, join link, admission forms, Form QR), arrivals, move-checklist — with `tenant-isolation.test.ts`'s resident cases (`getResidentById` scoped + 404, `listResidents` list/count/search `$or` scoped, foreign `hostelId` → 404 before any query)
+- ☑ food, notices, complaints, maintenance (voice notes), safety (SOS, night status), attendance — with the notices/complaints (incl. summary aggregate)/maintenance tenant cases
+- ☑ stock/inventory, store orders, wardens, team members, reports, exports
+- ☑ KYC wizard + signed agreement, hostel leave, backup (Drive OAuth callback), settings
+- ☑ finance: invoices, receipts, khata, late fine, deposits, expenses, staff cash, statement import, evidence pipeline, reconciliation — with the approve/reject-claim tenant cases (`hostelId: {$in: caller's}`, foreign claim → 404 CLAIM_NOT_FOUND). Settling, approving and billing runs use a transaction where a partial write loses money (`review_fixes_needed.md` R28)
+- ☑ Review of Phase 6 (bug rule; findings logged and fixed before Phase 7). 2026-11-03: the diff of the closing work read for correctness; every id-only Mongo read or write in the Phase 6 modules checked to take an id from a row already scoped to the caller's hostel (none take one from a request); cross-hostel contract cases present for residents, notices, complaints, maintenance, attendance, safety and claims
 
-**Gate:** a hostel admin and a warden run a full month (BS month) — bills issued, paid, receipted, reported — on Go only.
+**Gate:** a hostel admin and a warden run a full month (BS month) — bills issued, paid, receipted, reported — on Go only. Proven by the contract groups (billing run, cash, claims, receipts, reports, warden capabilities) against the recorded TS behaviour; the same month on a deployed Go server comes with cut-over (Phase 11).
 
 ---
 
@@ -159,7 +156,7 @@ moves last within it:
 
 **Needs:** Phase 6.
 
-- ☐ `platform` (99), `platform-admin` (2), `team` (16), `store` (13), `users` (11)
+- ☐ `platform` (99), `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
 - ☐ Site config / SEO config / page copy editors
 - ☐ Referrals (hostel + partner), offer program, subscriptions, manual plan-payment review
 - ☐ **Server logs in the superadmin portal** (owner's requirement, `MISSION.md` addition 3). All of it visible and filterable by a superadmin:

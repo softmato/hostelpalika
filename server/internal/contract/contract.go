@@ -315,11 +315,12 @@ func Collect(c Case, setCookie []string, body []byte, vars map[string]string) {
 	}
 }
 
-var isoDate = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$`)
+// A bare day (`2026-11-02`) counts too: in a clock-relative group it is "today" in hostel time.
+var isoDate = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?Z)?$`)
 
 var generatedID = regexp.MustCompile(`^[0-9a-f]{24}$`)
 
-// volatile is a timestamp, or an object id minted in this run: fixture ids start 6c0 or 6d0.
+// volatile is a timestamp or day, or an object id minted in this run: fixture ids start 6c0 or 6d0.
 func volatile(s string) bool {
 	if isoDate.MatchString(s) {
 		return true

@@ -79,25 +79,43 @@ async function appendEntry(input: {
     );
   }
 
+  const entry = {
+    amount: input.amount,
+    eventId: input.eventId ?? null,
+    idempotencyKey: input.idempotencyKey,
+    invoiceId: input.invoiceId ?? null,
+    kind: input.kind,
+    note: input.note,
+    occurredAt: input.occurredAt ?? new Date(),
+  };
+
   try {
-    await CreditBalanceModel.updateOne(
-      { hostelId: input.hostelId, residentId: input.residentId },
+    /*
+     * FIN-5: the unique index on `entries.idempotencyKey` guards across rows,
+     * never inside one, so a replay could push the same key onto this resident's
+     * row twice. The push is conditional on the key being absent instead.
+     */
+    const pushed = await CreditBalanceModel.updateOne(
       {
-        $push: {
-          entries: {
-            amount: input.amount,
-            eventId: input.eventId ?? null,
-            idempotencyKey: input.idempotencyKey,
-            invoiceId: input.invoiceId ?? null,
-            kind: input.kind,
-            note: input.note,
-            occurredAt: input.occurredAt ?? new Date(),
-          },
-        },
-        $setOnInsert: { hostelId: input.hostelId, residentId: input.residentId },
+        "entries.idempotencyKey": { $ne: input.idempotencyKey },
+        hostelId: input.hostelId,
+        residentId: input.residentId,
       },
-      { upsert: true },
+      { $push: { entries: entry } },
     );
+
+    if (pushed.matchedCount === 0) {
+      // Either the key is already there, or the resident has no row yet.
+      const inserted = await CreditBalanceModel.updateOne(
+        { hostelId: input.hostelId, residentId: input.residentId },
+        { $setOnInsert: { entries: [entry], hostelId: input.hostelId, residentId: input.residentId } },
+        { upsert: true },
+      );
+
+      if (inserted.upsertedCount === 0) {
+        return { amount: await recomputeCreditBalance(input.hostelId, input.residentId), created: false };
+      }
+    }
   } catch (error) {
     if (!isDuplicateKey(error)) {
       throw error;
@@ -168,6 +186,46 @@ export async function creditOverpayment(input: {
     occurredAt: input.occurredAt,
     residentId: input.residentId,
   });
+}
+
+/**
+ * Takes back the credit an overpayment left when that payment is reversed.
+ *
+ * FIN-4: without it a reversed 15,000 on a 12,000 invoice still left 3,000 to
+ * spend. If the credit is already spent the balance goes negative, which says
+ * so: applying credit treats anything under zero as none.
+ */
+export async function takeBackOverpayment(event: {
+  _id: Types.ObjectId;
+  direction: string;
+  hostelId: Types.ObjectId | string;
+  invoiceId?: Types.ObjectId | string | null;
+  residentId?: Types.ObjectId | string | null;
+}) {
+  if (!event.residentId || event.direction !== "CREDIT") {
+    return;
+  }
+
+  const key = `overpay:${event._id.toString()}`;
+  const row = await CreditBalanceModel.findOne({
+    "entries.idempotencyKey": key,
+    hostelId: event.hostelId,
+    residentId: event.residentId,
+  }).lean<{ entries?: { amount: number; idempotencyKey: string }[] } | null>();
+  const earned = row?.entries?.find((entry) => entry.idempotencyKey === key);
+
+  if (earned) {
+    await appendEntry({
+      amount: earned.amount,
+      eventId: event._id,
+      hostelId: event.hostelId,
+      idempotencyKey: `overpay-reversed:${event._id.toString()}`,
+      invoiceId: event.invoiceId ?? null,
+      kind: "REFUNDED",
+      note: "Overpaid amount reversed",
+      residentId: event.residentId,
+    });
+  }
 }
 
 /**

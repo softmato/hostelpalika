@@ -69,7 +69,7 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | ☑ | Cookies | `lib/auth-cookies.ts`, `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts` (`hostelpalika_*` + legacy `hostelhub_*` fallbacks) | same names, plus `Domain=.hostelpalika.com` |
 | ☑ | Principal + guards | `lib/api-auth.ts` — 14 guards (`requireApiPrincipal`, `requirePlatformPrincipal`, `requireSuperadminPrincipal`, `requireTeamPrincipal`, `requireHostelStaffPrincipal`, `requireHostelCapability`, `requireHostelAdminPrincipal`, `requireHostelScopedPrincipal`, `requireResidentPrincipal`, `requireGuardianPrincipal`, `loadApiPrincipal`, `assertApiRoles`, `assertHostelScopedApiAccess`, `assertPrimaryCredentialPrincipal`) | Gin middleware per guard |
 | ☑ | Roles, permissions, capabilities | `lib/roles.ts`, `lib/permissions.ts`, `lib/warden-capability.ts`, `lib/route-access.ts`, `lib/tenant.ts` | `internal/platform/authz` |
-| ☐ | Tenant isolation | `modules/tenant-isolation.test.ts` (guard layer ☑ in `authz`; service cases travel with their Phase 6 modules) | the same test cases, ported first |
+| ☑ | Tenant isolation | `modules/tenant-isolation.test.ts` (guard layer ☑ in `authz`; service cases as cross-hostel contract cases: residents "outsiders", ops "foreign", finance `CLAIM_NOT_FOUND`) | the same test cases, ported first |
 | ☑ | Mobile client header | `x-hostelhub-client`, `x-hostel-id` (`lib/mobile-auth.ts`) | same headers |
 | ☑ | Passwords + PIN | `lib/password.ts` — bcrypt cost 12 | `x/crypto/bcrypt`, existing hashes verify unchanged |
 | ☑ | OTP | `OtpChallenge`, `OTP_*` env, `lib/auth-attempts.ts` | same rules |
@@ -879,15 +879,15 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/users/:userId/avatar` | requireApiPrincipal |  | users |
+| ☑ | GET | `/api/v1/users/:userId/avatar` | requireApiPrincipal |  | users |
 | ☐ | GET POST | `/api/v1/users/account-deletion` | requireApiPrincipal | etag | users |
 | ☐ | GET POST | `/api/v1/users/expert-consultation-requests` | requireApiPrincipal | etag | expert-consultation |
-| ☐ | GET PATCH PUT | `/api/v1/users/resident-identity` | requireApiPrincipal | etag | users |
-| ☐ | GET | `/api/v1/users/resident-identity/email-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
-| ☐ | GET | `/api/v1/users/resident-identity/phone-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
-| ☐ | DELETE GET PUT | `/api/v1/users/resident-identity/photo` | requireApiPrincipal |  | users |
-| ☐ | GET | `/api/v1/users/resident-identity/qr` | requireApiPrincipal | etag | users |
-| ☐ | GET | `/api/v1/users/resident-identity/signature` | requireApiPrincipal |  | users |
+| ☑ | GET PATCH PUT | `/api/v1/users/resident-identity` | requireApiPrincipal | etag | users |
+| ☑ | GET | `/api/v1/users/resident-identity/email-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
+| ☑ | GET | `/api/v1/users/resident-identity/phone-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
+| ☑ | DELETE GET PUT | `/api/v1/users/resident-identity/photo` | requireApiPrincipal |  | users |
+| ☑ | GET | `/api/v1/users/resident-identity/qr` | requireApiPrincipal | etag | users |
+| ☑ | GET | `/api/v1/users/resident-identity/signature` | requireApiPrincipal |  | users |
 | ☐ | GET POST | `/api/v1/users/temporary-credentials` | requireApiPrincipal, assertPrimaryCredentialPrincipal, rateLimitAuthAttempts | etag | auth |
 | ☐ | DELETE | `/api/v1/users/temporary-credentials/:id` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
 

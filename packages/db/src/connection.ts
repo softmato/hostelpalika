@@ -1,6 +1,10 @@
 import { attachDatabasePool } from "@vercel/functions";
 import mongoose from "mongoose";
 
+// Model calls inside `connection.transaction(fn)` ride its session without
+// threading `{ session }` through every helper (billing run, R28).
+mongoose.set("transactionAsyncLocalStorage", true);
+
 type CachedConnection = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;

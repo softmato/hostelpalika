@@ -30,6 +30,10 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 // Mongo through the ctx it is given and reset anything it collects at its start.
 // Notifications and audit lines go after InTx returns, never inside fn.
 func InTx(ctx context.Context, db *mongo.Database, fn func(ctx context.Context) error) error {
+	// Already inside one: join it, so writes that each need a transaction compose (FIN-13).
+	if mongo.SessionFromContext(ctx) != nil {
+		return fn(ctx)
+	}
 	session, err := db.Client().StartSession()
 	if err != nil {
 		return fmt.Errorf("mongo: start session: %w", err)

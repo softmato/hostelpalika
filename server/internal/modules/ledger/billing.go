@@ -453,9 +453,12 @@ type billingPlan struct {
 	basis          string
 	bounds         bs.Bounds
 	concessionNote string
-	scheduleID     *bson.ObjectID
-	proration      *string
-	resident       *billableRow
+	// FIN-9: amount is the full rent; a month discount is its own CREDIT line keyed
+	// by concessionPercent, so a later edit of the discount replaces it, never stacks.
+	concession, discount int64
+	scheduleID           *bson.ObjectID
+	proration            *string
+	resident             *billableRow
 }
 
 func planBilling(rows []billableRow, s *finance.Schedule, period string, listed map[string]float64, percentOff int64, reason string, today time.Time) ([]billingPlan, []BillingSkip, []BillingFailure, error) {
@@ -500,6 +503,12 @@ func planBilling(rows []billableRow, s *finance.Schedule, period string, listed 
 				}
 				return nil, &BillingSkip{Detail: amt.Proration, Reason: reason, ResidentID: id}, nil
 			}
+			full := amt
+			if ch.ConcessionPercent > 0 {
+				if full, err = finance.ComputeInvoiceAmount(ch.FullAmount, r.MoveInDate, out, b); err != nil {
+					return nil, nil, err
+				}
+			}
 			note := ""
 			if ch.ConcessionPercent > 0 {
 				note = strconv.FormatInt(ch.ConcessionPercent, 10) + "% off"
@@ -507,7 +516,8 @@ func planBilling(rows []billableRow, s *finance.Schedule, period string, listed 
 					note = reason + " · " + note
 				}
 			}
-			return &billingPlan{amt.Amount, ch.BedType, ch.Basis, b, note, ch.FeeScheduleID, amt.Proration, r}, nil, nil
+			return &billingPlan{amount: full.Amount, bedType: ch.BedType, basis: ch.Basis, bounds: b, concessionNote: note, concession: ch.ConcessionPercent,
+				discount: full.Amount - amt.Amount, scheduleID: ch.FeeScheduleID, proration: amt.Proration, resident: r}, nil, nil
 		}()
 		var he *httpx.Error
 		switch {
@@ -710,7 +720,7 @@ func (e *Engine) RunBillingCycle(ctx context.Context, in BillingInput, p *authz.
 			return nil, err
 		}
 		kh := khata[rid.Hex()]
-		total := pl.amount
+		total := pl.amount - pl.discount
 		if kh != nil {
 			total += kh.amount
 		}
@@ -724,9 +734,6 @@ func (e *Engine) RunBillingCycle(ctx context.Context, in BillingInput, p *authz.
 			covers = span + " · bills on the " + ordinalDay(day)
 		}
 		desc := "Monthly rent — " + covers
-		if pl.concessionNote != "" {
-			desc += " · " + pl.concessionNote
-		}
 		var bed, schedID any
 		if pl.bedType != "" {
 			bed = pl.bedType
@@ -739,6 +746,14 @@ func (e *Engine) RunBillingCycle(ctx context.Context, in BillingInput, p *authz.
 			rent = append(rent, bson.E{Key: "prorationBasis", Value: *pl.proration})
 		}
 		lines := bson.A{rent}
+		if pl.discount > 0 {
+			monthName := bs.FormatPeriod(in.Period)
+			if monthName == "" {
+				monthName = in.Period
+			}
+			lines = append(lines, bson.D{{Key: "description", Value: pl.concessionNote + " — " + monthName}, {Key: "bedType", Value: nil}, {Key: "amount", Value: JSInt(-pl.discount)},
+				{Key: "basis", Value: "CREDIT"}, {Key: "concessionPercent", Value: JSInt(pl.concession)}})
+		}
 		if kh != nil {
 			lines = append(lines, bson.D{{Key: "description", Value: kh.description}, {Key: "bedType", Value: nil}, {Key: "amount", Value: JSInt(kh.amount)}, {Key: "basis", Value: "KHATA"}})
 		}

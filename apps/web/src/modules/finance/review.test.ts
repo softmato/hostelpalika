@@ -479,7 +479,7 @@ describe("approving a claim", () => {
 
     expect(mocks.eventFindOne.mock.calls[0]![0]).toMatchObject({
       hostelId: { $in: [hostelId.toString()] },
-      source: "RESIDENT_CLAIM",
+      source: { $in: ["RESIDENT_CLAIM", "CASH_ENTRY"] },
     });
   });
 });

@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+vi.mock("@/lib/transaction", () => ({ inTransaction: (fn: () => Promise<unknown>) => fn() }));
 vi.mock("@/modules/finance/resident-leave.service", () => ({ applyLeavesAfterBilling: vi.fn() }));
 vi.mock("@/modules/finance/late-fine.service", () => ({
   fineDueDate: vi.fn(),

@@ -4,7 +4,7 @@ import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { reviewQueueQuerySchema } from "@/modules/finance/claim.validation";
-import { listReviewQueue } from "@/modules/finance/review.service";
+import { listStaffQueue } from "@/modules/finance/review.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
 export const runtime = "nodejs";
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
     return withEtag(request, successResponse(
-      { events: await listReviewQueue(hostelId, query.status) },
+      { events: await listStaffQueue(hostelId, query.status) },
       "Payment claims",
     ));
   } catch (error) {

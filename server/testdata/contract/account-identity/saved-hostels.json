@@ -1,0 +1,204 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/saved-hostels"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved hostels loaded",
+        "data": {
+          "ids": [
+            "6c00000000000000000000a3"
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "list none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved hostels loaded",
+        "data": {
+          "ids": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "add": "x",
+        "remove": [
+          1,
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "add": [
+              "Invalid input: expected array, received string"
+            ],
+            "remove": [
+              "Invalid input: expected string, received number",
+              "Too big: expected string to have \u003c=40 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received string",
+              "path": "add"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "remove.0"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=40 characters",
+              "path": "remove.1"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "add and junk",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "add": [
+          "6c00000000000000000000a2",
+          "nope",
+          "6c00000000000000000000a1"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved hostels updated",
+        "data": {
+          "ids": [
+            "6c00000000000000000000a3",
+            "6c00000000000000000000a2",
+            "6c00000000000000000000a1"
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "remove",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "remove": [
+          "6c00000000000000000000a1"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved hostels updated",
+        "data": {
+          "ids": [
+            "6c00000000000000000000a3",
+            "6c00000000000000000000a2"
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/saved-hostels",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved hostels updated",
+        "data": {
+          "ids": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  }
+]

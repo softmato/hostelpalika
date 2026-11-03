@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { inTransaction } from "@/lib/transaction";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { applyCreditToInvoice } from "@/modules/finance/credit-balance.service";
 import { formatBsDayRange, formatBsPeriod, hostelPeriodOf, hostelToday } from "@/lib/hostel-day";
@@ -199,8 +200,15 @@ type BillingPlan = {
   basis: string;
   /** The days this bill covers — the BS month, or the resident's own span. */
   bounds: ReturnType<typeof periodBounds>;
-  /** "Dashain · 50% off", or null at full rent. Goes on the invoice line. */
+  /** "Dashain · 50% off", or null at full rent. Names the discount's CREDIT line. */
   concessionNote: string | null;
+  /**
+   * FIN-9: `amount` is the full rent and the month's discount is its own CREDIT
+   * line keyed by `concessionPercent` — the shape the backfill writes — so a later
+   * edit of the discount replaces that line instead of discounting a discounted rent.
+   */
+  concessionPercent: number;
+  discount: number;
   feeScheduleId: Types.ObjectId | null;
   prorationBasis: string | null;
   resident: BillableResidentRow;
@@ -276,12 +284,25 @@ export function planBillingCycle(
         continue;
       }
 
+      const fullAmount =
+        concession.percentOff > 0
+          ? computeInvoiceAmount(
+              resolveMonthlyCharge(resident, schedule, listed).amount,
+              resident.moveInDate,
+              billedMoveOut(resident, period),
+              period,
+              bounds,
+            ).amount
+          : invoiceAmount.amount;
+
       plans.push({
-        amount: invoiceAmount.amount,
+        amount: fullAmount,
         basis: charge.basis,
         bedType: charge.bedType,
         bounds,
         concessionNote: concessionNote(charge.concessionPercent, concession.reason),
+        concessionPercent: charge.concessionPercent ?? 0,
+        discount: fullAmount - invoiceAmount.amount,
         feeScheduleId: charge.feeScheduleId,
         prorationBasis: invoiceAmount.prorationBasis,
         resident,
@@ -474,7 +495,7 @@ export async function runBillingCycle(
     );
 
     const khataLine = khata.get(residentId);
-    const total = plan.amount + (khataLine?.amount ?? 0);
+    const total = plan.amount - plan.discount + (khataLine?.amount ?? 0);
     const dueDate = dueDateFor(plan.bounds);
     const billDay = billDayOf(plan.resident);
     const covers = billDay
@@ -482,71 +503,89 @@ export async function runBillingCycle(
       : formatBsPeriod(input.period) || input.period;
 
     try {
-      const invoice = (await InvoiceModel.create({
-        coversFrom: plan.bounds.start,
-        coversTo: plan.bounds.lastDay,
-        createdBy: principal?.userId,
-        dueDate,
-        hostelId: input.hostelId,
-        kind: "MONTHLY_RENT",
-        lines: [
-          {
-            amount: plan.amount,
-            basis: plan.basis,
-            bedType: plan.bedType,
-            /*
-             * Named, not keyed. `2083-05` is the storage form and it is not what
-             * a resident reads on their own bill; the description is snapshotted
-             * at issue time precisely so it stays legible without a lookup.
-             */
-            description: plan.concessionNote
-              ? `Monthly rent — ${covers} · ${plan.concessionNote}`
-              : `Monthly rent — ${covers}`,
-            feeScheduleId: plan.feeScheduleId,
-            prorationBasis: plan.prorationBasis ?? undefined,
-          },
-          ...(khataLine
-            ? [{ amount: khataLine.amount, basis: "KHATA", description: khataLine.description }]
-            : []),
-        ],
-        period: input.period,
-        referenceCode,
-        residentId: plan.resident._id,
-        status: "OPEN",
-        totalAmount: total,
-      })) as unknown as { _id: Types.ObjectId };
-
-      if (khataLine) {
-        await markKhataBilled(khataLine.entryIds, invoice._id);
-      }
-
-      // Target §9.4: available credit comes off the new invoice as a negative
-      // line. Consumed **before** the invoice is discounted, on purpose — a
-      // crash between the two leaves credit spent with the invoice it names
-      // recorded on the entry, which is recoverable and which 5.1's drift job
-      // reports. The other order would hand out a discount nothing paid for.
-      const creditApplied = await applyCreditToInvoice({
-        hostelId: input.hostelId,
-        invoiceId: invoice._id,
-        maxAmount: total,
-        residentId: plan.resident._id,
-      });
-
-      if (creditApplied > 0) {
-        await InvoiceModel.updateOne(
-          { _id: invoice._id },
-          {
-            $push: {
-              lines: {
-                amount: -creditApplied,
-                basis: "CREDIT",
-                description: "Credit from earlier overpayment",
-              },
+      /*
+       * R28: the invoice, the khata it bills and the credit it uses are one
+       * transaction per resident, so a failure between them cannot leave khata
+       * marked billed on no invoice or credit spent on a bill never written.
+       * Model calls inside ride the session (`transactionAsyncLocalStorage`).
+       */
+      const { creditApplied, invoice } = await inTransaction(async () => {
+        const invoice = (await InvoiceModel.create({
+          coversFrom: plan.bounds.start,
+          coversTo: plan.bounds.lastDay,
+          createdBy: principal?.userId,
+          dueDate,
+          hostelId: input.hostelId,
+          kind: "MONTHLY_RENT",
+          lines: [
+            {
+              amount: plan.amount,
+              basis: plan.basis,
+              bedType: plan.bedType,
+              /*
+               * Named, not keyed. `2083-05` is the storage form and it is not what
+               * a resident reads on their own bill; the description is snapshotted
+               * at issue time precisely so it stays legible without a lookup.
+               */
+              description: `Monthly rent — ${covers}`,
+              feeScheduleId: plan.feeScheduleId,
+              prorationBasis: plan.prorationBasis ?? undefined,
             },
-            $set: { totalAmount: total - creditApplied },
-          },
-        );
-      }
+            ...(plan.discount > 0
+              ? [
+                  {
+                    amount: -plan.discount,
+                    basis: "CREDIT",
+                    concessionPercent: plan.concessionPercent,
+                    description: `${plan.concessionNote} — ${formatBsPeriod(input.period) || input.period}`,
+                  },
+                ]
+              : []),
+            ...(khataLine
+              ? [{ amount: khataLine.amount, basis: "KHATA", description: khataLine.description }]
+              : []),
+          ],
+          period: input.period,
+          referenceCode,
+          residentId: plan.resident._id,
+          status: "OPEN",
+          totalAmount: total,
+        })) as unknown as { _id: Types.ObjectId };
+
+        if (khataLine) {
+          await markKhataBilled(khataLine.entryIds, invoice._id);
+        }
+
+        // Target §9.4: available credit comes off the new invoice as a negative
+        // line. Consumed **before** the invoice is discounted, on purpose — a
+        // crash between the two leaves credit spent with the invoice it names
+        // recorded on the entry, which is recoverable and which 5.1's drift job
+        // reports. The other order would hand out a discount nothing paid for.
+        const creditApplied = await applyCreditToInvoice({
+          hostelId: input.hostelId,
+          invoiceId: invoice._id,
+          maxAmount: total,
+          residentId: plan.resident._id,
+        });
+
+        if (creditApplied > 0) {
+          await InvoiceModel.updateOne(
+            { _id: invoice._id },
+            {
+              $push: {
+                lines: {
+                  amount: -creditApplied,
+                  basis: "CREDIT",
+                  description: "Credit from earlier overpayment",
+                },
+              },
+              $set: { totalAmount: total - creditApplied },
+            },
+          );
+        }
+
+        return { creditApplied, invoice };
+      });
 
       billed.push({
         amount: total - creditApplied,

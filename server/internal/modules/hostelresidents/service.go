@@ -44,6 +44,8 @@ type Service struct {
 	R2       *storage.R2
 	Claims   files.Claims
 	AppURL   func(path string) string
+	// SiteURL is siteUrl(): APP_URL as configured, for the card share link.
+	SiteURL  string
 	Outbound string
 	Config   *platformconfig.Service
 	Rooms    *hostelrooms.Service

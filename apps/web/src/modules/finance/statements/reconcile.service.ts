@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { inTransaction } from "@/lib/transaction";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
@@ -417,15 +418,18 @@ export async function assignOrphanCredit(
 
   // Written before settlement: `settleEvent` recomputes the balance of whatever
   // invoice the event points at, so pointing it first is what makes the
-  // recomputation land on the right one.
-  await PaymentEventModel.updateOne(
-    { _id: event._id, status: "PENDING" },
-    { $set: { invoiceId: invoice._id, residentId: invoice.residentId } },
-  );
+  // recomputation land on the right one. One transaction, so a failed settle no
+  // longer leaves the event assigned but PENDING (FIN-13).
+  const { balance } = await inTransaction(async () => {
+    await PaymentEventModel.updateOne(
+      { _id: event._id, status: "PENDING" },
+      { $set: { invoiceId: invoice._id, residentId: invoice.residentId } },
+    );
 
-  const { balance } = await settleEvent(event._id, {
-    confirmation: "MANUAL_REVIEW",
-    principal: input.principal,
+    return settleEvent(event._id, {
+      confirmation: "MANUAL_REVIEW",
+      principal: input.principal,
+    });
   });
 
   await publishResourceChange({

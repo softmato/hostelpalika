@@ -105,9 +105,11 @@ func (e *Engine) ApplyConcession(ctx context.Context, hostel bson.ObjectID, peri
 				continue
 			}
 			lines = append(lines, l)
-			if field(l, "basis") == "CREDIT" {
+			// FIN-9: the discount is on rent only, never on a khata or fine line.
+			switch field(l, "basis") {
+			case "CREDIT":
 				creditApplied += num(field(l, "amount"))
-			} else {
+			case "SCHEDULE", "OVERRIDE", "MANUAL":
 				base += num(field(l, "amount"))
 			}
 		}

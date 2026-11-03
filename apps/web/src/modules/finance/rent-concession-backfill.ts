@@ -12,6 +12,8 @@ import {
   notifyRentConcession,
 } from "@/modules/finance/rent-concession-notify";
 import { InvoiceBalanceModel } from "@hostel/db/models/InvoiceBalance";
+
+const RENT_BASES = new Set(["SCHEDULE", "OVERRIDE", "MANUAL"]);
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 
 /**
@@ -195,7 +197,8 @@ export async function applyConcessionToIssuedInvoices(input: {
      * number whether this is the first pass or the third.
      */
     const base = document.lines
-      .filter((line) => line.basis !== "CREDIT" && !line.concessionPercent)
+      // FIN-9: rent only, never a khata or fine line.
+      .filter((line) => RENT_BASES.has(line.basis) && !line.concessionPercent)
       .reduce((sum, line) => sum + line.amount, 0);
 
     /*

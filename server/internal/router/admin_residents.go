@@ -1,6 +1,8 @@
 package router
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/billing"
@@ -28,6 +30,6 @@ func mountAdminResidents(v1 *gin.RouterGroup, s *shared) {
 	(&bookings.Hostel{Signed: signed, Claim: capacity.Claim}).Register(v1)
 	pay := &residentfinance.Handler{DB: s.D.DB, Production: s.Cfg.IsProduction()}
 	(&hostelresidents.Handler{Service: &hostelresidents.Service{DB: s.D.DB, Cap: capacity, Notify: s.Notify, Audit: s.Audit, Mail: s.Mail, Ledger: engine,
-		Personal: s.Personal, R2: s.R2, Claims: s.Claims, AppURL: s.AppURL, Outbound: s.Outbound, Config: s.Config, ActivationSecret: s.Cfg.Auth.ActivationCodeSecret,
+		Personal: s.Personal, R2: s.R2, Claims: s.Claims, AppURL: s.AppURL, SiteURL: strings.TrimRight(s.Cfg.AppURL, "/"), Outbound: s.Outbound, Config: s.Config, ActivationSecret: s.Cfg.Auth.ActivationCodeSecret,
 		Rooms: rooms, Limits: &billing.Limits{DB: s.D.DB, Config: s.Config, Notify: s.Notify}, Bookings: signed, PayMethods: pay.HostelPayMethods, Ledger2: (&financeadmin.Handler{DB: s.D.DB}).ResidentLedger, After: s.BG.After}, Guards: s.Guards, Cache: s.Cache, Limiter: s.Limiter}).Register(v1)
 }

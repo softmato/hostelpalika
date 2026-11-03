@@ -147,11 +147,33 @@ export async function listReviewQueue(
   hostelId: Types.ObjectId | string,
   status: string = "PENDING",
 ): Promise<ReviewQueueRow[]> {
+  return listQueue(hostelId, status, "RESIDENT_CLAIM");
+}
+
+/**
+ * The staff screen's queue. Pending cash above the hostel's threshold is in it
+ * too: nothing else showed that cash to the second approver, so it stayed
+ * PENDING for ever (FIN-2).
+ */
+export async function listStaffQueue(
+  hostelId: Types.ObjectId | string,
+  status: string = "PENDING",
+): Promise<ReviewQueueRow[]> {
+  return status === "PENDING"
+    ? listQueue(hostelId, status, { $in: ["RESIDENT_CLAIM", "CASH_ENTRY"] })
+    : listReviewQueue(hostelId, status);
+}
+
+async function listQueue(
+  hostelId: Types.ObjectId | string,
+  status: string,
+  source: string | { $in: string[] },
+): Promise<ReviewQueueRow[]> {
   await connectToDatabase();
 
   const events = await PaymentEventModel.find({
     hostelId,
-    source: "RESIDENT_CLAIM",
+    source,
     status,
   })
     .sort({ occurredAt: -1 })
@@ -645,12 +667,13 @@ export function claimChecks(
 async function findClaim(
   eventId: Types.ObjectId | string,
   hostelIds: string[],
-): Promise<QueueEventRow & { hostelId: Types.ObjectId }> {
+): Promise<QueueEventRow & { hostelId: Types.ObjectId; source?: string }> {
   const event = await PaymentEventModel.findOne({
     _id: Types.ObjectId.isValid(String(eventId)) ? eventId : new Types.ObjectId(),
     hostelId: { $in: hostelIds },
-    source: "RESIDENT_CLAIM",
-  }).lean<(QueueEventRow & { hostelId: Types.ObjectId }) | null>();
+    // Cash above the threshold is approved here too (FIN-2).
+    source: { $in: ["RESIDENT_CLAIM", "CASH_ENTRY"] },
+  }).lean<(QueueEventRow & { hostelId: Types.ObjectId; source?: string }) | null>();
 
   if (!event) {
     // Out-of-scope and non-existent answer identically (RULES.md §3).
@@ -717,7 +740,24 @@ export async function approveClaim(
     );
   }
 
-  await assertNotAlreadyRecordedFromStatement(claim);
+  /*
+   * The second half of maker-checker for cash above the hostel's threshold.
+   * `approveCashPayment` built it and no route called it (FIN-2).
+   */
+  const isCash = claim.source === "CASH_ENTRY";
+
+  if (isCash) {
+    const recordedBy = (claim as { rawPayload?: { recordedBy?: string } }).rawPayload?.recordedBy;
+
+    if (recordedBy && recordedBy === principal.userId?.toString()) {
+      throw new FinanceServiceError(
+        "Cash above the approval threshold must be confirmed by someone else.",
+        "SECOND_APPROVER_REQUIRED",
+      );
+    }
+  } else {
+    await assertNotAlreadyRecordedFromStatement(claim);
+  }
 
   // `settleEvent` pins its filter to `status: "PENDING"`, so a double-click
   // loses the race there rather than crediting the invoice twice. It also
@@ -735,7 +775,8 @@ export async function approveClaim(
 
   // A referred resident only counts as converted once real money has been
   // verified (PHASES.md §5.1). Idempotent, and swallows its own failures.
-  if (event.residentId) {
+  // Cash: settling already told the resident.
+  if (event.residentId && !isCash) {
     await markReferralConverted({
       hostelId: claim.hostelId,
       paymentId: claim.invoiceId ?? claim._id,

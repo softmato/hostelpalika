@@ -79,12 +79,45 @@ export type StatementImportSummary = {
 /** 10 MB matches the platform's document limit; a CSV this size is ~100k rows. */
 const MAX_STATEMENT_BYTES = 10 * 1024 * 1024;
 
-export async function importStatement(input: {
+type ImportInput = {
   assetId: string;
   hostelId: Types.ObjectId | string;
   principal: ApiPrincipal;
   provider: StatementProvider;
-}): Promise<StatementImportSummary> {
+};
+
+/**
+ * FIN-12: a failure after the file was read (the run record, the period write,
+ * the audit) used to leave the import `PARSING` for ever. Whatever fails, the row
+ * closes `FAILED` with its reason; one already closed is left as it is.
+ */
+export async function importStatement(input: ImportInput): Promise<StatementImportSummary> {
+  const handle: { id?: Types.ObjectId } = {};
+
+  try {
+    return await runImport(input, handle);
+  } catch (error) {
+    if (handle.id) {
+      await StatementImportModel.updateOne(
+        { _id: handle.id, status: "PARSING" },
+        {
+          $set: {
+            completedAt: new Date(),
+            errorDetail: error instanceof Error ? error.message : "The import failed.",
+            status: "FAILED",
+          },
+        },
+      ).catch(() => undefined);
+    }
+
+    throw error;
+  }
+}
+
+async function runImport(
+  input: ImportInput,
+  handle: { id?: Types.ObjectId },
+): Promise<StatementImportSummary> {
   await connectToDatabase();
 
   const asset = await loadStatementAsset(input.assetId, input.hostelId);
@@ -102,6 +135,8 @@ export async function importStatement(input: {
     uploadedAt: new Date(),
     uploadedBy: input.principal.userId,
   });
+
+  handle.id = statementImport._id;
 
   let rows: StatementRow[];
   let parserVersion: string;

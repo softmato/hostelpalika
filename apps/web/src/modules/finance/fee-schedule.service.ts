@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { inTransaction } from "@/lib/transaction";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import {
   addBsMonths,
@@ -618,6 +619,7 @@ export async function createFeeSchedule(
    * month is the only honest baseline for that sentence.
    */
   const inEffect = await getEffectiveSchedule(hostelId, bsPeriodOf(new Date()));
+  let displaced: "CLOSE" | "DELETE" | null = null;
 
   if (current) {
     if (effectiveFrom <= thisMonth) {
@@ -631,19 +633,17 @@ export async function createFeeSchedule(
       /*
        * Replacing a card that has not started. It has priced nothing, so there
        * is no history to keep — leaving it closed-but-present would litter the
-       * card list with drafts nobody can tell apart.
+       * card list with drafts nobody can tell apart. Deleted in the transaction
+       * below, with the card that replaces it.
        */
-      await FeeScheduleModel.deleteOne({ _id: current._id });
+      displaced = "DELETE";
     } else if (effectiveFrom < current.effectiveFrom) {
       throw new FinanceServiceError(
         `The rate card already changes in ${formatBsPeriod(bsPeriodOf(current.effectiveFrom)) || current.effectiveFrom.toISOString().slice(0, 10)}. Replace that one, or pick a later month.`,
         "FEE_SCHEDULE_MISSING",
       );
     } else {
-      await FeeScheduleModel.updateOne(
-        { _id: current._id },
-        { $set: { effectiveTo: dayBefore(effectiveFrom) } },
-      );
+      displaced = "CLOSE";
     }
   }
 
@@ -660,15 +660,31 @@ export async function createFeeSchedule(
     roomType: rate.roomType,
   }));
 
-  const created = (await FeeScheduleModel.create({
-    admissionFee: input.admissionFee, formFee: input.formFee ?? 0,
-    createdBy: principal.userId,
-    depositAmount: input.depositAmount,
-    effectiveFrom,
-    effectiveTo: null,
-    hostelId,
-    rates,
-    referralAdmissionDiscount: input.referralAdmissionDiscount,
+  /*
+   * FIN-7: the open card closes (or the draft goes) in the same transaction as
+   * its replacement is written, so a failure between them can no longer leave
+   * the hostel with no open card to bill from.
+   */
+  const created = (await inTransaction(async () => {
+    if (current && displaced === "DELETE") {
+      await FeeScheduleModel.deleteOne({ _id: current._id });
+    } else if (current && displaced === "CLOSE") {
+      await FeeScheduleModel.updateOne(
+        { _id: current._id },
+        { $set: { effectiveTo: dayBefore(effectiveFrom) } },
+      );
+    }
+
+    return FeeScheduleModel.create({
+      admissionFee: input.admissionFee, formFee: input.formFee ?? 0,
+      createdBy: principal.userId,
+      depositAmount: input.depositAmount,
+      effectiveFrom,
+      effectiveTo: null,
+      hostelId,
+      rates,
+      referralAdmissionDiscount: input.referralAdmissionDiscount,
+    });
   })) as unknown as FeeScheduleRecord;
 
   /*
@@ -831,10 +847,8 @@ export async function deleteFeeSchedule(
     );
   }
 
-  await FeeScheduleModel.deleteOne({ _id: schedule._id });
-
   // And the card this one displaced goes back to being the current one, so the
-  // hostel is never left unable to bill.
+  // hostel is never left unable to bill — in one transaction with the delete (FIN-7).
   const previous = await FeeScheduleModel.findOne({
     _id: { $ne: schedule._id },
     effectiveFrom: { $lt: schedule.effectiveFrom },
@@ -843,11 +857,18 @@ export async function deleteFeeSchedule(
     .sort({ effectiveFrom: -1 })
     .lean<FeeScheduleRecord | null>();
 
+  await inTransaction(async () => {
+    await FeeScheduleModel.deleteOne({ _id: schedule._id });
+
+    if (previous) {
+      await FeeScheduleModel.updateOne(
+        { _id: previous._id },
+        { $set: { effectiveTo: null } },
+      );
+    }
+  });
+
   if (previous) {
-    await FeeScheduleModel.updateOne(
-      { _id: previous._id },
-      { $set: { effectiveTo: null } },
-    );
 
     // The listing follows whichever card is now current.
     await projectScheduleOntoListing(hostelId, {

@@ -349,6 +349,16 @@ export async function submitPlanPaymentClaim(
     recordedBy: actorId,
     status: "IN_REVIEW",
     subscriptionId: invoice.subscriptionId,
+  }).catch((error: unknown) => {
+    // PLAN-1: a claim sent at the same moment as this one won the unique index.
+    if ((error as { code?: number })?.code === 11000) {
+      throw new SubscriptionError(
+        "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified.",
+        "CLAIM_ALREADY_IN_REVIEW",
+        409,
+      );
+    }
+    throw error;
   });
 
   await AuditLogModel.create({

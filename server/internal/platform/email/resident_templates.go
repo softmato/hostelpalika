@@ -263,6 +263,20 @@ func ResidentRegistered(in RegisteredInput) Content {
 	return Content{Category: Info, Subject: "Welcome to " + in.HostelName, HTML: EmailLayout(Layout{Heading: "Welcome to your hostel", BodyHTML: strings.Join(body, "\n")})}
 }
 
+// IDCardIssued is idCardIssuedEmail; the card rides along as PNG attachments.
+func IDCardIssued(cardLabel, holderName, residentID, siteName string) Content {
+	card := cardLabel + " ID card"
+	return Content{Category: Info, Subject: "Your " + siteName + " " + card, HTML: EmailLayout(Layout{
+		Heading:  "Your " + card,
+		SiteName: siteName,
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(holderName) + ", your <strong>" + EscapeHTML(card) + "</strong> is attached to this email (front and back)."),
+			Paragraph(`Your ID number:<br/><strong style="font-size:22px;letter-spacing:3px;">` + EscapeHTML(residentID) + `</strong>`),
+			Paragraph("Save it on your phone. You can also download it again from your " + EscapeHTML(siteName) + " account."),
+			Paragraph("Do not post this card online. Anyone who scans it can see your shared details."),
+		}, "\n")})}
+}
+
 // ResidentQRActivation is residentQrActivationEmail; an empty qrImageURL falls
 // back to the scan-in-the-app line.
 func ResidentQRActivation(activationURL, code string, expiresAt time.Time, hostelName, qrImageURL, residentName string) Content {

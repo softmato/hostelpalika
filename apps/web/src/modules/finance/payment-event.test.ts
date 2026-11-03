@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/db", () => ({ connectToDatabase: mocks.connectToDatabase }));
 vi.mock("@/modules/finance/credit-balance.service", () => ({
   creditOverpayment: mocks.creditOverpayment,
+  takeBackOverpayment: vi.fn(),
 }));
 
 vi.mock("@hostel/db/models/AuditLog", () => ({
@@ -513,7 +514,7 @@ describe("reverseEvent", () => {
 
     await expect(
       reverseEvent(eventId, { principal, reason: "approved in error" }),
-    ).rejects.toMatchObject({ errorCode: "SETTLED_EVENT_IMMUTABLE" });
+    ).rejects.toMatchObject({ errorCode: "EVENT_NOT_SETTLED" });
   });
 
   it("audits the reversal with its reason", async () => {

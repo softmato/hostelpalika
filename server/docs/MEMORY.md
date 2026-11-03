@@ -2,7 +2,18 @@
 
 Read this after README.md. Update it at the end of every session.
 
-## HANDOFF: Phase 6 in progress (2026-11-02). Start here.
+## HANDOFF: Phase 6 done (2026-11-03). Phase 7 next. Start here.
+
+Phase 6 closed: every hostel-admin route on Go, contract-green; resident identity +
+avatar + saved-hostels ported; all Phase 6 findings ☑ in Go and TS (only R28's Phase 8
+half is open). Not pushed: R17 (push `main`, get `server.yml` green) is still the first
+outside step, then the Phase 4 cookie release. Owner step: `db:indexes` on production
+for PLAN-1. Phase 7 starts with `platform`, `team` (incl. the field-team copies of the
+existing-residents routes), `store`, the 7 `users` routes left, and the log viewer (R18).
+Tests on Windows: `go test -p 2 ./...` (full parallel compile runs out of memory), never
+alongside vitest.
+
+## Earlier: Phase 6 in progress (2026-11-02)
 
 One session, no subagents. Everything below is committed on `main`; push with `git push origin main` (no Claude co-author line).
 

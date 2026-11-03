@@ -49,6 +49,11 @@ type profileRec struct {
 	PhotoAssetID           *bson.ObjectID `bson:"photoAssetId"`
 	PhotoUpdatedAt         *time.Time     `bson:"photoUpdatedAt"`
 	SharingEnabled         *bool          `bson:"sharingEnabled"`
+	SignatureAssetID       *bson.ObjectID `bson:"signatureAssetId"`
+	SignatureUpdatedAt     *time.Time     `bson:"signatureUpdatedAt"`
+	PrimaryPhoneHash       *string        `bson:"primaryPhoneHash"`
+	ShareCount             float64        `bson:"shareCount"`
+	UpdatedAt              *time.Time     `bson:"updatedAt"`
 }
 
 const badID = "That does not look like a resident ID. It should read like HH-4K7M-9XQ2."

@@ -1,0 +1,1847 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "no card yet",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident identity loaded",
+        "data": {
+          "identity": {
+            "accountEmail": "new@contract.test",
+            "accountName": "New Person",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": false,
+            "hasProfile": false,
+            "lastSharedAt": null,
+            "photoUpdatedAt": null,
+            "residentId": null,
+            "shareCount": 0,
+            "shareUrl": null,
+            "sharingEnabled": true,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": null
+          },
+          "profile": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident identity loaded",
+        "data": {
+          "identity": {
+            "accountEmail": "card@contract.test",
+            "accountName": "Card Holder",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": true,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z",
+            "residentId": "HH-2345-6789",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-2345-6789",
+            "sharingEnabled": true,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-10-01T04:15:00.000Z"
+          },
+          "profile": {
+            "fullName": "Card Holder",
+            "primaryEmail": "card@contract.test",
+            "primaryPhone": "9822222222",
+            "age": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "qr without card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/qr",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Save your resident profile first to get a QR code.",
+        "errorCode": "RESIDENT_PROFILE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "qr",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/qr",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.qrDataUrl",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident QR ready",
+        "data": {
+          "qrDataUrl": "data:image/png;base64,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",
+          "residentId": "HH-2345-6789",
+          "shareUrl": "http://localhost:3000/resident-id/HH-2345-6789"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email own",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=new@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "email": "new@contract.test",
+          "status": "YOURS"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email account",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=TAKEN@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "email": "taken@contract.test",
+          "status": "TAKEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=other-card@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "email": "other-card@contract.test",
+          "status": "TAKEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email free",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=free@contract.test",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email checked",
+        "data": {
+          "email": "free@contract.test",
+          "status": "AVAILABLE"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "email anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/email-check?email=a@b.co"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone own",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=9800000001",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Phone checked",
+        "data": {
+          "phone": "9800000001",
+          "status": "YOURS"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone account spelling",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=%2B977%209811111111",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Phone checked",
+        "data": {
+          "phone": "+977 9811111111",
+          "status": "TAKEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=9833333333",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Phone checked",
+        "data": {
+          "phone": "9833333333",
+          "status": "TAKEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone free",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=9844444444",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Phone checked",
+        "data": {
+          "phone": "9844444444",
+          "status": "AVAILABLE"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone letters",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=98abc12345",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "phone": [
+              "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali.",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "phone short",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/phone-check?phone=123",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "phone": [
+              "Too small: expected string to have >=7 characters",
+              "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali.",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "sharing without card",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "sharingEnabled": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have not saved a resident profile yet.",
+        "errorCode": "RESIDENT_PROFILE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "sharing bad body",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "sharingEnabled": "no"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "sharingEnabled": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "sharingEnabled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "sharing off",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "sharingEnabled": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Sharing turned off",
+        "data": {
+          "identity": {
+            "accountEmail": "card@contract.test",
+            "accountName": "Card Holder",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": true,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z",
+            "residentId": "HH-2345-6789",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-2345-6789",
+            "sharingEnabled": false,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-11-03T02:01:42.049Z"
+          },
+          "profile": {
+            "fullName": "Card Holder",
+            "primaryEmail": "card@contract.test",
+            "primaryPhone": "9822222222",
+            "age": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo without card",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Save your resident details first, then add a photo.",
+        "errorCode": "RESIDENT_PROFILE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo bad id",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "photoAssetId": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "photoAssetId": [
+              "That is not a valid upload id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "That is not a valid upload id.",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo missing id",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "photoAssetId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo not theirs",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "photoAssetId": "6d0600000000000000000013"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That upload does not belong to you.",
+        "errorCode": "PHOTO_FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo unknown",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "photoAssetId": "6d06000000000000000000ff"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That upload could not be found. Please pick the photo again.",
+        "errorCode": "PHOTO_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo set",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "photoAssetId": "6d0600000000000000000010"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Photo added to your ID card",
+        "data": {
+          "identity": {
+            "accountEmail": "card@contract.test",
+            "accountName": "Card Holder",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": true,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": "2026-11-03T02:01:44.251Z",
+            "residentId": "HH-2345-6789",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-2345-6789",
+            "sharingEnabled": false,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-11-03T02:01:44.251Z"
+          },
+          "profile": {
+            "fullName": "Card Holder",
+            "primaryEmail": "card@contract.test",
+            "primaryPhone": "9822222222",
+            "age": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "own photo without card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have not added a photo yet.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "own photo storage off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Could not load your photo right now.",
+        "errorCode": "PHOTO_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "signature none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity/signature",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have not photographed a signature.",
+        "errorCode": "SIGNATURE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "avatar",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/6d0600000000000000000002/avatar",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Could not load that photo right now.",
+        "errorCode": "PHOTO_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "avatar none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/6d0600000000000000000001/avatar",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That account has no photo.",
+        "errorCode": "PHOTO_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "avatar bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/xyz/avatar",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid user id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "avatar anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/6d0600000000000000000002/avatar"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo clear",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Photo removed from your ID card",
+        "data": {
+          "identity": {
+            "accountEmail": "card@contract.test",
+            "accountName": "Card Holder",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": false,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": null,
+            "residentId": "HH-2345-6789",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-2345-6789",
+            "sharingEnabled": false,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-11-03T02:01:55.589Z"
+          },
+          "profile": {
+            "fullName": "Card Holder",
+            "primaryEmail": "card@contract.test",
+            "primaryPhone": "9822222222",
+            "age": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "photo clear without card",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/users/resident-identity/photo",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have not saved a resident profile yet.",
+        "errorCode": "RESIDENT_PROFILE_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save empty",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "profile": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "profile"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save bad profile",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "x",
+          "gender": "",
+          "primaryPhone": "abc",
+          "primaryEmail": "no",
+          "guardianPhone": "1",
+          "interests": [
+            1,
+            ""
+          ],
+          "dateOfBirth": "2999-01-01",
+          "backupEmail": "",
+          "signature": "zz"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "profile": [
+              "Too small: expected string to have >=2 characters",
+              "Date of birth can't be in the future.",
+              "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "Too small: expected string to have >=7 characters",
+              "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali.",
+              "Invalid email address",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Too small: expected string to have >=7 characters",
+              "Invalid input: expected string, received number",
+              "Too small: expected string to have >=1 characters",
+              "That signature could not be read. Clear it and sign again.",
+              "Sign in the box before saving."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=2 characters",
+              "path": "profile.fullName"
+            },
+            {
+              "message": "Date of birth can't be in the future.",
+              "path": "profile.dateOfBirth"
+            },
+            {
+              "message": "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "path": "profile.gender"
+            },
+            {
+              "message": "Too small: expected string to have >=7 characters",
+              "path": "profile.primaryPhone"
+            },
+            {
+              "message": "Enter a phone number \u2014 digits only, with + and the country code if it isn't Nepali.",
+              "path": "profile.primaryPhone"
+            },
+            {
+              "message": "Invalid email address",
+              "path": "profile.primaryEmail"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "profile.guardianName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "profile.guardianRelation"
+            },
+            {
+              "message": "Too small: expected string to have >=7 characters",
+              "path": "profile.guardianPhone"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "profile.interests.0"
+            },
+            {
+              "message": "Too small: expected string to have >=1 characters",
+              "path": "profile.interests.1"
+            },
+            {
+              "message": "That signature could not be read. Clear it and sign again.",
+              "path": "profile.signature"
+            },
+            {
+              "message": "Sign in the box before saving.",
+              "path": "profile.signature"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save both signatures",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "signatureAssetId": "6d0600000000000000000011",
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "signatureAssetId": [
+              "Send either a drawn signature or a photographed one, not both."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Send either a drawn signature or a photographed one, not both.",
+              "path": "signatureAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save backup same",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu ",
+          "backupEmail": "Typed@x.com"
+        },
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "profile": [
+              "The backup email must be different from your account email."
+            ]
+          },
+          "issues": [
+            {
+              "message": "The backup email must be different from your account email.",
+              "path": "profile.backupEmail"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save backup same as account",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu ",
+          "backupEmail": "new@contract.test"
+        },
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The backup email must be different from your account email.",
+        "errorCode": "RESIDENT_BACKUP_EMAIL_SAME"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save phone taken",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9833333333",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That phone number is already used by another account. Use your own number.",
+        "errorCode": "RESIDENT_PHONE_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save no photo",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add a photo of yourself \u2014 it goes on the front of your card.",
+        "errorCode": "PHOTO_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save pdf photo",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000012"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your ID card photo has to be an image.",
+        "errorCode": "PHOTO_NOT_AN_IMAGE"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save foreign photo",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000013"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That upload does not belong to you.",
+        "errorCode": "PHOTO_FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save no signature",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sign your card \u2014 draw it on the screen or photograph your signature on paper.",
+        "errorCode": "SIGNATURE_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save no-mail email taken",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000004:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9855555555",
+          "primaryEmail": "taken@contract.test",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That email is already used by another account. Use a different one.",
+        "errorCode": "RESIDENT_EMAIL_TAKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "save first card",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "New Person",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9800000001",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "photoAssetId": "6d0600000000000000000011"
+      }
+    },
+    "masks": [
+      "data.identity.residentId",
+      "data.identity.shareUrl",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile saved",
+        "data": {
+          "identity": {
+            "accountEmail": "new@contract.test",
+            "accountName": "New Person",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": true,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": "2026-11-03T02:01:56.604Z",
+            "residentId": "HH-C8CZ-47PC",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-C8CZ-47PC",
+            "sharingEnabled": true,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-11-03T02:01:56.607Z"
+          },
+          "profile": {
+            "fullName": "New Person",
+            "dateOfBirth": "2000-01-15",
+            "gender": "MALE",
+            "bloodGroup": "UNKNOWN",
+            "primaryPhone": "9800000001",
+            "primaryEmail": "new@contract.test",
+            "city": "Kathmandu",
+            "occupation": "STUDENT",
+            "guardianName": "Papa Person",
+            "guardianRelation": "Father",
+            "guardianPhone": "9800000002",
+            "dietaryPreference": "NO_PREFERENCE",
+            "interests": [
+              "music",
+              "chess"
+            ],
+            "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+            "age": 26
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.identity.residentId",
+      "data.identity.shareUrl",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident identity loaded",
+        "data": {
+          "identity": {
+            "accountEmail": "new@contract.test",
+            "accountName": "New Person",
+            "cardRole": null,
+            "cardType": "RESIDENT",
+            "hasPhoto": true,
+            "hasProfile": true,
+            "lastSharedAt": null,
+            "photoUpdatedAt": "2026-11-03T02:01:56.604Z",
+            "residentId": "HH-C8CZ-47PC",
+            "shareCount": 0,
+            "shareUrl": "http://localhost:3000/resident-id/HH-C8CZ-47PC",
+            "sharingEnabled": true,
+            "hasSignatureImage": false,
+            "signatureUpdatedAt": null,
+            "updatedAt": "2026-11-03T02:01:56.607Z"
+          },
+          "profile": {
+            "fullName": "New Person",
+            "dateOfBirth": "2000-01-15",
+            "gender": "MALE",
+            "bloodGroup": "UNKNOWN",
+            "primaryPhone": "9800000001",
+            "primaryEmail": "new@contract.test",
+            "city": "Kathmandu",
+            "occupation": "STUDENT",
+            "guardianName": "Papa Person",
+            "guardianRelation": "Father",
+            "guardianPhone": "9800000002",
+            "dietaryPreference": "NO_PREFERENCE",
+            "interests": [
+              "music",
+              "chess"
+            ],
+            "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+            "age": 26
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "edit card",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/users/resident-identity",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      },
+      "body": {
+        "profile": {
+          "fullName": "Card Holder",
+          "dateOfBirth": "2000-01-15",
+          "gender": "MALE",
+          "primaryPhone": "9822222222",
+          "primaryEmail": "typed@x.com",
+          "guardianName": "Papa Person",
+          "guardianRelation": "Father",
+          "guardianPhone": "9800000002",
+          "interests": [
+            "music",
+            "music",
+            " chess "
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "bloodGroup": "",
+          "city": "  Kathmandu "
+        },
+        "sharingEnabled": false
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add a photo of yourself \u2014 it goes on the front of your card.",
+        "errorCode": "PHOTO_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  },
+  {
+    "name": "avatar after save",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/users/6d0600000000000000000001/avatar",
+      "headers": {
+        "authorization": "Bearer {{access:6d0600000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 502,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Could not load that photo right now.",
+        "errorCode": "PHOTO_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 f47f95d1"
+  }
+]

@@ -1047,15 +1047,25 @@ func (s *Service) AddOne(ctx context.Context, hostel bson.ObjectID, row RowIn, p
 			if err := s.markFormAdded(ctx, hostel, row.AdmissionFormID, rid, p); err != nil {
 				return nil, err
 			}
-			// ponytail: cardFromAdmissionForm (RES-16) follows here once resident-identity is ported.
+			// No card: the form's email becomes their login if it had none, and the form their ID card.
 			if row.UserResidentID == "" {
 				var r Resident
-				if err := s.DB.Collection("residents").FindOne(ctx, bson.D{{Key: "_id", Value: rid}}).Decode(&r); err == nil && r.UserID == nil && r.Email != "" {
-					login, lerr := s.OpenLogin(ctx, r.Email, r.name())
-					if lerr != nil {
-						return nil, lerr
+				if err := s.DB.Collection("residents").FindOne(ctx, bson.D{{Key: "_id", Value: rid}}).Decode(&r); err == nil {
+					holder := r.UserID
+					if holder == nil && r.Email != "" {
+						login, lerr := s.OpenLogin(ctx, r.Email, r.name())
+						if lerr != nil {
+							return nil, lerr
+						}
+						if link := s.LinkAccount(ctx, &r, p, "", false, &login); link.UserID != "" {
+							if oid, err := bson.ObjectIDFromHex(link.UserID); err == nil {
+								holder = &oid
+							}
+						}
 					}
-					s.LinkAccount(ctx, &r, p, "", false, &login)
+					if holder != nil {
+						s.CardFromForm(ctx, rid, *holder)
+					}
 				}
 			}
 		}

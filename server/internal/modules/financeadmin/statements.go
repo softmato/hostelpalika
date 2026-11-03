@@ -23,6 +23,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
+	appmongo "github.com/softmato/hostelpalika/server/internal/platform/mongo"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
@@ -986,11 +987,17 @@ func (h *Handler) assignOrphan(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	if _, err := h.DB.Collection("paymentevents").UpdateOne(c, bson.D{{Key: "_id", Value: ev.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$set", Value: bson.D{{Key: "invoiceId", Value: inv.ID}, {Key: "residentId", Value: inv.ResidentID}, {Key: "updatedAt", Value: nowMS()}}}}); err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	s, err := h.Ledger.SettleEvent(c, ev.ID, ledger.SettleOptions{Confirmation: "MANUAL_REVIEW", Principal: p})
+	// FIN-13: the invoice goes onto the event and the event settles in one transaction,
+	// so a failed settle no longer leaves it assigned but PENDING.
+	var s *ledger.Settled
+	err = appmongo.InTx(c, h.DB, func(ctx context.Context) error {
+		if _, err := h.DB.Collection("paymentevents").UpdateOne(ctx, bson.D{{Key: "_id", Value: ev.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$set", Value: bson.D{{Key: "invoiceId", Value: inv.ID}, {Key: "residentId", Value: inv.ResidentID}, {Key: "updatedAt", Value: nowMS()}}}}); err != nil {
+			return err
+		}
+		var err error
+		s, err = h.Ledger.SettleEvent(ctx, ev.ID, ledger.SettleOptions{Confirmation: "MANUAL_REVIEW", Principal: p})
+		return err
+	})
 	if err != nil {
 		httpx.Fail(c, err)
 		return

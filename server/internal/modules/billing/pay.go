@@ -678,6 +678,12 @@ func (a *Admin) claim(c *gin.Context) {
 	if _, err := s.DB.Collection("subscriptionpayments").InsertOne(c, bson.D{{Key: "_id", Value: id}, {Key: "amount", Value: outstanding}, {Key: "currency", Value: "NPR"}, {Key: "claimNote", Value: optionalText(stringField(body, "note"), claimNoteMax)}, {Key: "claimedAt", Value: now},
 		{Key: "gatewayReference", Value: optionalText(reference, claimReferenceMax)}, {Key: "hostelId", Value: inv.HostelID}, {Key: "invoiceId", Value: inv.ID}, {Key: "isMocked", Value: false}, {Key: "method", Value: "MANUAL"}, {Key: "proofAssetId", Value: proof},
 		{Key: "recordedBy", Value: actor}, {Key: "status", Value: "IN_REVIEW"}, {Key: "subscriptionId", Value: inv.SubscriptionID}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}); err != nil {
+		// PLAN-1: the partial unique index on {invoiceId} while IN_REVIEW refuses the
+		// second of two claims sent at once; it reads as the check above would have.
+		if mongo.IsDuplicateKeyError(err) {
+			httpx.Fail(c, payErr(409, "CLAIM_ALREADY_IN_REVIEW", "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified."))
+			return
+		}
 		httpx.Fail(c, err)
 		return
 	}

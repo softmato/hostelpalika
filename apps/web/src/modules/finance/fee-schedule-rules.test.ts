@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: mocks.connectToDatabase }));
+vi.mock("@/lib/transaction", () => ({ inTransaction: (fn: () => Promise<unknown>) => fn() }));
 
 vi.mock("@/modules/finance/audit-finance", () => ({
   auditFinanceAction: mocks.auditFinanceAction,

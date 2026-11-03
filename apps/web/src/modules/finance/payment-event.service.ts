@@ -4,7 +4,7 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { bumpHostelCache } from "@/lib/redis-cache";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
-import { creditOverpayment } from "@/modules/finance/credit-balance.service";
+import { creditOverpayment, takeBackOverpayment } from "@/modules/finance/credit-balance.service";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { assertWholeRupees, sumAmounts } from "@/modules/finance/money";
 import {
@@ -460,8 +460,20 @@ export async function reverseEvent(
   if (original.status !== "SETTLED") {
     throw new FinanceServiceError(
       "Only a settled payment can be reversed.",
-      "SETTLED_EVENT_IMMUTABLE",
+      "EVENT_NOT_SETTLED",
     );
+  }
+
+  // FIN-3: a second reverse answers with the first, and tells nobody twice.
+  if (original.reversedByEventId) {
+    const [first, balance] = await Promise.all([
+      PaymentEventModel.findById(original.reversedByEventId).lean<PaymentEventRecord | null>(),
+      original.invoiceId ? recomputeInvoiceBalance(original.invoiceId) : null,
+    ]);
+
+    if (first) {
+      return { balance, reversal: first };
+    }
   }
 
   const { event: reversal } = await appendEvent({
@@ -504,6 +516,8 @@ export async function reverseEvent(
   const balance = original.invoiceId
     ? await recomputeInvoiceBalance(original.invoiceId)
     : null;
+
+  await takeBackOverpayment(original);
 
   // The receipt for the reversed money must not keep standing — it is the
   // document a resident would show as proof of a payment that no longer counts.

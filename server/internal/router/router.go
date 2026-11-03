@@ -157,7 +157,9 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 		}}).Register(v1)
 	referrals.NewHandler(d.DB, limiter).Register(v1)
 	(&serviceproviders.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL()}).Register(v1)
-	hostelreferrals.NewHandler(refs, limiter).Register(v1)
+	refHandler := hostelreferrals.NewHandler(refs, limiter)
+	refHandler.Cover = hostels.ExteriorPhoto
+	refHandler.Register(v1)
 	(&hostels.Quick{DB: d.DB, Guards: guards, Limiter: limiter, Refs: refs, Config: siteConfig, Mail: sender, Notify: notify, Audit: log, SiteURL: strings.TrimRight(cfg.AppURL, "/")}).Register(v1)
 	hostels.NewGeo(maps.NewClient(cfg.Google.MapsAPIKey, cfg.AppURL), guards, limiter).Register(v1)
 	searchmod.NewHandler(llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), cfg.LLM.SearchQuotaSecret, cfg.CookieSecure).Register(v1)

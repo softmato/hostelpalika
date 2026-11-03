@@ -6,6 +6,7 @@ package hostelreferrals
 
 import (
 	"context"
+	"errors"
 	"math"
 	"net/http"
 	"regexp"
@@ -16,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
@@ -239,9 +241,13 @@ func Describe(b PlanBonus) string {
 type Handler struct {
 	svc     *Service
 	limiter *ratelimit.Limiter
+	// Cover is hostels.ExteriorPhoto, passed in: package hostels imports this one.
+	Cover func(photos bson.Raw) *string
 }
 
-func NewHandler(svc *Service, limiter *ratelimit.Limiter) *Handler { return &Handler{svc, limiter} }
+func NewHandler(svc *Service, limiter *ratelimit.Limiter) *Handler {
+	return &Handler{svc: svc, limiter: limiter}
+}
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/public/hostel-referral-codes/:code", httpx.ETag(), h.preview)
@@ -249,6 +255,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 
 type preview struct {
 	Code       string    `json:"code"`
+	CoverURL   *string   `json:"coverUrl"`
 	From       string    `json:"from"`
 	Kind       string    `json:"kind"`
 	Reward     PlanBonus `json:"reward"`
@@ -266,7 +273,22 @@ func (h *Handler) preview(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	httpx.OK(c, preview{r.Code, r.From, r.Kind, r.RefereeReward, Describe(r.RefereeReward)}, "Referral code")
+	// A hostel's code shows the hostel itself: its first exterior photo.
+	var cover *string
+	if r.ReferrerHostelID != nil && h.Cover != nil {
+		var row struct {
+			Photos bson.Raw `bson:"photos"`
+		}
+		err := h.svc.db.Collection("hostels").FindOne(c, bson.D{{Key: "_id", Value: *r.ReferrerHostelID}}, options.FindOne().SetProjection(bson.D{{Key: "photos", Value: 1}})).Decode(&row)
+		if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+			httpx.Fail(c, err)
+			return
+		}
+		if row.Photos != nil {
+			cover = h.Cover(row.Photos)
+		}
+	}
+	httpx.OK(c, preview{r.Code, cover, r.From, r.Kind, r.RefereeReward, Describe(r.RefereeReward)}, "Referral code")
 }
 
 // Record is recordHostelReferral: the referral row a registration with a code files.

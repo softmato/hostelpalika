@@ -75,7 +75,7 @@ non-public Go route answered 401 to an anonymous request (`R23`).
 | ☐ | R28 | Multi-document money and identity writes are not atomic | no transaction in Go or TS; compensating writes instead (`R26`) | A crash mid-sequence leaves half a state | Assigned: Phase 6 finance + Phase 8 settlement: use a transaction where a partial write loses money |
 | ☐ | R29 | Reads without a limit | 158 `Find`, 50 `SetLimit`, 128 `.All` | A large hostel can load a whole collection into memory | Assigned: Phase 10 load work: limit or stream whichever load shows matter |
 | ☑ | R30 | Docs contradict the code and the owner | `README.md` says `server/` is gitignored and `MEMORY.md` does not exist; `RULES.md` §2 says Go never fixes a bug first; `PHASES.md` lists "`server/` committed" | Next session follows the wrong rule | Corrected |
-| ☐ | R31 | Uncommitted TS work is outside the change intake | `saved-hostels` routes, `PLAN_OVERDUE`, finance and branch edits in the working tree | Go drifts unseen; intake reads commits only | Assigned: Claude, at the start of Phase 6, from the working tree, without waiting for a commit (see "Open items"). `TestRoutesMatchWeb` reports the new routes as not ported. Go reads the suspension reason as data, so `PLAN_OVERDUE` passes through unchanged |
+| ☑ | R31 | Uncommitted TS work is outside the change intake | `saved-hostels` routes, `PLAN_OVERDUE`, finance and branch edits in the working tree | Go drifts unseen; intake reads commits only | Assigned: Claude, at the start of Phase 6, from the working tree, without waiting for a commit (see "Open items"). `TestRoutesMatchWeb` reports the new routes as not ported. Go reads the suspension reason as data, so `PLAN_OVERDUE` passes through unchanged |
 
 ## Low
 
@@ -99,10 +99,10 @@ the outside work. No repo item waits for the owner. In the order to do them:
 
 | | Item | What Claude does | When |
 |---|---|---|---|
-| ☐ | R31 | The owner's TS landed in `dfb807f1`. Run the normal intake (`PARITY.md` §2): `git diff 6281d03d dfb807f1 -- apps/web packages`. Port the backend changes to Go with tests: `account/saved-hostels`, `platform/hostels/[id]/billing`, `platform/subscriptions`, `plan-grace` + `PLAN_OVERDUE` in the renewal sweep, finance, branches, `User.savedHostelIds`. `bs.ts` already matches Go | First thing in Phase 6, and again before each Phase 6 module that touches those files |
+| ☑ | R31 | The owner's TS landed in `dfb807f1`. Run the normal intake (`PARITY.md` §2): `git diff 6281d03d dfb807f1 -- apps/web packages`. Port the backend changes to Go with tests: `account/saved-hostels`, `platform/hostels/[id]/billing`, `platform/subscriptions`, `plan-grace` + `PLAN_OVERDUE` in the renewal sweep, finance, branches, `User.savedHostelIds`. `bs.ts` already matches Go | Done 2026-11-03: `account/saved-hostels` (contract green), referral-code preview `coverUrl`; branch cover fallback, `fineWaived`, report trend, cash method and claim wording were already in. `platform/*` routes and the plan sweep are Phase 7 |
 | ☐ | R17 | Push `main`, read the first run of `server.yml`, fix it until green, then tick R17 | First thing in Phase 6, right after R31's read |
 | ☐ | Phase 4 | Outside work. Set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel project `question-call/hostelpalika` (Production) and deploy: Claude if the Vercel CLI is signed in, otherwise hand the owner this exact step. Claude then confirms `Set-Cookie` on the live site carries the domain and login still works, and ticks `PHASES.md` Phase 4 once sessions have refreshed | After R17 is green, so the release is known good |
-| ☐ | R28 | Transactions where a partial write loses money | Billing run, fee-schedule pairs and settle/reverse are transactional in Go (2026-11-02); Phase 8 settlement still owed |
+| ☐ | R28 | Transactions where a partial write loses money | Billing run, fee-schedule pairs and settle/reverse are transactional in Go (2026-11-02); billing run and fee-schedule pairs in TS too (2026-11-03). Phase 8 settlement still owed |
 | ☐ | R18 | Superadmin log viewer: levels, categories, filters, request-id lookup, portal page | Phase 7 |
 | ☐ | R19 | `cmd/indexes` | Phase 10 |
 | ☐ | R27 | Line-by-line read of each module; findings land in this file | Phase 10 |
@@ -116,39 +116,39 @@ Hand over the exact step once and continue with everything else meanwhile.
 ## Phase 6 findings (2026-11-02)
 
 Found while porting Phase 6. "Go" means fixed in the Go server; "TS owed" means the web
-server still has the bug and `RULES.md` §2 says it is fixed there too. The separate
-Opus review of Phase 6 has not run; these are only what the port itself turned up.
+server still has the bug and `RULES.md` §2 says it is fixed there too. The Phase 6
+review ran 2026-11-03 (see PHASES.md); every row below is closed in Go and TS.
 
 | Status | Id | Finding | Go | TS |
 |---|---|---|---|---|
 | ☑ | FIN-1 | **Critical.** Reverse and cash looked a row up by id alone, across hostels. Owner: check `auditlogs` for cross-hostel reversals | fixed | fixed |
-| ☐ | FIN-2 | Cash above the threshold could never be approved: `approveCashPayment` has no route | fixed (`ListStaffQueue`, `approveClaim`) | owed |
-| ☐ | FIN-3 | A second reverse repeated the notice and the audit line | fixed | owed |
-| ☐ | FIN-4 | Reversing an overpayment left its credit spendable | fixed | owed |
-| ☐ | FIN-5 | `entries.idempotencyKey`'s unique index does not guard inside one row, so a replay could credit twice | fixed (conditional push) | owed |
-| ☐ | FIN-5b | Reverse of an unsettled event answered 500 | `EVENT_NOT_SETTLED` 409 | add to `FINANCE_ERROR_STATUS` |
+| ☑ | FIN-2 | Cash above the threshold could never be approved: `approveCashPayment` has no route | fixed (`ListStaffQueue`, `approveClaim`) | fixed (`listStaffQueue`, `approveClaim` takes cash) |
+| ☑ | FIN-3 | A second reverse repeated the notice and the audit line | fixed | fixed |
+| ☑ | FIN-4 | Reversing an overpayment left its credit spendable | fixed | fixed (`takeBackOverpayment`) |
+| ☑ | FIN-5 | `entries.idempotencyKey`'s unique index does not guard inside one row, so a replay could credit twice | fixed (conditional push) | fixed (conditional push) |
+| ☑ | FIN-5b | Reverse of an unsettled event answered 500 | `EVENT_NOT_SETTLED` 409 | fixed (`EVENT_NOT_SETTLED` 409) |
 | ☑ | FIN-6 | `waiveLateFine` crashed on an invoice row with no `lines` | fixed | fixed (`lines ?? []`) |
-| ☐ | FIN-7 | `createFeeSchedule` / `deleteFeeSchedule` deleted or closed the open rate card before writing its neighbour; a failure between left the hostel with no open card | one transaction per pair | owed: `session.withTransaction` |
+| ☑ | FIN-7 | `createFeeSchedule` / `deleteFeeSchedule` deleted or closed the open rate card before writing its neighbour; a failure between left the hostel with no open card | one transaction per pair | fixed (`inTransaction`) |
 | ☑ | FIN-8 | `listAllRoomTypes` / `listAvailableRoomTypes` sorted on `roomType.localeCompare`; one unnamed room configuration 500'd the rate card | fixed | fixed |
-| ☐ | FIN-9 | A billing run with a month discount already set bills rent at the discounted figure with no `concessionPercent` marker, so a later edit stacks the discounts (50% then 40% gives 3,000 of 10,000, not 6,000), and the backfill's base also takes KHATA and FINE lines | **open** | **open**: the run writes the full rent line plus the marked CREDIT line; the backfill base counts only SCHEDULE/OVERRIDE/MANUAL |
+| ☑ | FIN-9 | A billing run with a month discount already set bills rent at the discounted figure with no `concessionPercent` marker, so a later edit stacks the discounts (50% then 40% gives 3,000 of 10,000, not 6,000), and the backfill's base also takes KHATA and FINE lines | fixed: the run writes the full rent line plus a CREDIT line keyed by `concessionPercent`; the backfill base counts only SCHEDULE/OVERRIDE/MANUAL | fixed, same |
 | ☑ | FIN-10 | `saveGatewayConfig` used arrayFilters (500 on a profile with no `gateways`), and an unchanged save fell through to a push+upsert that hit the unique `hostelId` | fixed | fixed |
 | ☑ | FIN-11 | One bad row aborted a whole statement import, leaving the import row in `PARSING` and the file half read | the row becomes an `ERROR` finding (`ROW_FAILED`), the file goes on, and an event already written stays PENDING for "Approve all" | fixed (try/catch around `ingest`) |
-| ☐ | FIN-12 | A failure after parsing (run record, period write, audit) left the import in `PARSING` for ever | every later failure closes the import `FAILED` with its reason | owed |
-| ☐ | FIN-13 | `assignOrphanCredit` writes the invoice onto the event, then settles in a second step; a failed settle leaves the event assigned but PENDING | same two steps (a retry finishes it; settle itself is transactional) | same |
-| ☐ | R28 (billing) | `runBillingCycle` wrote the invoice, the khata mark and the credit line in three steps | one transaction per resident | owed |
+| ☑ | FIN-12 | A failure after parsing (run record, period write, audit) left the import in `PARSING` for ever | every later failure closes the import `FAILED` with its reason | fixed (`importStatement` closes the row `FAILED`) |
+| ☑ | FIN-13 | `assignOrphanCredit` writes the invoice onto the event, then settles in a second step; a failed settle leaves the event assigned but PENDING | one transaction (`InTx` now joins an open one) | fixed (`inTransaction`) |
+| ☑ | R28 (billing) | `runBillingCycle` wrote the invoice, the khata mark and the credit line in three steps | one transaction per resident | fixed (`inTransaction`; sessions ride `transactionAsyncLocalStorage`) |
 | ☑ | BKP-1 | `setBackupKey` read a non-base64 key with the lenient reader; the restore insert count on a partial unique-index refusal is read from the bulk write errors | same reader (`crypto.FromBase64`), count from `BulkWriteException` | no change needed |
 | ☑ | REP-1 | Payments report filtered claims on `submittedAt`, a field PaymentEvent lacks (now `occurredAt`) | fixed | touched in `6c38b0f3`, confirm |
 | ☑ | REP-2 | Food and attendance reports with `days=abc` made an invalid date | fixed | touched in `6c38b0f3`, confirm |
 | ☑ | REP-3 | Overview crashed on an unreadable month such as `2083-13` | fixed | touched in `6c38b0f3`, confirm |
 | ☑ | REP-4 | `$group` order shuffled invoice counts and tied attendance rows | fixed (stable order) | touched in `6c38b0f3`, confirm |
 | ☑ | PROF-1 | A room-type edit rewrote `photos` from an earlier read and could lose a photo added meanwhile | `$pull` | fixed |
-| ☐ | PERF-1 | Leave facts were asked once per invoice in the ledger (N+1) | one aggregate | owed |
-| ☐ | PLAN-1 | Plan payment claim checks for an `IN_REVIEW` row and then inserts, two steps: two concurrent claims on one invoice can both pass | **open** (ported as TS wrote it, `billing/pay.go`) | **open**: a partial unique index on `{invoiceId}` where `status: IN_REVIEW`, or insert-if-absent |
+| ☑ | PERF-1 | Leave facts were asked once per invoice in the ledger (N+1) | one aggregate | fixed (one aggregate in `loadLeaveFacts`) |
+| ☑ | PLAN-1 | Plan payment claim checks for an `IN_REVIEW` row and then inserts, two steps: two concurrent claims on one invoice can both pass | fixed: a duplicate-key on insert answers `CLAIM_ALREADY_IN_REVIEW` | fixed: partial unique index `invoiceId_1_inReview` (`SubscriptionPayment.ts`), duplicate key → 409. **Owner step:** run `npm --prefix apps/web run db:indexes` on production; it fails if two claims are already `IN_REVIEW` on one invoice, so close the extra first |
 
 | ☑ | RES-14 | `PATCH /residents/fees` with an empty `residentIds` applied the change to everyone | fixed | fixed |
 | ☑ | RES-15 | `leave` with a malformed resident or leave id answered 500 | fixed | fixed |
 | ☑ | BKG-1 | The hostel bookings list selected `amount bookingId status` only, so a sent payout always showed null document number, date and transaction id | fixed (reads them) | fixed (`select` widened) |
-| ☐ | RES-16 | A new resident's "card from the form" (`cardFromAdmissionForm`) is not made by the Go intake yet: it needs `saveResidentIdentity`, which belongs to the unported `/users/resident-identity` routes | open | n/a |
+| ☑ | RES-16 | A new resident's "card from the form" (`cardFromAdmissionForm`) was not made by the Go intake: it needed `saveResidentIdentity` | fixed: `/users/resident-identity` (all 6 route files), `/users/:userId/avatar` and the ID card email ported (`hostelresidents/identity*.go`, group `account-identity`); intake and the existing-residents add make the card | n/a |
 
 **Not covered by this port:** a real statement read through R2 (the contract environment
 has R2 off). The parsers are tested on the seven recorded export fixtures

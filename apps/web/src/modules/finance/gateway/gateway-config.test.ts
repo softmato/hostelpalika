@@ -302,7 +302,7 @@ describe("saving a provider", () => {
     await saveGatewayConfig(hostelId, { ...base, enabled: true }, principal);
 
     expect(mocks.profileUpdateOne.mock.calls[0]![1].$set).toMatchObject({
-      "gateways.$[slot].enabledAt": enabledAt,
+      "gateways.$.enabledAt": enabledAt,
     });
   });
 
@@ -312,7 +312,7 @@ describe("saving a provider", () => {
     await saveGatewayConfig(hostelId, { ...base, enabled: false }, principal);
 
     expect(mocks.profileUpdateOne.mock.calls[0]![1].$set).toMatchObject({
-      "gateways.$[slot].enabledAt": null,
+      "gateways.$.enabledAt": null,
     });
   });
 
@@ -321,10 +321,9 @@ describe("saving a provider", () => {
 
     await saveGatewayConfig(hostelId, base, principal);
 
+    // FIN-10: matched on the slot itself, positional $, no arrayFilters.
     expect(mocks.profileUpdateOne).toHaveBeenCalledTimes(1);
-    expect(mocks.profileUpdateOne.mock.calls[0]![2]).toEqual({
-      arrayFilters: [{ "slot.provider": "ESEWA" }],
-    });
+    expect(mocks.profileUpdateOne.mock.calls[0]![0]).toMatchObject({ "gateways.provider": "ESEWA" });
   });
 
   it("appends only when no entry for that provider exists", async () => {

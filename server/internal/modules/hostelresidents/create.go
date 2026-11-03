@@ -511,7 +511,12 @@ func (s *Service) Create(ctx context.Context, hostel bson.ObjectID, in CreateIn,
 		use = *newLogin
 	}
 	link := s.LinkAccount(ctx, &r, p, in.UserResidentID, false, &use)
-	// ponytail: cardFromAdmissionForm (the form becomes their ID card) needs resident-identity, ported with resident-scan.
+	// No card scanned: the form they filled becomes their ID card.
+	if link.Linked && link.UserID != "" && in.UserResidentID == "" {
+		if holder, err := bson.ObjectIDFromHex(link.UserID); err == nil {
+			s.after(ctx, func(ctx context.Context) error { s.CardFromForm(ctx, id, holder); return nil })
+		}
+	}
 	s.notifyAfter(ctx, registeredNotice{
 		admissionFee: quote.AdmissionPayable, deposit: r.DepositAmount, hostel: hostel, first: firstRes, prorated: quote.FirstMonth != nil && quote.FirstMonth.Prorated,
 		monthlyRent: quote.MonthlyRent, resident: r, moveIn: in.MoveInDate, newLogin: newLogin != nil && newLogin.UserID != nil && link.Linked, userID: link.UserID,
