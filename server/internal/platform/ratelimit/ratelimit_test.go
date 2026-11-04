@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -84,5 +85,34 @@ func TestRotatingUserAgentHitsTheIPBudget(t *testing.T) {
 	}
 	if hit(l, "form", "one-more-agent") == nil {
 		t.Fatal("changing the user-agent must not escape the limit")
+	}
+}
+
+// A Redis that accepts and never answers costs a request one short wait, then
+// the memory fallback counts it (P10-12; it was ~1.3 s per hit before).
+func TestHungRedisFallsBackFast(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	go func() {
+		for {
+			c, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			defer c.Close() // held open, never answered
+		}
+	}()
+	rdb := goredis.NewClient(&goredis.Options{Addr: ln.Addr().String(), ReadTimeout: 500 * time.Millisecond, WriteTimeout: 500 * time.Millisecond, ContextTimeoutEnabled: true}) // as redis.Connect
+	defer rdb.Close()
+	l := New(rdb, 5, time.Minute)
+	start := time.Now()
+	if _, over := l.hit(context.Background(), "rl:test", 5, time.Minute); over {
+		t.Fatal("first hit refused")
+	}
+	if took := time.Since(start); took > 400*time.Millisecond {
+		t.Fatalf("took %v with Redis hung", took)
 	}
 }

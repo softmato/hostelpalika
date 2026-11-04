@@ -22,8 +22,10 @@ import (
 const (
 	AuthAttemptLimit  = 5
 	AuthAttemptWindow = 15 * time.Minute
-	maxBuckets        = 10_000
-	ipBudgetFactor    = 6
+	// redisWait matches cache.Timeout: Redis is a same-host hop.
+	redisWait      = 150 * time.Millisecond
+	maxBuckets     = 10_000
+	ipBudgetFactor = 6
 )
 
 type Limiter struct {
@@ -94,7 +96,11 @@ func (l *Limiter) Check(c *gin.Context, namespace string, limit int, window time
 }
 
 func (l *Limiter) hit(ctx context.Context, key string, limit int, window time.Duration) (time.Duration, bool) {
-	count, ttl, err := l.hitRedis(ctx, key, window)
+	// A hung Redis costs a request at most this before the memory fallback; on the
+	// client's own read timeout and retries it cost ~1.3 s per hit, two per request (P10-12).
+	rctx, cancel := context.WithTimeout(ctx, redisWait)
+	count, ttl, err := l.hitRedis(rctx, key, window)
+	cancel()
 	if err != nil {
 		count, ttl = l.hitMemory(key, window)
 	}

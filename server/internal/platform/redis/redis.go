@@ -31,6 +31,9 @@ func Connect(ctx context.Context, url string) (*redis.Client, error) {
 	opt.DialTimeout = 2 * time.Second
 	opt.ReadTimeout = 500 * time.Millisecond
 	opt.WriteTimeout = 500 * time.Millisecond
+	// Without it go-redis ignores a context deadline on the socket, so the cache's
+	// and the limiter's 150 ms waits were really 500 ms × retries (P10-12).
+	opt.ContextTimeoutEnabled = true
 	opt.MinIdleConns = 4
 	client := redis.NewClient(opt)
 	client.AddHook(obs.RedisHook{})

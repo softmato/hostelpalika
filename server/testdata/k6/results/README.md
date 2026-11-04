@@ -49,3 +49,24 @@ Scaling the API does not help there; see the multi-instance note in `docs/RUNBOO
 `hostel-admin/reports/overview` took **11.6 s** alone; a sustained 70/s run reached
 p50 4.8 s / p95 21 s with 2.2 % errors as Mongo saturated. Fixed by P10-2..P10-6
 (`review_fixes_needed.md`): overview 0.46 s uncached, cached per user after.
+
+## Multi-instance and failure checks (2026-11-04, `deploy/compose.scale.yaml`)
+
+Two API replicas from the production image behind the production `Caddyfile`
+(`GO_PATHS=/api/*`), their own Redis and Mongo (a copy of `hp_p10_load`), scheduler on
+in both, no internet egress. 40 req/s mixed load through Caddy; each event from 20 s to
+40 s of a 65 s run. Docker VM on the same starved host.
+
+| File | Event | Requests | Errors | p50 / p95 / p99 ms | Afterwards |
+|---|---|---|---|---|---|
+| `go-local-sigterm-2replicas.json` | `docker stop` (SIGTERM) one replica, start it again 10 s later | 2,502 | **0** | 8 / 23 / 41 | "stopped cleanly" logged; Caddy sent traffic to the other replica |
+| `go-local-overload-2replicas.json` | 40 → 400 → 40 req/s | 29,762 | **0** | 75 / 819 / 1,985 | both replicas back to 20 threads, ~50 MB, idle CPU |
+| `go-local-fail-redis-hung.json` | `docker pause` Redis | 2,462 | **0** | 22 / 1,018 / 2,733 | Tail came from go-redis ignoring context deadlines (P10-12, fixed after this run; unit test: a hung Redis now costs 0.16 s, was 4.3 s) |
+| `go-local-fail-mongo-slow.json` | Mongo limited to 0.25 CPU | 2,502 | **0** | 14 / 779 / 1,730 | — |
+| `go-local-fail-mongo-hung.json` | `docker pause` Mongo for 20 s | 2,205 | 7.4 % | 10 / 10,005 / 20,530 | Only requests that needed Mongo during the pause failed, each as 504 `TIMEOUT` (pool wait, no hang); cached reads kept answering; deep health back to 200 at once |
+
+Also checked on that stack: the rate limit is shared (10 bad `verify-email` posts
+alternating between replicas got 429 from the 6th, as one instance would; per replica it
+would have been the 11th) and the client IP arrives through Caddy; with the scheduler on
+in both replicas every tick has exactly one `ok` and one `skipped` row in `cronruns`
+(none doubled); `indexes` runs from the image.

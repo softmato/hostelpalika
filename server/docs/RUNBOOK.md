@@ -64,11 +64,11 @@ level, category, request id) and System → Cron (every run, failures in red).
 
 ## 4. When something breaks
 
-All checked on the local stack (`compose.scale.yaml`); the VPS repeat is owed.
+All checked on the local stack (`compose.scale.yaml`, numbers in `testdata/k6/results/README.md`); the VPS repeat is owed.
 
 | Failure | What the API does | What to do |
 |---|---|---|
-| Redis down or hung | Cached reads go to Mongo after at most 150 ms (`cache.Timeout`); rate limits fall back to per-replica memory (so with two replicas a limit is twice as loose); job locks fall back to each replica's own guard (one replica: unchanged; two replicas: a job due during the outage can run on both, P10-9); `/health` 200, `/health?deep=1` 503 | Restart Redis: `docker compose restart redis`. Nothing to recover: it holds only cache, limits and locks |
+| Redis down or hung | Cached reads go to Mongo after at most 150 ms (`cache.Timeout`, enforced on the socket since P10-12); rate limits wait at most 150 ms, then fall back to per-replica memory (so with two replicas a limit is twice as loose); job locks fall back to each replica's own guard (one replica: unchanged; two replicas: a job due during the outage can run on both, P10-9); `/health` 200, `/health?deep=1` 503 | Restart Redis: `docker compose restart redis`. Nothing to recover: it holds only cache, limits and locks |
 | Mongo (Atlas) slow | Each request has its own deadline (30 s, longer for listed routes) and answers 504 `TIMEOUT` instead of hanging; the pool (50) caps sockets, `pool_checkout_failures` rises | Check Atlas metrics and the slow-query profiler; `explain` the query from `system.profile`. Scaling the API does **not** help: see §5 |
 | Mongo down | Requests that need it fail fast with 5xx; Redis-cached reads still answer until their TTL; `/health?deep=1` 503 | Atlas status page; nothing to restart on our side. The driver reconnects by itself |
 | A provider hangs (Softmato, Resend, Expo, maps, LLM, R2) | Every outbound client has a timeout (5–100 s, `review_fixes_needed.md` R11) and request-path calls also inherit the route deadline; work after the response runs in `background` with 5 min per task and 256 at once | Provider status page; nothing to restart |

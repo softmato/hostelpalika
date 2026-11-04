@@ -22,6 +22,7 @@ For an AI assistant or developer starting a session:
 8. **`DESIGN.md`** — API design and latency rules for new or changed endpoints
 9. **`FOLDER_STRUCTURE.md`** + **`CODING_STANDARDS.md`** — where and how to write Go
 10. **`ENVIRONMENT.md`** — env vars, Docker, VPS, Caddy, Redis
+10. **`RUNBOOK.md`** — operating it: deploy, rollback, alerts, failures, scaling, secrets
 11. **`TESTING.md`** — contract tests against the TypeScript server, load tests
 12. **`CHANGELOG.md`** — what changed, by phase
 
