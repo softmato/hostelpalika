@@ -266,11 +266,16 @@
           return;
         }
 
-        addEventListener("beforeinstallprompt", function (event) {
-          event.preventDefault();
-          prompt = event;
+        /*
+         * Only iPhone installs this app as a PWA. Android has the Play app, so the
+         * sheet offers that (`/get-app` redirects to the store); a desktop installs
+         * the website itself, from the site manifest, so it gets no sheet here.
+         */
+        if (/Android/i.test(navigator.userAgent)) {
+          sheet.querySelector("[data-action] span").textContent = "Get it on Google Play";
+          sheet.querySelector("[data-action]").addEventListener("click", function () { location.href = "/get-app"; });
           if (wanted) show(sheet);
-        });
+        }
       })();
 
       /*

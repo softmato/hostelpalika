@@ -1341,3 +1341,20 @@ typecheck clean, lint clean, **2284 tests / 155 files**. New coverage:
 and the approval hand-off have not been seen on hardware. The approval path in
 particular wants a real run: approve a pending provider from the platform portal
 with the app open on `(browse)` and watch it become the provider app.
+
+## Go server rollout — later, in this order (owner, 2026-11-04)
+
+Nothing here starts until the Go server is ready. Until then the web runs in dev mode for full testing.
+
+- ☐ Finish testing the web in dev mode against the Go server.
+- ☐ Put the Go server in production on the VPS.
+- ☐ Vercel: set `COOKIE_DOMAIN=.hostelpalika.com` and deploy (the Phase 4 step in `server/docs/PHASES.md`), with the web on Vercel and the server on the VPS.
+- ☐ Then test the mobile app: the owner connects the phone to the laptop, and Claude runs every screen over adb, recording each screen's latency, and screenshots the superadmin platform shell (after the owner's OTA).
+
+## PWA policy (owner, 2026-11-04)
+
+- ☑ Android never installs the PWA: the site banner, `/get-app` and `/app`'s own sheet all send it to the Play download.
+- ☑ Desktop installs the website layout itself (site manifest, scope `/`).
+- ☑ Only iPhone installs the app PWA (`/app`), which is the real app exported for the web, so its UI is the app's UI.
+- ☐ On an iPhone, check the installed PWA screen by screen against the native app.
+- ☐ First real `pwa` row in production `usageevents` once the PWA export redeploys (usage counts app, PWA and web separately).
