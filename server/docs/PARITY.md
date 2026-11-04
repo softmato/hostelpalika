@@ -409,50 +409,50 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/hostel-admin/attendance` | cap:viewNightStatus | etag | attendance |
-| ☐ | PATCH | `/api/v1/hostel-admin/attendance/:residentId/override` | cap:updateNightStatus |  | attendance |
-| ☐ | GET | `/api/v1/hostel-admin/attendance/alerts` | cap:viewNightStatus | etag | attendance |
-| ☐ | PATCH | `/api/v1/hostel-admin/attendance/alerts/:id/resolve` | cap:updateNightStatus |  | attendance |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/attendance/settings` | requireHostelAdminPrincipal | etag | attendance |
-| ☐ | GET POST | `/api/v1/hostel-admin/backup` | requireHostelAdminPrincipal | max300s | backup |
-| ☐ | DELETE POST | `/api/v1/hostel-admin/backup/drive` | requireHostelAdminPrincipal |  | backup |
-| ☐ | GET | `/api/v1/hostel-admin/backup/drive/callback` | public |  | backup |
-| ☐ | POST PUT | `/api/v1/hostel-admin/backup/key` | requireHostelAdminPrincipal |  | backup |
-| ☐ | POST | `/api/v1/hostel-admin/backup/restore` | requireHostelAdminPrincipal |  | backup |
-| ☐ | GET | `/api/v1/hostel-admin/backup/runs/:runId/file` | requireHostelAdminPrincipal | max120s | backup |
-| ☐ | GET | `/api/v1/hostel-admin/billing` | requireHostelStaffPrincipal | etag | billing |
-| ☐ | POST | `/api/v1/hostel-admin/billing/checkout` | requireHostelAdminPrincipal |  | billing |
-| ☐ | POST | `/api/v1/hostel-admin/billing/claim` | requireHostelAdminPrincipal |  | billing |
-| ☐ | GET | `/api/v1/hostel-admin/billing/documents/:kind/:number` | requireHostelStaffPrincipal |  | billing |
-| ☐ | GET | `/api/v1/hostel-admin/billing/pay-instructions` | requireHostelAdminPrincipal | etag | billing |
-| ☐ | POST | `/api/v1/hostel-admin/billing/renew` | requireHostelAdminPrincipal |  | billing |
-| ☐ | GET | `/api/v1/hostel-admin/bookings` | requireHostelAdminPrincipal | etag | bookings, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/bookings/:id/:action` | requireHostelAdminPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/hostel-admin/bookings/card` | cap:registerResidents | etag | bookings, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/bookings/documents/:number` | requireHostelAdminPrincipal |  | bookings |
-| ☐ | GET PUT | `/api/v1/hostel-admin/bookings/short-stays` | requireHostelAdminPrincipal | etag | bookings, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/attendance` | cap:viewNightStatus | etag | attendance |
+| ☑ | PATCH | `/api/v1/hostel-admin/attendance/:residentId/override` | cap:updateNightStatus |  | attendance |
+| ☑ | GET | `/api/v1/hostel-admin/attendance/alerts` | cap:viewNightStatus | etag | attendance |
+| ☑ | PATCH | `/api/v1/hostel-admin/attendance/alerts/:id/resolve` | cap:updateNightStatus |  | attendance |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/attendance/settings` | requireHostelAdminPrincipal | etag | attendance |
+| ☑ | GET POST | `/api/v1/hostel-admin/backup` | requireHostelAdminPrincipal | max300s | backup |
+| ☑ | DELETE POST | `/api/v1/hostel-admin/backup/drive` | requireHostelAdminPrincipal |  | backup |
+| ☑ | GET | `/api/v1/hostel-admin/backup/drive/callback` | public |  | backup |
+| ☑ | POST PUT | `/api/v1/hostel-admin/backup/key` | requireHostelAdminPrincipal |  | backup |
+| ☑ | POST | `/api/v1/hostel-admin/backup/restore` | requireHostelAdminPrincipal |  | backup |
+| ☑ | GET | `/api/v1/hostel-admin/backup/runs/:runId/file` | requireHostelAdminPrincipal | max120s | backup |
+| ☑ | GET | `/api/v1/hostel-admin/billing` | requireHostelStaffPrincipal | etag | billing |
+| ☑ | POST | `/api/v1/hostel-admin/billing/checkout` | requireHostelAdminPrincipal |  | billing |
+| ☑ | POST | `/api/v1/hostel-admin/billing/claim` | requireHostelAdminPrincipal |  | billing |
+| ☑ | GET | `/api/v1/hostel-admin/billing/documents/:kind/:number` | requireHostelStaffPrincipal |  | billing |
+| ☑ | GET | `/api/v1/hostel-admin/billing/pay-instructions` | requireHostelAdminPrincipal | etag | billing |
+| ☑ | POST | `/api/v1/hostel-admin/billing/renew` | requireHostelAdminPrincipal |  | billing |
+| ☑ | GET | `/api/v1/hostel-admin/bookings` | requireHostelAdminPrincipal | etag | bookings, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/bookings/:id/:action` | requireHostelAdminPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/hostel-admin/bookings/card` | cap:registerResidents | etag | bookings, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/bookings/documents/:number` | requireHostelAdminPrincipal |  | bookings |
+| ☑ | GET PUT | `/api/v1/hostel-admin/bookings/short-stays` | requireHostelAdminPrincipal | etag | bookings, hostels |
 | ☐ | GET POST | `/api/v1/hostel-admin/branches` | requireHostelAdminPrincipal | etag | billing, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/branches/:branchId` | requireHostelAdminPrincipal | etag | billing, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/branches/names` | requireHostelStaffPrincipal | etag | hostels |
 | ☐ | GET | `/api/v1/hostel-admin/branches/summary` | requireHostelAdminPrincipal | etag | hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/community` | requireHostelStaffPrincipal | etag | community |
-| ☐ | DELETE PATCH | `/api/v1/hostel-admin/community/:postId/hide` | requireHostelStaffPrincipal |  | community |
-| ☐ | GET | `/api/v1/hostel-admin/complaints` | cap:viewComplaints | redis etag | complaints |
-| ☐ | POST | `/api/v1/hostel-admin/complaints/:id/reply` | cap:updateComplaints |  | complaints |
-| ☐ | PATCH | `/api/v1/hostel-admin/complaints/:id/status` | cap:updateComplaints |  | complaints |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/cook-portal` | cap:manageFood | etag | food |
-| ☐ | GET POST | `/api/v1/hostel-admin/cooks` | cap:manageFood | etag | food |
-| ☐ | DELETE PATCH | `/api/v1/hostel-admin/cooks/:cookId` | cap:manageFood |  | food |
-| ☐ | PUT | `/api/v1/hostel-admin/cooks/fingerprint` | requireHostelAdminPrincipal |  | food, finance |
-| ☐ | GET POST | `/api/v1/hostel-admin/expenses` | cap:recordExpenses | redis etag | finance |
-| ☐ | POST | `/api/v1/hostel-admin/expenses/:id/cash` | cap:recordExpenses |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/expenses/:id/void` | cap:recordExpenses |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/expenses/categories` | requireHostelAdminPrincipal |  | finance |
-| ☐ | PATCH | `/api/v1/hostel-admin/expenses/categories/:id` | requireHostelAdminPrincipal |  | finance |
-| ☐ | PUT | `/api/v1/hostel-admin/expenses/cook` | requireHostelAdminPrincipal |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/expenses/receipt/read` | rateLimitPublicForm, cap:recordExpenses | max30s | finance |
-| ☐ | GET | `/api/v1/hostel-admin/expenses/wallet` | cap:recordExpenses | etag | finance |
-| ☐ | GET POST | `/api/v1/hostel-admin/finance/billing-runs` | cap:manageFeeSchedule, cap:viewPayments | etag max60s | finance, hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/community` | requireHostelStaffPrincipal | etag | community |
+| ☑ | DELETE PATCH | `/api/v1/hostel-admin/community/:postId/hide` | requireHostelStaffPrincipal |  | community |
+| ☑ | GET | `/api/v1/hostel-admin/complaints` | cap:viewComplaints | redis etag | complaints |
+| ☑ | POST | `/api/v1/hostel-admin/complaints/:id/reply` | cap:updateComplaints |  | complaints |
+| ☑ | PATCH | `/api/v1/hostel-admin/complaints/:id/status` | cap:updateComplaints |  | complaints |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/cook-portal` | cap:manageFood | etag | food |
+| ☑ | GET POST | `/api/v1/hostel-admin/cooks` | cap:manageFood | etag | food |
+| ☑ | DELETE PATCH | `/api/v1/hostel-admin/cooks/:cookId` | cap:manageFood |  | food |
+| ☑ | PUT | `/api/v1/hostel-admin/cooks/fingerprint` | requireHostelAdminPrincipal |  | food, finance |
+| ☑ | GET POST | `/api/v1/hostel-admin/expenses` | cap:recordExpenses | redis etag | finance |
+| ☑ | POST | `/api/v1/hostel-admin/expenses/:id/cash` | cap:recordExpenses |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/expenses/:id/void` | cap:recordExpenses |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/expenses/categories` | requireHostelAdminPrincipal |  | finance |
+| ☑ | PATCH | `/api/v1/hostel-admin/expenses/categories/:id` | requireHostelAdminPrincipal |  | finance |
+| ☑ | PUT | `/api/v1/hostel-admin/expenses/cook` | requireHostelAdminPrincipal |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/expenses/receipt/read` | rateLimitPublicForm, cap:recordExpenses | max30s | finance |
+| ☑ | GET | `/api/v1/hostel-admin/expenses/wallet` | cap:recordExpenses | etag | finance |
+| ☑ | GET POST | `/api/v1/hostel-admin/finance/billing-runs` | cap:manageFeeSchedule, cap:viewPayments | etag max60s | finance, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/finance/events` | cap:viewPayments | etag | finance, hostels |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/approve` | cap:approvePayments |  | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/ask-resident` | cap:viewPayments |  | finance |
@@ -460,135 +460,135 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reject` | cap:approvePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reverse` | cap:reversePayments |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/events/bulk-approve` | cap:approvePayments | max60s | finance, hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/finance/fee-schedules` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
-| ☐ | DELETE | `/api/v1/hostel-admin/finance/fee-schedules/:id` | cap:manageFeeSchedule |  | finance, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/finance/fee-schedules/:id/close` | cap:manageFeeSchedule |  | finance, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/finance/fee-schedules/kyc` | cap:manageFeeSchedule |  | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/invoices` | cap:viewPayments | redis etag | finance, hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/finance/fee-schedules` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
+| ☑ | DELETE | `/api/v1/hostel-admin/finance/fee-schedules/:id` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/:id/close` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/kyc` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/finance/invoices` | cap:viewPayments | redis etag | finance, hostels |
 | ☐ | POST | `/api/v1/hostel-admin/finance/invoices/:id/cash` | cap:recordCash |  | finance |
 | ☐ | POST | `/api/v1/hostel-admin/finance/invoices/:id/void` | cap:reversePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/invoices/:id/waive-fine` | cap:manageFeeSchedule |  | finance |
-| ☐ | GET | `/api/v1/hostel-admin/finance/invoices/ledger` | cap:viewPayments | redis etag | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/invoices/periods` | cap:viewPayments | redis etag | finance, hostels |
-| ☐ | GET PUT | `/api/v1/hostel-admin/finance/khata` | cap:viewPayments, cap:recordCash | redis etag | finance, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/finance/khata/residents/:residentId` | cap:recordCash |  | finance, hostels |
-| ☐ | GET PUT | `/api/v1/hostel-admin/finance/late-fine` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
-| ☐ | GET PUT | `/api/v1/hostel-admin/finance/money-rules` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/waive-fine` | cap:manageFeeSchedule |  | finance |
+| ☑ | GET | `/api/v1/hostel-admin/finance/invoices/ledger` | cap:viewPayments | redis etag | finance, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/finance/invoices/periods` | cap:viewPayments | redis etag | finance, hostels |
+| ☑ | GET PUT | `/api/v1/hostel-admin/finance/khata` | cap:viewPayments, cap:recordCash | redis etag | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/khata/residents/:residentId` | cap:recordCash |  | finance, hostels |
+| ☑ | GET PUT | `/api/v1/hostel-admin/finance/late-fine` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
+| ☑ | GET PUT | `/api/v1/hostel-admin/finance/money-rules` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
 | ☑ | DELETE GET PUT | `/api/v1/hostel-admin/finance/payment-gateways` | cap:managePaymentProfile | etag | finance, hostels |
 | ☑ | GET PATCH | `/api/v1/hostel-admin/finance/payment-profile` | cap:viewPayments, cap:managePaymentProfile | etag | finance, hostels |
 | ☐ | GET | `/api/v1/hostel-admin/finance/receipts/:id/pdf` | cap:viewPayments |  | finance |
-| ☐ | GET POST | `/api/v1/hostel-admin/finance/rent-concessions` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
-| ☐ | DELETE | `/api/v1/hostel-admin/finance/rent-concessions/:id` | cap:manageFeeSchedule |  | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/residents/:residentId/ledger` | cap:viewPayments | etag | finance, hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/finance/rent-concessions` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
+| ☑ | DELETE | `/api/v1/hostel-admin/finance/rent-concessions/:id` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/finance/residents/:residentId/ledger` | cap:viewPayments | etag | finance, hostels |
 | ☑ | GET POST | `/api/v1/hostel-admin/finance/statements` | cap:approvePayments | etag | finance, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/finance/statements/:id` | cap:approvePayments | etag | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/statements/:id/approve-matched` | cap:approvePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/food/photos` | cap:manageFood |  | food |
-| ☐ | GET PUT | `/api/v1/hostel-admin/food/routine` | cap:manageFood | redis etag | food |
-| ☐ | GET | `/api/v1/hostel-admin/hostel-referrals` | requireHostelStaffPrincipal | etag | hostel-referrals, food |
-| ☐ | POST | `/api/v1/hostel-admin/hostel-referrals/invite` | requireHostelStaffPrincipal |  | hostel-referrals, food |
-| ☐ | GET | `/api/v1/hostel-admin/inquiries` | requireHostelStaffPrincipal | redis etag | hostels |
-| ☐ | POST | `/api/v1/hostel-admin/inquiries/:id/notes` | requireHostelStaffPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/hostel-admin/inquiries/:id/status` | requireHostelStaffPrincipal |  | hostels |
-| ☐ | DELETE GET POST | `/api/v1/hostel-admin/kyc` | requireHostelAdminPrincipal | etag | hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/kyc/agreement` | requireHostelAdminPrincipal |  | hostels, users |
-| ☐ | POST | `/api/v1/hostel-admin/kyc/submit` | requireHostelAdminPrincipal |  | hostels |
-| ☐ | DELETE GET POST | `/api/v1/hostel-admin/leave` | requireHostelAdminPrincipal |  | hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/maintenance/requests` | cap:manageMaintenance | redis etag | maintenance |
-| ☐ | POST | `/api/v1/hostel-admin/maintenance/requests/:id/comment` | cap:manageMaintenance |  | maintenance |
-| ☐ | PATCH | `/api/v1/hostel-admin/maintenance/requests/:id/provider` | requireHostelStaffPrincipal |  | maintenance |
-| ☐ | PATCH | `/api/v1/hostel-admin/maintenance/requests/:id/status` | cap:manageMaintenance |  | maintenance |
-| ☐ | GET | `/api/v1/hostel-admin/maintenance/settings` | requireHostelStaffPrincipal | etag | maintenance |
-| ☐ | GET | `/api/v1/hostel-admin/move-events` | cap:registerResidents | etag | move-checklist |
-| ☐ | GET | `/api/v1/hostel-admin/night-status` | cap:viewNightStatus | redis etag | safety |
-| ☐ | PATCH | `/api/v1/hostel-admin/night-status/:residentId/override` | cap:updateNightStatus |  | safety |
+| ☑ | POST | `/api/v1/hostel-admin/food/photos` | cap:manageFood |  | food |
+| ☑ | GET PUT | `/api/v1/hostel-admin/food/routine` | cap:manageFood | redis etag | food |
+| ☑ | GET | `/api/v1/hostel-admin/hostel-referrals` | requireHostelStaffPrincipal | etag | hostel-referrals, food |
+| ☑ | POST | `/api/v1/hostel-admin/hostel-referrals/invite` | requireHostelStaffPrincipal |  | hostel-referrals, food |
+| ☑ | GET | `/api/v1/hostel-admin/inquiries` | requireHostelStaffPrincipal | redis etag | hostels |
+| ☑ | POST | `/api/v1/hostel-admin/inquiries/:id/notes` | requireHostelStaffPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/hostel-admin/inquiries/:id/status` | requireHostelStaffPrincipal |  | hostels |
+| ☑ | DELETE GET POST | `/api/v1/hostel-admin/kyc` | requireHostelAdminPrincipal | etag | hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/kyc/agreement` | requireHostelAdminPrincipal |  | hostels, users |
+| ☑ | POST | `/api/v1/hostel-admin/kyc/submit` | requireHostelAdminPrincipal |  | hostels |
+| ☑ | DELETE GET POST | `/api/v1/hostel-admin/leave` | requireHostelAdminPrincipal |  | hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/maintenance/requests` | cap:manageMaintenance | redis etag | maintenance |
+| ☑ | POST | `/api/v1/hostel-admin/maintenance/requests/:id/comment` | cap:manageMaintenance |  | maintenance |
+| ☑ | PATCH | `/api/v1/hostel-admin/maintenance/requests/:id/provider` | requireHostelStaffPrincipal |  | maintenance |
+| ☑ | PATCH | `/api/v1/hostel-admin/maintenance/requests/:id/status` | cap:manageMaintenance |  | maintenance |
+| ☑ | GET | `/api/v1/hostel-admin/maintenance/settings` | requireHostelStaffPrincipal | etag | maintenance |
+| ☑ | GET | `/api/v1/hostel-admin/move-events` | cap:registerResidents | etag | move-checklist |
+| ☑ | GET | `/api/v1/hostel-admin/night-status` | cap:viewNightStatus | redis etag | safety |
+| ☑ | PATCH | `/api/v1/hostel-admin/night-status/:residentId/override` | cap:updateNightStatus |  | safety |
 | ☐ | GET POST | `/api/v1/hostel-admin/notice-pushes` | cap:manageNotices | etag | notices |
 | ☐ | DELETE PATCH | `/api/v1/hostel-admin/notice-pushes/:id` | cap:manageNotices |  | notices |
 | ☐ | POST | `/api/v1/hostel-admin/notice-pushes/:id/send` | cap:manageNotices |  | notices |
-| ☐ | GET POST | `/api/v1/hostel-admin/notices` | cap:manageNotices | redis etag | notices |
-| ☐ | PATCH | `/api/v1/hostel-admin/notices/:id` | cap:manageNotices |  | notices |
-| ☐ | GET POST | `/api/v1/hostel-admin/notifications` | requireHostelStaffPrincipal | etag | notifications |
-| ☐ | GET PUT | `/api/v1/hostel-admin/payout-account` | requireHostelAdminPrincipal | etag | bookings, hostels |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/profile` | requireHostelStaffPrincipal, cap:editHostelProfile | redis etag | hostels |
-| ☐ | POST | `/api/v1/hostel-admin/profile/change-request` | cap:editHostelProfile |  | hostels |
-| ☐ | GET | `/api/v1/hostel-admin/profile/geocode` | cap:editHostelProfile | etag | hostels |
-| ☐ | POST | `/api/v1/hostel-admin/profile/photos` | cap:editHostelProfile |  | hostels |
-| ☐ | DELETE | `/api/v1/hostel-admin/profile/photos/:photoId` | cap:editHostelProfile |  | hostels |
-| ☐ | GET | `/api/v1/hostel-admin/referrals` | requireHostelStaffPrincipal | etag | referrals |
-| ☐ | PATCH | `/api/v1/hostel-admin/referrals/:id/confirm` | requireHostelStaffPrincipal |  | referrals |
-| ☐ | PATCH | `/api/v1/hostel-admin/referrals/:id/reward` | requireHostelStaffPrincipal |  | referrals |
-| ☐ | GET | `/api/v1/hostel-admin/reports/attendance` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/complaints` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/dashboard` | requireHostelStaffPrincipal | redis etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/export` | requireHostelStaffPrincipal |  | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/food` | cap:manageFood | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/maintenance` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET POST | `/api/v1/hostel-admin/notices` | cap:manageNotices | redis etag | notices |
+| ☑ | PATCH | `/api/v1/hostel-admin/notices/:id` | cap:manageNotices |  | notices |
+| ☑ | GET POST | `/api/v1/hostel-admin/notifications` | requireHostelStaffPrincipal | etag | notifications |
+| ☑ | GET PUT | `/api/v1/hostel-admin/payout-account` | requireHostelAdminPrincipal | etag | bookings, hostels |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/profile` | requireHostelStaffPrincipal, cap:editHostelProfile | redis etag | hostels |
+| ☑ | POST | `/api/v1/hostel-admin/profile/change-request` | cap:editHostelProfile |  | hostels |
+| ☑ | GET | `/api/v1/hostel-admin/profile/geocode` | cap:editHostelProfile | etag | hostels |
+| ☑ | POST | `/api/v1/hostel-admin/profile/photos` | cap:editHostelProfile |  | hostels |
+| ☑ | DELETE | `/api/v1/hostel-admin/profile/photos/:photoId` | cap:editHostelProfile |  | hostels |
+| ☑ | GET | `/api/v1/hostel-admin/referrals` | requireHostelStaffPrincipal | etag | referrals |
+| ☑ | PATCH | `/api/v1/hostel-admin/referrals/:id/confirm` | requireHostelStaffPrincipal |  | referrals |
+| ☑ | PATCH | `/api/v1/hostel-admin/referrals/:id/reward` | requireHostelStaffPrincipal |  | referrals |
+| ☑ | GET | `/api/v1/hostel-admin/reports/attendance` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/complaints` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/dashboard` | requireHostelStaffPrincipal | redis etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/export` | requireHostelStaffPrincipal |  | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/food` | cap:manageFood | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/maintenance` | requireHostelStaffPrincipal | etag | reports |
 | ☑ | GET | `/api/v1/hostel-admin/reports/overall/pdf` | requireHostelAdminPrincipal |  | finance, hostels, reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/overview` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/payments` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/performance` | requireHostelStaffPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/hostel-admin/reports/performance/pdf` | requireHostelStaffPrincipal |  | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/overview` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/payments` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/performance` | requireHostelStaffPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/hostel-admin/reports/performance/pdf` | requireHostelStaffPrincipal |  | reports |
 | ☑ | GET | `/api/v1/hostel-admin/reports/statement/pdf` | cap:viewPayments |  | finance, hostels, reports |
-| ☐ | GET | `/api/v1/hostel-admin/resident-lookup` | rateLimitPublicForm, cap:registerResidents | etag | users |
-| ☐ | GET | `/api/v1/hostel-admin/resident-scan` | rateLimitPublicForm, cap:registerResidents, cap:viewPayments | etag | users |
-| ☐ | GET | `/api/v1/hostel-admin/resident-scan/photo` | cap:registerResidents |  | users |
-| ☐ | GET POST | `/api/v1/hostel-admin/residents` | requireHostelStaffPrincipal, cap:registerResidents | redis etag | residents |
-| ☐ | DELETE GET PATCH | `/api/v1/hostel-admin/residents/:id` | requireHostelStaffPrincipal, cap:registerResidents | etag | residents |
-| ☐ | PATCH POST | `/api/v1/hostel-admin/residents/:id/activation-code` | cap:registerResidents |  | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/:id/contacts` | cap:registerResidents | etag | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/:id/emergency-contacts` | cap:registerResidents |  | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/:id/guardians` | cap:registerResidents |  | residents |
-| ☐ | GET POST | `/api/v1/hostel-admin/residents/:id/leave` | cap:viewPayments, cap:recordCash | etag | finance, hostels |
-| ☐ | DELETE | `/api/v1/hostel-admin/residents/:id/leave/:leaveId` | cap:recordCash |  | finance, hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/residents/:id/move-in` | cap:registerResidents | etag | move-checklist |
-| ☐ | GET POST | `/api/v1/hostel-admin/residents/:id/move-out` | cap:registerResidents, cap:recordCash | etag | move-checklist |
-| ☐ | GET | `/api/v1/hostel-admin/residents/:id/photo` | requireHostelStaffPrincipal |  | residents |
-| ☐ | PUT | `/api/v1/hostel-admin/residents/:id/room` | cap:registerResidents |  | hostels |
-| ☐ | PATCH | `/api/v1/hostel-admin/residents/:id/status` | cap:registerResidents |  | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/:id/write-off` | cap:recordCash |  | move-checklist |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/residents/admission-form-link` | hostelStaffScope | etag | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/admission-forms` | hostelStaffScope | etag | residents |
-| ☐ | DELETE GET | `/api/v1/hostel-admin/residents/admission-forms/:formId` | hostelStaffScope | etag | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/admission-forms/:formId/photo` | hostelStaffScope |  | residents |
-| ☐ | DELETE GET PUT | `/api/v1/hostel-admin/residents/existing` | in existing-residents.routes.ts |  | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/existing/add` | in existing-residents.routes.ts | max300s | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/existing/file` | in existing-residents.routes.ts |  | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/existing/one` | in existing-residents.routes.ts | max300s | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/existing/template` | in existing-residents.routes.ts |  | residents |
-| ☐ | PATCH | `/api/v1/hostel-admin/residents/fees` | cap:manageFeeSchedule |  | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/residents/intake-quote` | cap:registerResidents | etag | hostels, residents |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/residents/join-link` | in existing-residents.routes.ts |  | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/join-requests` | in existing-residents.routes.ts |  | residents |
-| ☐ | POST | `/api/v1/hostel-admin/residents/join-requests/:requestId` | in existing-residents.routes.ts | max300s | residents |
-| ☐ | GET | `/api/v1/hostel-admin/residents/leaving-today` | cap:registerResidents |  | hostels, move-checklist |
-| ☐ | GET | `/api/v1/hostel-admin/room-types` | cap:registerResidents | etag | hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/rooms` | requireHostelStaffPrincipal, cap:manageRooms | etag | hostels |
-| ☐ | DELETE PATCH | `/api/v1/hostel-admin/rooms/:roomId` | cap:manageRooms |  | hostels |
-| ☐ | GET | `/api/v1/hostel-admin/rooms/requests` | requireHostelStaffPrincipal | etag | hostels |
-| ☐ | POST | `/api/v1/hostel-admin/rooms/requests/:requestId` | cap:registerResidents |  | hostels |
-| ☐ | PUT | `/api/v1/hostel-admin/rooms/order` | requireHostelAdminPrincipal |  | hostels |
-| ☐ | PUT | `/api/v1/hostel-admin/rooms/tracking` | requireHostelAdminPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/hostel-admin/service-providers` | requireHostelStaffPrincipal | etag | service-providers |
-| ☐ | GET | `/api/v1/hostel-admin/service-providers/:id` | requireHostelStaffPrincipal | etag | service-providers |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/settings/community` | requireHostelAdminPrincipal | etag | community |
-| ☐ | GET | `/api/v1/hostel-admin/sos-alerts` | requireHostelStaffPrincipal | etag | safety |
-| ☐ | PATCH | `/api/v1/hostel-admin/sos-alerts/:id/status` | requireHostelStaffPrincipal |  | safety |
-| ☐ | GET POST | `/api/v1/hostel-admin/stock` | cap:manageStock | redis etag | stock |
-| ☐ | PUT | `/api/v1/hostel-admin/stock/cook` | requireHostelAdminPrincipal |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/entries/:id/approve` | cap:manageStock |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/entries/:id/cancel` | cap:manageStock |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/entries/:id/receive` | cap:manageStock |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/items` | cap:manageStock |  | stock |
-| ☐ | PATCH | `/api/v1/hostel-admin/stock/items/:id` | cap:manageStock |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/payments` | cap:manageStock |  | stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/payments/:id/cancel` | cap:manageStock |  | stock |
-| ☐ | GET | `/api/v1/hostel-admin/stock/report` | cap:manageStock | redis etag | reports, stock |
-| ☐ | POST | `/api/v1/hostel-admin/stock/suppliers` | cap:manageStock |  | stock |
-| ☐ | GET PATCH | `/api/v1/hostel-admin/stock/suppliers/:id` | cap:manageStock | etag | stock |
-| ☐ | GET | `/api/v1/hostel-admin/stock/usage` | cap:manageStock | redis etag | stock |
-| ☐ | GET | `/api/v1/hostel-admin/subscription` | requireHostelStaffPrincipal | redis etag | billing |
-| ☐ | GET POST | `/api/v1/hostel-admin/wardens` | requireHostelAdminPrincipal | etag | wardens |
-| ☐ | DELETE PATCH | `/api/v1/hostel-admin/wardens/:id` | requireHostelAdminPrincipal |  | wardens |
+| ☑ | GET | `/api/v1/hostel-admin/resident-lookup` | rateLimitPublicForm, cap:registerResidents | etag | users |
+| ☑ | GET | `/api/v1/hostel-admin/resident-scan` | rateLimitPublicForm, cap:registerResidents, cap:viewPayments | etag | users |
+| ☑ | GET | `/api/v1/hostel-admin/resident-scan/photo` | cap:registerResidents |  | users |
+| ☑ | GET POST | `/api/v1/hostel-admin/residents` | requireHostelStaffPrincipal, cap:registerResidents | redis etag | residents |
+| ☑ | DELETE GET PATCH | `/api/v1/hostel-admin/residents/:id` | requireHostelStaffPrincipal, cap:registerResidents | etag | residents |
+| ☑ | PATCH POST | `/api/v1/hostel-admin/residents/:id/activation-code` | cap:registerResidents |  | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/:id/contacts` | cap:registerResidents | etag | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/:id/emergency-contacts` | cap:registerResidents |  | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/:id/guardians` | cap:registerResidents |  | residents |
+| ☑ | GET POST | `/api/v1/hostel-admin/residents/:id/leave` | cap:viewPayments, cap:recordCash | etag | finance, hostels |
+| ☑ | DELETE | `/api/v1/hostel-admin/residents/:id/leave/:leaveId` | cap:recordCash |  | finance, hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/residents/:id/move-in` | cap:registerResidents | etag | move-checklist |
+| ☑ | GET POST | `/api/v1/hostel-admin/residents/:id/move-out` | cap:registerResidents, cap:recordCash | etag | move-checklist |
+| ☑ | GET | `/api/v1/hostel-admin/residents/:id/photo` | requireHostelStaffPrincipal |  | residents |
+| ☑ | PUT | `/api/v1/hostel-admin/residents/:id/room` | cap:registerResidents |  | hostels |
+| ☑ | PATCH | `/api/v1/hostel-admin/residents/:id/status` | cap:registerResidents |  | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/:id/write-off` | cap:recordCash |  | move-checklist |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/residents/admission-form-link` | hostelStaffScope | etag | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/admission-forms` | hostelStaffScope | etag | residents |
+| ☑ | DELETE GET | `/api/v1/hostel-admin/residents/admission-forms/:formId` | hostelStaffScope | etag | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/admission-forms/:formId/photo` | hostelStaffScope |  | residents |
+| ☑ | DELETE GET PUT | `/api/v1/hostel-admin/residents/existing` | in existing-residents.routes.ts |  | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/existing/add` | in existing-residents.routes.ts | max300s | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/existing/file` | in existing-residents.routes.ts |  | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/existing/one` | in existing-residents.routes.ts | max300s | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/existing/template` | in existing-residents.routes.ts |  | residents |
+| ☑ | PATCH | `/api/v1/hostel-admin/residents/fees` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/residents/intake-quote` | cap:registerResidents | etag | hostels, residents |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/residents/join-link` | in existing-residents.routes.ts |  | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/join-requests` | in existing-residents.routes.ts |  | residents |
+| ☑ | POST | `/api/v1/hostel-admin/residents/join-requests/:requestId` | in existing-residents.routes.ts | max300s | residents |
+| ☑ | GET | `/api/v1/hostel-admin/residents/leaving-today` | cap:registerResidents |  | hostels, move-checklist |
+| ☑ | GET | `/api/v1/hostel-admin/room-types` | cap:registerResidents | etag | hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/rooms` | requireHostelStaffPrincipal, cap:manageRooms | etag | hostels |
+| ☑ | DELETE PATCH | `/api/v1/hostel-admin/rooms/:roomId` | cap:manageRooms |  | hostels |
+| ☑ | GET | `/api/v1/hostel-admin/rooms/requests` | requireHostelStaffPrincipal | etag | hostels |
+| ☑ | POST | `/api/v1/hostel-admin/rooms/requests/:requestId` | cap:registerResidents |  | hostels |
+| ☑ | PUT | `/api/v1/hostel-admin/rooms/order` | requireHostelAdminPrincipal |  | hostels |
+| ☑ | PUT | `/api/v1/hostel-admin/rooms/tracking` | requireHostelAdminPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/hostel-admin/service-providers` | requireHostelStaffPrincipal | etag | service-providers |
+| ☑ | GET | `/api/v1/hostel-admin/service-providers/:id` | requireHostelStaffPrincipal | etag | service-providers |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/settings/community` | requireHostelAdminPrincipal | etag | community |
+| ☑ | GET | `/api/v1/hostel-admin/sos-alerts` | requireHostelStaffPrincipal | etag | safety |
+| ☑ | PATCH | `/api/v1/hostel-admin/sos-alerts/:id/status` | requireHostelStaffPrincipal |  | safety |
+| ☑ | GET POST | `/api/v1/hostel-admin/stock` | cap:manageStock | redis etag | stock |
+| ☑ | PUT | `/api/v1/hostel-admin/stock/cook` | requireHostelAdminPrincipal |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/entries/:id/approve` | cap:manageStock |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/entries/:id/cancel` | cap:manageStock |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/entries/:id/receive` | cap:manageStock |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/items` | cap:manageStock |  | stock |
+| ☑ | PATCH | `/api/v1/hostel-admin/stock/items/:id` | cap:manageStock |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/payments` | cap:manageStock |  | stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/payments/:id/cancel` | cap:manageStock |  | stock |
+| ☑ | GET | `/api/v1/hostel-admin/stock/report` | cap:manageStock | redis etag | reports, stock |
+| ☑ | POST | `/api/v1/hostel-admin/stock/suppliers` | cap:manageStock |  | stock |
+| ☑ | GET PATCH | `/api/v1/hostel-admin/stock/suppliers/:id` | cap:manageStock | etag | stock |
+| ☑ | GET | `/api/v1/hostel-admin/stock/usage` | cap:manageStock | redis etag | stock |
+| ☑ | GET | `/api/v1/hostel-admin/subscription` | requireHostelStaffPrincipal | redis etag | billing |
+| ☑ | GET POST | `/api/v1/hostel-admin/wardens` | requireHostelAdminPrincipal | etag | wardens |
+| ☑ | DELETE PATCH | `/api/v1/hostel-admin/wardens/:id` | requireHostelAdminPrincipal |  | wardens |
 
 ### `hostel-registration` (5)
 
@@ -626,16 +626,16 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/platform/account-deletions` | requirePlatformPrincipal, assertApiRoles | etag | users |
-| ☐ | POST | `/api/v1/platform/account-deletions/:id/review` | requirePlatformPrincipal, assertApiRoles |  | users |
-| ☐ | GET POST | `/api/v1/platform/admins` | requireSuperadminPrincipal | etag | users |
-| ☐ | DELETE PATCH | `/api/v1/platform/admins/:id` | requireSuperadminPrincipal |  | users |
-| ☐ | GET | `/api/v1/platform/admins/email-check` | requireSuperadminPrincipal | etag | users |
-| ☐ | GET POST | `/api/v1/platform/admins/invites` | requireSuperadminPrincipal | etag | users |
-| ☐ | DELETE | `/api/v1/platform/admins/invites/:id` | requireSuperadminPrincipal |  | users |
-| ☐ | POST | `/api/v1/platform/app-apk` | requireSuperadminPrincipal |  |  |
-| ☐ | GET | `/api/v1/platform/audit-logs` | requirePlatformPrincipal | etag | audit |
-| ☐ | GET | `/api/v1/platform/backup-status` | requireSuperadminPrincipal |  | backup |
+| ☑ | GET | `/api/v1/platform/account-deletions` | requirePlatformPrincipal, assertApiRoles | etag | users |
+| ☑ | POST | `/api/v1/platform/account-deletions/:id/review` | requirePlatformPrincipal, assertApiRoles |  | users |
+| ☑ | GET POST | `/api/v1/platform/admins` | requireSuperadminPrincipal | etag | users |
+| ☑ | DELETE PATCH | `/api/v1/platform/admins/:id` | requireSuperadminPrincipal |  | users |
+| ☑ | GET | `/api/v1/platform/admins/email-check` | requireSuperadminPrincipal | etag | users |
+| ☑ | GET POST | `/api/v1/platform/admins/invites` | requireSuperadminPrincipal | etag | users |
+| ☑ | DELETE | `/api/v1/platform/admins/invites/:id` | requireSuperadminPrincipal |  | users |
+| ☑ | POST | `/api/v1/platform/app-apk` | requireSuperadminPrincipal |  |  |
+| ☑ | GET | `/api/v1/platform/audit-logs` | requirePlatformPrincipal | etag | audit |
+| ☑ | GET | `/api/v1/platform/backup-status` | requireSuperadminPrincipal |  | backup |
 | ☑ | GET | `/api/v1/platform/bookings` | requireSuperadminPrincipal | etag | bookings |
 | ☑ | DELETE GET | `/api/v1/platform/bookings/:id` | requireSuperadminPrincipal | etag | bookings |
 | ☑ | GET | `/api/v1/platform/bookings/documents/:kind/:number` | requirePlatformPrincipal |  | bookings |
@@ -648,90 +648,90 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET POST | `/api/v1/platform/bookings/settings` | requireSuperadminPrincipal | etag | bookings, platform-config |
 | ☑ | GET | `/api/v1/platform/bookings/transfers` | requireSuperadminPrincipal | etag | bookings |
 | ☑ | POST | `/api/v1/platform/bookings/transfers/:id/:action` | requireSuperadminPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/platform/community` | requirePlatformPrincipal | etag | community |
-| ☐ | DELETE PATCH | `/api/v1/platform/community/:postId/hide` | requirePlatformPrincipal |  | community |
-| ☐ | GET | `/api/v1/platform/complaints` | requirePlatformPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/platform/feedback` | requirePlatformPrincipal | etag | feedback |
-| ☐ | PATCH | `/api/v1/platform/feedback/:id` | requirePlatformPrincipal |  | feedback |
-| ☐ | GET | `/api/v1/platform/hostel-leaves` | requireSuperadminPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/platform/hostel-leaves/:id` | requireSuperadminPrincipal |  | hostels |
-| ☐ | POST | `/api/v1/platform/hostel-leaves/:id/approve` | requireSuperadminPrincipal | max60s | hostels |
-| ☐ | POST | `/api/v1/platform/hostel-leaves/:id/reject` | requireSuperadminPrincipal |  | hostels |
-| ☐ | GET PUT | `/api/v1/platform/hostel-referrals` | requireSuperadminPrincipal | etag | hostel-referrals |
-| ☐ | PATCH | `/api/v1/platform/hostel-referrals/:referralId` | requireSuperadminPrincipal |  | hostel-referrals |
-| ☐ | POST | `/api/v1/platform/hostel-referrals/codes` | requireSuperadminPrincipal |  | hostel-referrals |
-| ☐ | PATCH | `/api/v1/platform/hostel-referrals/codes/:codeId` | requireSuperadminPrincipal |  | hostel-referrals |
-| ☐ | GET POST | `/api/v1/platform/hostels` | requirePlatformPrincipal | etag | hostels |
-| ☐ | DELETE GET | `/api/v1/platform/hostels/:id` | requirePlatformPrincipal, requireSuperadminPrincipal | etag | hostels |
-| ☐ | GET | `/api/v1/platform/hostels/:id/agreement` | requireSuperadminPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/approve` | requirePlatformPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/archive` | requireSuperadminPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/owner-email` | requireSuperadminPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/owner-invite` | requireSuperadminPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/publish` | requirePlatformPrincipal |  | hostels |
-| ☐ | POST | `/api/v1/platform/hostels/:id/recharge` | requireSuperadminPrincipal |  | billing, hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/reject` | requirePlatformPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/request-documents` | requirePlatformPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/restore` | requireSuperadminPrincipal |  | hostels |
-| ☐ | POST | `/api/v1/platform/hostels/:id/run-duplicate-check` | requirePlatformPrincipal |  | listing-flags |
-| ☐ | DELETE PATCH | `/api/v1/platform/hostels/:id/suspend` | requireSuperadminPrincipal |  | hostels |
-| ☐ | PATCH | `/api/v1/platform/hostels/:id/unpublish` | requirePlatformPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/platform/listing-flags` | requirePlatformPrincipal | etag | listing-flags |
-| ☐ | PATCH | `/api/v1/platform/listing-flags/:id/resolve` | requirePlatformPrincipal |  | listing-flags |
-| ☐ | GET POST | `/api/v1/platform/notifications` | requirePlatformPrincipal, requireSuperadminPrincipal | etag | notifications |
-| ☐ | GET | `/api/v1/platform/offer-program` | requireSuperadminPrincipal | etag | offer-program |
-| ☐ | POST | `/api/v1/platform/offer-program/awards` | requireSuperadminPrincipal |  | offer-program |
-| ☐ | PATCH | `/api/v1/platform/offer-program/awards/:awardId` | requireSuperadminPrincipal |  | offer-program |
-| ☐ | POST | `/api/v1/platform/offer-program/perks` | requireSuperadminPrincipal |  | offer-program |
-| ☐ | DELETE PATCH | `/api/v1/platform/offer-program/perks/:perkId` | requireSuperadminPrincipal |  | offer-program |
-| ☐ | GET PUT | `/api/v1/platform/operations-config` | requireSuperadminPrincipal | etag | platform-config |
-| ☐ | GET | `/api/v1/platform/payments` | requirePlatformPrincipal | etag | reports |
-| ☐ | GET POST | `/api/v1/platform/push` | requireSuperadminPrincipal | etag | notifications |
-| ☐ | PATCH | `/api/v1/platform/push/schedules/:id` | requireSuperadminPrincipal |  | notifications |
-| ☐ | GET | `/api/v1/platform/questioncall/analytics` | requireSuperadminPrincipal, requirePlatformPrincipal | etag | questioncall |
-| ☐ | GET | `/api/v1/platform/reports/dashboard` | requirePlatformPrincipal | etag | reports |
-| ☐ | GET | `/api/v1/platform/reports/export` | requireSuperadminPrincipal |  | reports |
-| ☐ | GET | `/api/v1/platform/reviews` | requirePlatformPrincipal | etag | reviews |
-| ☐ | PATCH | `/api/v1/platform/reviews/:id/hide` | requirePlatformPrincipal |  | reviews |
-| ☐ | PATCH | `/api/v1/platform/reviews/:id/unhide` | requirePlatformPrincipal |  | reviews |
-| ☐ | GET | `/api/v1/platform/service-providers` | requirePlatformPrincipal | etag | service-providers |
-| ☐ | GET | `/api/v1/platform/service-providers/:id` | requirePlatformPrincipal | etag | service-providers |
-| ☐ | PATCH | `/api/v1/platform/service-providers/:id/approve` | requirePlatformPrincipal |  | service-providers |
-| ☐ | PATCH | `/api/v1/platform/service-providers/:id/hide` | requirePlatformPrincipal |  | service-providers |
-| ☐ | PATCH | `/api/v1/platform/service-providers/:id/reject` | requirePlatformPrincipal |  | service-providers |
-| ☐ | DELETE | `/api/v1/platform/setting-changes/:id` | requireSuperadminPrincipal |  | platform-config |
-| ☐ | GET POST | `/api/v1/platform/setting-changes/confirm` | requireSuperadminPrincipal | etag | platform-config |
-| ☐ | GET | `/api/v1/platform/site-config` | requireSuperadminPrincipal | etag | platform-config |
-| ☐ | PUT | `/api/v1/platform/site-config/:section` | requireSuperadminPrincipal |  | platform-config |
-| ☐ | GET POST | `/api/v1/platform/sponsors` | requireSuperadminPrincipal | etag | sponsors |
-| ☐ | DELETE PATCH | `/api/v1/platform/sponsors/:sponsorId` | requireSuperadminPrincipal |  | sponsors |
-| ☐ | GET POST | `/api/v1/platform/store/categories` | requireSuperadminPrincipal | etag | store |
-| ☐ | DELETE PATCH | `/api/v1/platform/store/categories/:categoryId` | requireSuperadminPrincipal |  | store |
-| ☐ | GET PATCH | `/api/v1/platform/store/config` | requireSuperadminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/platform/store/orders` | requireSuperadminPrincipal | etag | store |
-| ☐ | PATCH | `/api/v1/platform/store/orders/:orderId/status` | requireSuperadminPrincipal |  | store |
-| ☐ | GET POST | `/api/v1/platform/store/products` | requireSuperadminPrincipal | etag | store |
-| ☐ | DELETE PATCH | `/api/v1/platform/store/products/:productId` | requireSuperadminPrincipal |  | store |
-| ☐ | GET | `/api/v1/platform/store/summary` | requireSuperadminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/platform/subscriptions` | requirePlatformPrincipal | etag | billing |
-| ☐ | GET | `/api/v1/platform/subscriptions/cash` | requirePlatformPrincipal | etag | billing |
-| ☐ | POST | `/api/v1/platform/subscriptions/cash/:id/check` | requirePlatformPrincipal |  | billing |
-| ☐ | GET | `/api/v1/platform/subscriptions/claims` | requirePlatformPrincipal | etag | billing |
-| ☐ | POST | `/api/v1/platform/subscriptions/claims/:paymentId/review` | requirePlatformPrincipal |  | billing |
-| ☐ | GET | `/api/v1/platform/subscriptions/documents/:kind/:number` | requirePlatformPrincipal |  | billing |
-| ☐ | GET | `/api/v1/platform/team` | requireSuperadminPrincipal | etag | team |
+| ☑ | GET | `/api/v1/platform/community` | requirePlatformPrincipal | etag | community |
+| ☑ | DELETE PATCH | `/api/v1/platform/community/:postId/hide` | requirePlatformPrincipal |  | community |
+| ☑ | GET | `/api/v1/platform/complaints` | requirePlatformPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/platform/feedback` | requirePlatformPrincipal | etag | feedback |
+| ☑ | PATCH | `/api/v1/platform/feedback/:id` | requirePlatformPrincipal |  | feedback |
+| ☑ | GET | `/api/v1/platform/hostel-leaves` | requireSuperadminPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/platform/hostel-leaves/:id` | requireSuperadminPrincipal |  | hostels |
+| ☑ | POST | `/api/v1/platform/hostel-leaves/:id/approve` | requireSuperadminPrincipal | max60s | hostels |
+| ☑ | POST | `/api/v1/platform/hostel-leaves/:id/reject` | requireSuperadminPrincipal |  | hostels |
+| ☑ | GET PUT | `/api/v1/platform/hostel-referrals` | requireSuperadminPrincipal | etag | hostel-referrals |
+| ☑ | PATCH | `/api/v1/platform/hostel-referrals/:referralId` | requireSuperadminPrincipal |  | hostel-referrals |
+| ☑ | POST | `/api/v1/platform/hostel-referrals/codes` | requireSuperadminPrincipal |  | hostel-referrals |
+| ☑ | PATCH | `/api/v1/platform/hostel-referrals/codes/:codeId` | requireSuperadminPrincipal |  | hostel-referrals |
+| ☑ | GET POST | `/api/v1/platform/hostels` | requirePlatformPrincipal | etag | hostels |
+| ☑ | DELETE GET | `/api/v1/platform/hostels/:id` | requirePlatformPrincipal, requireSuperadminPrincipal | etag | hostels |
+| ☑ | GET | `/api/v1/platform/hostels/:id/agreement` | requireSuperadminPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/approve` | requirePlatformPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/archive` | requireSuperadminPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/owner-email` | requireSuperadminPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/owner-invite` | requireSuperadminPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/publish` | requirePlatformPrincipal |  | hostels |
+| ☑ | POST | `/api/v1/platform/hostels/:id/recharge` | requireSuperadminPrincipal |  | billing, hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/reject` | requirePlatformPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/request-documents` | requirePlatformPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/restore` | requireSuperadminPrincipal |  | hostels |
+| ☑ | POST | `/api/v1/platform/hostels/:id/run-duplicate-check` | requirePlatformPrincipal |  | listing-flags |
+| ☑ | DELETE PATCH | `/api/v1/platform/hostels/:id/suspend` | requireSuperadminPrincipal |  | hostels |
+| ☑ | PATCH | `/api/v1/platform/hostels/:id/unpublish` | requirePlatformPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/platform/listing-flags` | requirePlatformPrincipal | etag | listing-flags |
+| ☑ | PATCH | `/api/v1/platform/listing-flags/:id/resolve` | requirePlatformPrincipal |  | listing-flags |
+| ☑ | GET POST | `/api/v1/platform/notifications` | requirePlatformPrincipal, requireSuperadminPrincipal | etag | notifications |
+| ☑ | GET | `/api/v1/platform/offer-program` | requireSuperadminPrincipal | etag | offer-program |
+| ☑ | POST | `/api/v1/platform/offer-program/awards` | requireSuperadminPrincipal |  | offer-program |
+| ☑ | PATCH | `/api/v1/platform/offer-program/awards/:awardId` | requireSuperadminPrincipal |  | offer-program |
+| ☑ | POST | `/api/v1/platform/offer-program/perks` | requireSuperadminPrincipal |  | offer-program |
+| ☑ | DELETE PATCH | `/api/v1/platform/offer-program/perks/:perkId` | requireSuperadminPrincipal |  | offer-program |
+| ☑ | GET PUT | `/api/v1/platform/operations-config` | requireSuperadminPrincipal | etag | platform-config |
+| ☑ | GET | `/api/v1/platform/payments` | requirePlatformPrincipal | etag | reports |
+| ☑ | GET POST | `/api/v1/platform/push` | requireSuperadminPrincipal | etag | notifications |
+| ☑ | PATCH | `/api/v1/platform/push/schedules/:id` | requireSuperadminPrincipal |  | notifications |
+| ☑ | GET | `/api/v1/platform/questioncall/analytics` | requireSuperadminPrincipal, requirePlatformPrincipal | etag | questioncall |
+| ☑ | GET | `/api/v1/platform/reports/dashboard` | requirePlatformPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/platform/reports/export` | requireSuperadminPrincipal |  | reports |
+| ☑ | GET | `/api/v1/platform/reviews` | requirePlatformPrincipal | etag | reviews |
+| ☑ | PATCH | `/api/v1/platform/reviews/:id/hide` | requirePlatformPrincipal |  | reviews |
+| ☑ | PATCH | `/api/v1/platform/reviews/:id/unhide` | requirePlatformPrincipal |  | reviews |
+| ☑ | GET | `/api/v1/platform/service-providers` | requirePlatformPrincipal | etag | service-providers |
+| ☑ | GET | `/api/v1/platform/service-providers/:id` | requirePlatformPrincipal | etag | service-providers |
+| ☑ | PATCH | `/api/v1/platform/service-providers/:id/approve` | requirePlatformPrincipal |  | service-providers |
+| ☑ | PATCH | `/api/v1/platform/service-providers/:id/hide` | requirePlatformPrincipal |  | service-providers |
+| ☑ | PATCH | `/api/v1/platform/service-providers/:id/reject` | requirePlatformPrincipal |  | service-providers |
+| ☑ | DELETE | `/api/v1/platform/setting-changes/:id` | requireSuperadminPrincipal |  | platform-config |
+| ☑ | GET POST | `/api/v1/platform/setting-changes/confirm` | requireSuperadminPrincipal | etag | platform-config |
+| ☑ | GET | `/api/v1/platform/site-config` | requireSuperadminPrincipal | etag | platform-config |
+| ☑ | PUT | `/api/v1/platform/site-config/:section` | requireSuperadminPrincipal |  | platform-config |
+| ☑ | GET POST | `/api/v1/platform/sponsors` | requireSuperadminPrincipal | etag | sponsors |
+| ☑ | DELETE PATCH | `/api/v1/platform/sponsors/:sponsorId` | requireSuperadminPrincipal |  | sponsors |
+| ☑ | GET POST | `/api/v1/platform/store/categories` | requireSuperadminPrincipal | etag | store |
+| ☑ | DELETE PATCH | `/api/v1/platform/store/categories/:categoryId` | requireSuperadminPrincipal |  | store |
+| ☑ | GET PATCH | `/api/v1/platform/store/config` | requireSuperadminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/platform/store/orders` | requireSuperadminPrincipal | etag | store |
+| ☑ | PATCH | `/api/v1/platform/store/orders/:orderId/status` | requireSuperadminPrincipal |  | store |
+| ☑ | GET POST | `/api/v1/platform/store/products` | requireSuperadminPrincipal | etag | store |
+| ☑ | DELETE PATCH | `/api/v1/platform/store/products/:productId` | requireSuperadminPrincipal |  | store |
+| ☑ | GET | `/api/v1/platform/store/summary` | requireSuperadminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/platform/subscriptions` | requirePlatformPrincipal | etag | billing |
+| ☑ | GET | `/api/v1/platform/subscriptions/cash` | requirePlatformPrincipal | etag | billing |
+| ☑ | POST | `/api/v1/platform/subscriptions/cash/:id/check` | requirePlatformPrincipal |  | billing |
+| ☑ | GET | `/api/v1/platform/subscriptions/claims` | requirePlatformPrincipal | etag | billing |
+| ☑ | POST | `/api/v1/platform/subscriptions/claims/:paymentId/review` | requirePlatformPrincipal |  | billing |
+| ☑ | GET | `/api/v1/platform/subscriptions/documents/:kind/:number` | requirePlatformPrincipal |  | billing |
+| ☑ | GET | `/api/v1/platform/team` | requireSuperadminPrincipal | etag | team |
 | ☑ | DELETE PATCH | `/api/v1/platform/team/members/:id` | requireSuperadminPrincipal |  | team |
-| ☐ | GET | `/api/v1/platform/team/wallets` | requireSuperadminPrincipal | etag | team |
-| ☐ | POST | `/api/v1/platform/team/wallets/:agentId` | requireSuperadminPrincipal |  | team |
-| ☐ | GET | `/api/v1/platform/usage` | requireSuperadminPrincipal |  | usage |
-| ☐ | GET | `/api/v1/platform/users` | requirePlatformPrincipal | etag | reports |
+| ☑ | GET | `/api/v1/platform/team/wallets` | requireSuperadminPrincipal | etag | team |
+| ☑ | POST | `/api/v1/platform/team/wallets/:agentId` | requireSuperadminPrincipal |  | team |
+| ☑ | GET | `/api/v1/platform/usage` | requireSuperadminPrincipal |  | usage |
+| ☑ | GET | `/api/v1/platform/users` | requirePlatformPrincipal | etag | reports |
 
 ### `platform-admin` (2)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/platform-admin/accept-invitation` | public |  | users |
-| ☐ | GET | `/api/v1/platform-admin/invitation` | public | etag | users |
+| ☑ | POST | `/api/v1/platform-admin/accept-invitation` | public |  | users |
+| ☑ | GET | `/api/v1/platform-admin/invitation` | public | etag | users |
 
 ### `public` (32)
 
@@ -835,39 +835,39 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
 | ☐ | DELETE GET | `/api/v1/store/cart` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/cart/count` | requireHostelAdminPrincipal | etag | store |
-| ☐ | POST | `/api/v1/store/cart/items` | requireHostelAdminPrincipal |  | store |
+| ☑ | GET | `/api/v1/store/cart/count` | requireHostelAdminPrincipal | etag | store |
+| ☑ | POST | `/api/v1/store/cart/items` | requireHostelAdminPrincipal |  | store |
 | ☐ | DELETE PATCH | `/api/v1/store/cart/items/:productId` | requireHostelAdminPrincipal |  | store |
-| ☐ | GET | `/api/v1/store/categories` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/checkout` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/home` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET POST | `/api/v1/store/orders` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/orders/:orderId` | requireHostelAdminPrincipal | etag | store |
-| ☐ | POST | `/api/v1/store/orders/:orderId/cancel` | requireHostelAdminPrincipal |  | store |
-| ☐ | GET | `/api/v1/store/products` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/products/:handle` | requireHostelAdminPrincipal | etag | store |
-| ☐ | GET | `/api/v1/store/shelves` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/categories` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/checkout` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/home` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET POST | `/api/v1/store/orders` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/orders/:orderId` | requireHostelAdminPrincipal | etag | store |
+| ☑ | POST | `/api/v1/store/orders/:orderId/cancel` | requireHostelAdminPrincipal |  | store |
+| ☑ | GET | `/api/v1/store/products` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/products/:handle` | requireHostelAdminPrincipal | etag | store |
+| ☑ | GET | `/api/v1/store/shelves` | requireHostelAdminPrincipal | etag | store |
 
 ### `team` (16)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/team/collection-qr` | requireTeamPrincipal | etag | platform-config |
-| ☐ | GET | `/api/v1/team/email-check` | requireTeamPrincipal | etag | hostels |
+| ☑ | GET | `/api/v1/team/collection-qr` | requireTeamPrincipal | etag | platform-config |
+| ☑ | GET | `/api/v1/team/email-check` | requireTeamPrincipal | etag | hostels |
 | ☐ | GET | `/api/v1/team/geocode` | requireTeamPrincipal | etag | hostels |
 | ☑ | GET POST | `/api/v1/team/hostels` | requireTeamPrincipal | etag | hostels, team |
 | ☑ | POST | `/api/v1/team/hostels/:id/checkout` | requireTeamPrincipal |  | billing, team |
 | ☐ | DELETE GET PUT | `/api/v1/team/hostels/:id/existing-residents` | in existing-residents.routes.ts |  | residents |
 | ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/add` | in existing-residents.routes.ts | max300s | residents |
 | ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/file` | in existing-residents.routes.ts |  | residents |
-| ☐ | GET | `/api/v1/team/hostels/:id/existing-residents/template` | in existing-residents.routes.ts |  | residents |
+| ☑ | GET | `/api/v1/team/hostels/:id/existing-residents/template` | in existing-residents.routes.ts |  | residents |
 | ☑ | GET POST | `/api/v1/team/prepayments` | requireTeamPrincipal | etag | hostels, team |
 | ☑ | GET PATCH | `/api/v1/team/prepayments/:id` | requireTeamPrincipal | etag | team |
-| ☐ | GET PUT | `/api/v1/team/registration-track-sheet` | requireTeamPrincipal | etag | team |
-| ☐ | POST | `/api/v1/team/registration-track-sheet/focus` | requireTeamPrincipal |  |  |
-| ☐ | GET | `/api/v1/team/setup-fee` | requireTeamPrincipal | etag | platform-config |
-| ☐ | GET | `/api/v1/team/summary` | requireTeamPrincipal | etag | team |
-| ☐ | GET | `/api/v1/team/wallet` | requireTeamPrincipal | etag | team |
+| ☑ | GET PUT | `/api/v1/team/registration-track-sheet` | requireTeamPrincipal | etag | team |
+| ☑ | POST | `/api/v1/team/registration-track-sheet/focus` | requireTeamPrincipal |  |  |
+| ☑ | GET | `/api/v1/team/setup-fee` | requireTeamPrincipal | etag | platform-config |
+| ☑ | GET | `/api/v1/team/summary` | requireTeamPrincipal | etag | team |
+| ☑ | GET | `/api/v1/team/wallet` | requireTeamPrincipal | etag | team |
 
 ### `usage` (1)
 
@@ -880,16 +880,16 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
 | ☑ | GET | `/api/v1/users/:userId/avatar` | requireApiPrincipal |  | users |
-| ☐ | GET POST | `/api/v1/users/account-deletion` | requireApiPrincipal | etag | users |
-| ☐ | GET POST | `/api/v1/users/expert-consultation-requests` | requireApiPrincipal | etag | expert-consultation |
+| ☑ | GET POST | `/api/v1/users/account-deletion` | requireApiPrincipal | etag | users |
+| ☑ | GET POST | `/api/v1/users/expert-consultation-requests` | requireApiPrincipal | etag | expert-consultation |
 | ☑ | GET PATCH PUT | `/api/v1/users/resident-identity` | requireApiPrincipal | etag | users |
 | ☑ | GET | `/api/v1/users/resident-identity/email-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
 | ☑ | GET | `/api/v1/users/resident-identity/phone-check` | rateLimitPublicForm, requireApiPrincipal | etag | users |
 | ☑ | DELETE GET PUT | `/api/v1/users/resident-identity/photo` | requireApiPrincipal |  | users |
 | ☑ | GET | `/api/v1/users/resident-identity/qr` | requireApiPrincipal | etag | users |
 | ☑ | GET | `/api/v1/users/resident-identity/signature` | requireApiPrincipal |  | users |
-| ☐ | GET POST | `/api/v1/users/temporary-credentials` | requireApiPrincipal, assertPrimaryCredentialPrincipal, rateLimitAuthAttempts | etag | auth |
-| ☐ | DELETE | `/api/v1/users/temporary-credentials/:id` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
+| ☑ | GET POST | `/api/v1/users/temporary-credentials` | requireApiPrincipal, assertPrimaryCredentialPrincipal, rateLimitAuthAttempts | etag | auth |
+| ☑ | DELETE | `/api/v1/users/temporary-credentials/:id` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
 
 ### `webhooks` (2)
 
