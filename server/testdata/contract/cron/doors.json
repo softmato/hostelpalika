@@ -1,0 +1,939 @@
+[
+  {
+    "name": "platform-push no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/platform-push"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "platform-push wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/platform-push",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-expiry-sweep no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-expiry-sweep"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-expiry-sweep wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-expiry-sweep",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "notification-dispatch no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/notification-dispatch"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "notification-dispatch wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/notification-dispatch",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "meal-call-reminders no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/meal-call-reminders"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "meal-call-reminders wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/meal-call-reminders",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "night-status-prompt no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/night-status-prompt"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "night-status-prompt wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/night-status-prompt",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "push-receipts no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/push-receipts"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "push-receipts wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/push-receipts",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "refresh-nearby-places no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/refresh-nearby-places"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "refresh-nearby-places wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/refresh-nearby-places",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "customer-backup no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/customer-backup"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "customer-backup wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/customer-backup",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "billing-cycle no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/billing-cycle"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "billing-cycle wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/billing-cycle",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "payment-reminders no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/payment-reminders"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "payment-reminders wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/payment-reminders",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "purge-expired-otps no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/purge-expired-otps"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "purge-expired-otps wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/purge-expired-otps",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "account-purge no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/account-purge"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "account-purge wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/account-purge",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "hostel-purge no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/hostel-purge"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "hostel-purge wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/hostel-purge",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "ledger-drift no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/ledger-drift"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "ledger-drift wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/ledger-drift",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "complaint-sla no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/complaint-sla"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "complaint-sla wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/complaint-sla",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "attendance-maintenance no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/attendance-maintenance"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "attendance-maintenance wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/attendance-maintenance",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-health no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-health"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-health wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-health",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-settlement-recon no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-settlement-recon"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "gateway-settlement-recon wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/gateway-settlement-recon",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "platform-backup no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/platform-backup"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "platform-backup wrong secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/platform-backup",
+      "headers": {
+        "x-cron-secret": "wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "purge-expired-otps bearer wrong",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/purge-expired-otps",
+      "headers": {
+        "authorization": "Bearer wrong-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Unauthorized",
+        "errorCode": "UNAUTHORIZED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "purge-expired-otps run",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/purge-expired-otps",
+      "headers": {
+        "x-cron-secret": "contract-cron-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expired OTP challenges purged",
+        "data": {
+          "deleted": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "purge-expired-otps run bearer",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/purge-expired-otps",
+      "headers": {
+        "authorization": "Bearer contract-cron-secret"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expired OTP challenges purged",
+        "data": {
+          "deleted": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "platform-backup invalid body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cron/platform-backup",
+      "headers": {
+        "x-cron-secret": "contract-cron-secret"
+      },
+      "body": {
+        "mode": "nonsense"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "kind": [
+              "Invalid option: expected one of \"BACKUP\"|\"DRILL\""
+            ],
+            "manifest": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"BACKUP\"|\"DRILL\"",
+              "path": "kind"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "manifest"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

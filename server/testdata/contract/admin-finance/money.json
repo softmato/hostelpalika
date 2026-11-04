@@ -1,0 +1,1399 @@
+[
+  {
+    "name": "queue signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "queue resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "queue bad status",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events?status=NOPE",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"PENDING\"|\"SETTLED\"|\"REJECTED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PENDING\"|\"SETTLED\"|\"REJECTED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "queue pending",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims",
+        "data": {
+          "events": [
+            {
+              "allGreen": false,
+              "amount": 500,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Claimed 500 against 1000 outstanding",
+                  "key": "AMOUNT",
+                  "ok": false
+                },
+                {
+                  "detail": "Invoice is OPEN",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-A",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6d1000000000000000000028",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000014",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "PENDING",
+              "transactionCode": "FIN-T40"
+            },
+            {
+              "allGreen": false,
+              "amount": 500,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Matches the amount outstanding",
+                  "key": "AMOUNT",
+                  "ok": true
+                },
+                {
+                  "detail": "Invoice is OPEN",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-B",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6d1000000000000000000029",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000015",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "PENDING",
+              "transactionCode": "FIN-T41"
+            },
+            {
+              "allGreen": false,
+              "amount": 300,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Claimed 300 against 800 outstanding",
+                  "key": "AMOUNT",
+                  "ok": false
+                },
+                {
+                  "detail": "Invoice is OPEN",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-C",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6d100000000000000000002a",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000016",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "PENDING",
+              "transactionCode": "FIN-T42"
+            },
+            {
+              "allGreen": false,
+              "amount": 200,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Claimed 200 against 800 outstanding",
+                  "key": "AMOUNT",
+                  "ok": false
+                },
+                {
+                  "detail": "Invoice is OPEN",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-C",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6d100000000000000000002b",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000016",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "PENDING",
+              "transactionCode": "FIN-T43"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "approve bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/nope/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment claim was not found.",
+        "errorCode": "CLAIM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "approve unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d10000000000000000000ee/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment claim was not found.",
+        "errorCode": "CLAIM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "approve",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000028/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates",
+      "data.receiptNumber"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment verified",
+        "data": {
+          "eventId": "6d1000000000000000000028",
+          "receiptNumber": "RCP-2083-07-00001",
+          "settledAmount": 500
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "approve again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000028/approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This claim has already been reviewed.",
+        "errorCode": "CLAIM_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reject no reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000029/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rejectionReason": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "rejectionReason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reject short reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000029/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "rejectionReason": "no"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rejectionReason": [
+              "Too small: expected string to have >=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=3 characters",
+              "path": "rejectionReason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reject",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000029/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "rejectionReason": "Screenshot is blurry"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment proof rejected",
+        "data": {
+          "eventId": "6d1000000000000000000029",
+          "status": "REJECTED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reject again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000029/reject",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "rejectionReason": "Screenshot is blurry"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This claim has already been reviewed.",
+        "errorCode": "CLAIM_ALREADY_REVIEWED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "bulk empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/bulk-approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "eventIds": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "eventIds": [
+              "Too small: expected array to have >=1 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected array to have >=1 items",
+              "path": "eventIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "bulk",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/bulk-approve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "eventIds": [
+          "6d100000000000000000002a",
+          "6d100000000000000000002b",
+          "6d10000000000000000000ee"
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Approved 0 claim(s), 3 left for review",
+        "data": {
+          "approved": [],
+          "skipped": [
+            {
+              "eventId": "6d100000000000000000002a",
+              "reason": "No screenshot attached"
+            },
+            {
+              "eventId": "6d100000000000000000002b",
+              "reason": "No screenshot attached"
+            },
+            {
+              "eventId": "6d10000000000000000000ee",
+              "reason": "No longer awaiting review."
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "queue settled",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events?status=SETTLED",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims",
+        "data": {
+          "events": [
+            {
+              "allGreen": false,
+              "amount": 500,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Matches the amount outstanding",
+                  "key": "AMOUNT",
+                  "ok": true
+                },
+                {
+                  "detail": "Invoice is OVERDUE",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-A",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "MANUAL_REVIEW",
+              "eventId": "6d1000000000000000000028",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000014",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "SETTLED",
+              "transactionCode": "FIN-T40"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "queue rejected",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/events?status=REJECTED",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment claims",
+        "data": {
+          "events": [
+            {
+              "allGreen": false,
+              "amount": 500,
+              "checks": [
+                {
+                  "detail": "No screenshot attached",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Matches the amount outstanding",
+                  "key": "AMOUNT",
+                  "ok": true
+                },
+                {
+                  "detail": "Invoice is OPEN",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote FIN-B",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6d1000000000000000000029",
+              "evidenceAssetId": null,
+              "evidenceMimeType": null,
+              "invoiceId": "6d1000000000000000000015",
+              "method": "ESEWA",
+              "occurredAt": "2026-09-01T06:00:00.000Z",
+              "period": "2083-05",
+              "referenceNote": null,
+              "rejectionReason": "Screenshot is blurry",
+              "residentId": "6d100000000000000000000a",
+              "residentName": "Asha Finance",
+              "reviewFlags": [],
+              "status": "REJECTED",
+              "transactionCode": "FIN-T41"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reverse short reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000028/reverse",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have >=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reverse pending",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d10000000000000000000ee/reverse",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Bounced transfer"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment event was not found.",
+        "errorCode": "EVENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reverse",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000028/reverse",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Bounced transfer"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment reversed",
+        "data": {
+          "balance": {
+            "invoiceId": "6d1000000000000000000014",
+            "outstanding": 1000,
+            "settledAmount": 0,
+            "status": "OVERDUE",
+            "totalAmount": 1000
+          },
+          "reversalId": "6aeb2c1237ebc2e9fc47de3f"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "reverse again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d1000000000000000000028/reverse",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Bounced transfer"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment reversed",
+        "data": {
+          "balance": {
+            "invoiceId": "6d1000000000000000000014",
+            "outstanding": 1000,
+            "settledAmount": 0,
+            "status": "OVERDUE",
+            "totalAmount": 1000
+          },
+          "reversalId": "6aeb2c1237ebc2e9fc47de3f"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 600,
+        "cashReceiptNumber": "PB-1",
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash bad amount",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 12.5,
+        "cashReceiptNumber": "PB-1",
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Invalid input: expected int, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash missing receipt",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 600,
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cashReceiptNumber": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "cashReceiptNumber"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash unknown invoice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d10000000000000000000ee/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 600,
+        "cashReceiptNumber": "PB-1",
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 600,
+        "cashReceiptNumber": "PB-1",
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.receipt.receiptNumber"
+    ],
+    "capture": {
+      "rcp": "data.receipt._id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash recorded",
+        "data": {
+          "balance": {
+            "invoiceId": "6d1000000000000000000017",
+            "outstanding": 0,
+            "settledAmount": 600,
+            "status": "PAID",
+            "totalAmount": 600
+          },
+          "eventId": "6aeb2c1337ebc2e9fc47de42",
+          "pendingApproval": false,
+          "receipt": {
+            "hostelId": "6d1000000000000000000002",
+            "residentId": "6d100000000000000000000a",
+            "eventId": "6aeb2c1337ebc2e9fc47de42",
+            "invoiceId": "6d1000000000000000000017",
+            "paymentId": null,
+            "month": null,
+            "receiptNumber": "RCP-2083-07-00002",
+            "issuedAt": "2026-11-04T12:58:59.271Z",
+            "issuedBy": "6c0000000000000000000005",
+            "amount": 600,
+            "certificationCode": null,
+            "certifiedAt": null,
+            "voidedAt": null,
+            "voidedBy": null,
+            "voidReason": null,
+            "replacedByReceiptId": null,
+            "_id": "6aeb2c1337ebc2e9fc47de43",
+            "createdAt": "2026-11-04T12:58:59.567Z",
+            "__v": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cash same receipt",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/cash",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "amount": 600,
+        "cashReceiptNumber": "PB-1",
+        "collectedBy": "Warden Ram"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.receipt.receiptNumber"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cash recorded",
+        "data": {
+          "balance": null,
+          "eventId": "6aeb2c1337ebc2e9fc47de42",
+          "pendingApproval": false,
+          "receipt": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "receipt pdf",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/receipts/{{rcp}}/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "void short reason",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000018/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have >=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have >=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "void",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000018/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Billed by mistake"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoice voided",
+        "data": {
+          "invoiceId": "6d1000000000000000000018",
+          "status": "VOID"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "void again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000018/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Billed by mistake"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoice voided",
+        "data": {
+          "invoiceId": "6d1000000000000000000018",
+          "status": "VOID"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "void paid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d1000000000000000000017/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      },
+      "body": {
+        "reason": "Billed by mistake"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invoice has settled payments. Reverse them before voiding it.",
+        "errorCode": "INVOICE_HAS_SETTLED_PAYMENTS"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "receipt pdf bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/receipts/nope/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "receipt pdf unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/receipts/6d10000000000000000000ee/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Receipt was not found.",
+        "errorCode": "RECEIPT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "receipt pdf resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/receipts/6d10000000000000000000ee/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d1000000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

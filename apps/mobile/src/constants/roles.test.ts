@@ -48,10 +48,10 @@ describe("resolveHome", () => {
     expect(resolveHome({ role: ROLE.HOSTEL_ADMIN })).toBe("/(admin)");
   });
 
-  it("gives platform staff the browsing app, not an admin surface", () => {
-    // Platform administration is web-only by design (PHASES.md §6.1). A
-    // superadmin on a phone is just a person browsing hostels.
-    expect(resolveHome({ role: ROLE.SUPERADMIN })).toBe("/(browse)");
+  it("gives the superadmin the platform shell and a moderator the browsing app", () => {
+    // Owner, 2026-11-03: superadmin screens in the app. Moderators have no
+    // native screen yet, so they browse.
+    expect(resolveHome({ role: ROLE.SUPERADMIN })).toBe("/(platform)");
     expect(resolveHome({ role: ROLE.PLATFORM_MODERATOR })).toBe("/(browse)");
   });
 

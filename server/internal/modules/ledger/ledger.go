@@ -140,6 +140,18 @@ func (e *Engine) AppendEvent(ctx context.Context, in AppendInput) (event *Event,
 	if raw == nil {
 		raw = bson.D{}
 	}
+	// The key is looked up first (P7-44): the unique index is only the race guard, so a
+	// database still missing it never credits the same paper slip or callback twice.
+	if in.IdempotencyKey != "" {
+		existing := &Event{}
+		err = e.DB.Collection("paymentevents").FindOne(ctx, bson.D{{Key: "idempotencyKey", Value: in.IdempotencyKey}}).Decode(existing)
+		if err == nil {
+			return existing, false, nil
+		}
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, false, err
+		}
+	}
 	id := bson.NewObjectID()
 	_, err = e.DB.Collection("paymentevents").InsertOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "hostelId", Value: in.HostelID}, {Key: "invoiceId", Value: idOrNil(in.InvoiceID)},
 		{Key: "residentId", Value: idOrNil(in.ResidentID)}, {Key: "referenceCode", Value: stringOrNil(strings.ToUpper(strings.TrimSpace(in.ReferenceCode)))}, {Key: "amount", Value: JSInt(in.Amount)},

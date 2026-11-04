@@ -157,7 +157,7 @@ moves last within it:
 
 **Needs:** Phase 6.
 
-**Status 2026-11-03: in progress.** Done and contract-green: the server log store and
+**Status 2026-11-04: done.** Every §6 row of the phase is ☑ (contract groups `admin-finance`, `admin-branches`, `admin-notice-pushes`, `cron`, plus new files in `store` and `team`, recorded from TS at `2bcde4d2` and green; P7-44..P7-46). The app has a superadmin shell (`app/(platform)`) with native Logs, Process, Cron, Active users and Analytics screens; they read the Go-only routes, so like the web pages they answer from cut-over on, and the on-device check comes with the owner's next OTA. Earlier status, 2026-11-03: done and contract-green: the server log store and
 `/platform/logs` (+summary), `users` (account deletion + `/platform/account-deletions`,
 expert consultation, temporary logins; group `platform`), the whole supply store —
 `store/*` and `platform/store/*` (group `store`), the team (group `team`) including
@@ -169,11 +169,11 @@ program, notifications, push, reports, subscriptions, admins and invites). Findi
 P7-1..P7-34 in `review_fixes_needed.md`. `team/prepayments*` and `team/hostels/:id/checkout`
 moved to Phase 8: they run the Softmato plan payment, like `hostel-registration`.
 
-- ☐ `platform` (99)
+- ☑ `platform` (99)
 , `platform-admin` (2), `team` (16, plus the field-team copies of the existing-residents routes), `store` (13), `users` (7 left: account-deletion, expert-consultation-requests, temporary-credentials; resident-identity and avatar went with Phase 6)
-- ☐ Site config / SEO config / page copy editors
-- ☐ Referrals (hostel + partner), offer program, subscriptions, manual plan-payment review
-- ☐ **Server logs in the superadmin portal** (owner's requirement, `MISSION.md` addition 3). All of it visible and filterable by a superadmin:
+- ☑ Site config / SEO config / page copy editors
+- ☑ Referrals (hostel + partner), offer program, subscriptions, manual plan-payment review
+- ☑ **Server logs in the superadmin portal** (owner's requirement, `MISSION.md` addition 3). All of it visible and filterable by a superadmin:
   - Every log line carries a **level** (debug, info, warn, error) and a **category** (`http`, `auth`, `security`, `payments`, `email`, `push`, `realtime`, `database`, `redis`, `storage`, `jobs`, `llm`), plus time, message, request id, route, status, duration, user id, hostel id. Categories are one list in `platform/log`, not free text
   - Go stores warn and above, and any info line marked operational, in a `serverlogs` collection with a TTL index. Stored through a bounded in-process batcher, so a request never waits for a log write and a Mongo outage cannot grow memory: when full it drops and counts the drop. Stdout stays complete either way. A surge (a log flood during an outage) is capped per category
   - The existing redaction holds in the store too: never tokens, cookies, passwords, PINs, OTPs, personal data or coordinates (`RULES.md` §4). A test writes each kind through the logger and reads the stored row
@@ -181,14 +181,14 @@ moved to Phase 8: they run the Softmato plan payment, like `hostel-registration`
   - Level per category settable by a superadmin (site config), applied without a restart
   - Portal page: `/platform/logs` on the web and a native `manage` screen in the app, in `portal-nav.ts` and its search. Filters, level and category chips, a row opens the full entry, one request id shows the whole request's lines. Beside it a health strip from the metrics: request rate, p95, error rate, Mongo pool use, cache hit rate, rate-limit refusals
   - The web page reads through `API_URL`, so it goes live with cut-over
-  - 2026-11-03: web done — `/platform/logs` with the strip (`GET /platform/logs/health`, since-boot figures from the metrics registry), chips with counts, filters, the full entry, *Whole request*, and the per-category level selects (site config `logs`). Left: the native screen. Owner, 2026-11-03: "we need the superadmin screens too, so majority of task can be done from the app via superadmin" — the app gets a superadmin shell (it sent SUPERADMIN to the browse shell until now)
-- ☐ **Superadmin system tabs** (owner, 2026-11-03: "cron, logs, process logs, analytics, daily active users … each tab so superadmin can see those"). One portal area with five tabs, web and app `manage`, all in `portal-nav.ts` and its search, superadmin guard. The Go routes are new, so each one goes in `goOnlyAllowed`:
+  - 2026-11-03: web done — `/platform/logs` with the strip (`GET /platform/logs/health`, since-boot figures from the metrics registry), chips with counts, filters, the full entry, *Whole request*, and the per-category level selects (site config `logs`). 2026-11-04: native screen done — `app/manage/system/logs.tsx` (health strip, level and category chips with counts, filter sheet, the full entry in a bottom sheet with *Whole request*, newer/older pages, level per category). SUPERADMIN now lands on `app/(platform)`, built from `PLATFORM_NAV` (owner, 2026-11-03: "we need the superadmin screens too"). Left: the on-device check, after the owner's OTA
+- ☑ **Superadmin system tabs** (owner, 2026-11-03: "cron, logs, process logs, analytics, daily active users … each tab so superadmin can see those"). One portal area with five tabs, web and app `manage`, all in `portal-nav.ts` and its search, superadmin guard. The Go routes are new, so each one goes in `goOnlyAllowed`:
   - **Cron**: one row per job (schedule, last run, last status, next run, and a *missed* flag when the last success is older than its interval), then its run history from Phase 9's `cronruns`, filterable by job, status, trigger and time. A row opens the run's error and its log lines (by run id). A *Run now* button posts `/cron/{name}`
   - **Logs**: the server log page above
   - **Process**: the API process itself, per instance: uptime, boot and shutdown lines, version and commit, goroutines, heap and RSS, GC pauses, Mongo pool and Redis state, panics recovered. Read from the runtime, plus the stored `jobs`/`database`/`redis` lines that come from boot
   - **Analytics**: the existing usage page (`/platform/usage`: screens, features, people, role and hostel) moved under this area, not rebuilt
   - **Active users**: daily, weekly and monthly active users per Kathmandu day, split by user type (role) and client (app, PWA, web), plus the list of who was active on a chosen day (name, role, hostel, first and last seen, opens). An aggregation over `usageevents` (which already stores user, role, hostel, client and time), so it needs no new tracking. History reaches back as far as the usage TTL
-  - 2026-11-03: web done for Logs, Process (`GET /platform/system/process`), Active users (`GET /platform/system/active-users`) and Analytics, as children of *System* in `portal-nav.ts` (search entries come with them), superadmin-only in `route-access.ts`. Left: Cron, which reads Phase 9's `cronruns`; the PWA is counted as `app` until its beacon sends its own client value; the native screens (see above); the PWA sending its own client value
+  - 2026-11-03: web done for Logs, Process (`GET /platform/system/process`), Active users (`GET /platform/system/active-users`) and Analytics, as children of *System* in `portal-nav.ts` (search entries come with them), superadmin-only in `route-access.ts`. 2026-11-04: Cron shipped with Phase 9 on the web; native `manage/system/{process,cron,active-users,analytics}` in the platform shell (Cron: job rows, missed flag, Run now through `openConfirm`, run history with job/status/trigger filters, a run's error, counts and log lines). The PWA sends `pwa` through a web stand-in (`web/usage-client.ts`, not a `Platform.OS` branch in `src/`). Left: the on-device check after the OTA, and the first real `pwa` row in `usageevents` once the PWA export is redeployed
 
 **Gate:** superadmin and team flows complete on Go only, and a failing request can be found in the portal by its request id.
 

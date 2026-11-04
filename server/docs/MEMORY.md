@@ -2,7 +2,18 @@
 
 Read this after README.md. Update it at the end of every session.
 
-## HANDOFF: Phase 6 done (2026-11-03). Phase 7 next. Start here.
+## HANDOFF: Phases 0–9 done (2026-11-04). Phase 10 runs in its own session. Start here.
+
+Every phase up to 9 has every ☐ ticked except Phase 4's outside step: `COOKIE_DOMAIN=.hostelpalika.com`
+on Vercel plus a deploy (owner). Every `PARITY.md` §6 row is ☑; check with the coverage rule in
+`PHASE7_PROMPT.md` (a row is ☑ only when each method matches a recorded case and the suite is green).
+Contract fixture groups 16 `admin-finance`, 17 `admin-branches`, 18 `admin-notice-pushes` are taken; the
+next new group uses 19. The TS recorder must run outside the sandbox: inside it Turbopack cannot start its
+PostCSS worker (exit 0xc0000142) and every newly compiled route answers 500. `dev record` takes `-fixture`
+as a flag and the case files as arguments. Left from Phase 7: the app's platform shell on a device after the
+owner's OTA, and the first real `pwa` row in `usageevents` once the PWA export redeploys.
+
+## Earlier: Phase 6 done (2026-11-03)
 
 Phase 6 closed: every hostel-admin route on Go, contract-green; resident identity +
 avatar + saved-hostels ported; all Phase 6 findings ☑ in Go and TS (only R28's Phase 8

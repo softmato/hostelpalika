@@ -204,6 +204,9 @@ Found while porting Phase 7. Each row is fixed in Go and TS unless it says other
 | ☑ | P7-41 | Go only: `POST /platform/subscriptions/cash/:id/check` with a malformed id answered 200 `waiting`; TS answers 404 | 404 `NOT_FOUND` | — |
 | ☑ | P7-42 | Go only: `GET /platform/reviews?hostelId=` refused a bad id with the shared validator's text; reviews have their own (`Invalid object id.`) | Reviews' text | — |
 | ☑ | P7-43 | Go only: `GET /platform/questioncall/analytics` was not ported at all | Ported (`questioncall/analytics.go`) | — |
+| ☑ | P7-44 | **Money.** `appendEvent` deduped only through the unique index on `paymentevents.idempotencyKey`. A database missing that index (the contract database, or any database before `cmd/indexes` ran) took the same paper cash slip twice and settled it twice: `cashReceiptNumber` PB-1 posted twice gave `settledAmount` 1200 on a 600 invoice and a second receipt. Found by `admin-finance` `cash same receipt` | `ledger.AppendEvent` looks the key up first and returns the existing event (`created: false`, nothing written); the index stays the race guard | Same in `payment-event.service.ts` `appendEvent`; case re-recorded from the fixed TS |
+| ☑ | P7-45 | Go only: `POST /hostel-admin/finance/invoices/:id/cash` answered a trimmed `receipt` (nine fields); TS answers the created document (`paymentId`, `month`, `issuedBy`, `certifiedAt`, the void fields, `createdAt`, `__v`) in schema order | `receiptDoc` returns the stored row in TS order | — |
+| ☑ | P7-46 | Go only: `GET /hostel-admin/finance/receipts/:id/pdf` with a malformed id answered `RECEIPT_NOT_FOUND`; TS answers 404 `NOT_FOUND` "Not found" (mongoose CastError) | Same 404 | — |
 
 ## Phase 8 findings (2026-11-03)
 

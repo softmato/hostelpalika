@@ -1,0 +1,900 @@
+[
+  {
+    "name": "clear signed out",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear resident",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear empty",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cart emptied",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [],
+            "totals": {
+              "deliveryFee": 0,
+              "freeDeliveryRemaining": 0,
+              "hasFreeDelivery": false,
+              "itemCount": 0,
+              "subtotal": 0,
+              "total": 0
+            }
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add mattress",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/store/cart/items",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "productId": "6d0b0000000000000000000a",
+        "quantity": 1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Added to cart",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 50000,
+              "hasFreeDelivery": false,
+              "itemCount": 1,
+              "subtotal": 450000,
+              "total": 465000
+            },
+            "updatedAt": "2026-11-04T12:59:25.387Z"
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add soap",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/store/cart/items",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "productId": "6d0b0000000000000000000b"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Added to cart",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              },
+              {
+                "addedAt": "2026-11-04T12:59:25.456Z",
+                "availableQuantity": 2,
+                "lineTotal": 10000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000002",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000b",
+                  "images": [],
+                  "inStock": true,
+                  "isFeatured": false,
+                  "maxOrderQuantity": 0,
+                  "minOrderQuantity": 2,
+                  "name": "Soap",
+                  "price": 5000,
+                  "slug": "soap",
+                  "stockQuantity": null,
+                  "summary": "",
+                  "tags": [],
+                  "trackStock": false,
+                  "unit": "piece"
+                },
+                "quantity": 2,
+                "requestedQuantity": 2,
+                "unitPrice": 5000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 40000,
+              "hasFreeDelivery": false,
+              "itemCount": 3,
+              "subtotal": 460000,
+              "total": 475000
+            },
+            "updatedAt": "2026-11-04T12:59:25.456Z"
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "remove signed out",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart/items/6d0b0000000000000000000b"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "remove bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart/items/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid product id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "remove not in cart",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart/items/6d0b00000000000000000099",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Removed from cart",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              },
+              {
+                "addedAt": "2026-11-04T12:59:25.456Z",
+                "availableQuantity": 2,
+                "lineTotal": 10000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000002",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000b",
+                  "images": [],
+                  "inStock": true,
+                  "isFeatured": false,
+                  "maxOrderQuantity": 0,
+                  "minOrderQuantity": 2,
+                  "name": "Soap",
+                  "price": 5000,
+                  "slug": "soap",
+                  "stockQuantity": null,
+                  "summary": "",
+                  "tags": [],
+                  "trackStock": false,
+                  "unit": "piece"
+                },
+                "quantity": 2,
+                "requestedQuantity": 2,
+                "unitPrice": 5000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 40000,
+              "hasFreeDelivery": false,
+              "itemCount": 3,
+              "subtotal": 460000,
+              "total": 475000
+            },
+            "updatedAt": "2026-11-04T12:59:25.577Z"
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "remove soap",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart/items/6d0b0000000000000000000b",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Removed from cart",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 50000,
+              "hasFreeDelivery": false,
+              "itemCount": 1,
+              "subtotal": 450000,
+              "total": 465000
+            },
+            "updatedAt": "2026-11-04T12:59:25.648Z"
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "remove soap again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart/items/6d0b0000000000000000000b",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Removed from cart",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 50000,
+              "hasFreeDelivery": false,
+              "itemCount": 1,
+              "subtotal": 450000,
+              "total": 465000
+            },
+            "updatedAt": "2026-11-04T12:59:25.708Z"
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cart after remove",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/store/cart",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cart loaded",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [
+              {
+                "addedAt": "2026-11-04T12:59:25.387Z",
+                "availableQuantity": 1,
+                "lineTotal": 450000,
+                "limitedBy": null,
+                "product": {
+                  "categoryId": "6d0b00000000000000000001",
+                  "categoryName": "",
+                  "categorySlug": "",
+                  "compareAtPrice": null,
+                  "createdAt": "2026-10-01T04:15:00.000Z",
+                  "description": "",
+                  "id": "6d0b0000000000000000000a",
+                  "images": [
+                    {
+                      "assetId": "",
+                      "url": "https://x.test/m.png"
+                    }
+                  ],
+                  "inStock": true,
+                  "isFeatured": true,
+                  "maxOrderQuantity": 3,
+                  "minOrderQuantity": 1,
+                  "name": "Mattress",
+                  "price": 450000,
+                  "slug": "mattress",
+                  "stockQuantity": 5,
+                  "summary": "",
+                  "tags": [
+                    "bed",
+                    "gaddi"
+                  ],
+                  "trackStock": true,
+                  "unit": "piece"
+                },
+                "quantity": 1,
+                "requestedQuantity": 1,
+                "unitPrice": 450000
+              }
+            ],
+            "totals": {
+              "deliveryFee": 15000,
+              "freeDeliveryRemaining": 50000,
+              "hasFreeDelivery": false,
+              "itemCount": 1,
+              "subtotal": 450000,
+              "total": 465000
+            },
+            "updatedAt": "2026-11-04T12:59:25.708Z"
+          },
+          "removed": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear foreign hostel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart?hostelId=6c00000000000000000000a2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/store/cart",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cart emptied",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [],
+            "totals": {
+              "deliveryFee": 0,
+              "freeDeliveryRemaining": 0,
+              "hasFreeDelivery": false,
+              "itemCount": 0,
+              "subtotal": 0,
+              "total": 0
+            }
+          },
+          "removed": [],
+          "clamped": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "cart after clear",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/store/cart",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cart loaded",
+        "data": {
+          "cart": {
+            "config": {
+              "closedMessage": "The supply store is closed for now. Please check back soon.",
+              "currency": "NPR",
+              "deliveryPromise": {
+                "arrivesText": "tomorrow morning before 7 AM",
+                "cutoffText": "Orders placed after 4 PM arrive tomorrow morning before 7 AM.",
+                "placedBefore": "next-day"
+              },
+              "deliveryEstimate": "Delivered in 2–4 working days",
+              "deliveryFee": 15000,
+              "freeDeliveryThreshold": 500000,
+              "isOpen": true
+            },
+            "items": [],
+            "totals": {
+              "deliveryFee": 0,
+              "freeDeliveryRemaining": 0,
+              "hasFreeDelivery": false,
+              "itemCount": 0,
+              "subtotal": 0,
+              "total": 0
+            }
+          },
+          "removed": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "count after clear",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/store/cart/count",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Cart count loaded",
+        "data": {
+          "itemCount": 0,
+          "lineCount": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

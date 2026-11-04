@@ -1,0 +1,893 @@
+[
+  {
+    "name": "list signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list seeds the default",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "capture": {
+      "wash": "data.pushes.0.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notices loaded",
+        "data": {
+          "pushes": [
+            {
+              "body": "Please put 2–3 of your clothes in the laundry basket. The laundry attendant will come tomorrow to wash them.",
+              "createdAt": "2026-11-04T13:00:54.811Z",
+              "hostelId": "6d1200000000000000000002",
+              "id": "6aeb2c861315cad5fda13339",
+              "isDefault": true,
+              "isUrgent": false,
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-08T12:15:00.000Z",
+              "repeat": "WEEKLY",
+              "runCount": 0,
+              "startsOn": "2026-11-04",
+              "status": "ACTIVE",
+              "time": "18:00",
+              "title": "Clothes Washing Notice",
+              "weekdays": [
+                0,
+                3
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notices loaded",
+        "data": {
+          "pushes": [
+            {
+              "body": "Please put 2–3 of your clothes in the laundry basket. The laundry attendant will come tomorrow to wash them.",
+              "createdAt": "2026-11-04T13:00:54.811Z",
+              "hostelId": "6d1200000000000000000002",
+              "id": "6aeb2c861315cad5fda13339",
+              "isDefault": true,
+              "isUrgent": false,
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-08T12:15:00.000Z",
+              "repeat": "WEEKLY",
+              "runCount": 0,
+              "startsOn": "2026-11-04",
+              "status": "ACTIVE",
+              "time": "18:00",
+              "title": "Clothes Washing Notice",
+              "weekdays": [
+                0,
+                3
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list bad hostel id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list foreign hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes?hostelId=6d1200000000000000000003",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "x",
+        "repeat": "SOMETIMES"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "repeat": [
+              "Invalid option: expected one of \"NOW\"|\"LATER\"|\"DAILY\"|\"WEEKLY\""
+            ],
+            "title": [
+              "Too small: expected string to have >=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "body"
+            },
+            {
+              "message": "Invalid option: expected one of \"NOW\"|\"LATER\"|\"DAILY\"|\"WEEKLY\"",
+              "path": "repeat"
+            },
+            {
+              "message": "Too small: expected string to have >=2 characters",
+              "path": "title"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create weekly without days",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Rent day",
+        "body": "Rent is due",
+        "repeat": "WEEKLY",
+        "time": "09:00",
+        "weekdays": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick at least one day.",
+        "errorCode": "NOTICE_PUSH_DAYS_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create daily without time",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Rent day",
+        "body": "Rent is due",
+        "repeat": "DAILY"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a time.",
+        "errorCode": "NOTICE_PUSH_TIME_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create later past date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Rent day",
+        "body": "Rent is due",
+        "repeat": "LATER",
+        "date": "2020-01-01",
+        "time": "09:00"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a time in the future.",
+        "errorCode": "NOTICE_PUSH_NEVER_RUNS"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create later by delay",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Water off",
+        "body": "Water is off at noon",
+        "repeat": "LATER",
+        "delayMinutes": 90
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn",
+      "data.push.time"
+    ],
+    "capture": {
+      "later": "data.push.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice saved",
+        "data": {
+          "push": {
+            "body": "Water is off at noon",
+            "createdAt": "2026-11-04T13:00:55.183Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c8737ebc2e9fc47de55",
+            "isDefault": false,
+            "isUrgent": false,
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T14:31:00.000Z",
+            "repeat": "LATER",
+            "runCount": 0,
+            "startsOn": "2026-11-04",
+            "status": "ACTIVE",
+            "time": "20:16",
+            "title": "Water off",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create daily",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Lights out",
+        "body": "Lights out at ten",
+        "repeat": "DAILY",
+        "time": "21:30",
+        "isUrgent": true
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "capture": {
+      "daily": "data.push.id"
+    },
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice saved",
+        "data": {
+          "push": {
+            "body": "Lights out at ten",
+            "createdAt": "2026-11-04T13:00:55.266Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c8737ebc2e9fc47de57",
+            "isDefault": false,
+            "isUrgent": true,
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T15:45:00.000Z",
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-04",
+            "status": "ACTIVE",
+            "time": "21:30",
+            "title": "Lights out",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "create now",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "Meeting",
+        "body": "Meeting in the hall now",
+        "repeat": "NOW"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn",
+      "data.push.lastNoticeId"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice saved",
+        "data": {
+          "push": {
+            "body": "Meeting in the hall now",
+            "createdAt": "2026-11-04T13:00:55.326Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c8737ebc2e9fc47de59",
+            "isDefault": false,
+            "isUrgent": false,
+            "lastRunAt": "2026-11-04T13:00:55.325Z",
+            "nextRunAt": null,
+            "repeat": "NOW",
+            "runCount": 1,
+            "startsOn": null,
+            "status": "DONE",
+            "time": null,
+            "title": "Meeting",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "update bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notice-pushes/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "New"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid push notice id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "update missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notice-pushes/6c00000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "title": "New"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Push notice was not found.",
+        "errorCode": "NOTICE_PUSH_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "update pause",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{daily}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "active": false
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice updated",
+        "data": {
+          "push": {
+            "body": "Lights out at ten",
+            "createdAt": "2026-11-04T13:00:55.266Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c8737ebc2e9fc47de57",
+            "isDefault": false,
+            "isUrgent": true,
+            "lastRunAt": null,
+            "nextRunAt": null,
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-04",
+            "status": "PAUSED",
+            "time": "21:30",
+            "title": "Lights out",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "update resume and retime",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{daily}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "active": true,
+        "time": "22:00",
+        "title": "Lights out (late)"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice updated",
+        "data": {
+          "push": {
+            "body": "Lights out at ten",
+            "createdAt": "2026-11-04T13:00:55.266Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c8737ebc2e9fc47de57",
+            "isDefault": false,
+            "isUrgent": true,
+            "lastRunAt": null,
+            "nextRunAt": "2026-11-04T16:15:00.000Z",
+            "repeat": "DAILY",
+            "runCount": 0,
+            "startsOn": "2026-11-04",
+            "status": "ACTIVE",
+            "time": "22:00",
+            "title": "Lights out (late)",
+            "weekdays": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "update invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{daily}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      },
+      "body": {
+        "weekdays": [
+          9
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "weekdays": [
+              "Too big: expected number to be <=6"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be <=6",
+              "path": "weekdays.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "send now",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{wash}}/send",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice sent",
+        "data": {
+          "delivery": {
+            "emailed": 0,
+            "notified": 0
+          },
+          "push": {
+            "body": "Please put 2–3 of your clothes in the laundry basket. The laundry attendant will come tomorrow to wash them.",
+            "createdAt": "2026-11-04T13:00:54.811Z",
+            "hostelId": "6d1200000000000000000002",
+            "id": "6aeb2c861315cad5fda13339",
+            "isDefault": true,
+            "isUrgent": false,
+            "lastRunAt": "2026-11-04T13:00:55.751Z",
+            "nextRunAt": "2026-11-08T12:15:00.000Z",
+            "repeat": "WEEKLY",
+            "runCount": 1,
+            "startsOn": "2026-11-04",
+            "status": "ACTIVE",
+            "time": "18:00",
+            "title": "Clothes Washing Notice",
+            "weekdays": [
+              0,
+              3
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "send bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/notice-pushes/nope/send",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid push notice id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{later}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notice deleted",
+        "data": {
+          "id": "6aeb2c8737ebc2e9fc47de55"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "delete again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/notice-pushes/{{later}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Push notice was not found.",
+        "errorCode": "NOTICE_PUSH_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/notice-pushes",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1200000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates",
+      "data.push.startsOn",
+      "data.pushes.*.startsOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Push notices loaded",
+        "data": {
+          "pushes": [
+            {
+              "body": "Meeting in the hall now",
+              "createdAt": "2026-11-04T13:00:55.326Z",
+              "hostelId": "6d1200000000000000000002",
+              "id": "6aeb2c8737ebc2e9fc47de59",
+              "isDefault": false,
+              "isUrgent": false,
+              "lastRunAt": "2026-11-04T13:00:55.325Z",
+              "nextRunAt": null,
+              "repeat": "NOW",
+              "runCount": 1,
+              "startsOn": null,
+              "status": "DONE",
+              "time": null,
+              "title": "Meeting",
+              "weekdays": []
+            },
+            {
+              "body": "Lights out at ten",
+              "createdAt": "2026-11-04T13:00:55.266Z",
+              "hostelId": "6d1200000000000000000002",
+              "id": "6aeb2c8737ebc2e9fc47de57",
+              "isDefault": false,
+              "isUrgent": true,
+              "lastRunAt": null,
+              "nextRunAt": "2026-11-04T16:15:00.000Z",
+              "repeat": "DAILY",
+              "runCount": 0,
+              "startsOn": "2026-11-04",
+              "status": "ACTIVE",
+              "time": "22:00",
+              "title": "Lights out (late)",
+              "weekdays": []
+            },
+            {
+              "body": "Please put 2–3 of your clothes in the laundry basket. The laundry attendant will come tomorrow to wash them.",
+              "createdAt": "2026-11-04T13:00:54.811Z",
+              "hostelId": "6d1200000000000000000002",
+              "id": "6aeb2c861315cad5fda13339",
+              "isDefault": true,
+              "isUrgent": false,
+              "lastRunAt": "2026-11-04T13:00:55.751Z",
+              "nextRunAt": "2026-11-08T12:15:00.000Z",
+              "repeat": "WEEKLY",
+              "runCount": 1,
+              "startsOn": "2026-11-04",
+              "status": "ACTIVE",
+              "time": "18:00",
+              "title": "Clothes Washing Notice",
+              "weekdays": [
+                0,
+                3
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

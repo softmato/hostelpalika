@@ -144,6 +144,16 @@ export async function appendEvent(input: AppendEventInput): Promise<AppendEventR
 
   assertWholeRupees(input.amount, "event amount");
 
+  // P7-44: look the key up first. The unique index is only the race guard, so a
+  // database still missing it never credits the same paper slip twice.
+  const already = await PaymentEventModel.findOne({
+    idempotencyKey: input.idempotencyKey,
+  }).lean<PaymentEventRecord | null>();
+
+  if (already) {
+    return { created: false, event: already };
+  }
+
   try {
     const event = (await PaymentEventModel.create({
       amount: input.amount,

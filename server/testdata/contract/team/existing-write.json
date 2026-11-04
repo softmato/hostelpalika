@@ -1,0 +1,1721 @@
+[
+  {
+    "name": "geocode signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/geocode?q=Thamel"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "geocode not team",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/geocode?q=Thamel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "geocode nothing to look up",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/geocode",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Provide a search query, or a lat/lng pair to look up."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Provide a search query, or a lat/lng pair to look up.",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "geocode bad values",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/geocode?lat=95\u0026lng=-181\u0026limit=20\u0026q=a",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lat": [
+              "Too big: expected number to be \u003c=90"
+            ],
+            "limit": [
+              "Too big: expected number to be \u003c=8"
+            ],
+            "lng": [
+              "Too small: expected number to be \u003e=-180"
+            ],
+            "q": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=90",
+              "path": "lat"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=8",
+              "path": "limit"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=-180",
+              "path": "lng"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "geocode only lat",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/geocode?lat=27.7",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Provide a search query, or a lat/lng pair to look up."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Provide a search query, or a lat/lng pair to look up.",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put signed out",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "body": {
+        "rows": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put not filed",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "fullName": "Team Person1 Last",
+            "phone": "9866610001",
+            "roomNumber": "T1",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team1@contract.test"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put bad id",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/nope/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "fullName": "Team Person1 Last",
+            "phone": "9866610001",
+            "roomNumber": "T1",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team1@contract.test"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put no rows",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rows": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "rows"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put bad row",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          1,
+          {
+            "depositPaid": -1.5,
+            "paidTill": "junk"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rows": [
+              "Invalid input: expected object, received number",
+              "Write rupees without paisa.",
+              "Choose a month."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "rows.0"
+            },
+            {
+              "message": "Write rupees without paisa.",
+              "path": "rows.1.depositPaid"
+            },
+            {
+              "message": "Choose a month.",
+              "path": "rows.1.paidTill"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put rows",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "fullName": "Team Person1 Last",
+            "phone": "9866610001",
+            "roomNumber": "T1",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team1@contract.test"
+          },
+          {
+            "fullName": "Mononym",
+            "phone": "9866610002",
+            "roomNumber": "T2",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team2@contract.test"
+          },
+          {
+            "fullName": "Team Person3 Last",
+            "phone": "9866610003",
+            "roomNumber": "T3",
+            "roomType": "Palace",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team3@contract.test"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List saved",
+        "data": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de47",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de48",
+                "problems": [
+                  {
+                    "field": "fullName",
+                    "message": "Write first and last name."
+                  },
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de49",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Palace\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T3 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 3,
+            "withProblems": 3
+          },
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": {
+            "id": "6aeb2c3137ebc2e9fc47de46",
+            "rows": [
+              {
+                "depositPaid": 500,
+                "email": "team1@contract.test",
+                "fullName": "Team Person1 Last",
+                "id": "6aeb2c3137ebc2e9fc47de47",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610001",
+                "residentId": null,
+                "roomNumber": "T1",
+                "roomType": "Single"
+              },
+              {
+                "depositPaid": 500,
+                "email": "team2@contract.test",
+                "fullName": "Mononym",
+                "id": "6aeb2c3137ebc2e9fc47de48",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610002",
+                "residentId": null,
+                "roomNumber": "T2",
+                "roomType": "Single"
+              },
+              {
+                "depositPaid": 500,
+                "email": "team3@contract.test",
+                "fullName": "Team Person3 Last",
+                "id": "6aeb2c3137ebc2e9fc47de49",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610003",
+                "residentId": null,
+                "roomNumber": "T3",
+                "roomType": "Palace"
+              }
+            ],
+            "updatedAt": "2026-11-04T12:59:29.058Z"
+          },
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list after put",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List loaded",
+        "data": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de47",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de48",
+                "problems": [
+                  {
+                    "field": "fullName",
+                    "message": "Write first and last name."
+                  },
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de49",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Palace\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T3 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 3,
+            "withProblems": 3
+          },
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": {
+            "id": "6aeb2c3137ebc2e9fc47de46",
+            "rows": [
+              {
+                "depositPaid": 500,
+                "email": "team1@contract.test",
+                "fullName": "Team Person1 Last",
+                "id": "6aeb2c3137ebc2e9fc47de47",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610001",
+                "residentId": null,
+                "roomNumber": "T1",
+                "roomType": "Single"
+              },
+              {
+                "depositPaid": 500,
+                "email": "team2@contract.test",
+                "fullName": "Mononym",
+                "id": "6aeb2c3137ebc2e9fc47de48",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610002",
+                "residentId": null,
+                "roomNumber": "T2",
+                "roomType": "Single"
+              },
+              {
+                "depositPaid": 500,
+                "email": "team3@contract.test",
+                "fullName": "Team Person3 Last",
+                "id": "6aeb2c3137ebc2e9fc47de49",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610003",
+                "residentId": null,
+                "roomNumber": "T3",
+                "roomType": "Palace"
+              }
+            ],
+            "updatedAt": "2026-11-04T12:59:29.058Z"
+          },
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add with problems",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/add",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fix the problems in the list first.",
+        "errorCode": "EXISTING_RESIDENTS_NOT_READY",
+        "details": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de47",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de48",
+                "problems": [
+                  {
+                    "field": "fullName",
+                    "message": "Write first and last name."
+                  },
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de49",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Palace\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T3 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 3,
+            "withProblems": 3
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "file empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "contentBase64": ""
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "contentBase64": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "contentBase64"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "file not a sheet",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "contentBase64": "AAECZ2FyYmFnZQ=="
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "We could not find the \"Full name\" and \"Phone\" columns. Use the Excel file you downloaded and keep its first row.",
+        "errorCode": "EXISTING_RESIDENTS_FILE_UNREADABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "file csv",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "contentBase64": "RnVsbCBuYW1lLFBob25lLFJvb20gdHlwZSxSZW50IHBhaWQgdGlsbCxEZXBvc2l0IHBhaWQKQ3N2IFRlYW0gUGVyc29uLDk4Njc3MTAwMDEsU2luZ2xlLFBvdXNoIDIwODQsMzAwCg==",
+        "fileName": "x.csv"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "File read",
+        "data": {
+          "notes": [],
+          "read": 1,
+          "view": {
+            "check": {
+              "listProblems": [
+                "This hostel has no room types yet. Add rooms first."
+              ],
+              "ready": false,
+              "roomTypes": [],
+              "rows": [
+                {
+                  "added": false,
+                  "bills": null,
+                  "id": "6aeb2c3137ebc2e9fc47de47",
+                  "problems": [
+                    {
+                      "field": "roomType",
+                      "message": "\"Single\" is not a room type in this hostel."
+                    },
+                    {
+                      "field": "roomNumber",
+                      "message": "There is no room T1 in this hostel."
+                    }
+                  ],
+                  "rent": null
+                },
+                {
+                  "added": false,
+                  "bills": null,
+                  "id": "6aeb2c3137ebc2e9fc47de48",
+                  "problems": [
+                    {
+                      "field": "fullName",
+                      "message": "Write first and last name."
+                    },
+                    {
+                      "field": "roomType",
+                      "message": "\"Single\" is not a room type in this hostel."
+                    },
+                    {
+                      "field": "roomNumber",
+                      "message": "There is no room T2 in this hostel."
+                    }
+                  ],
+                  "rent": null
+                },
+                {
+                  "added": false,
+                  "bills": null,
+                  "id": "6aeb2c3137ebc2e9fc47de49",
+                  "problems": [
+                    {
+                      "field": "roomType",
+                      "message": "\"Palace\" is not a room type in this hostel."
+                    },
+                    {
+                      "field": "roomNumber",
+                      "message": "There is no room T3 in this hostel."
+                    }
+                  ],
+                  "rent": null
+                },
+                {
+                  "added": false,
+                  "bills": null,
+                  "id": "6aeb2c3137ebc2e9fc47de4d",
+                  "problems": [
+                    {
+                      "field": "roomType",
+                      "message": "\"Single\" is not a room type in this hostel."
+                    },
+                    {
+                      "field": "roomNumber",
+                      "message": "Pick their room."
+                    },
+                    {
+                      "field": "paidTill",
+                      "message": "Paid more than 12 months ahead. Check the month."
+                    }
+                  ],
+                  "rent": null
+                }
+              ],
+              "toAdd": 4,
+              "withProblems": 4
+            },
+            "currentMonth": {
+              "label": "Kartik 2083",
+              "period": "2083-07"
+            },
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel"
+            },
+            "lastAdded": null,
+            "list": {
+              "id": "6aeb2c3137ebc2e9fc47de46",
+              "rows": [
+                {
+                  "depositPaid": 500,
+                  "email": "team1@contract.test",
+                  "fullName": "Team Person1 Last",
+                  "id": "6aeb2c3137ebc2e9fc47de47",
+                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "monthlyRent": null,
+                  "oldDues": 0,
+                  "paidTill": "2084-06",
+                  "partPaid": 0,
+                  "phone": "9866610001",
+                  "residentId": null,
+                  "roomNumber": "T1",
+                  "roomType": "Single"
+                },
+                {
+                  "depositPaid": 500,
+                  "email": "team2@contract.test",
+                  "fullName": "Mononym",
+                  "id": "6aeb2c3137ebc2e9fc47de48",
+                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "monthlyRent": null,
+                  "oldDues": 0,
+                  "paidTill": "2084-06",
+                  "partPaid": 0,
+                  "phone": "9866610002",
+                  "residentId": null,
+                  "roomNumber": "T2",
+                  "roomType": "Single"
+                },
+                {
+                  "depositPaid": 500,
+                  "email": "team3@contract.test",
+                  "fullName": "Team Person3 Last",
+                  "id": "6aeb2c3137ebc2e9fc47de49",
+                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "monthlyRent": null,
+                  "oldDues": 0,
+                  "paidTill": "2084-06",
+                  "partPaid": 0,
+                  "phone": "9866610003",
+                  "residentId": null,
+                  "roomNumber": "T3",
+                  "roomType": "Palace"
+                },
+                {
+                  "depositPaid": 300,
+                  "email": "",
+                  "fullName": "Csv Team Person",
+                  "id": "6aeb2c3137ebc2e9fc47de4d",
+                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "monthlyRent": null,
+                  "oldDues": 0,
+                  "paidTill": "2084-09",
+                  "partPaid": 0,
+                  "phone": "9867710001",
+                  "residentId": null,
+                  "roomNumber": "",
+                  "roomType": "Single"
+                }
+              ],
+              "updatedAt": "2026-11-04T12:59:29.506Z"
+            },
+            "numberedRooms": [
+              {
+                "beds": 1,
+                "floor": 1,
+                "free": 1,
+                "id": "6c00000000000000000000a4",
+                "number": "9",
+                "roomType": "Single Room"
+              },
+              {
+                "beds": 2,
+                "floor": 1,
+                "free": 2,
+                "id": "6c00000000000000000000a0",
+                "number": "10",
+                "roomType": "Double Sharing"
+              },
+              {
+                "beds": 1,
+                "floor": 2,
+                "free": 1,
+                "id": "6c00000000000000000000a5",
+                "number": "1",
+                "roomType": "Single Room"
+              }
+            ],
+            "roomTypes": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "file not filed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/file",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "contentBase64": "RnVsbCBuYW1lLFBob25lLFJvb20gdHlwZSxSZW50IHBhaWQgdGlsbCxEZXBvc2l0IHBhaWQKQ3N2IFRlYW0gUGVyc29uLDk4Njc3MTAwMDEsU2luZ2xlLFBvdXNoIDIwODQsMzAwCg==",
+        "fileName": "x.csv"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "put fixed",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {
+        "rows": [
+          {
+            "fullName": "Team Person1 Last",
+            "phone": "9866610001",
+            "roomNumber": "T1",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team1@contract.test"
+          },
+          {
+            "fullName": "Team Person2 Last",
+            "phone": "9866610002",
+            "roomNumber": "T2",
+            "roomType": "Single",
+            "paidTill": "2084-06",
+            "depositPaid": 500,
+            "email": "team2@contract.test"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List saved",
+        "data": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 2,
+            "withProblems": 2
+          },
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": {
+            "id": "6aeb2c3137ebc2e9fc47de46",
+            "rows": [
+              {
+                "depositPaid": 500,
+                "email": "team1@contract.test",
+                "fullName": "Team Person1 Last",
+                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610001",
+                "residentId": null,
+                "roomNumber": "T1",
+                "roomType": "Single"
+              },
+              {
+                "depositPaid": 500,
+                "email": "team2@contract.test",
+                "fullName": "Team Person2 Last",
+                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "monthlyRent": null,
+                "oldDues": 0,
+                "paidTill": "2084-06",
+                "partPaid": 0,
+                "phone": "9866610002",
+                "residentId": null,
+                "roomNumber": "T2",
+                "roomType": "Single"
+              }
+            ],
+            "updatedAt": "2026-11-04T12:59:29.705Z"
+          },
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add superadmin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/add",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fix the problems in the list first.",
+        "errorCode": "EXISTING_RESIDENTS_NOT_READY",
+        "details": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 2,
+            "withProblems": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/add",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fix the problems in the list first.",
+        "errorCode": "EXISTING_RESIDENTS_NOT_READY",
+        "details": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 2,
+            "withProblems": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "add again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents/add",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fix the problems in the list first.",
+        "errorCode": "EXISTING_RESIDENTS_NOT_READY",
+        "details": {
+          "check": {
+            "listProblems": [
+              "This hostel has no room types yet. Add rooms first."
+            ],
+            "ready": false,
+            "roomTypes": [],
+            "rows": [
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T1 in this hostel."
+                  }
+                ],
+                "rent": null
+              },
+              {
+                "added": false,
+                "bills": null,
+                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "problems": [
+                  {
+                    "field": "roomType",
+                    "message": "\"Single\" is not a room type in this hostel."
+                  },
+                  {
+                    "field": "roomNumber",
+                    "message": "There is no room T2 in this hostel."
+                  }
+                ],
+                "rent": null
+              }
+            ],
+            "toAdd": 2,
+            "withProblems": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear not filed",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000002:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List cleared",
+        "data": {
+          "check": null,
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": null,
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "clear again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List cleared",
+        "data": {
+          "check": null,
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": null,
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "list after clear",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/team/hostels/6c00000000000000000000a1/existing-residents",
+      "headers": {
+        "authorization": "Bearer {{access:6d0c00000000000000000001:PLATFORM_AGENT}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "List loaded",
+        "data": {
+          "check": null,
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "id": "6c00000000000000000000a1",
+            "name": "Contract Hostel"
+          },
+          "lastAdded": null,
+          "list": null,
+          "numberedRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "roomTypes": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

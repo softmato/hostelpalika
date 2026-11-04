@@ -40,6 +40,7 @@ const WEB_STAND_INS = {
   "@/lib/push-notifications": "push-notifications.ts",
   "@/lib/questioncall": "questioncall.ts",
   "@/lib/unload-guard": "unload-guard.ts",
+  "@/lib/usage-client": "usage-client.ts",
   "expo-file-system": "file-system.ts",
   "expo-secure-store": "secure-store.ts",
   "react-native-webview": "webview.tsx",

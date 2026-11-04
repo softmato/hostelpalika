@@ -78,7 +78,7 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | ☐ | Cache invalidation | `bumpHostelCache`, `lib/realtime/announce-writes.ts`, `publishResourceChange`, `settleEvent` | same call sites |
 | ☑ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag`); `cache.Respond` answers the 304 from cached bytes + tag before any work |
 | ☑ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
-| ☐ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers |
+| ☑ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers; 2026-11-04 contract group `cron`: no-secret and wrong-secret refusals on all 19 doors, bearer form, a real `purge-expired-otps` run, `platform-backup` 422 |
 | ☑ | Realtime | `lib/realtime/*` — Pusher: `private-user-*`, `private-hostel-*`, `private-platform`, `private-global`, `presence-hostel-registration-track-sheet`; topic/category bridge | `pusher-http-go`, same channels, same events |
 | ☑ | Push (mobile) | Expo push + receipts (`PushTicket`, `DeviceToken`) | plain HTTP to Expo |
 | ☑ | Push (web) | `web-push` + VAPID, `DeviceToken.platform = "WEB"`, one fan-out `sendPushToUsers` | `webpush-go`, same fan-out |
@@ -249,11 +249,11 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/apple-app-site-association` | public |  |  |
-| ☐ | POST | `/api/receipt-share` | public |  |  |
-| ☐ | GET | `/get-app` | public |  |  |
-| ☐ | GET | `/llms-full.txt` | public |  |  |
-| ☐ | GET | `/llms.txt` | public |  |  |
+| ☑ | GET | `/api/apple-app-site-association` | public | stays in Next.js (§6 note above) |  |
+| ☑ | POST | `/api/receipt-share` | public | stays in Next.js (§6 note above) |  |
+| ☑ | GET | `/get-app` | public | stays in Next.js (§6 note above) |  |
+| ☑ | GET | `/llms-full.txt` | public | stays in Next.js (§6 note above) |  |
+| ☑ | GET | `/llms.txt` | public | stays in Next.js (§6 note above) |  |
 
 ### `account` (9)
 
@@ -345,25 +345,25 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/cron/account-purge` | validateCronRequest | max60s | users |
-| ☐ | POST | `/api/v1/cron/attendance-maintenance` | validateCronRequest | max60s | attendance |
-| ☐ | POST | `/api/v1/cron/billing-cycle` | validateCronRequest | max60s | finance |
-| ☐ | POST | `/api/v1/cron/complaint-sla` | validateCronRequest | max60s | complaints |
-| ☐ | POST | `/api/v1/cron/customer-backup` | validateCronRequest | max300s | backup |
-| ☐ | POST | `/api/v1/cron/gateway-expiry-sweep` | validateCronRequest | max120s | finance |
-| ☐ | POST | `/api/v1/cron/gateway-health` | validateCronRequest | max300s | finance |
-| ☐ | POST | `/api/v1/cron/gateway-settlement-recon` | validateCronRequest | max300s | finance |
-| ☐ | POST | `/api/v1/cron/hostel-purge` | validateCronRequest | max60s | hostels |
-| ☐ | POST | `/api/v1/cron/ledger-drift` | validateCronRequest | max300s | finance |
-| ☐ | POST | `/api/v1/cron/meal-call-reminders` | validateCronRequest | max60s | food |
-| ☐ | POST | `/api/v1/cron/night-status-prompt` | validateCronRequest | max60s | safety |
-| ☐ | POST | `/api/v1/cron/notification-dispatch` | validateCronRequest | max60s | notifications, notices |
-| ☐ | POST | `/api/v1/cron/payment-reminders` | validateCronRequest | max60s | billing, finance, move-checklist |
-| ☐ | POST | `/api/v1/cron/platform-backup` | validateCronRequest |  | backup |
-| ☐ | POST | `/api/v1/cron/platform-push` | validateCronRequest | max60s | billing, bookings, notices, notifications |
-| ☐ | POST | `/api/v1/cron/purge-expired-otps` | validateCronRequest |  |  |
-| ☐ | POST | `/api/v1/cron/push-receipts` | validateCronRequest | max60s | notifications |
-| ☐ | POST | `/api/v1/cron/refresh-nearby-places` | validateCronRequest | max60s | hostels |
+| ☑ | POST | `/api/v1/cron/account-purge` | validateCronRequest | max60s | users |
+| ☑ | POST | `/api/v1/cron/attendance-maintenance` | validateCronRequest | max60s | attendance |
+| ☑ | POST | `/api/v1/cron/billing-cycle` | validateCronRequest | max60s | finance |
+| ☑ | POST | `/api/v1/cron/complaint-sla` | validateCronRequest | max60s | complaints |
+| ☑ | POST | `/api/v1/cron/customer-backup` | validateCronRequest | max300s | backup |
+| ☑ | POST | `/api/v1/cron/gateway-expiry-sweep` | validateCronRequest | max120s | finance |
+| ☑ | POST | `/api/v1/cron/gateway-health` | validateCronRequest | max300s | finance |
+| ☑ | POST | `/api/v1/cron/gateway-settlement-recon` | validateCronRequest | max300s | finance |
+| ☑ | POST | `/api/v1/cron/hostel-purge` | validateCronRequest | max60s | hostels |
+| ☑ | POST | `/api/v1/cron/ledger-drift` | validateCronRequest | max300s | finance |
+| ☑ | POST | `/api/v1/cron/meal-call-reminders` | validateCronRequest | max60s | food |
+| ☑ | POST | `/api/v1/cron/night-status-prompt` | validateCronRequest | max60s | safety |
+| ☑ | POST | `/api/v1/cron/notification-dispatch` | validateCronRequest | max60s | notifications, notices |
+| ☑ | POST | `/api/v1/cron/payment-reminders` | validateCronRequest | max60s | billing, finance, move-checklist |
+| ☑ | POST | `/api/v1/cron/platform-backup` | validateCronRequest |  | backup |
+| ☑ | POST | `/api/v1/cron/platform-push` | validateCronRequest | max60s | billing, bookings, notices, notifications |
+| ☑ | POST | `/api/v1/cron/purge-expired-otps` | validateCronRequest |  |  |
+| ☑ | POST | `/api/v1/cron/push-receipts` | validateCronRequest | max60s | notifications |
+| ☑ | POST | `/api/v1/cron/refresh-nearby-places` | validateCronRequest | max60s | hostels |
 
 ### `email-preferences` (2)
 
@@ -431,10 +431,10 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET | `/api/v1/hostel-admin/bookings/card` | cap:registerResidents | etag | bookings, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/bookings/documents/:number` | requireHostelAdminPrincipal |  | bookings |
 | ☑ | GET PUT | `/api/v1/hostel-admin/bookings/short-stays` | requireHostelAdminPrincipal | etag | bookings, hostels |
-| ☐ | GET POST | `/api/v1/hostel-admin/branches` | requireHostelAdminPrincipal | etag | billing, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/branches/:branchId` | requireHostelAdminPrincipal | etag | billing, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/branches/names` | requireHostelStaffPrincipal | etag | hostels |
-| ☐ | GET | `/api/v1/hostel-admin/branches/summary` | requireHostelAdminPrincipal | etag | hostels |
+| ☑ | GET POST | `/api/v1/hostel-admin/branches` | requireHostelAdminPrincipal | etag | billing, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/branches/:branchId` | requireHostelAdminPrincipal | etag | billing, hostels |
+| ☑ | GET | `/api/v1/hostel-admin/branches/names` | requireHostelStaffPrincipal | etag | hostels |
+| ☑ | GET | `/api/v1/hostel-admin/branches/summary` | requireHostelAdminPrincipal | etag | hostels |
 | ☑ | GET POST | `/api/v1/hostel-admin/community` | requireHostelStaffPrincipal | etag | community |
 | ☑ | DELETE PATCH | `/api/v1/hostel-admin/community/:postId/hide` | requireHostelStaffPrincipal |  | community |
 | ☑ | GET | `/api/v1/hostel-admin/complaints` | cap:viewComplaints | redis etag | complaints |
@@ -453,20 +453,20 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | POST | `/api/v1/hostel-admin/expenses/receipt/read` | rateLimitPublicForm, cap:recordExpenses | max30s | finance |
 | ☑ | GET | `/api/v1/hostel-admin/expenses/wallet` | cap:recordExpenses | etag | finance |
 | ☑ | GET POST | `/api/v1/hostel-admin/finance/billing-runs` | cap:manageFeeSchedule, cap:viewPayments | etag max60s | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/events` | cap:viewPayments | etag | finance, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/approve` | cap:approvePayments |  | finance |
+| ☑ | GET | `/api/v1/hostel-admin/finance/events` | cap:viewPayments | etag | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/approve` | cap:approvePayments |  | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/ask-resident` | cap:viewPayments |  | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/assign` | cap:approvePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reject` | cap:approvePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/:id/reverse` | cap:reversePayments |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/events/bulk-approve` | cap:approvePayments | max60s | finance, hostels |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/reject` | cap:approvePayments |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/:id/reverse` | cap:reversePayments |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/events/bulk-approve` | cap:approvePayments | max60s | finance, hostels |
 | ☑ | GET POST | `/api/v1/hostel-admin/finance/fee-schedules` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
 | ☑ | DELETE | `/api/v1/hostel-admin/finance/fee-schedules/:id` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/:id/close` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/kyc` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/finance/invoices` | cap:viewPayments | redis etag | finance, hostels |
-| ☐ | POST | `/api/v1/hostel-admin/finance/invoices/:id/cash` | cap:recordCash |  | finance |
-| ☐ | POST | `/api/v1/hostel-admin/finance/invoices/:id/void` | cap:reversePayments |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/cash` | cap:recordCash |  | finance |
+| ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/void` | cap:reversePayments |  | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/waive-fine` | cap:manageFeeSchedule |  | finance |
 | ☑ | GET | `/api/v1/hostel-admin/finance/invoices/ledger` | cap:viewPayments | redis etag | finance, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/finance/invoices/periods` | cap:viewPayments | redis etag | finance, hostels |
@@ -476,7 +476,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET PUT | `/api/v1/hostel-admin/finance/money-rules` | cap:viewPayments, cap:manageFeeSchedule | redis etag | finance, hostels |
 | ☑ | DELETE GET PUT | `/api/v1/hostel-admin/finance/payment-gateways` | cap:managePaymentProfile | etag | finance, hostels |
 | ☑ | GET PATCH | `/api/v1/hostel-admin/finance/payment-profile` | cap:viewPayments, cap:managePaymentProfile | etag | finance, hostels |
-| ☐ | GET | `/api/v1/hostel-admin/finance/receipts/:id/pdf` | cap:viewPayments |  | finance |
+| ☑ | GET | `/api/v1/hostel-admin/finance/receipts/:id/pdf` | cap:viewPayments |  | finance |
 | ☑ | GET POST | `/api/v1/hostel-admin/finance/rent-concessions` | cap:viewPayments, cap:manageFeeSchedule | etag | finance, hostels |
 | ☑ | DELETE | `/api/v1/hostel-admin/finance/rent-concessions/:id` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/finance/residents/:residentId/ledger` | cap:viewPayments | etag | finance, hostels |
@@ -502,9 +502,9 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET | `/api/v1/hostel-admin/move-events` | cap:registerResidents | etag | move-checklist |
 | ☑ | GET | `/api/v1/hostel-admin/night-status` | cap:viewNightStatus | redis etag | safety |
 | ☑ | PATCH | `/api/v1/hostel-admin/night-status/:residentId/override` | cap:updateNightStatus |  | safety |
-| ☐ | GET POST | `/api/v1/hostel-admin/notice-pushes` | cap:manageNotices | etag | notices |
-| ☐ | DELETE PATCH | `/api/v1/hostel-admin/notice-pushes/:id` | cap:manageNotices |  | notices |
-| ☐ | POST | `/api/v1/hostel-admin/notice-pushes/:id/send` | cap:manageNotices |  | notices |
+| ☑ | GET POST | `/api/v1/hostel-admin/notice-pushes` | cap:manageNotices | etag | notices |
+| ☑ | DELETE PATCH | `/api/v1/hostel-admin/notice-pushes/:id` | cap:manageNotices |  | notices |
+| ☑ | POST | `/api/v1/hostel-admin/notice-pushes/:id/send` | cap:manageNotices |  | notices |
 | ☑ | GET POST | `/api/v1/hostel-admin/notices` | cap:manageNotices | redis etag | notices |
 | ☑ | PATCH | `/api/v1/hostel-admin/notices/:id` | cap:manageNotices |  | notices |
 | ☑ | GET POST | `/api/v1/hostel-admin/notifications` | requireHostelStaffPrincipal | etag | notifications |
@@ -834,10 +834,10 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | DELETE GET | `/api/v1/store/cart` | requireHostelAdminPrincipal | etag | store |
+| ☑ | DELETE GET | `/api/v1/store/cart` | requireHostelAdminPrincipal | etag | store |
 | ☑ | GET | `/api/v1/store/cart/count` | requireHostelAdminPrincipal | etag | store |
 | ☑ | POST | `/api/v1/store/cart/items` | requireHostelAdminPrincipal |  | store |
-| ☐ | DELETE PATCH | `/api/v1/store/cart/items/:productId` | requireHostelAdminPrincipal |  | store |
+| ☑ | DELETE PATCH | `/api/v1/store/cart/items/:productId` | requireHostelAdminPrincipal |  | store |
 | ☑ | GET | `/api/v1/store/categories` | requireHostelAdminPrincipal | etag | store |
 | ☑ | GET | `/api/v1/store/checkout` | requireHostelAdminPrincipal | etag | store |
 | ☑ | GET | `/api/v1/store/home` | requireHostelAdminPrincipal | etag | store |
@@ -854,12 +854,12 @@ row says otherwise; tick it once that decision is confirmed per row.
 |---|---|---|---|---|---|
 | ☑ | GET | `/api/v1/team/collection-qr` | requireTeamPrincipal | etag | platform-config |
 | ☑ | GET | `/api/v1/team/email-check` | requireTeamPrincipal | etag | hostels |
-| ☐ | GET | `/api/v1/team/geocode` | requireTeamPrincipal | etag | hostels |
+| ☑ | GET | `/api/v1/team/geocode` | requireTeamPrincipal | etag | hostels |
 | ☑ | GET POST | `/api/v1/team/hostels` | requireTeamPrincipal | etag | hostels, team |
 | ☑ | POST | `/api/v1/team/hostels/:id/checkout` | requireTeamPrincipal |  | billing, team |
-| ☐ | DELETE GET PUT | `/api/v1/team/hostels/:id/existing-residents` | in existing-residents.routes.ts |  | residents |
-| ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/add` | in existing-residents.routes.ts | max300s | residents |
-| ☐ | POST | `/api/v1/team/hostels/:id/existing-residents/file` | in existing-residents.routes.ts |  | residents |
+| ☑ | DELETE GET PUT | `/api/v1/team/hostels/:id/existing-residents` | in existing-residents.routes.ts |  | residents |
+| ☑ | POST | `/api/v1/team/hostels/:id/existing-residents/add` | in existing-residents.routes.ts | max300s | residents |
+| ☑ | POST | `/api/v1/team/hostels/:id/existing-residents/file` | in existing-residents.routes.ts |  | residents |
 | ☑ | GET | `/api/v1/team/hostels/:id/existing-residents/template` | in existing-residents.routes.ts |  | residents |
 | ☑ | GET POST | `/api/v1/team/prepayments` | requireTeamPrincipal | etag | hostels, team |
 | ☑ | GET PATCH | `/api/v1/team/prepayments/:id` | requireTeamPrincipal | etag | team |

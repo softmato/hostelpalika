@@ -391,6 +391,7 @@ function RootShell() {
         <Stack.Screen name="(resident)" />
         <Stack.Screen name="(guardian)" />
         <Stack.Screen name="(cook)" />
+        <Stack.Screen name="(platform)" />
         <Stack.Screen name="(provider)" />
         <Stack.Screen name="(admin)" />
         {/*

@@ -134,6 +134,7 @@ beforeEach(() => {
     _id: eventId,
   }));
   mocks.eventFind.mockReturnValue(leanResult([]));
+  mocks.eventFindOne.mockReturnValue(leanResult(null));
   mocks.eventUpdateOne.mockResolvedValue({});
   mocks.balanceFindOneAndUpdate.mockResolvedValue({});
   mocks.invoiceUpdateOne.mockResolvedValue({});
@@ -171,13 +172,26 @@ describe("appendEvent", () => {
    */
   it("replays a duplicate idempotency key as a no-op", async () => {
     const existing = { ...claim, _id: eventId, status: "SETTLED" };
+    // Lost the race: the lookup saw nothing, the index refused the insert.
+    mocks.eventFindOne.mockReturnValueOnce(leanResult(null)).mockReturnValueOnce(leanResult(existing));
     mocks.eventCreate.mockRejectedValue(duplicateKeyError("idempotencyKey_1"));
+
+    const result = await appendEvent(claim);
+
+    expect(result.created).toBe(false);
+    expect(result.event).toMatchObject({ _id: eventId });
+  });
+
+  // P7-44: a database without the unique index took the same paper slip twice.
+  it("returns the stored event without writing when the key already exists", async () => {
+    const existing = { ...claim, _id: eventId, status: "SETTLED" };
     mocks.eventFindOne.mockReturnValue(leanResult(existing));
 
     const result = await appendEvent(claim);
 
     expect(result.created).toBe(false);
     expect(result.event).toMatchObject({ _id: eventId });
+    expect(mocks.eventCreate).not.toHaveBeenCalled();
   });
 
   // A txn-id collision is not a replay — it is the same money being claimed
@@ -368,16 +382,13 @@ function settledEventsAfterWrites() {
 
 describe("reverseEvent", () => {
   beforeEach(() => {
-    mocks.eventFindOne.mockReturnValue(
-      leanResult({
-        _id: eventId,
-        amount: 12000,
-        direction: "CREDIT",
-        hostelId,
-        invoiceId,
-        residentId,
-        status: "SETTLED",
-      }),
+    // The original by id; nothing yet under the reversal's idempotency key.
+    mocks.eventFindOne.mockImplementation((filter: { idempotencyKey?: string }) =>
+      leanResult(
+        filter.idempotencyKey
+          ? null
+          : { _id: eventId, amount: 12000, direction: "CREDIT", hostelId, invoiceId, residentId, status: "SETTLED" },
+      ),
     );
     // Derived from what the service actually wrote, not hand-written.
     //

@@ -29,6 +29,7 @@ export type HomeRoute =
   | "/(browse)"
   | "/(cook)"
   | "/(guardian)"
+  | "/(platform)"
   | "/(provider)"
   | "/(resident)"
   | "/activate";
@@ -95,9 +96,11 @@ export function resolveHome(account: AccountShape | null): HomeRoute {
     case ROLE.WARDEN:
       return "/(admin)";
     case ROLE.SUPERADMIN:
+      // Owner, 2026-11-03: the superadmin runs the platform from the phone too.
+      return "/(platform)";
     case ROLE.PLATFORM_MODERATOR:
-      // Platform administration is web-only by design; staff get the browsing
-      // app, where the Profile tab still has a sign-out.
+      // The System area is superadmin-only (route-access.ts) and no moderator
+      // screen is native yet, so a moderator keeps the browsing app.
       return "/(browse)";
     case ROLE.PUBLIC:
       return account.isApprovedProvider ? "/(provider)" : "/(browse)";

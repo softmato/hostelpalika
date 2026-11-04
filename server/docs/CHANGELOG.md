@@ -15,7 +15,21 @@ these docs.
 ### Fixed
 - P9-1 (attendance retention purge skipped in hostels with no active residents) in Go and TS; P9-2..P9-4, Go only. P9-5 (TS notification emails dropped the template category) fixed in TS.
 
-## [Phase 7 — in progress] — 2026-11-03
+## [Phase 7 — done] — 2026-11-04
+
+### Added
+- Contract groups recorded from TS (`2bcde4d2`) and green on Go: `admin-finance` (claim queue, approve, reject, bulk-approve, reverse, cash, void, receipt PDF; fixture group 16), `admin-branches` (list, names, summary, details, a real branch request; group 17), `admin-notice-pushes` (seeded default, create now/later/daily, pause, resume, send, delete; group 18), `cron` (no-secret and wrong-secret refusals on all 19 doors, the bearer form, a real `purge-expired-otps` run, `platform-backup` 422, plus the Softmato webhook and QuestionCall doors), `store/cart.json` (cart clear and item removal) and `team/existing-write.json` (geocode refusals, existing-residents put, file, add, clear). With the 267 rows ticked earlier, every `PARITY.md` §6 row is ☑; the five `(non-v1)` routes stay in Next.js.
+- App: superadmin shell `app/(platform)` (Home with the System tiles, Community, More), built from `PLATFORM_NAV`; SUPERADMIN lands there instead of the browse app (moderators keep browsing until they have native screens). Native `manage/system/logs`, `process`, `cron`, `active-users`, `analytics`, on `lib/platform-api.ts`. They read the Go-only routes, so they answer from cut-over on.
+- PWA usage client through a web stand-in (`apps/mobile/web/usage-client.ts`), replacing a `Platform.OS` branch in `src/`.
+
+### Fixed
+- P7-44 (money): `appendEvent` deduped only through the unique index, so a database without it settled the same paper cash slip twice. Go and TS look the idempotency key up first; the index stays the race guard.
+- P7-45, P7-46 (Go only): the cash answer's `receipt` shape and the receipt PDF's malformed-id 404.
+
+### Left
+- On-device check of the platform shell after the owner's OTA; the first real `pwa` row in `usageevents` once the PWA export is redeployed.
+
+## [Phase 7 — progress] — 2026-11-03
 
 ### Added
 - `platform/bookings/*` (`bookings/platform.go`): the queues with every count, one booking, cancel for the platform, pause and resume a hostel, screenshot review, transfers (list, mark sent, reveal), payout accounts (list with same-number twins, audited reveal, review; `hostels/payout_platform.go`), the booking terms through the email-confirmed setting change, and any booking paper for a superadmin (`serveDocument`, shared with the booker's route). Contract group `platform-bookings` (7 files), green; `team/register` and `team/members` recorded and green.
@@ -23,8 +37,6 @@ these docs.
 - System tabs (Go-only, `goOnlyAllowed`): `GET /platform/logs/health` (`obs.ReadHealth`: request rate, p95 from the histogram buckets, error rate, Mongo pool, cache hit rate, rate-limit refusals, since boot), `GET /platform/system/process`, `GET /platform/system/active-users` (DAU/WAU/MAU per Kathmandu day over `usageevents`). Web: `/platform/logs`, `/platform/system/process`, `/platform/system/active-users`, `/platform/analytics` under *System*.
 - Fixed: P7-31 and P7-33 in Go and TS, P7-32 in Go (TS was right), P7-34 in Go and TS.
 
-### Next in Phase 7
-- Contract cases for the rest of `platform/*`; the native log and system screens (owner's call). The Cron tab shipped with Phase 9.
 
 ## [Phase 8 — done] — 2026-11-03
 

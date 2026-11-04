@@ -489,7 +489,12 @@ func (h *Handler) cash(c *gin.Context) {
 		if pending {
 			msg = "Cash recorded — a second approver is required"
 		}
-		httpx.Write(c, status, ordered.Map{{Key: "balance", Value: balanceOut(b)}, {Key: "eventId", Value: event.ID.Hex()}, {Key: "pendingApproval", Value: pending}, {Key: "receipt", Value: receiptOut(r)}}, msg)
+		receipt, err := h.receiptDoc(c, r)
+		if err != nil {
+			httpx.Fail(c, err)
+			return
+		}
+		httpx.Write(c, status, ordered.Map{{Key: "balance", Value: balanceOut(b)}, {Key: "eventId", Value: event.ID.Hex()}, {Key: "pendingApproval", Value: pending}, {Key: "receipt", Value: receipt}}, msg)
 	}
 	if !created {
 		// The same slip again: what exists, never a second credit.
@@ -527,12 +532,26 @@ func (h *Handler) cashThreshold(ctx context.Context, hostel bson.ObjectID) (int6
 	return defaultCashApprovalThreshold, nil
 }
 
-func receiptOut(r *ledger.Receipt) any {
+// receiptDoc is settled.receipt as TS returns it: the created mongoose document,
+// schema fields first, then _id, createdAt and __v.
+func (h *Handler) receiptDoc(ctx context.Context, r *ledger.Receipt) (any, error) {
 	if r == nil {
-		return nil
+		return nil, nil
 	}
-	return ordered.Map{{Key: "_id", Value: r.ID.Hex()}, {Key: "hostelId", Value: r.HostelID.Hex()}, {Key: "residentId", Value: r.ResidentID.Hex()}, {Key: "eventId", Value: hexOrNil(r.EventID)}, {Key: "invoiceId", Value: hexOrNil(r.InvoiceID)},
-		{Key: "receiptNumber", Value: r.ReceiptNumber}, {Key: "issuedAt", Value: httpx.ISO(r.IssuedAt)}, {Key: "amount", Value: r.Amount}, {Key: "certificationCode", Value: r.CertificationCode}}
+	raw, err := h.DB.Collection("receipts").FindOne(ctx, bson.D{{Key: "_id", Value: r.ID}}).Raw()
+	if err != nil {
+		return nil, err
+	}
+	doc, _ := ordered.Raw(raw).(ordered.Map)
+	id, _ := doc.Get("_id")
+	out := make(ordered.Map, 0, len(doc))
+	for _, p := range doc.Delete("_id") {
+		if p.Key == "createdAt" {
+			out = append(out, ordered.Pair{Key: "_id", Value: id})
+		}
+		out = append(out, p)
+	}
+	return out, nil
 }
 
 func hexOrNil(id *bson.ObjectID) any {
@@ -576,8 +595,8 @@ func (h *Handler) receiptPDF(c *gin.Context) {
 		return
 	}
 	id, err := bson.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		httpx.Fail(c, finance.Err("RECEIPT_NOT_FOUND", "Receipt was not found."))
+	if err != nil { // TS: mongoose's CastError through handleRouteError
+		httpx.Fail(c, httpx.NewError(http.StatusNotFound, "NOT_FOUND", "Not found", nil))
 		return
 	}
 	b, number, err := finance.RenderReceiptForHostels(c, h.DB, id, scopeOf(p))

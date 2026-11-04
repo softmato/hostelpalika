@@ -1,0 +1,87 @@
+[
+  {
+    "name": "softmato no signature",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/webhooks/softmato",
+      "body": {
+        "event": "invoice.paid"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "softmato bad signature",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/webhooks/softmato",
+      "headers": {
+        "x-softmato-signature": "sha256=deadbeef"
+      },
+      "body": {
+        "event": "invoice.paid"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "questioncall sso no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/integrations/questioncall/sso",
+      "body": {
+        "token": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "QuestionCall webhook is not configured.",
+        "errorCode": "INTEGRATION_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  },
+  {
+    "name": "questioncall conversion no secret",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/integrations/questioncall/conversion",
+      "body": {
+        "userId": "x"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "QuestionCall webhook is not configured.",
+        "errorCode": "INTEGRATION_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 2bcde4d2"
+  }
+]

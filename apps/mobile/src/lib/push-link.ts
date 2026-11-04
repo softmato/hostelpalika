@@ -66,6 +66,7 @@ const KNOWN_PATHS = new Set([
   "/(guardian)",
   "/(guardian)/payments",
   "/(guardian)/safety",
+  "/(platform)",
   "/(provider)",
   "/(provider)/card",
   "/(resident)",
