@@ -252,7 +252,9 @@ func (s *Service) AddJoinRequest(ctx context.Context, hostel bson.ObjectID, id s
 	}
 	added, _, err := s.AddScanned(ctx, hostel, row, r.CardID, p)
 	if err != nil {
-		_, _ = coll.UpdateOne(context.WithoutCancel(ctx), bson.D{{Key: "_id", Value: r.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$set", Value: bson.D{{Key: "decidedAt", Value: nil}, {Key: "updatedAt", Value: now()}}}})
+		if _, undo := coll.UpdateOne(context.WithoutCancel(ctx), bson.D{{Key: "_id", Value: r.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$set", Value: bson.D{{Key: "decidedAt", Value: nil}, {Key: "updatedAt", Value: now()}}}}); undo != nil {
+			slog.ErrorContext(ctx, "join request claim not released; the request stays decided", "request", r.ID.Hex(), "error", undo)
+		}
 		return nil, err
 	}
 	var resident any

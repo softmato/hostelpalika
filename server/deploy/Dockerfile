@@ -11,14 +11,16 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=1 go build -tags=sonic -trimpath -ldflags="-s -w" -o /out/api ./cmd/api
+    CGO_ENABLED=1 go build -tags=sonic -trimpath -ldflags="-s -w" -o /out/api ./cmd/api \
+    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/indexes ./cmd/indexes
 
 FROM debian:trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libvips42t64 poppler-utils ca-certificates tzdata \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --no-create-home api
-COPY --from=build /out/api /usr/local/bin/api
+COPY --from=build /out/api /out/indexes /usr/local/bin/
+# Indexes are a migration: `docker compose run --rm --entrypoint indexes api` (RULES.md 6).
 USER api
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 CMD ["api", "healthcheck"]

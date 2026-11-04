@@ -123,7 +123,7 @@ func (a *Admin) platformDashboard(c *gin.Context) {
 	}
 	var sums map[string][]totals
 	reads = append(reads, func(ctx context.Context) error {
-		cur, err := a.invoices(ctx, ledgerScope{}.stages(bson.D{{Key: "$facet", Value: facet}}))
+		cur, err := a.invoices(ctx, ledgerScope{joins: finance.JoinBalance | finance.JoinSettled}.stages(bson.D{{Key: "$facet", Value: facet}}))
 		rows, err := decodeAll[map[string][]totals](ctx, cur, err)
 		if err == nil && len(rows) > 0 {
 			sums = rows[0]
@@ -222,7 +222,7 @@ func (a *Admin) platformPayments(c *gin.Context) {
 	var proofs []proofRow
 	err = all(c, a.totals(&sum, scope), a.byField(&statusCounts, scope, "status"), count(&pendingProofs, a.DB, "paymentevents", claims),
 		func(ctx context.Context) error {
-			cur, err := a.invoices(ctx, scope.stages(bson.D{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}}, bson.D{{Key: "$limit", Value: 25}}))
+			cur, err := a.invoices(ctx, scope.recent(25))
 			recent, err = decodeAll[invoiceRow](ctx, cur, err)
 			return err
 		},
@@ -454,7 +454,7 @@ func (a *Admin) platformExport(c *gin.Context) {
 		}
 		out = export.Report{Columns: []export.Column{{Key: "hostel", Label: "Hostel"}, {Key: "status", Label: "Status"}, {Key: "count", Label: "Complaints"}}, FilenamePrefix: "complaint-volume", Period: window.label, Rows: rows}
 	default: // payments: billed against what residents actually settled
-		cur, err := a.invoices(c, ledgerScope{}.stages(
+		cur, err := a.invoices(c, ledgerScope{joins: finance.JoinBalance}.stages(
 			sumGroup(bson.D{{Key: "hostelId", Value: "$hostelId"}, {Key: "period", Value: "$period"}}, bson.E{Key: "invoiceCount", Value: bson.D{{Key: "$sum", Value: 1}}}),
 			bson.D{{Key: "$sort", Value: bson.D{{Key: "_id.period", Value: -1}, {Key: "_id.hostelId", Value: 1}}}}, rowCap))
 		found, err := decodeAll[struct {

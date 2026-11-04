@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"sort"
@@ -628,7 +629,10 @@ func (a *Admin) confirm(c *gin.Context) {
 		err = a.apply(c, r.Key, proposed, by)
 	}
 	if err != nil {
-		_, _ = coll.UpdateOne(c, bson.D{{Key: "_id", Value: r.ID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "PENDING"}}}, {Key: "$unset", Value: bson.D{{Key: "appliedAt", Value: 1}}}})
+		// Own context: a cancelled request must not leave the change marked APPLIED.
+		if _, undo := coll.UpdateOne(context.WithoutCancel(c), bson.D{{Key: "_id", Value: r.ID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "PENDING"}}}, {Key: "$unset", Value: bson.D{{Key: "appliedAt", Value: 1}}}}); undo != nil {
+			slog.ErrorContext(c, "setting change not reopened; it stays APPLIED but was not applied", "change", r.ID.Hex(), "error", undo)
+		}
 		httpx.Fail(c, err)
 		return
 	}

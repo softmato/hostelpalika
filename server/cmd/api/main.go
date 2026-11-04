@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformlogs"
-	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
@@ -80,10 +80,6 @@ func run() error {
 	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, Background: bg, Jobs: runner})
 	if err != nil {
 		return err
-	}
-	// ponytail: cronruns indexes at boot (Go-only collection, idempotent); move to cmd/indexes with R19.
-	if err := jobs.Indexes(ctx, db); err != nil {
-		slog.Warn("cronruns indexes not ensured", "category", "jobs", "error", err)
 	}
 	if _, err := runner.CloseStale(ctx, time.Now()); err != nil {
 		slog.Warn("stale cron runs not closed", "category", "jobs", "error", err)
