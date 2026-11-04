@@ -226,7 +226,7 @@ export async function inviteGuardian(
 
   await sendNotificationEmail({
     action: "guardian_invitation",
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: input.email,
   });

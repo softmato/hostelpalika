@@ -605,6 +605,7 @@ async function deliver(input: {
 
     input.emails.push({
       action: overdue ? "payment_overdue" : "payment_due_reminder",
+      category: email.category,
       html: email.html,
       subject: email.subject,
       to: contact.email,
@@ -675,7 +676,7 @@ async function emailEscalations(hostelId: string, hostelName: string, residents:
     admins.map((admin) =>
       sendNotificationEmail({
         action: "payment_escalated",
-        html: email.html,
+        category: email.category, html: email.html,
         subject: email.subject,
         to: admin.email,
         topic: "PAYMENT_SUMMARY",

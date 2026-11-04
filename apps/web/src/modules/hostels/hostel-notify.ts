@@ -65,7 +65,7 @@ export async function notifyHostelOfInquiry(
     contacts.map(async (contact) => {
       await sendNotificationEmail({
         action: "hostel_inquiry_received",
-        html: email.html,
+        category: email.category, html: email.html,
         subject: email.subject,
         to: contact.email,
       });
@@ -131,7 +131,7 @@ export async function notifyPlatformOfPendingHostel(
       if (member.email) {
         await sendNotificationEmail({
           action: "platform_hostel_pending",
-          html: email.html,
+          category: email.category, html: email.html,
           subject: email.subject,
           to: member.email,
         });

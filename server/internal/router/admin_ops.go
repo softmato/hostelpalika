@@ -20,10 +20,12 @@ import (
 func mountAdminOps(v1 *gin.RouterGroup, s *shared) {
 	board := &notices.Admin{DB: s.D.DB, Guards: s.Guards, Cache: s.Cache, Notify: s.Notify, Mail: s.Mail, Audit: s.Audit, Config: s.Config, RT: s.RT, AppURL: s.AppURL}
 	board.Register(v1)
-	(&noticepushes.Service{DB: s.D.DB, Guards: s.Guards, Notices: board, Audit: s.Audit, RT: s.RT, Cache: s.Cache}).Register(v1)
+	s.J.NoticePushes = &noticepushes.Service{DB: s.D.DB, Guards: s.Guards, Notices: board, Audit: s.Audit, RT: s.RT, Cache: s.Cache}
+	s.J.NoticePushes.Register(v1)
 	s.Safety.RegisterAdmin(v1, s.Cache)
 	(&community.Handler{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, RT: s.RT, Bump: s.Cache, BG: s.BG, LLM: s.LLM}).RegisterAdmin(v1, s.Audit)
-	(&campaigns.Service{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Push: s.Push, RT: s.RT, Bump: s.Cache}).Register(v1)
+	s.J.Campaigns = &campaigns.Service{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Push: s.Push, RT: s.RT, Bump: s.Cache}
+	s.J.Campaigns.Register(v1)
 	(&complaints.Service{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, Mail: s.Mail, Audit: s.Audit, Config: s.Config, RT: s.RT, Cache: s.Cache, AppURL: s.AppURL}).RegisterAdmin(v1)
 	(&maintenance.Service{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Cache: s.Cache, Config: s.Config, Notify: s.Notify, RT: s.RT}).Register(v1)
 	(&attendance.Admin{Handler: &attendance.Handler{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit}, Config: s.Config, RT: s.RT, Bump: s.Cache}).Register(v1)

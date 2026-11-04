@@ -570,7 +570,7 @@ export async function sendHostelInvite(
 
   const sent = await sendNotificationEmail({
     action: "hostel_referral_invite",
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: input.email,
   });

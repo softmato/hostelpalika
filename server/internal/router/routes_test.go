@@ -152,6 +152,9 @@ var goOnlyAllowed = map[string]bool{
 	"GET /api/v1/platform/logs/health":         true,
 	"GET /api/v1/platform/system/process":      true,
 	"GET /api/v1/platform/system/active-users": true,
+	// The Cron tab (PHASES.md Phase 9): run history only Go's runner writes.
+	"GET /api/v1/platform/system/cron":      true,
+	"GET /api/v1/platform/system/cron/runs": true,
 }
 
 // TestRouteBudgetsAreRoutes: a typo in routeBudgets would silently leave a long

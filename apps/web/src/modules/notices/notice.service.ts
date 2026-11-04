@@ -283,7 +283,7 @@ async function deliverNoticeBroadcast(notice: NoticeRecord, options: BroadcastOp
 
     const sent = await sendNotificationEmail({
       action: "resident_new_notice",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: recipient.email,
       topic: "NOTICES",

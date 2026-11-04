@@ -219,3 +219,16 @@ Found while porting Phase 8. Each row is fixed in Go and TS unless it says other
 | ☑ | P8-6 | A gateway verify that died between appending the PENDING event and settling it left the event PENDING; the retry saw `created: false`, marked the attempt SUCCEEDED and returned, so the money never reached the invoice | A replayed event that is still PENDING is settled; a concurrent loser's "not pending" is a replay | Same, the loser's `SETTLED_EVENT_IMMUTABLE` counts as a replay |
 | ☑ | P8-7 | Booking screenshot submission moved the booking to PAYMENT_IN_REVIEW and then created the payment row; a failure between left a booking in review with nothing to check, and the guest could not resubmit | The move and the row in one transaction | The booking is moved back when the row fails |
 | ☑ | P8-8 | `settlePayment` claimed the payment SETTLED before reading its invoice, so a payment on a voided invoice stayed SETTLED with an error; any failure between the claim and the invoice update left a settled payment the invoice never counted, and a retry returned early because the claim was taken | Invoice checked first; claim, receipt number, payment fields and invoice status in one transaction; the Softmato receipt read moved ahead of it | Invoice checked before the claim |
+
+## Phase 9 findings (2026-11-04)
+
+Found by `dev shadow-phase9` or while porting the jobs.
+
+| Status | Id | Finding | Go | TS |
+|---|---|---|---|---|
+| ☑ | P9-1 | `runAttendanceMaintenance` skipped a hostel with no ACTIVE residents before its retention purge, so attendance logs there were never deleted past `retentionDays` | The purge runs for every hostel | Same (`purgeExpiredLogs` before the skip) |
+| ☑ | P9-2 | Go only: `financeadmin.jsNumber` returned `int64`, so the late-fine line, money-rule invoice totals and gateway settings were stored as NumberLong; the JS driver writes int32 (a double past int32) | `jsNumber` writes int32, else a double | — |
+| ☑ | P9-3 | Go only: the late-fine FINE line had no `bedType`; Mongoose fills its default `null` | `bedType: null` on the line | — |
+| ☑ | P9-4 | Go only: the platform backup report stored `bytes`, `collections`, `documents` and each mismatch's counts as NumberLong | `ledger.JSInt` | — |
+| ☑ | P9-5 | `sendNotificationEmail` (and `…Batch`) dropped the template's category, so billing and alert mail (rent reminders, overdue, digests, escalations) left from the default `info@` mailbox with its reply-to | Sends the template's category (already) | Both take `category`; every call site passes `email.category` |
+

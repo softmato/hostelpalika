@@ -338,7 +338,7 @@ async function notifyPlatformOfLeave(request: LeaveRequestRow) {
   await Promise.all(
     staff.map(async (member) => {
       if (member.email) {
-        await sendNotificationEmail({ action: "platform_hostel_leave", html: email.html, subject: email.subject, to: member.email });
+        await sendNotificationEmail({ action: "platform_hostel_leave", category: email.category, html: email.html, subject: email.subject, to: member.email });
       }
 
       await createInAppNotification({
@@ -422,7 +422,7 @@ export async function submitLeaveRequest(principal: ApiPrincipal, input: SubmitI
       pageUrl: appUrl("/hostel-admin/leave"),
     });
 
-    await sendNotificationEmail({ action: "hostel_leave_requested", html: email.html, subject: email.subject, to: owner.email });
+    await sendNotificationEmail({ action: "hostel_leave_requested", category: email.category, html: email.html, subject: email.subject, to: owner.email });
   }
 
   return serializeRequest(created);
@@ -564,7 +564,7 @@ export async function approveHostelLeaveRequest(requestId: string, input: Approv
     const sent = await sendNotificationEmail({
       action: "hostel_leave_approved",
       attachments: exported?.attachments ?? [],
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to,
     });
@@ -668,7 +668,7 @@ export async function rejectHostelLeaveRequest(requestId: string, input: RejectI
   if (request.ownerEmail) {
     const email = hostelLeaveRejectedEmail({ hostelName: request.hostelName, note: input.note, ownerName: request.ownerName });
 
-    await sendNotificationEmail({ action: "hostel_leave_rejected", html: email.html, subject: email.subject, to: request.ownerEmail });
+    await sendNotificationEmail({ action: "hostel_leave_rejected", category: email.category, html: email.html, subject: email.subject, to: request.ownerEmail });
   }
 
   await notifyHostelOwnerOf(request.requestedBy, request.hostelId, {
@@ -851,7 +851,7 @@ export async function reclaimHostel(principal: ApiPrincipal, requestId: string) 
       portalUrl: appUrl(hostel?.slug ? `/${hostel.slug}/admin/dashboard` : "/hostel-admin/dashboard"),
     });
 
-    await sendNotificationEmail({ action: "hostel_reclaimed", html: email.html, subject: email.subject, to });
+    await sendNotificationEmail({ action: "hostel_reclaimed", category: email.category, html: email.html, subject: email.subject, to });
   }
 
   return { hostelId: request.hostelId.toString(), request: serializeRequest(request) };

@@ -14,16 +14,17 @@ import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
 
 /**
- * Superadmin → System (server/docs/PHASES.md Phase 7): the Go server's own
- * logs, the process, who was active, and the usage page. Every route here is
+ * Superadmin → System (server/docs/PHASES.md Phases 7 and 9): the Go server's
+ * own logs, the process, its cron runs, who was active, and the usage page. Every route here is
  * Go-only, read through `API_URL`, so it answers once the API cuts over.
  */
 
-export type SystemTab = "logs" | "process" | "active-users" | "analytics";
+export type SystemTab = "logs" | "process" | "cron" | "active-users" | "analytics";
 
 const TABS: { href: string; key: SystemTab; label: string }[] = [
   { href: "/platform/logs", key: "logs", label: "Logs" },
   { href: "/platform/system/process", key: "process", label: "Process" },
+  { href: "/platform/system/cron", key: "cron", label: "Cron" },
   { href: "/platform/system/active-users", key: "active-users", label: "Active users" },
   { href: "/platform/analytics", key: "analytics", label: "Analytics" },
 ];
@@ -84,6 +85,7 @@ export function PlatformSystemPage({ tab }: { tab: SystemTab }) {
       />
       {tab === "logs" ? <LogsTab /> : null}
       {tab === "process" ? <ProcessTab /> : null}
+      {tab === "cron" ? <CronTab /> : null}
       {tab === "active-users" ? <ActiveUsersTab /> : null}
       {tab === "analytics" ? <PlatformUsagePageContent /> : null}
     </div>
@@ -267,6 +269,163 @@ function LogsTab() {
       </div>
       {summary?.dropped ? <p className="text-xs text-muted-foreground">{summary.dropped} lines dropped by the store since start.</p> : null}
       {summary ? <LevelControls categories={summary.categories} /> : null}
+    </div>
+  );
+}
+
+/* ── Cron ── */
+
+type CronRun = {
+  counts: unknown;
+  deadlineAt: string;
+  durationMs: number | null;
+  endedAt: string | null;
+  error: string | null;
+  instance: string;
+  job: string;
+  runId: string;
+  startedAt: string;
+  status: "failed" | "ok" | "running" | "skipped" | "timeout";
+  trigger: "http" | "manual" | "schedule";
+};
+
+type CronJob = {
+  deadlineSeconds: number;
+  lastOkAt: string | null;
+  lastRun: CronRun | null;
+  missed: boolean;
+  name: string;
+  nextRunAt: string | null;
+  schedule: string | null;
+};
+
+const RUN_TONE: Record<CronRun["status"], SoftTone> = { failed: "rose", ok: "teal", running: "blue", skipped: "slate", timeout: "amber" };
+const CRON = "/api/v1/platform/system/cron";
+
+/** A run's own log lines: the runner logs each run under its id as the request id. */
+function RunLines({ runId }: { runId: string }) {
+  const lines = usePortalResource<{ entries: LogEntry[] }>(`/api/v1/platform/logs?requestId=${runId}`).data?.entries;
+
+  if (!lines) return <LoadingRows />;
+  if (lines.length === 0) return <p className="text-xs text-muted-foreground">No stored lines for this run.</p>;
+
+  return (
+    <div className="divide-y divide-border rounded-md border border-border">
+      {lines.map((entry) => (
+        <div className="flex items-center gap-2 px-2 py-1.5 text-xs" key={entry.id}>
+          <SoftBadge tone={LEVEL_TONE[entry.level]}>{entry.level}</SoftBadge>
+          <span className="min-w-0 flex-1 truncate">{entry.message}</span>
+          <span className="shrink-0 tabular-nums text-muted-foreground">{when(entry.at)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CronTab() {
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [cursor, setCursor] = useState<string[]>([]);
+  const [open, setOpen] = useState<string | null>(null);
+  const jobs = usePortalResource<{ jobs: CronJob[] }>(CRON);
+  const query = new URLSearchParams({ ...filters, ...(cursor.length ? { cursor: cursor[cursor.length - 1] } : {}) });
+  const runsUrl = `${CRON}/runs?${query}`;
+  const runs = usePortalResource<{ nextCursor: string | null; runs: CronRun[] }>(runsUrl);
+  const { busy, run } = useAction([CRON, runsUrl]);
+  const set = (key: string, value: string) => {
+    setCursor([]);
+    setFilters((current) => {
+      const next = { ...current };
+      if (value && current[key] !== value) next[key] = value;
+      else delete next[key];
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <Message value={jobs.message ?? runs.message} />
+      {jobs.state === "loading" && !jobs.data ? <LoadingRows /> : null}
+      {jobs.data ? (
+        <div className="divide-y divide-border rounded-xl border border-border">
+          {jobs.data.jobs.map((job) => (
+            <div className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm" key={job.name}>
+              <button className="min-w-0 flex-1 truncate text-left font-mono" onClick={() => set("job", job.name)} type="button">
+                {job.name}
+              </button>
+              <span className="font-mono text-xs text-muted-foreground">{job.schedule ?? "on demand"}</span>
+              {job.missed ? <SoftBadge tone="rose">missed</SoftBadge> : null}
+              {job.lastRun ? <SoftBadge tone={RUN_TONE[job.lastRun.status]}>{job.lastRun.status}</SoftBadge> : <SoftBadge tone="slate">never run</SoftBadge>}
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {job.lastRun ? when(job.lastRun.startedAt) : "—"}
+                {job.nextRunAt ? ` · next ${when(job.nextRunAt)}` : ""}
+              </span>
+              {job.schedule ? (
+                <Button disabled={busy !== null} onClick={() => void run(job.name, `/api/v1/cron/${job.name}`, {}, `${job.name} ran.`)} size="sm" variant="outline">
+                  Run now
+                </Button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-1.5">
+        {(["failed", "timeout", "running", "skipped", "ok"] as const).map((status) => (
+          <Button key={status} onClick={() => set("status", status)} size="sm" variant={filters.status === status ? "default" : "outline"}>
+            {status}
+          </Button>
+        ))}
+        {(["schedule", "manual", "http"] as const).map((trigger) => (
+          <Button key={trigger} onClick={() => set("trigger", trigger)} size="sm" variant={filters.trigger === trigger ? "default" : "outline"}>
+            {trigger}
+          </Button>
+        ))}
+        {filters.job ? (
+          <Button onClick={() => set("job", filters.job!)} size="sm">
+            {filters.job} ×
+          </Button>
+        ) : null}
+      </div>
+
+      {runs.state === "loading" && !runs.data ? <LoadingRows /> : null}
+      {runs.data && runs.data.runs.length === 0 ? <EmptyState label="No runs match." /> : null}
+      {runs.data && runs.data.runs.length > 0 ? (
+        <div className="divide-y divide-border rounded-xl border border-border">
+          {runs.data.runs.map((row) => (
+            <div key={row.runId}>
+              <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted/40" onClick={() => setOpen(open === row.runId ? null : row.runId)} type="button">
+                <SoftBadge tone={RUN_TONE[row.status]}>{row.status}</SoftBadge>
+                <span className="font-mono text-xs">{row.job}</span>
+                <span className="text-xs text-muted-foreground">{row.trigger}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-destructive">{row.error ?? ""}</span>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {row.durationMs !== null ? `${row.durationMs} ms · ` : ""}
+                  {when(row.startedAt)}
+                </span>
+              </button>
+              {open === row.runId ? (
+                <div className="space-y-2 px-3 pb-3">
+                  {row.error ? <p className="text-sm text-destructive">{row.error}</p> : null}
+                  <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">{JSON.stringify({ counts: row.counts, instance: row.instance, runId: row.runId }, null, 2)}</pre>
+                  <RunLines runId={row.runId} />
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="flex gap-2">
+        {cursor.length ? (
+          <Button onClick={() => setCursor((c) => c.slice(0, -1))} size="sm" variant="outline">
+            Newer
+          </Button>
+        ) : null}
+        {runs.data?.nextCursor ? (
+          <Button onClick={() => setCursor((c) => [...c, runs.data!.nextCursor!])} size="sm" variant="outline">
+            Older
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

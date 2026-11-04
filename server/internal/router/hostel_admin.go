@@ -55,6 +55,7 @@ type shared struct {
 	LLM      *llm.Router
 	AppURL   func(path string) string
 	Outbound string
+	J        *jobHosts // the instances the scheduled jobs run on
 }
 
 func mountHostelAdmin(v1 *gin.RouterGroup, s *shared) {

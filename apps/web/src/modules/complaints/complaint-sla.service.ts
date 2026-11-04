@@ -90,7 +90,7 @@ export async function runComplaintSlaCheck(now = new Date()) {
           const jobs: Promise<unknown>[] = [
             sendNotificationEmail({
               action: "complaint_sla_breached",
-              html: email.html,
+              category: email.category, html: email.html,
               subject: email.subject,
               to: admin.email,
               topic: "COMPLAINT_ALERTS",

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 )
 
 // TestTemplatesMatchTS replays testdata/vectors/emails.json: every template
@@ -58,6 +59,19 @@ func TestTemplatesMatchTS(t *testing.T) {
 			got = StoreOrderPlacedBuyer(storeFacts(in), s("createdAt"), s("orderUrl"))
 		case "storeOrderReceivedPlatform":
 			got = StoreOrderReceivedPlatform(storeFacts(in), s("placedByName"), s("ordersUrl"))
+		case "paymentDueReminder":
+			got = PaymentDueReminder(int64(in["amount"].(float64)), dueAt(in), s("hostelName"), s("month"), s("paymentsUrl"), s("residentName"), ReminderStage(s("stage")))
+		case "paymentOverdue":
+			got = PaymentOverdue(int64(in["amount"].(float64)), int(in["daysOverdue"].(float64)), dueAt(in), s("hostelName"), s("month"), s("paymentsUrl"), s("residentName"))
+		case "unpaidFees":
+			var rows []PaymentLine
+			for _, r := range in["residents"].([]any) {
+				m := r.(map[string]any)
+				line := PaymentLine{Amount: int64(m["amount"].(float64)), Name: m["name"].(string)}
+				line.Month, _ = m["month"].(string)
+				rows = append(rows, line)
+			}
+			got = UnpaidFees(s("hostelName"), s("paymentsUrl"), int(in["reminders"].(float64)), rows)
 		case "storeOrderStatusBuyer":
 			got = StoreOrderStatusBuyer(s("status"), s("orderNumber"), s("orderUrl"), s("deliveryPromise"), s("note"), s("cancelledReason"), int64(in["total"].(float64)), storeItems(in["items"]))
 		case "hostelSubmissionReceived":
@@ -127,4 +141,9 @@ func storeFacts(in map[string]any) StoreOrderFacts {
 	n := func(k string) int64 { x, _ := in[k].(float64); return int64(x) }
 	return StoreOrderFacts{Address: s("address"), ContactName: s("contactName"), DeliveryPromise: s("deliveryPromise"), HostelName: s("hostelName"), Note: s("note"),
 		OrderNumber: s("orderNumber"), Phone: s("phone"), DeliveryFee: n("deliveryFee"), Subtotal: n("subtotal"), Total: n("total"), Items: storeItems(in["items"])}
+}
+
+func dueAt(in map[string]any) time.Time {
+	t, _ := time.Parse(time.RFC3339, in["dueDate"].(string))
+	return t
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformlogs"
+	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
@@ -74,9 +75,21 @@ func run() error {
 	}
 
 	bg := &background.Runner{}
-	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, Background: bg})
+	// Runs end with ctx: a job still going at SIGTERM is cancelled and its row closed.
+	runner := jobs.New(ctx, db, rdb)
+	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, Background: bg, Jobs: runner})
 	if err != nil {
 		return err
+	}
+	// ponytail: cronruns indexes at boot (Go-only collection, idempotent); move to cmd/indexes with R19.
+	if err := jobs.Indexes(ctx, db); err != nil {
+		slog.Warn("cronruns indexes not ensured", "category", "jobs", "error", err)
+	}
+	if _, err := runner.CloseStale(ctx, time.Now()); err != nil {
+		slog.Warn("stale cron runs not closed", "category", "jobs", "error", err)
+	}
+	if cfg.SchedulerOn {
+		go runner.Schedule(ctx)
 	}
 	srv := &http.Server{
 		Addr:              cfg.Addr,
@@ -133,6 +146,9 @@ func run() error {
 	// Handlers are done; let their afterResponse work land before Mongo closes.
 	if err := bg.Wait(sctx); err != nil {
 		slog.Warn("background work still running at shutdown", "error", err)
+	}
+	if err := runner.Wait(sctx); err != nil {
+		slog.Warn("cron runs still open at shutdown", "category", "jobs", "error", err)
 	}
 	slog.Info("stopped cleanly")
 	return nil

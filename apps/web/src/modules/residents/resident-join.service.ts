@@ -815,7 +815,7 @@ async function tellReturned(request: RequestDoc, reason: string) {
 
       await sendNotificationEmail({
         action: "join_request_returned",
-        html: email.html,
+        category: email.category, html: email.html,
         subject: email.subject,
         to: request.email,
       });

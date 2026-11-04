@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	stdmaps "maps"
 	"net/http"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/modules/arrivals"
 	"github.com/softmato/hostelpalika/server/internal/modules/attendance"
 	authmod "github.com/softmato/hostelpalika/server/internal/modules/auth"
@@ -79,6 +81,9 @@ type Deps struct {
 	Redis *goredis.Client
 	// Tracks afterResponse work so shutdown drains it; nil in tests that run none.
 	Background *background.Runner
+	// Jobs runs the scheduled jobs and their /cron doors; nil builds one bound to
+	// no shutdown (tests).
+	Jobs *jobs.Runner
 }
 
 // routeBudgets are the routes allowed past httpx.DefaultDeadline: TS's maxDuration,
@@ -107,7 +112,8 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	// A *gin.Context handed on as a context.Context (slog, Mongo, Redis) must
 	// reach the request's own values: request id, timings.
 	r.ContextWithFallback = true
-	r.Use(httpx.Recover(), httpx.Deadline(routeBudgets), obs.Middleware(), httpx.SecurityHeaders(), httpx.CORS(cfg.CORSOrigins), httpx.BodyLimit())
+	budgets := stdmaps.Clone(routeBudgets)
+	r.Use(httpx.Recover(), httpx.Deadline(budgets), obs.Middleware(), httpx.SecurityHeaders(), httpx.CORS(cfg.CORSOrigins), httpx.BodyLimit())
 	if d.Background != nil {
 		r.Use(d.Background.Middleware())
 	}
@@ -115,7 +121,11 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", health(d))
 	if d.DB != nil {
+		if d.Jobs == nil {
+			d.Jobs = jobs.New(context.Background(), d.DB, d.Redis)
+		}
 		mountAPI(v1, cfg, d)
+		stdmaps.Copy(budgets, jobs.Paths(d.Jobs.Jobs()))
 	}
 	return r, nil
 }
@@ -183,8 +193,9 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&store.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Notify: notify, Push: pushSender, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis),
 		SiteURL: strings.TrimRight(cfg.AppURL, "/"), Now: time.Now}).Register(v1)
 
-	(&users.Deletion{DB: d.DB, Guards: guards, Tokens: tokens, Mail: sender, Audit: log, Notify: notify, Now: time.Now,
-		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}).Register(v1)
+	deletion := &users.Deletion{DB: d.DB, Guards: guards, Tokens: tokens, Mail: sender, Audit: log, Notify: notify, Now: time.Now,
+		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
+	deletion.Register(v1)
 	(&users.SelfService{DB: d.DB, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, Now: time.Now,
 		HasProfile: (&hostelresidents.Service{DB: d.DB}).HasProfile,
 		SupportEmail: func(ctx context.Context) string {
@@ -201,7 +212,8 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis),
 		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
 	safetySvc.Register(v1)
-	(&residentportal.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	portal := &residentportal.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: cache.New(d.Redis)}
+	portal.Register(v1)
 	(&residentaccount.Handler{DB: d.DB, Guards: guards, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
 	issuer := &users.Issuer{DB: d.DB, Mail: sender, Audit: log, AppURL: strings.TrimRight(cfg.AppURL, "/")}
 	appURL := func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }
@@ -213,14 +225,17 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
 	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
 	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL}).Register(v1)
-	(&kitchen.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}).Register(v1)
+	kitchenH := &kitchen.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}
+	kitchenH.Register(v1)
 	(&notices.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis)}).Register(v1)
-	(&complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}).Register(v1)
+	complaintsSvc := &complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}
+	complaintsSvc.Register(v1)
 	(&attendance.Handler{DB: d.DB, Guards: guards, Audit: log}).Register(v1)
 	notifications.NewHandler(d.DB, guards, sender, pushSender, rt, cfg.Pusher).Register(v1)
 	sh := &shared{Cfg: cfg, D: d, BG: bg, Tokens: tokens, Cookies: cookies, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, RT: rt, Push: pushSender, Notify: notify,
 		Cache: cache.New(d.Redis), R2: storage.New(cfg.R2), Config: siteConfig, Claims: claims, Personal: personal, Refs: refs, Bookings: bookingsSvc, Safety: safetySvc, Issuer: issuer, Auth: authSvc,
-		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL()}
+		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL(),
+		J: &jobHosts{Safety: safetySvc, Portal: portal, Kitchen: kitchenH, Complaints: complaintsSvc, Deletion: deletion}}
 	mountHostelAdmin(v1, sh)
 	signedBookings := &bookings.Signed{Service: bookingsSvc, Softmato: softmato.New(cfg.Softmato.BaseURL, cfg.Softmato.Secret, cfg.Softmato.WebhookSecret), Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
 		FinanceKeys: func() ([]crypto.MasterKey, error) {
@@ -242,7 +257,9 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&hostels.RegistrationBilling{DB: d.DB, Guards: guards, Settler: settler}).Register(v1)
 	(&billing.PlanCheckout{Settler: settler, Limiter: limiter, RequestOTP: authSvc.PlanCheckoutOTP, VerifyOTP: authSvc.VerifiedIdentifier, Cooldown: authSvc.ResendCooldown, ClaimValid: claims.Valid}).Register(v1)
 	mountPlatform(v1, sh, settler)
-	mountGateway(v1, sh)
+	sh.J.Gateway = mountGateway(v1, sh)
+	sh.J.Bookings, sh.J.Plans = signedBookings, settler.Service
+	mountJobs(v1, sh)
 }
 
 type healthData struct {

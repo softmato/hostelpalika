@@ -119,6 +119,23 @@ add("storeOrderStatusBuyer", storeStatus.storeOrderStatusBuyerEmail as never, [
   { deliveryPromise: "x", items: [], orderNumber: "SO-1", orderUrl: "https://x.test/o", status: "CANCELLED", total: 5 },
 ]);
 
+const dueReminder = await t("payment/payment-due-reminder");
+const overdue = await t("payment/payment-overdue");
+const staffAlerts = await t("hostel/staff-alerts");
+const due = new Date("2026-11-14T18:15:00.000Z");
+add("paymentDueReminder", dueReminder.paymentDueReminderEmail as never, [
+  { amount: 1250000, dueDate: due, hostelName: "Sun <Hostel>", month: "2083-07", paymentsUrl: "https://x.test/resident/payments", residentName: "Ram & Sita" },
+  { amount: 5, dueDate: due, hostelName: "H", month: "2026-03", paymentsUrl: "https://x.test/p", residentName: "R", stage: "SOON" },
+  { amount: 0, dueDate: due, hostelName: "H", month: "", paymentsUrl: "https://x.test/p", residentName: "R", stage: "TODAY" },
+]);
+add("paymentOverdue", overdue.paymentOverdueEmail as never, [
+  { amount: 1250000, daysOverdue: 1, dueDate: due, hostelName: "Sun <Hostel>", month: "2083-07", paymentsUrl: "https://x.test/resident/payments", residentName: "Ram & Sita" },
+  { amount: 9, daysOverdue: 12, dueDate: due, hostelName: "H", month: "odd", paymentsUrl: "https://x.test/p", residentName: "R" },
+]);
+add("unpaidFees", staffAlerts.unpaidFeesEmail as never, [
+  { hostelName: "Sun <Hostel>", paymentsUrl: "https://x.test/hostel-admin/payments", reminders: 4, residents: [{ amount: 1250000, month: "2083-07", name: "Ram <R>" }, { amount: 5, name: "Sita" }] },
+]);
+
 writeFileSync(join(process.cwd(), "server/testdata/vectors/emails.json")
 
 , `${JSON.stringify(vectors, undefined, 1)}\n`);

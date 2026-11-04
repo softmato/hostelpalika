@@ -335,7 +335,7 @@ async function sendActivationEmail(
 
   const sent = await sendNotificationEmail({
     action: "resident_activation",
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: contact.email,
   });

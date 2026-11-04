@@ -364,7 +364,7 @@ export async function requestAccountDeletion(
 
     await sendNotificationEmail({
       action: "account_deletion_requested",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: user.email,
     }).catch(() => {
@@ -444,7 +444,7 @@ async function notifyPlatformOfDeletionRequest(
         if (owner.email) {
           await sendNotificationEmail({
             action: "account_deletion_review",
-            html: email.html,
+            category: email.category, html: email.html,
             subject: email.subject,
             to: owner.email,
           });
@@ -537,7 +537,7 @@ export async function cancelAccountDeletionForUser(userId: string) {
 
     await sendNotificationEmail({
       action: "account_deletion_cancelled",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: user.email,
     }).catch(() => {});
@@ -676,7 +676,7 @@ export async function reviewAccountDeletionRequest(
 
     await sendNotificationEmail({
       action: "account_deletion_requested",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: user.email,
     }).catch(() => {});

@@ -342,7 +342,7 @@ async function mailCredentialsToAdmins(input: {
     admins.map((admin) =>
       sendNotificationEmail({
         action: input.rotated ? "cook_password_rotated" : "cook_credentials_issued",
-        html: message.html,
+        category: message.category, html: message.html,
         subject: message.subject,
         to: admin.email,
       }),
@@ -561,7 +561,7 @@ export async function addCookAccount(input: CookCreateInput, principal: ApiPrinc
 
   await sendNotificationEmail({
     action: "cook_invitation",
-    html: message.html,
+    category: message.category, html: message.html,
     subject: message.subject,
     to: email,
   });

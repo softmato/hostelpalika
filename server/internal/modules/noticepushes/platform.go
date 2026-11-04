@@ -31,6 +31,8 @@ type Platform struct {
 	Guard *authz.Guards
 	Audit *audit.Log
 	Push  *push.Sender
+	// Automatic delivers the automatic rows (DispatchDue); nil refuses them.
+	Automatic AutomaticRun
 
 	seedMu sync.Mutex
 	seeded bool

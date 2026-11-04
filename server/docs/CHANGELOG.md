@@ -3,6 +3,18 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Phase 9 — done] — 2026-11-04
+
+### Added
+- Every job in `PARITY.md` §5 runs in-process: `router/jobs.go` registers all 19 on the route instances (`jobHosts`), with their TS deadlines and success messages; heavy jobs share one slot. `cmd/api` builds the runner, ensures the `cronruns` indexes, closes stale runs at boot, schedules when `SCHEDULER_ENABLED=true` and drains runs on shutdown.
+- Payment reminders complete: the dunning ladder (`ledger/dunning.go`, `NextDunningAction` + `RunPaymentReminders`, one rent email per resident per run, escalation email per hostel), the admins' morning payment digest, and move-out reminders (`residentportal/leaving_reminders.go`). Emails `PaymentDueReminder`, `PaymentOverdue` (golden vectors with `UnpaidFees`).
+- Automatic platform-push rows (PLAN_DUE, FEE_DUE, FREE_MONTH) wired to their senders; platform-push also sweeps bookings and retries Softmato tasks (BOOKING_PAYMENT, REFUND_FILING).
+- Web: Cron tab under *System* (`/platform/system/cron`).
+- Gate: `dev shadow-phase9` — zero drift on all 19 jobs (PHASES.md Phase 9).
+
+### Fixed
+- P9-1 (attendance retention purge skipped in hostels with no active residents) in Go and TS; P9-2..P9-4, Go only. P9-5 (TS notification emails dropped the template category) fixed in TS.
+
 ## [Phase 7 — in progress] — 2026-11-03
 
 ### Added
@@ -12,7 +24,7 @@ these docs.
 - Fixed: P7-31 and P7-33 in Go and TS, P7-32 in Go (TS was right), P7-34 in Go and TS.
 
 ### Next in Phase 7
-- Contract cases for the rest of `platform/*`; the native log and system screens (owner's call); the Cron tab after Phase 9.
+- Contract cases for the rest of `platform/*`; the native log and system screens (owner's call). The Cron tab shipped with Phase 9.
 
 ## [Phase 8 — done] — 2026-11-03
 

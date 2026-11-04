@@ -203,7 +203,7 @@ async function tellOne(
 
   const sent = await sendNotificationEmail({
     action: "existing_resident_added",
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: contact.email,
   });

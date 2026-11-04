@@ -27,6 +27,7 @@ func mountAdminSetup(v1 *gin.RouterGroup, s *shared) {
 			ops := s.Config.OperationsTyped(ctx)
 			return ops.LeaveHoldMinDays, ops.LeaveHoldMaxDays
 		}}).Register(v1)
-	(&backup.Handler{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Config: s.Config, Drive: backup.NewDrive(s.Cfg.Google.DriveClientID, s.Cfg.Google.DriveClientSecret),
-		AppURL: strings.TrimRight(s.Cfg.AppURL, "/"), JWTSecret: s.Cfg.Auth.AccessSecret, FinanceKey: s.Cfg.Crypto.FinanceMasterKey, FinancePrev: s.Cfg.Crypto.FinanceMasterKeyPrev}).Register(v1)
+	s.J.Backup = &backup.Handler{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Config: s.Config, Drive: backup.NewDrive(s.Cfg.Google.DriveClientID, s.Cfg.Google.DriveClientSecret),
+		AppURL: strings.TrimRight(s.Cfg.AppURL, "/"), JWTSecret: s.Cfg.Auth.AccessSecret, FinanceKey: s.Cfg.Crypto.FinanceMasterKey, FinancePrev: s.Cfg.Crypto.FinanceMasterKeyPrev}
+	s.J.Backup.Register(v1)
 }

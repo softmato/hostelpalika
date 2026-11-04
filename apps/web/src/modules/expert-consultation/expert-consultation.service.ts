@@ -57,7 +57,7 @@ async function notifyTeamOfRequest(
 
     await sendNotificationEmail({
       action: "expert_consultation_request",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: identity.supportEmail,
     });

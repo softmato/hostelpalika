@@ -109,6 +109,12 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
             label: "Process",
           },
           {
+            description: "Every scheduled job: schedule, last run, next run and missed runs, then each run's status, error, counts and log lines, with Run now.",
+            href: "/platform/system/cron",
+            keywords: ["cron", "jobs", "scheduler", "schedule", "missed", "failed", "run now", "billing cycle", "reminders"],
+            label: "Cron",
+          },
+          {
             description: "Daily, weekly and monthly active users by role and client, and who was active on a day.",
             href: "/platform/system/active-users",
             keywords: ["dau", "wau", "mau", "active users", "daily active", "who was online"],

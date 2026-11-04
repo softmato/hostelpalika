@@ -600,7 +600,7 @@ async function updateProviderStatus(
 
     await sendNotificationEmail({
       action: `service_provider_${status.toLowerCase()}`,
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: provider.email,
     });

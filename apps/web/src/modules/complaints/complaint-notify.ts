@@ -52,7 +52,7 @@ export async function notifyAdminsOfNewComplaint(input: {
         const jobs: Promise<unknown>[] = [
           sendNotificationEmail({
             action: "complaint_created",
-            html: email.html,
+            category: email.category, html: email.html,
             subject: email.subject,
             to: admin.email,
             topic: "COMPLAINT_ALERTS",
@@ -186,7 +186,7 @@ export async function notifyResidentOfComplaintStatus(input: {
       jobs.push(
         sendNotificationEmail({
           action: "complaint_status_updated",
-          html: email.html,
+          category: email.category, html: email.html,
           subject: email.subject,
           to: contact.email,
           topic: "COMPLAINT_UPDATES",

@@ -425,7 +425,7 @@ export async function requestHostelProfileChange(
     superadmins.map((admin) =>
       sendNotificationEmail({
         action: "hostel_change_request",
-        html: changeEmail.html,
+        category: changeEmail.category, html: changeEmail.html,
         subject: changeEmail.subject,
         to: admin.email,
       }),

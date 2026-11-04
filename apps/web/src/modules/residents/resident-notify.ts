@@ -13,6 +13,7 @@ import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { sendEmail, sendEmailBatch } from "@hostel/shared/email/sender";
 import type { EmailAttachment } from "@hostel/shared/email/sender";
+import type { EmailCategory } from "@hostel/shared/email/identity";
 
 export type Contact = {
   email: string;
@@ -233,6 +234,8 @@ export async function sendNotificationEmail(input: {
    * exactly the payload they had.
    */
   attachments?: EmailAttachment[];
+  /** The template's mailbox (`email.category`); without it the mail leaves from the default one. */
+  category?: EmailCategory;
   html: string;
   subject: string;
   to: string;
@@ -245,6 +248,7 @@ export async function sendNotificationEmail(input: {
 
     const delivery = await sendEmail({
       ...(input.attachments?.length ? { attachments: input.attachments } : {}),
+      ...(input.category ? { category: input.category } : {}),
       html: input.html,
       subject: input.subject,
       to: input.to,
@@ -284,7 +288,7 @@ export async function sendNotificationEmail(input: {
  * attachments. One result per input, in order.
  */
 export async function sendNotificationEmailBatch(
-  inputs: Array<{ action: string; html: string; subject: string; to: string; topic?: EmailTopic }>,
+  inputs: Array<{ action: string; category?: EmailCategory; html: string; subject: string; to: string; topic?: EmailTopic }>,
 ): Promise<boolean[]> {
   try {
     const muted = await Promise.all(
@@ -295,6 +299,7 @@ export async function sendNotificationEmailBatch(
     const outgoing = inputs.filter((_, index) => !muted[index]);
     const deliveries = await sendEmailBatch(
       outgoing.map((input) => ({
+        ...(input.category ? { category: input.category } : {}),
         html: input.html,
         subject: input.subject,
         to: input.to,

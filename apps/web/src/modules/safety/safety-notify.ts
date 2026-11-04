@@ -134,7 +134,7 @@ export async function fanOutSOSAlert(input: {
     deliveries.push(
       sendNotificationEmail({
         action: "sos_alert_staff",
-        html: email.html,
+        category: email.category, html: email.html,
         subject: email.subject,
         to: contact.email,
       }),
@@ -171,7 +171,7 @@ export async function fanOutSOSAlert(input: {
     deliveries.push(
       sendNotificationEmail({
         action: "sos_alert_guardian",
-        html: email.html,
+        category: email.category, html: email.html,
         subject: email.subject,
         to: contact.email,
       }),

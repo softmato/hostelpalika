@@ -299,7 +299,7 @@ async function emailTheResident(input: {
 
   await sendNotificationEmail({
     action: "resident_registered",
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: contact.email,
   });

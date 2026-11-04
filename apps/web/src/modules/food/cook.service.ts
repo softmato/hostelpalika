@@ -328,7 +328,7 @@ export async function updateCookPortal(
     admins.map((admin) =>
       sendNotificationEmail({
         action: "cook_portal_enabled",
-        html: message.html,
+        category: message.category, html: message.html,
         subject: message.subject,
         to: admin.email,
       }),

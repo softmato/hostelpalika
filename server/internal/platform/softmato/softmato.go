@@ -342,3 +342,21 @@ func (c *Client) Download(ctx context.Context, collection, number string) (*File
 	}
 	return &File{kind, res.Header.Get("x-softmato-pdf-fallback"), data}, nil
 }
+
+// Refund is CreateRefundInput: a request their admin approves or not.
+type Refund struct {
+	TransactionID string `json:"transaction_id"`
+	AmountMinor   int64  `json:"amount_minor"`
+	Reason        string `json:"reason"`
+}
+
+// RequestRefund files a refund request; it never moves money by itself.
+func (c *Client) RequestRefund(ctx context.Context, in Refund, key string) (string, error) {
+	var out struct {
+		RefundID string `json:"refund_id"`
+	}
+	if err := c.doKeyed(ctx, http.MethodPost, "/refunds", key, in, &out); err != nil {
+		return "", err
+	}
+	return out.RefundID, nil
+}

@@ -439,8 +439,10 @@ func (h *Handler) waiveFine(c *gin.Context) {
 
 // jsNumber stores a whole figure as an integer, as the node driver does.
 func jsNumber(f float64) any {
-	if f == math.Trunc(f) && math.Abs(f) < 1<<53 {
-		return int64(f)
+	// The JS driver writes a whole number as int32 when it fits, else a double;
+	// an int64 would land as NumberLong, which no TS writer produces.
+	if f == math.Trunc(f) && f >= math.MinInt32 && f <= math.MaxInt32 {
+		return int32(f)
 	}
 	return f
 }

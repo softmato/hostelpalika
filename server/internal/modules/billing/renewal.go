@@ -58,6 +58,11 @@ type RenewalOptions struct {
 	DeferDocument bool
 	// Reshape lets a deferred open invoice switch between lifetime and a plan.
 	Reshape bool
+	// Agreed is the price already agreed instead of today's catalogue: the first
+	// bill after free months keeps the price the owner signed up at.
+	Agreed *Priced
+	// DueAt overrides the grace deadline: a renewal is due when the period ends.
+	DueAt *time.Time
 }
 
 func actorType(actor *bson.ObjectID) string {
@@ -121,8 +126,10 @@ func (s *Service) RaiseRenewalInvoice(ctx context.Context, hostelID bson.ObjectI
 	if hostel.Verified != "VERIFIED" {
 		return nil, false, payErr(409, "NOT_VERIFIED", "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.")
 	}
-	priced, err := s.price(ctx, in)
-	if err != nil {
+	var priced Priced
+	if o.Agreed != nil && !in.Lifetime {
+		priced = *o.Agreed
+	} else if priced, err = s.price(ctx, in); err != nil {
 		return nil, false, err
 	}
 	if err := s.branchesFit(ctx, sub.HostelID, priced.PlanID); err != nil {
@@ -145,6 +152,9 @@ func (s *Service) RaiseRenewalInvoice(ctx context.Context, hostelID bson.ObjectI
 		PeriodEnd: &end, PeriodStart: &start, PlanID: priced.PlanID, PlanName: priced.PlanName, Source: "PUBLIC", Status: "OPEN", SubscriptionID: sub.ID}
 	inv.BilledTo.Email, inv.BilledTo.HostelName, inv.BilledTo.Name = mail, hostel.Name, ownerName
 	due := bs.DayEnd(now, s.Config.OperationsTyped(ctx).SubscriptionDueGraceDays)
+	if o.DueAt != nil {
+		due = o.DueAt.UTC().Truncate(time.Millisecond)
+	}
 	inv.DueAt = &due
 	if _, err := s.DB.Collection("subscriptioninvoices").InsertOne(ctx, bson.D{{Key: "_id", Value: inv.ID}, {Key: "agentId", Value: sub.AgentID}, {Key: "amount", Value: inv.Amount}, {Key: "billedTo", Value: bson.D{{Key: "email", Value: mail}, {Key: "hostelName", Value: hostel.Name}, {Key: "name", Value: ownerName}}},
 		{Key: "currency", Value: "NPR"}, {Key: "cycle", Value: inv.Cycle}, {Key: "cycleMonths", Value: inv.CycleMonths}, {Key: "dueAt", Value: due}, {Key: "hostelId", Value: sub.HostelID}, {Key: "invoiceNumber", Value: number}, {Key: "issuedAt", Value: now}, {Key: "kind", Value: "PLAN"}, {Key: "lifetime", Value: inv.Lifetime},

@@ -704,7 +704,7 @@ async function notifyAward(award: AwardRecord, resident: ResidentRecord, label: 
 
     await sendNotificationEmail({
       action: "offer_awarded",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: contact.email,
     });

@@ -53,6 +53,7 @@ func mountPlatform(v1 *gin.RouterGroup, s *shared, settler *billing.Settler) {
 		Billing: settler.Service, Outbound: s.Outbound, Config: s.Config, Claims: s.Claims}, Settler: settler, Issuer: s.Issuer, SiteURL: siteURL,
 		ProvisionCook: kitchenAdmin.ProvisionCook, SendIDCard: idCards.SendIDCard, SeedRateCard: rateCards.SeedOpeningRateCard, DuplicateCheck: flags.DuplicateCheck, Now: time.Now}
 	platform.Register(v1)
+	s.J.Hostels = platform
 	feedback.NewHandler(s.D.DB, s.Guards, s.Limiter).RegisterPlatform(v1)
 	(&reviews.Moderation{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, RT: s.RT, Cache: s.Cache}).Register(v1)
 	communityAdmin := &community.Handler{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, RT: s.RT, Bump: s.Cache, BG: s.BG, LLM: s.LLM}
@@ -69,7 +70,8 @@ func mountPlatform(v1 *gin.RouterGroup, s *shared, settler *billing.Settler) {
 	engine := &ledger.Engine{DB: s.D.DB, Audit: s.Audit, Notify: s.Notify, Mail: s.Mail, Config: s.Config, Bump: s.Cache, AppURL: s.AppURL}
 	(&offerprogram.Admin{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Notify: s.Notify, Mail: s.Mail, AppURL: s.AppURL, ApplyFeeOffs: engine.ApplyPendingFeeOffs}).Register(v1)
 	(&campaigns.Service{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Push: s.Push, RT: s.RT, Bump: s.Cache}).RegisterPlatform(v1)
-	(&noticepushes.Platform{DB: s.D.DB, Guard: s.Guards, Audit: s.Audit, Push: s.Push}).Register(v1)
+	s.J.PlatformPushes = &noticepushes.Platform{DB: s.D.DB, Guard: s.Guards, Audit: s.Audit, Push: s.Push}
+	s.J.PlatformPushes.Register(v1)
 	(&reports.Admin{DB: s.D.DB, Guards: s.Guards, Cache: s.Cache}).RegisterPlatform(v1)
 	(&questioncall.Analytics{DB: s.D.DB, Guards: s.Guards}).Register(v1)
 	(&billing.Platform{Settler: settler, Guards: s.Guards, Audit: s.Audit}).Register(v1)

@@ -3,6 +3,7 @@ package email
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
@@ -95,6 +96,48 @@ func GatewayUnhealthy(detail, hostelName, providerName, setupURL, title string) 
 			Paragraph("Your " + EscapeHTML(providerName) + " details may have changed (key, merchant code, or your bank turned off online payments). The money you already got is safe."),
 			Paragraph("Residents can still pay by QR, wallet or bank. That money still reaches you."),
 			CTAButton(setupURL, "Check payment settings"),
+		}, "\n"),
+	})}
+}
+
+// ReminderStage is which of the three pre-due notices: "WEEK", "SOON" or "TODAY".
+type ReminderStage string
+
+// PaymentDueReminder is paymentDueReminderEmail (currency NPR). WEEK says "soon":
+// it is the rung a hostel can move, so it never names a number of days.
+func PaymentDueReminder(amount int64, dueDate time.Time, hostelName, month, paymentsURL, residentName string, stage ReminderStage) Content {
+	heading, lead := "Please pay your hostel fee soon", "must be paid soon"
+	switch stage {
+	case "TODAY":
+		heading, lead = "Please pay your hostel fee today", "must be paid today"
+	case "SOON":
+		heading, lead = "Please pay your hostel fee in 3 days", "must be paid in 3 days"
+	}
+	return Content{Category: Billing, Subject: heading + " — " + MonthName(month) + " · " + hostelName, HTML: EmailLayout(Layout{
+		Heading: heading,
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(residentName) + ", your <strong>" + EscapeHTML(MonthName(month)) + "</strong> fee at " + EscapeHTML(hostelName) + " " + lead + "."),
+			Paragraph("To pay: <strong>NPR " + money.GroupUS(amount) + "</strong><br/>Pay by: <strong>" + EscapeHTML(EmailDate(dueDate)) + "</strong>"),
+			Paragraph("Pay the way you always do. Then send a photo of the payment so the hostel can check it."),
+			CTAButton(paymentsURL, "Send payment photo"),
+		}, "\n"),
+	})}
+}
+
+// PaymentOverdue is paymentOverdueEmail (currency NPR).
+func PaymentOverdue(amount int64, daysOverdue int, dueDate time.Time, hostelName, month, paymentsURL, residentName string) Content {
+	label := "days"
+	if daysOverdue == 1 {
+		label = "day"
+	}
+	return Content{Category: Alert, Subject: "Please pay your hostel fee — " + MonthName(month) + " · " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Your hostel fee is late",
+		Urgent:  true,
+		BodyHTML: strings.Join([]string{
+			Paragraph("Hi " + EscapeHTML(residentName) + ", your <strong>" + EscapeHTML(MonthName(month)) + "</strong> fee at " + EscapeHTML(hostelName) + " is <strong>" + strconv.Itoa(daysOverdue) + " " + label + "</strong> late. Please pay now."),
+			Paragraph("To pay: <strong>NPR " + money.GroupUS(amount) + "</strong><br/>Last date was: <strong>" + EscapeHTML(EmailDate(dueDate)) + "</strong>"),
+			Paragraph("Already paid? Send a photo of the payment so the hostel can check it."),
+			CTAButton(paymentsURL, "Send payment photo"),
 		}, "\n"),
 	})}
 }

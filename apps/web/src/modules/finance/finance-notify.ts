@@ -423,7 +423,7 @@ export async function notifyGatewayUnhealthy(input: {
 
         await sendNotificationEmail({
           action: "gateway_unhealthy",
-          html: email.html,
+          category: email.category, html: email.html,
           subject: email.subject,
           to: admin.email,
         });
@@ -563,7 +563,7 @@ export async function notifyClaimReviewed(input: {
   await sendNotificationEmail({
     action: `payment_${input.outcome.kind}`,
     attachments,
-    html: email.html,
+    category: email.category, html: email.html,
     subject: email.subject,
     to: contact.email,
   });
@@ -691,7 +691,7 @@ export async function sendAdminPaymentDigest(now = new Date()) {
           admins.map((admin) =>
             sendNotificationEmail({
               action: "payment_digest",
-              html: email.html,
+              category: email.category, html: email.html,
               subject: email.subject,
               to: admin.email,
               topic: "PAYMENT_SUMMARY",
@@ -784,7 +784,7 @@ export async function notifyPaymentReversed(input: {
 
     await sendNotificationEmail({
       action: "payment_reversed",
-      html: email.html,
+      category: email.category, html: email.html,
       subject: email.subject,
       to: contact.email,
     });

@@ -141,9 +141,15 @@ func (s *Service) recipients(ctx context.Context, r *record) ([]string, error) {
 
 // Dispatch is dispatchCampaign: one bell row per recipient, the socket once, the push once.
 func (s *Service) Dispatch(ctx context.Context, r *record) error {
+	_, err := s.dispatch(ctx, r)
+	return err
+}
+
+// dispatch is Dispatch with the recipient count, for the scheduled sweep.
+func (s *Service) dispatch(ctx context.Context, r *record) (int, error) {
 	ids, err := s.recipients(ctx, r)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	now := time.Now().UTC().Truncate(time.Millisecond)
 	if len(ids) > 0 {
@@ -158,12 +164,12 @@ func (s *Service) Dispatch(ctx context.Context, r *record) error {
 				{Key: "priority", Value: r.Priority}, {Key: "status", Value: "SENT"}, {Key: "title", Value: r.Title}, {Key: "userId", Value: uid}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}})
 		}
 		if _, err := s.DB.Collection("notifications").InsertMany(ctx, docs, options.InsertMany().SetOrdered(false)); err != nil {
-			return err
+			return 0, err
 		}
 	}
 	if _, err := s.DB.Collection("notificationcampaigns").UpdateOne(ctx, bson.D{{Key: "_id", Value: r.ID}},
 		bson.D{{Key: "$set", Value: bson.D{{Key: "recipientCount", Value: len(ids)}, {Key: "sentAt", Value: now}, {Key: "status", Value: "SENT"}, {Key: "updatedAt", Value: now}}}}); err != nil {
-		return err
+		return 0, err
 	}
 	hostel := ""
 	if r.HostelID != nil {
@@ -173,7 +179,7 @@ func (s *Service) Dispatch(ctx context.Context, r *record) error {
 	if len(ids) > 0 && s.Push != nil {
 		s.Push.ToUsers(ctx, ids, push.Payload{Body: r.Body, Category: r.Category, Data: map[string]any{"campaignId": r.ID.Hex()}, HostelID: hostel, Priority: r.Priority, Title: r.Title})
 	}
-	return nil
+	return len(ids), nil
 }
 
 func (s *Service) create(c *gin.Context) {

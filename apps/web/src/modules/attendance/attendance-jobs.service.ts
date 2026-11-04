@@ -71,6 +71,16 @@ export function absenceStreak(
  * Alerts are unique per open resident, so a continuing absence updates the day
  * count on the existing alert instead of mailing the admin every morning.
  */
+async function purgeExpiredLogs(hostelId: Types.ObjectId, today: Date, retentionDays: number) {
+  const retentionCutoff = new Date(today);
+
+  retentionCutoff.setUTCDate(retentionCutoff.getUTCDate() - retentionDays);
+
+  const deleted = await AttendanceLogModel.deleteMany({ day: { $lt: retentionCutoff }, hostelId });
+
+  return deleted.deletedCount ?? 0;
+}
+
 export async function runAttendanceMaintenance(now = new Date()) {
   await connectToDatabase();
 
@@ -102,7 +112,9 @@ export async function runAttendanceMaintenance(now = new Date()) {
         }>
       >();
 
+      // Nobody ACTIVE: no alerts to raise, but the retention purge is still owed (P9-1).
       if (residents.length === 0) {
+        purged += await purgeExpiredLogs(hostelId, today, config.retentionDays);
         continue;
       }
 
@@ -202,7 +214,7 @@ export async function runAttendanceMaintenance(now = new Date()) {
             const jobs: Promise<unknown>[] = [
               sendNotificationEmail({
                 action: "attendance_alert",
-                html: email.html,
+                category: email.category, html: email.html,
                 subject: email.subject,
                 to: admin.email,
                 topic: "ATTENDANCE_ALERTS",
@@ -227,16 +239,7 @@ export async function runAttendanceMaintenance(now = new Date()) {
         );
       }
 
-      const retentionCutoff = new Date(today);
-
-      retentionCutoff.setUTCDate(retentionCutoff.getUTCDate() - config.retentionDays);
-
-      const deleted = await AttendanceLogModel.deleteMany({
-        day: { $lt: retentionCutoff },
-        hostelId,
-      });
-
-      purged += deleted.deletedCount ?? 0;
+      purged += await purgeExpiredLogs(hostelId, today, config.retentionDays);
     } catch (error) {
       console.warn(
         JSON.stringify({
