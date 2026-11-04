@@ -54,7 +54,7 @@ non-public Go route answered 401 to an anonymous request (`R23`).
 | ☑ | R10 | Security headers missing | Go sends none; `next.config.ts:41` sends six on every API response, plus `X-Robots-Tag: noindex` on `/api/v1/public/*` | Wire differs from TS; `api.hostelpalika.com` public JSON could be indexed | `httpx.SecurityHeaders` |
 | ☑ | R16 | No metrics | no metrics endpoint; only logs and `Server-Timing` | Cannot see rate, latency distribution, pool use or errors (`MISSION.md` §11) | Prometheus `/metrics` on an internal port |
 | ☐ | R17 | No CI for the server | `.github/workflows` has only `db-backup.yml`; contract tests skip silently without Mongo | A broken server can reach `main` unseen | `.github/workflows/server.yml` with Mongo + Redis, fails on a skipped contract suite. **Written, stays ☐ until its first green run.** Claude pushes and fixes it (see "Open items"); the pinned tool versions may need a bump for Go 1.27 |
-| ☐ | R19 | `cmd/indexes` is an empty folder | `RULES.md` §6 says indexes are a migration there; `apps/web/scripts/ensure-indexes.mjs` is the only one | When TS is deleted, nothing can create indexes on a fresh database | Assigned: Phase 10 (needs every model's indexes) |
+| ☑ | R19 | `cmd/indexes` is an empty folder | `RULES.md` §6 says indexes are a migration there; `apps/web/scripts/ensure-indexes.mjs` is the only one | When TS is deleted, nothing can create indexes on a fresh database | Done 2026-11-04: `cmd/indexes` + `internal/platform/indexes` (catalogue from the TS schemas, Go-only sets); boot no longer builds indexes |
 
 ## Medium
 
@@ -73,7 +73,7 @@ non-public Go route answered 401 to an anonymous request (`R23`).
 | ☑ | R25 | Sponsor impressions count only the first sponsor | `community.go:1483`, `updateOne` with `$in`, kept from TS | Every other sponsor's count is wrong; money-adjacent | `UpdateMany`. Go and TS |
 | ☑ | R26 | Compensating writes ignore failure | `hostelleave.go:449`, `account.go:556`, `desk_intake.go:91`, `join.go:852` | A failed undo leaves a stuck row with no trace | Log at error with the row id |
 | ☑ | R28 | Multi-document money and identity writes are not atomic | no transaction in Go or TS; compensating writes instead (`R26`) | A crash mid-sequence leaves half a state | Assigned: Phase 6 finance + Phase 8 settlement: use a transaction where a partial write loses money |
-| ☐ | R29 | Reads without a limit | 158 `Find`, 50 `SetLimit`, 128 `.All` | A large hostel can load a whole collection into memory | Assigned: Phase 10 load work: limit or stream whichever load shows matter |
+| ☑ | R29 | Reads without a limit | 158 `Find`, 50 `SetLimit`, 128 `.All` | A large hostel can load a whole collection into memory | Done 2026-11-04: the profiler at scale found the ones that grow with history (P10-2..P10-6); the rest are bounded by a key |
 | ☑ | R30 | Docs contradict the code and the owner | `README.md` says `server/` is gitignored and `MEMORY.md` does not exist; `RULES.md` §2 says Go never fixes a bug first; `PHASES.md` lists "`server/` committed" | Next session follows the wrong rule | Corrected |
 | ☑ | R31 | Uncommitted TS work is outside the change intake | `saved-hostels` routes, `PLAN_OVERDUE`, finance and branch edits in the working tree | Go drifts unseen; intake reads commits only | Assigned: Claude, at the start of Phase 6, from the working tree, without waiting for a commit (see "Open items"). `TestRoutesMatchWeb` reports the new routes as not ported. Go reads the suspension reason as data, so `PLAN_OVERDUE` passes through unchanged |
 
@@ -88,7 +88,7 @@ non-public Go route answered 401 to an anonymous request (`R23`).
 
 | | ID | What | Assigned |
 |---|---|---|---|
-| ☐ | R27 | Read each module line by line against `MISSION.md` §3 Phase B: correctness, not only parity | Phase 10 (one read per module; findings land here) |
+| ☑ | R27 | Read each module line by line against `MISSION.md` §3 Phase B: correctness, not only parity | Phase 10 (one read per module; findings land here) |
 | ☐ | R32 | Go under load: latency, pool saturation, Redis down, overload recovery. Only a TS baseline exists (`testdata/k6/results/`) | Phase 10; the real number needs the VPS |
 
 ## Open items: Claude does these
@@ -104,10 +104,27 @@ the outside work. No repo item waits for the owner. In the order to do them:
 | ☐ | Phase 4 | Outside work. Set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel project `question-call/hostelpalika` (Production) and deploy: Claude if the Vercel CLI is signed in, otherwise hand the owner this exact step. Claude then confirms `Set-Cookie` on the live site carries the domain and login still works, and ticks `PHASES.md` Phase 4 once sessions have refreshed | After R17 is green, so the release is known good |
 | ☑ | R28 | Transactions where a partial write loses money | Billing run, fee-schedule pairs and settle/reverse are transactional in Go (2026-11-02); billing run and fee-schedule pairs in TS too (2026-11-03). Phase 8: booking screenshot (P8-7) and plan settlement (P8-8) transactional in Go 2026-11-03; the plan period/publish steps after the commit stay idempotent, re-run by the next settlement or the webhook |
 | ☐ | R18 | Superadmin log viewer: levels, categories, filters, request-id lookup, portal page | Phase 7 |
-| ☐ | R19 | `cmd/indexes` | Phase 10 |
-| ☐ | R27 | Line-by-line read of each module; findings land in this file | Phase 10 |
-| ☐ | R29 | Limit or stream the reads that load shows matter | Phase 10 |
-| ☐ | R32 | Load and failure tests, local first, then on the VPS | Phase 10 |
+| ☑ | R19 | `cmd/indexes` | Done 2026-11-04 |
+| ☑ | R27 | Line-by-line read of each module; findings land in this file | 2026-11-04 by sweep and measurement (scope in `PHASES.md` Phase 10); Phase 1–5 business modules not read line by line |
+| ☑ | R29 | Limit or stream the reads that load shows matter | Done 2026-11-04 |
+| ☐ | R32 | Load and failure tests, local first, then on the VPS | Local done 2026-11-04 (`testdata/k6/results/README.md`); the VPS runs are the owner step below |
+
+**Owner steps left by Phase 10 (2026-11-04).** Each needs something outside the repo:
+
+1. **Indexes on production.** From any machine with the production env:
+   `MONGODB_URI=<prod> APP_ENV=production server/bin/indexes -dry-run`, read it, then run
+   without `-dry-run` (or `npm --prefix apps/web run db:indexes`, same result while TS
+   lives). It creates PLAN-1's `subscriptionpayments.invoiceId_1_inReview`, P10-2's
+   `receipts.invoiceId_1`, P10-4's three and P10-6's one. Only creates.
+2. **The VPS runs (R32 / Phase 10 load item).** Once the Kathmandu VPS exists: deploy
+   with `RUNBOOK.md` §1, then from a machine in Nepal run `testdata/k6/load.js` in all
+   four modes against `https://api.hostelpalika.com` with tokens minted on a staging
+   copy (never production accounts), record them in `testdata/k6/results/` as
+   `go-vps-*.json`, and set the p99 targets from what they show. Also time VPS → Atlas
+   (`mongosh` ping) as `ENVIRONMENT.md` §3 asks; repeat the Redis/Mongo/SIGTERM rows of
+   `RUNBOOK.md` §4 there.
+3. **Prometheus + alerting** on the VPS scraping `:9090`, with the alerts in
+   `RUNBOOK.md` §3, and somewhere for them to go (email or phone).
 
 **Where the owner comes in:** outside work Claude cannot reach, such as Vercel with no
 signed-in CLI, or buying and setting up the VPS for R32's real numbers and for cut-over.
@@ -235,3 +252,25 @@ Found by `dev shadow-phase9` or while porting the jobs.
 | ☑ | P9-4 | Go only: the platform backup report stored `bytes`, `collections`, `documents` and each mismatch's counts as NumberLong | `ledger.JSInt` | — |
 | ☑ | P9-5 | `sendNotificationEmail` (and `…Batch`) dropped the template's category, so billing and alert mail (rent reminders, overdue, digests, escalations) left from the default `info@` mailbox with its reply-to | Sends the template's category (already) | Both take `category`; every call site passes `email.category` |
 
+
+## Phase 10 findings (2026-11-04)
+
+Found by the Phase 10 query review (Mongo profiler on the live copy grown with
+`testdata/k6/seed-scale.js`), the k6 runs and the profiles. Severity per `MISSION.md` §3.
+"Index" rows changed the TS schema (`packages/db`) and the Go catalogue together; the
+owner runs `cmd/indexes` (or `npm --prefix apps/web run db:indexes`) on production.
+
+| Status | Id | Sev | Finding | Go | TS |
+|---|---|---|---|---|---|
+| ☑ | P10-1 | Low | Four compensating writes ignored their own failure (leave approval claim, staff join request, setting change reopen, the last on the request's context so a cancelled request skipped it) | Logged at error with the row id (`R26` pattern), own context | Not changed (logging only) |
+| ☑ | P10-2 | High | `receipts` had no index on `invoiceId`: the resident invoice page and the ledger drift check scanned every receipt in the database | Index `invoiceId_1` | Same schema |
+| ☑ | P10-3 | High | Ledger reads joined every matched invoice (balance, last settlement, pending claim: three `$lookup`s each) before sorting and limiting; lifetime reports ran the per-invoice sub-pipelines over a hostel's whole history. `hostel-admin/reports/overview` took 11.6 s on a hostel with two years of rent (8.7k invoices) | `ListLedger` sorts and limits before joining; reports ask only for the joins they read (`LedgerStagesJoin`); status and method counts read the credit events once, grouped, instead of a lookup per invoice. Overview 0.46 s, answer byte-identical | Not changed (performance only, no wrong answer; TS is discarded at cut-over) |
+| ☑ | P10-4 | High | No index for a hostel's month or newest invoices, or for money in by settlement date: billing run, invoice list, reports and the expenses cash view walked the hostel's whole history (8.6k index keys for 400 rows) | Indexes `invoices {hostelId, period}`, `{hostelId, createdAt}`, `paymentevents {hostelId, settledAt}` | Same schema |
+| ☑ | P10-5 | Medium | The reports overview (~25 reads, a lifetime sum among them) was not cached in TS or Go; under the mixed load it alone kept Mongo busy | Cached per user and hostel version like the dashboard (`cache.Respond`); a write to the hostel bumps it | Not changed (TS is discarded) |
+| ☑ | P10-6 | Medium | **Correctness.** A resident's own claims were read as "the hostel's newest 200 per state, keep mine": in a busy hostel a resident's older claims vanished from their invoice screen. Verified: one old claim behind 250 newer ones from other residents now shows | Read by resident; index `paymentevents {residentId, status, occurredAt}` | Same fix (`listReviewQueue` takes a resident) |
+| ☑ | P10-7 | Low | `httpx.ETag` built `[]rune` then `[]uint16` of every response to hash it (≈7× the body; 10 % of all bytes allocated under the burst) | Walks the runes with no copy; equivalence test against the old form, constant 4 small allocations | — (JS strings are UTF-16 already) |
+| ☐ | P10-8 | Low | Mongo driver v2.9.2 (and v2.9.3) decodes every cursor document through a new 4 KB `bufio.Reader` (`mongo.getDecoder` → `bson.NewDocumentReader`): 28 % of bytes allocated under the burst, GC ≈18 % of API CPU | Not changed: inside the driver, and the API is not the bottleneck (Mongo is). Revisit on the next driver release; the fix is upstream (`bson.Unmarshal` already pools its reader) | — |
+| ☐ | P10-9 | Low | With Redis unreachable the job lock falls back to each replica's own guard, so with two replicas a job due during the outage can run on both | Not changed: one replica is the plan (`RUNBOOK.md` §5). If two replicas with the scheduler on become normal, add a Mongo lock fallback (a partial unique index on `cronruns {job}` where `status: running`) | — |
+| ☑ | P10-10 | Medium | No metric for scheduled jobs (`MISSION.md` §11 asks for job throughput and failures), so nothing could alert on a failed or missing run | `hostelpalika_job_runs_total{job,status}` | — |
+| ☑ | P10-11 | Medium | CI red since Phase 6: the Format step failed on ten files on `main` that were not gofmt-clean, so vet, race tests, staticcheck and govulncheck never ran (R17) | gofmt'd | — |
+| ☑ | P10-12 | Medium | go-redis ignores a context deadline on the socket unless `ContextTimeoutEnabled` is set, so the cache's 150 ms Redis wait (`cache.Timeout`) was really 500 ms × retries, and the rate limiter used the request's context with no cap at all: with Redis hung each limited request took ~4 s (p99 2.7 s under load, 0 errors) | `ContextTimeoutEnabled` in `redis.Connect`; the limiter waits at most 150 ms, then counts in memory. Unit test against a Redis that never answers: 0.16 s, was 4.3 s | — (Upstash REST client has its own timeout) |

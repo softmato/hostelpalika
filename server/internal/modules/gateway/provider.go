@@ -32,9 +32,9 @@ type Credentials struct {
 }
 
 type IntentRequest struct {
-	Amount                                                   int64 // rupees
-	Attempt                                                  int
-	Credentials                                              Credentials
+	Amount                                                       int64 // rupees
+	Attempt                                                      int
+	Credentials                                                  Credentials
 	CallbackURL, FailureURL, Reference, ReferenceCode, ReturnURL string
 }
 

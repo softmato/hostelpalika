@@ -160,6 +160,9 @@ receiptSchema.index(
 
 receiptSchema.index({ hostelId: 1, issuedAt: -1 });
 
+/** Receipts of a set of invoices: the resident invoice page and the ledger drift check (P10-2). */
+receiptSchema.index({ invoiceId: 1 });
+
 /** One document per code, and the quarter's eligibility scan. */
 receiptSchema.index(
   { certificationCode: 1 },

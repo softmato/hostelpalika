@@ -228,11 +228,21 @@ type ledgerScope struct {
 	periods   []string
 	residents []bson.ObjectID
 	filtered  bool
+	joins     int // finance.Join*; 0 = all (P10-3)
 }
 
 func ledgerOf(s scope) ledgerScope { return ledgerScope{hostel: s.filter} }
 
 func (l ledgerScope) forPeriod(period string) ledgerScope { l.period = period; return l }
+
+// join keeps only the ledger joins a read uses.
+func (l ledgerScope) join(j int) ledgerScope { l.joins = j; return l }
+
+// recent is the newest n invoices, joined after the limit.
+func (l ledgerScope) recent(n int64) bson.A {
+	stages := l.join(-1).stages(bson.D{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}}, bson.D{{Key: "$limit", Value: n}})
+	return append(stages, finance.LedgerStagesJoin(bson.D{}, finance.JoinAll)[1:]...)
+}
 
 func (l ledgerScope) stages(extra ...bson.D) bson.A {
 	match := append(bson.D{}, l.hostel...)
@@ -246,7 +256,14 @@ func (l ledgerScope) stages(extra ...bson.D) bson.A {
 		match = append(match, bson.E{Key: "period", Value: bson.D{{Key: "$in", Value: l.periods}}})
 	}
 	match = append(match, bson.E{Key: "status", Value: bson.D{{Key: "$ne", Value: "VOID"}}})
-	out := finance.LedgerStages(match)
+	joins := l.joins
+	if joins == 0 {
+		joins = finance.JoinAll
+	}
+	if joins < 0 { // recent: joined by the caller after its limit
+		joins = 0
+	}
+	out := finance.LedgerStagesJoin(match, joins)
 	for _, e := range extra {
 		out = append(out, e)
 	}
@@ -274,7 +291,7 @@ func (a *Admin) invoices(ctx context.Context, stages bson.A) (*mongo.Cursor, err
 
 func (a *Admin) totals(out *totals, l ledgerScope) func(context.Context) error {
 	return func(ctx context.Context) error {
-		cur, err := a.invoices(ctx, l.stages(sumGroup(nil)))
+		cur, err := a.invoices(ctx, l.join(finance.JoinBalance).stages(sumGroup(nil)))
 		rows, err := decodeAll[totals](ctx, cur, err)
 		if err != nil {
 			return err
@@ -287,39 +304,81 @@ func (a *Admin) totals(out *totals, l ledgerScope) func(context.Context) error {
 }
 
 // byField is countInvoicesByField: grouped raw and translated after, since two
-// invoice statuses can read as one word.
+// invoice statuses can read as one word. The pending claim and last settlement
+// come from one grouped read of the credit events, joined here, not from a
+// lookup per invoice: a lifetime report over 9k invoices took 11 s that way (P10-3).
 func (a *Admin) byField(out *ordered.Map, l ledgerScope, field string) func(context.Context) error {
 	return func(ctx context.Context) error {
-		id := bson.D{{Key: "hasPendingClaim", Value: "$hasPendingClaim"}, {Key: "value", Value: "$status"}}
+		status := "PENDING"
 		if field == "method" {
-			id = bson.D{{Key: "value", Value: "$method"}}
+			status = "SETTLED"
 		}
-		cur, err := a.invoices(ctx, l.stages(bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: id}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}, bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}}))
-		rows, err := decodeAll[struct {
-			ID struct {
-				Pending bool   `bson:"hasPendingClaim"`
-				Value   string `bson:"value"`
-			} `bson:"_id"`
-			Count int64 `bson:"count"`
+		ev := append(append(bson.D{}, l.hostel...), bson.E{Key: "direction", Value: "CREDIT"}, bson.E{Key: "status", Value: status}, bson.E{Key: "invoiceId", Value: bson.D{{Key: "$ne", Value: nil}}})
+		pipe := bson.A{bson.D{{Key: "$match", Value: ev}}}
+		if field == "method" { // the last settlement's provider, as the ledger's lastSettled
+			pipe = append(pipe, bson.D{{Key: "$sort", Value: bson.D{{Key: "settledAt", Value: -1}}}})
+		}
+		pipe = append(pipe, bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$invoiceId"}, {Key: "provider", Value: bson.D{{Key: "$first", Value: "$provider"}}}}}})
+		cur, err := a.DB.Collection("paymentevents").Aggregate(ctx, pipe)
+		events, err := decodeAll[struct {
+			ID       bson.ObjectID `bson:"_id"`
+			Provider string        `bson:"provider"`
 		}](ctx, cur, err)
 		if err != nil {
 			return err
 		}
+		byInvoice := make(map[bson.ObjectID]string, len(events))
+		for _, e := range events {
+			byInvoice[e.ID] = e.Provider
+		}
+		cur, err = a.invoices(ctx, l.join(-1).stages(bson.D{{Key: "$project", Value: bson.D{{Key: "status", Value: 1}}}}))
+		invoices, err := decodeAll[struct {
+			ID     bson.ObjectID `bson:"_id"`
+			Status string        `bson:"status"`
+		}](ctx, cur, err)
+		if err != nil {
+			return err
+		}
+		type group struct {
+			pending bool
+			value   string
+		}
+		counts := map[group]int64{}
+		for _, inv := range invoices {
+			g := group{value: inv.Status}
+			if field == "method" {
+				g = group{value: byInvoice[inv.ID]}
+			} else {
+				_, g.pending = byInvoice[inv.ID]
+			}
+			counts[g]++
+		}
+		groups := make([]group, 0, len(counts))
+		for g := range counts {
+			groups = append(groups, g)
+		}
+		// Mongo's {_id: 1} order: false before true, a missing value first.
+		sort.Slice(groups, func(i, j int) bool {
+			if groups[i].pending != groups[j].pending {
+				return !groups[i].pending
+			}
+			return groups[i].value < groups[j].value
+		})
 		m := ordered.Map{}
-		for _, r := range rows {
+		for _, g := range groups {
 			var key string
 			if field == "method" {
-				if key = finance.LegacyMethodFor(r.ID.Value); key == "" {
+				if key = finance.LegacyMethodFor(g.value); key == "" {
 					key = "UNKNOWN"
 				}
 			} else {
-				raw := r.ID.Value
+				raw := g.value
 				if raw == "" {
 					raw = "UNKNOWN"
 				}
-				key = finance.LegacyStatusFor(raw, r.ID.Pending)
+				key = finance.LegacyStatusFor(raw, g.pending)
 			}
-			m = m.Set(key, valueOf(m, key)+r.Count)
+			m = m.Set(key, valueOf(m, key)+counts[g])
 		}
 		*out = m
 		return nil
@@ -336,7 +395,7 @@ type monthPoint struct {
 func (a *Admin) series(out *[]monthPoint, l ledgerScope, periods []string) func(context.Context) error {
 	return func(ctx context.Context) error {
 		l.periods = periods
-		cur, err := a.invoices(ctx, l.stages(
+		cur, err := a.invoices(ctx, l.join(finance.JoinBalance).stages(
 			sumGroup("$period", bson.E{Key: "residents", Value: bson.D{{Key: "$addToSet", Value: "$residentId"}}}),
 			bson.D{{Key: "$project", Value: bson.D{{Key: "dueAmount", Value: 1}, {Key: "paidAmount", Value: 1}, {Key: "residentCount", Value: bson.D{{Key: "$size", Value: "$residents"}}}}}},
 		))
@@ -615,10 +674,22 @@ type recentInvoice struct {
 }
 
 func (a *Admin) overview(c *gin.Context) {
-	_, s, month, ok := a.staffQuery(c)
+	p, s, month, ok := a.staffQuery(c)
 	if !ok {
 		return
 	}
+	// Cached per user and hostel version, as the dashboard: ~25 reads, a lifetime
+	// sum among them, re-ran on every view and saturated Mongo under load (P10-5).
+	key := "overview"
+	if raw := c.Request.URL.RawQuery; raw != "" {
+		key += "?" + raw
+	}
+	cache.Respond(c, a.Cache, p.HostelIDs, p.UserID, key, "Reports overview loaded", func() (ordered.Map, error) {
+		return a.buildOverview(c, s, month)
+	})
+}
+
+func (a *Admin) buildOverview(c context.Context, s scope, month string) (ordered.Map, error) {
 	now := time.Now()
 	// A month the calendar cannot read reports this one, as the performance report does.
 	if _, _, readable := bs.PeriodParts(month); !readable {
@@ -628,16 +699,14 @@ func (a *Admin) overview(c *gin.Context) {
 	if anchor == "" {
 		var err error
 		if anchor, err = bs.PeriodOf(now); err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, err
 		}
 	}
 	months := make([]string, overviewMonths)
 	for i := range months {
 		key, err := bs.AddMonths(anchor, i-(overviewMonths-1))
 		if err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, err
 		}
 		months[i] = key
 	}
@@ -667,7 +736,7 @@ func (a *Admin) overview(c *gin.Context) {
 		count(&proofs, a.DB, "paymentevents", s.with(pendingClaims...)),
 		a.series(&points, l, months),
 		func(ctx context.Context) error {
-			cur, err := a.invoices(ctx, l.stages(bson.D{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}}, bson.D{{Key: "$limit", Value: recentRows}}))
+			cur, err := a.invoices(ctx, l.recent(recentRows))
 			recent, err = decodeAll[recentInvoice](ctx, cur, err)
 			return err
 		},
@@ -735,13 +804,11 @@ func (a *Admin) overview(c *gin.Context) {
 		func(ctx context.Context) (err error) { views, err = a.viewStats(ctx, s.ids); return err },
 	)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
 	names, err := a.residentNames(c, recent)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
 	totalBeds, vacant := bedsOf(hostels)
 	occupied := math.Max(totalBeds-vacant, 0)
@@ -763,7 +830,7 @@ func (a *Admin) overview(c *gin.Context) {
 		rows[i] = ordered.Map{{Key: "dueAmount", Value: r.Total}, {Key: "dueDate", Value: isoOrNull(r.DueDate)}, {Key: "id", Value: r.ID.Hex()}, {Key: "method", Value: finance.LegacyMethodFor(r.Method)}, {Key: "month", Value: period},
 			{Key: "paidAmount", Value: r.Paid}, {Key: "paidDate", Value: isoOrNull(r.PaidDate)}, {Key: "residentName", Value: who.name}, {Key: "roomType", Value: who.room}, {Key: "status", Value: finance.LegacyStatusFor(r.Status, r.Pending)}}
 	}
-	httpx.OK(c, ordered.Map{{Key: "overview", Value: ordered.Map{
+	return ordered.Map{{Key: "overview", Value: ordered.Map{
 		{Key: "complaints", Value: ordered.Map{{Key: "byCategory", Value: complaintCat}, {Key: "byStatus", Value: complaintBy}, {Key: "averageResolutionDays", Value: resolution},
 			{Key: "open", Value: valueOf(complaintBy, "PENDING") + valueOf(complaintBy, "IN_PROGRESS")}, {Key: "resolved", Value: valueOf(complaintBy, "RESOLVED")}, {Key: "slaBreached", Value: breached}, {Key: "total", Value: complaintTotal}}},
 		{Key: "food", Value: ordered.Map{{Key: "averageRating", Value: averageRating}, {Key: "feedbackCount", Value: feedback}}},
@@ -778,7 +845,7 @@ func (a *Admin) overview(c *gin.Context) {
 			{Key: "totalDue", Value: all_.Due}, {Key: "totalPaid", Value: all_.Paid}}},
 		{Key: "referrals", Value: ordered.Map{{Key: "byStatus", Value: referralBy}, {Key: "joined", Value: valueOf(referralBy, "JOINED") + valueOf(referralBy, "REWARDED")}, {Key: "rewardApprovedAmount", Value: approved}, {Key: "rewardPaidAmount", Value: paidOut}, {Key: "rewardTotalAmount", Value: rewardTotal}, {Key: "total", Value: referralTotal}}},
 		{Key: "visibility", Value: ordered.Map{{Key: "publicViewsLast30Days", Value: views.last30}, {Key: "totalPublicViews", Value: views.total}, {Key: "uniquePublicVisitors", Value: views.unique}}},
-	}}}, "Reports overview loaded")
+	}}}, nil
 }
 
 type residentName struct{ name, room string }
@@ -1447,7 +1514,7 @@ func (a *Admin) buildExport(ctx context.Context, p *authz.Principal, hostel, rep
 		}
 		return export.Report{Columns: []export.Column{{Key: "month", Label: "Move-in month"}, {Key: "count", Label: "Residents"}}, FilenamePrefix: "residents-over-time", Period: window.label, Rows: rows}, nil
 	case "payments":
-		cur, err := a.invoices(ctx, ledgerScope{hostel: in}.stages(
+		cur, err := a.invoices(ctx, ledgerScope{hostel: in, joins: finance.JoinBalance}.stages(
 			sumGroup(bson.D{{Key: "period", Value: "$period"}}, bson.E{Key: "invoiceCount", Value: bson.D{{Key: "$sum", Value: 1}}}),
 			bson.D{{Key: "$sort", Value: bson.D{{Key: "_id.period", Value: -1}}}}, rowCap))
 		found, err := decodeAll[struct {

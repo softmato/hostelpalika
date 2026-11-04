@@ -15,13 +15,13 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/modules/ledger"
+	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
-	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
-	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 )

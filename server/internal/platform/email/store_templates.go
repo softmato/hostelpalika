@@ -49,8 +49,8 @@ func storeItemsTable(items []StoreItem, includeStock bool) string {
 // StoreOrderFacts are the fields the placed/received emails share.
 type StoreOrderFacts struct {
 	Address, ContactName, DeliveryPromise, HostelName, Note, OrderNumber, Phone string
-	DeliveryFee, Subtotal, Total                                                 int64
-	Items                                                                        []StoreItem
+	DeliveryFee, Subtotal, Total                                                int64
+	Items                                                                       []StoreItem
 }
 
 func storeTotals(f StoreOrderFacts) string {

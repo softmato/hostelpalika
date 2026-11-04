@@ -96,6 +96,9 @@ The user runs deploys; the AI prepares commands and checks, it does not run them
    keeps jobs from running twice during the overlap.
 3. Roll back by starting the previous SHA's image the same way.
 
+The full steps (indexes before the API, `--scale api=2` for a gapless roll, checks
+afterwards) are in `RUNBOOK.md` §1–2.
+
 ## 6. Web hosting note
 
 Vercel Hobby is for non-commercial use only, and HostelPalika is commercial.

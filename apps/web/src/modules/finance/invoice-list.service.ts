@@ -317,16 +317,14 @@ async function listResidentClaims(
   residentId: Types.ObjectId,
 ): Promise<Awaited<ReturnType<typeof listReviewQueue>>> {
   const [pending, settled, rejected] = await Promise.all([
-    listReviewQueue(hostelId, "PENDING"),
-    listReviewQueue(hostelId, "SETTLED"),
-    listReviewQueue(hostelId, "REJECTED"),
+    listReviewQueue(hostelId, "PENDING", residentId),
+    listReviewQueue(hostelId, "SETTLED", residentId),
+    listReviewQueue(hostelId, "REJECTED", residentId),
   ]);
 
-  const mine = residentId.toString();
-
-  return [...pending, ...settled, ...rejected].filter(
-    (claim) => claim.residentId === mine,
-  );
+  // Read by resident: the hostel's newest 200 per state, filtered here, lost
+  // this resident's older claims in a busy hostel (P10-6).
+  return [...pending, ...settled, ...rejected];
 }
 
 /**

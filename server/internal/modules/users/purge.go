@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	purgeBatch           = 100
-	abandonedUploadAge   = 24 * time.Hour
-	uploadVerifiedSince  = "2026-08-06T00:00:00.000Z" // assets before this have no uploadCompletedAt by design
+	purgeBatch          = 100
+	abandonedUploadAge  = 24 * time.Hour
+	uploadVerifiedSince = "2026-08-06T00:00:00.000Z" // assets before this have no uploadCompletedAt by design
 )
 
 // purgeAccount is account-purge.service.ts purgeAccount: data about the person

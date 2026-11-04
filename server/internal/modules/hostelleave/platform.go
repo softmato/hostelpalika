@@ -3,6 +3,7 @@ package hostelleave
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -190,7 +191,9 @@ func (r *Review) approve(c *gin.Context) {
 	if err != nil {
 		// Released on a context of its own: a cancelled request must not leave the claim stuck.
 		ctx, cancel := context.WithTimeout(context.WithoutCancel(c), 10*time.Second)
-		_, _ = r.requests().UpdateOne(ctx, bson.D{{Key: "_id", Value: req.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "reviewedAt", Value: ""}, {Key: "reviewedBy", Value: ""}}}})
+		if _, undo := r.requests().UpdateOne(ctx, bson.D{{Key: "_id", Value: req.ID}, {Key: "status", Value: "PENDING"}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "reviewedAt", Value: ""}, {Key: "reviewedBy", Value: ""}}}}); undo != nil {
+			slog.ErrorContext(ctx, "leave approval claim not released; the request stays claimed", "request", req.ID.Hex(), "error", undo)
+		}
 		cancel()
 		httpx.Fail(c, err)
 		return

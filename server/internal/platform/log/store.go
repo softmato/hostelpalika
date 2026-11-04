@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/indexes"
 )
 
 // Collection holds the stored lines; Go-only, so Go owns its index.
@@ -63,18 +65,19 @@ func Dropped() int64 {
 	return 0
 }
 
+// IndexSpecs for the stored lines; built by cmd/indexes (RULES.md §6).
+var IndexSpecs = []indexes.Spec{
+	{Collection: Collection, Keys: bson.D{{Key: "at", Value: 1}}, TTLSeconds: ttl(keepFor)},
+	{Collection: Collection, Keys: bson.D{{Key: "requestId", Value: 1}}, Sparse: true},
+	{Collection: Collection, Keys: bson.D{{Key: "category", Value: 1}, {Key: "_id", Value: -1}}},
+}
+
+func ttl(d time.Duration) *int32 { s := int32(d.Seconds()); return &s }
+
 // Attach starts storing lines in db and returns the flush-and-stop function.
 // A request never waits on it: a full queue drops and counts.
 func Attach(ctx context.Context, db *mongo.Database) (stop func(), err error) {
 	coll := db.Collection(Collection)
-	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bson.D{{Key: "at", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(int32(keepFor.Seconds()))},
-		{Keys: bson.D{{Key: "requestId", Value: 1}}, Options: options.Index().SetSparse(true)},
-		{Keys: bson.D{{Key: "category", Value: 1}, {Key: "_id", Value: -1}}},
-	})
-	if err != nil {
-		return nil, err
-	}
 	s := &sink{ch: make(chan Entry, queueSize), quit: make(chan struct{}), done: make(chan struct{}), count: map[string]int{}}
 	current.Store(s)
 	go s.run(coll)

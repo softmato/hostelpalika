@@ -33,7 +33,9 @@ type expoReceipt struct {
 
 // receiptsURL is the getReceipts endpoint beside the send endpoint, so a test
 // or the local proof that fakes one fakes both.
-func (s *Sender) receiptsURL() string { return strings.TrimSuffix(s.Endpoint, "/send") + "/getReceipts" }
+func (s *Sender) receiptsURL() string {
+	return strings.TrimSuffix(s.Endpoint, "/send") + "/getReceipts"
+}
 
 func (s *Sender) fetchReceipts(ctx context.Context, ids []string) map[string]expoReceipt {
 	body, _ := json.Marshal(map[string]any{"ids": ids})

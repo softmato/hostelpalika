@@ -16,8 +16,10 @@ import (
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/bson"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/indexes"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
 )
@@ -57,7 +59,7 @@ type Job struct {
 	// Prepare reads a door's request into the job to run (platform-backup's
 	// report body); nil for jobs that take no input.
 	Prepare func(c *gin.Context) (*Job, error)
-	sched    *schedule
+	sched   *schedule
 }
 
 // ErrRunning: the job is already running here or on another instance.
@@ -119,15 +121,15 @@ type Row struct {
 	Counts     any           `bson:"counts" json:"counts"`
 }
 
-// Indexes: the TTL, the Cron tab's per-job history, and the boot sweep.
-func Indexes(ctx context.Context, db *mongo.Database) error {
-	_, err := db.Collection(Collection).Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bson.D{{Key: "startedAt", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(int32(keepRuns.Seconds()))},
-		{Keys: bson.D{{Key: "job", Value: 1}, {Key: "startedAt", Value: -1}}},
-		{Keys: bson.D{{Key: "status", Value: 1}, {Key: "deadlineAt", Value: 1}}},
-	})
-	return err
+// IndexSpecs: the TTL, the Cron tab's per-job history, and the boot sweep.
+// Built by cmd/indexes, never at boot (RULES.md §6).
+var IndexSpecs = []indexes.Spec{
+	{Collection: Collection, Keys: bson.D{{Key: "startedAt", Value: 1}}, TTLSeconds: ptr(int32(keepRuns.Seconds()))},
+	{Collection: Collection, Keys: bson.D{{Key: "job", Value: 1}, {Key: "startedAt", Value: -1}}},
+	{Collection: Collection, Keys: bson.D{{Key: "status", Value: 1}, {Key: "deadlineAt", Value: 1}}},
 }
+
+func ptr[T any](v T) *T { return &v }
 
 // Run runs j once under its lock and deadline and records it. ErrRunning when
 // another run holds the lock (recorded as skipped).
@@ -151,6 +153,7 @@ func (r *Runner) Run(parent context.Context, j *Job, trigger string) (any, error
 	if !ok {
 		row.Status, row.EndedAt, row.DurationMs = StatusSkipped, &now, new(int64)
 		r.insert(ctx, row)
+		obs.JobRun(j.Name, StatusSkipped)
 		log.InfoContext(ctx, "Job skipped: another run holds its lock")
 		return nil, ErrRunning
 	}
@@ -169,21 +172,25 @@ func (r *Runner) Run(parent context.Context, j *Job, trigger string) (any, error
 	end := time.Now().UTC().Truncate(time.Millisecond)
 	ms := end.Sub(now).Milliseconds()
 	set := bson.D{{Key: "endedAt", Value: end}, {Key: "durationMs", Value: ms}}
+	status := StatusOK
 	switch {
 	case err == nil:
 		set = append(set, bson.E{Key: "status", Value: StatusOK}, bson.E{Key: "counts", Value: counts(out)})
 		log.InfoContext(ctx, "Job finished", "durationMs", ms)
 	case errors.Is(err, context.DeadlineExceeded) || errors.Is(jctx.Err(), context.DeadlineExceeded):
 		set = append(set, bson.E{Key: "status", Value: StatusTimeout}, bson.E{Key: "error", Value: err.Error()})
+		status = StatusTimeout
 		log.ErrorContext(ctx, "Job ran past its deadline", "error", err, "deadline", j.Deadline.String())
 	default:
 		if r.stop.Err() != nil {
 			err = fmt.Errorf("stopped by shutdown: %w", err)
 		}
 		set = append(set, bson.E{Key: "status", Value: StatusFailed}, bson.E{Key: "error", Value: err.Error()})
+		status = StatusFailed
 		log.ErrorContext(ctx, "Job failed", "error", err, "durationMs", ms)
 	}
 	r.update(ctx, id, set)
+	obs.JobRun(j.Name, status)
 	return out, err
 }
 

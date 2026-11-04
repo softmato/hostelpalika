@@ -393,6 +393,10 @@ paymentEventSchema.index(
   { partialFilterExpression: { statementImportId: { $type: "objectId" } } },
 );
 paymentEventSchema.index({ hostelId: 1, status: 1, occurredAt: -1 });
+/** Money in by settlement date (expenses cash view, platform pulse) (P10-4). */
+paymentEventSchema.index({ hostelId: 1, settledAt: -1 });
+/** A resident's own claims, newest first (P10-6). */
+paymentEventSchema.index({ residentId: 1, status: 1, occurredAt: -1 });
 paymentEventSchema.index({ referenceCode: 1 });
 /** Drives the expiry sweep (target §6.5). */
 paymentEventSchema.index(

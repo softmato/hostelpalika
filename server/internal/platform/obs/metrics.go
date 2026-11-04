@@ -38,7 +38,12 @@ var (
 
 	backgroundRunning = newGauge("hostelpalika_background_running", "Background tasks running now.")
 	backgroundDone    = newCounter("hostelpalika_background_tasks_total", "Background tasks finished.", "result")
+
+	jobRuns = newCounter("hostelpalika_job_runs_total", "Scheduled job runs by outcome (ok, failed, timeout, skipped).", "job", "status")
 )
+
+// JobRun counts one finished job run; skipped means another instance held its lock.
+func JobRun(job, status string) { jobRuns.WithLabelValues(job, status).Inc() }
 
 func newCounter(name, help string, labels ...string) *prometheus.CounterVec {
 	v := prometheus.NewCounterVec(prometheus.CounterOpts{Name: name, Help: help}, labels)

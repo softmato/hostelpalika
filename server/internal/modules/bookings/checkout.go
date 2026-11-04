@@ -310,4 +310,3 @@ func (s *Signed) payment(c *gin.Context) {
 	}
 	httpx.OK(c, ordered.Map{{Key: "booking", Value: detail}}, "Screenshot sent. We will check it and email you.")
 }
-

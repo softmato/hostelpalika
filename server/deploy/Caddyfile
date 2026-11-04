@@ -11,12 +11,22 @@
 		max_size 13MB
 	}
 
-	@go path /api/v1/health
+	# GO_PATHS widens the Go side without editing this file (Phase 10 scale check:
+	# GO_PATHS="/api/*"); cut-over sets it the same way.
+	@go path {$GO_PATHS:/api/v1/health}
 	handle @go {
-		reverse_proxy api:8080 {
+		reverse_proxy {
+			# Every replica of the api service (`--scale api=N`), looked up again
+			# each refresh: no sticky sessions, any instance serves any request.
+			dynamic a api 8080 {
+				refresh 5s
+			}
+			lb_policy round_robin
+			# A replica that is shutting down refuses new connections; the request
+			# goes to another one instead of failing (SIGTERM under load, Phase 10).
+			lb_try_duration 5s
+			fail_duration 10s
 			header_up X-Request-Id {http.request.uuid}
-			health_uri /api/v1/health
-			health_interval 10s
 		}
 	}
 

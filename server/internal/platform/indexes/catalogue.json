@@ -1,0 +1,5839 @@
+[
+ {
+  "collection": "accountdeletionrequests",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "accountdeletionrequests",
+  "keys": [
+   [
+    "scheduledDeletionAt",
+    1
+   ],
+   [
+    "executed",
+    1
+   ],
+   [
+    "cancelled",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "accountdeletionrequests",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "reviewStatus",
+    1
+   ],
+   [
+    "requestedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "admissionformlinks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "admissionformlinks",
+  "keys": [
+   [
+    "token",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "admissionforms",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "submittedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "admissionforms",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "phone",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "apiusagecounters",
+  "keys": [
+   [
+    "service",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "attendancealerts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "attendancealerts",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "status": "OPEN"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "attendancelogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "day",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "attendancelogs",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "day",
+    -1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "attendancelogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "zone",
+    1
+   ],
+   [
+    "day",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "auditlogs",
+  "keys": [
+   [
+    "actorId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "auditlogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "action",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "auditlogs",
+  "keys": [
+   [
+    "entityType",
+    1
+   ],
+   [
+    "entityId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "auditlogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "financeIntegrity": {
+     "$exists": true
+    }
+   }
+  }
+ },
+ {
+  "collection": "authattempts",
+  "keys": [
+   [
+    "key",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "authattempts",
+  "keys": [
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 0
+  }
+ },
+ {
+  "collection": "bookingpayments",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "submittedAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookingpayments",
+  "keys": [
+   [
+    "bookingId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookingpayments",
+  "keys": [
+   [
+    "softmatoInvoiceNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "softmatoInvoiceNo": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "code",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "isOpen": true
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "paymentDueBy",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "softmatoInvoiceNo",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true
+  }
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "hostelAnswerBy",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "holdEndsAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookings",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "hostelStrike",
+    1
+   ],
+   [
+    "endedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookingtransfers",
+  "keys": [
+   [
+    "bookingId",
+    1
+   ],
+   [
+    "kind",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "bookingtransfers",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "bookingtransfers",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "kind",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communitycomments",
+  "keys": [
+   [
+    "postId",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communitycomments",
+  "keys": [
+   [
+    "parentId",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communitycomments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communitycommentvotes",
+  "keys": [
+   [
+    "commentId",
+    1
+   ],
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "communityposts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityposts",
+  "keys": [
+   [
+    "spaceType",
+    1
+   ],
+   [
+    "visibility",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityposts",
+  "keys": [
+   [
+    "authorId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityposts",
+  "keys": [
+   [
+    "flaggedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityreactions",
+  "keys": [
+   [
+    "postId",
+    1
+   ],
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "communityreactions",
+  "keys": [
+   [
+    "postId",
+    1
+   ],
+   [
+    "type",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityreports",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "communityreports",
+  "keys": [
+   [
+    "postId",
+    1
+   ],
+   [
+    "reportedBy",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "complaintattachments",
+  "keys": [
+   [
+    "complaintId",
+    1
+   ],
+   [
+    "uploadedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaintattachments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "complaintId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaints",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaints",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "category",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaints",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaints",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "slaDueAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaintupdates",
+  "keys": [
+   [
+    "complaintId",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "complaintupdates",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "consentlogs",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "consentType",
+    1
+   ],
+   [
+    "recordedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "consentlogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "consentType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "cookaccounts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "cookaccounts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "cookaccounts",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "cookaccounts",
+  "keys": [
+   [
+    "loginEmail",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "creditbalances",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "creditbalances",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "amount",
+    -1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "amount": {
+     "$gt": 0
+    }
+   }
+  }
+ },
+ {
+  "collection": "creditbalances",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "entries.idempotencyKey",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true,
+   "sparse": true
+  }
+ },
+ {
+  "collection": "depositrecords",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "depositrefunds",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "depositrefunds",
+  "keys": [
+   [
+    "moveOutChecklistId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "devicetokens",
+  "keys": [
+   [
+    "token",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "devicetokens",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "duplicatecheckresults",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "duplicatecheckresults",
+  "keys": [
+   [
+    "riskLevel",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "emailpreferences",
+  "keys": [
+   [
+    "email",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "emergencycontacts",
+  "keys": [
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "emergencycontacts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "encryptedsecrets",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "provider",
+    1
+   ],
+   [
+    "purpose",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "encryptedsecrets",
+  "keys": [
+   [
+    "keyId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "existingresidentlists",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "status": "OPEN"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "existingresidentlists",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "spentOn",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "recordedBy",
+    1
+   ],
+   [
+    "spentOn",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "cashTo.userId",
+    1
+   ],
+   [
+    "spentOn",
+    -1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "category": "STAFF_CASH"
+   }
+  }
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "recordedBy",
+    1
+   ],
+   [
+    "clientRequestId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "clientRequestId": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "receiptGroupId",
+    1
+   ],
+   [
+    "receiptHash",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "receiptHash": {
+     "$type": "string"
+    },
+    "status": "RECORDED"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "expenses",
+  "keys": [
+   [
+    "receiptGroupId",
+    1
+   ],
+   [
+    "receiptTxnId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "receiptTxnId": {
+     "$type": "string"
+    },
+    "status": "RECORDED"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "expertconsultationrequests",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "expertconsultationrequests",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "feedbacks",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "feedbacks",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "feeschedules",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "effectiveFrom",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "feeschedules",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "effectiveTo": null
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "fileassets",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "fileassets",
+  "keys": [
+   [
+    "ownerId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "fileassets",
+  "keys": [
+   [
+    "key",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "fileassets",
+  "keys": [
+   [
+    "uploadCompletedAt",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodfeedbacks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "date",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodfeedbacks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "menuId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodphotos",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "date",
+    1
+   ],
+   [
+    "mealType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodphotos",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "date",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodreadylogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "announcedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodreadylogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "mealType",
+    1
+   ],
+   [
+    "announcedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "foodroutines",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "freeplanclaims",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "freeplanclaims",
+  "keys": [
+   [
+    "nameKey",
+    1
+   ],
+   [
+    "area",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "freeplanclaims",
+  "keys": [
+   [
+    "ownerPhone",
+    1
+   ],
+   [
+    "area",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "freeplanclaims",
+  "keys": [
+   [
+    "lat",
+    1
+   ],
+   [
+    "lng",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "freeplanclaims",
+  "keys": [
+   [
+    "panNumber",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "panNumber": {
+     "$type": "string"
+    }
+   }
+  }
+ },
+ {
+  "collection": "guardianaccesses",
+  "keys": [
+   [
+    "phone",
+    1
+   ],
+   [
+    "accessCode",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "guardianaccesses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "guardianaccesses",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "guardianaccesses",
+  "keys": [
+   [
+    "invitationToken",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "guardianpermissions",
+  "keys": [
+   [
+    "guardianAccessId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "guardianpermissions",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "guardians",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "phone",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "guardians",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelagreements",
+  "keys": [
+   [
+    "refCode",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelagreements",
+  "keys": [
+   [
+    "sequence",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelagreementsignatures",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelapplications",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelapplications",
+  "keys": [
+   [
+    "applicantId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelapplications",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelapplications",
+  "keys": [
+   [
+    "submittedByAgentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelbackupruns",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelbackups",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelbackups",
+  "keys": [
+   [
+    "drive.status",
+    1
+   ],
+   [
+    "lastRunAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hosteldocuments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "documentType",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hosteldocuments",
+  "keys": [
+   [
+    "ownerId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelexpensecategories",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "hidden",
+    1
+   ],
+   [
+    "name",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelleaverequests",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "status": "PENDING"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelleaverequests",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "requestedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelleaverequests",
+  "keys": [
+   [
+    "requestedBy",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostellistingimpressions",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "day",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelmembers",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelmembers",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "role",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelmembers",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpageviews",
+  "keys": [
+   [
+    "visitorKey",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpageviews",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpageviews",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "visitorKey",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpageviews",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpageviews",
+  "keys": [
+   [
+    "visitorKey",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpaymentprofiles",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelpayoutaccounts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelpayoutaccounts",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "submittedAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelpayoutaccounts",
+  "keys": [
+   [
+    "numberLookup",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelreferralcodes",
+  "keys": [
+   [
+    "code",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelreferralcodes",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "kind": "HOSTEL"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelreferrals",
+  "keys": [
+   [
+    "refereeHostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelreferrals",
+  "keys": [
+   [
+    "codeId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelreferrals",
+  "keys": [
+   [
+    "referrerHostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelrooms",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "number",
+    1
+   ]
+  ],
+  "options": {
+   "name": "hostelId_1_number_1_live",
+   "partialFilterExpression": {
+    "isDeleted": false
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelrooms",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "floor",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "slug",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "referencePrefix",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "referencePrefix": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "location.area",
+    1
+   ],
+   [
+    "hostelType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "verificationStatus",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "ownerId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "parentHostelId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "parentHostelId": {
+     "$type": "objectId"
+    }
+   }
+  }
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "isDeleted",
+    1
+   ],
+   [
+    "purgeScheduledAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostels",
+  "keys": [
+   [
+    "pricing.monthlyRentMin",
+    1
+   ],
+   [
+    "pricing.monthlyRentMax",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelsettings",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelsubscriptions",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelsubscriptions",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "dueBy",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelsubscriptions",
+  "keys": [
+   [
+    "agentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "hostelsubscriptions",
+  "keys": [
+   [
+    "planId",
+    1
+   ]
+  ],
+  "options": {
+   "name": "lifetime_seats",
+   "partialFilterExpression": {
+    "lifetimeSince": {
+     "$type": "date"
+    }
+   }
+  }
+ },
+ {
+  "collection": "hostelverifications",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "hostelverifications",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "updatedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "incidentlogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "incidentlogs",
+  "keys": [
+   [
+    "sosAlertId",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquiries",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquiries",
+  "keys": [
+   [
+    "phone",
+    1
+   ],
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquiries",
+  "keys": [
+   [
+    "email",
+    1
+   ],
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquiries",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "preferredRoomType",
+    1
+   ],
+   [
+    "budgetRange",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquirynotes",
+  "keys": [
+   [
+    "inquiryId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "inquirynotes",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoicebalances",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "invoicebalances",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "lastComputedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "period",
+    1
+   ],
+   [
+    "kind",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "period": {
+     "$type": "string"
+    },
+    "status": {
+     "$in": [
+      "DRAFT",
+      "OPEN",
+      "PAID",
+      "PARTIAL",
+      "OVERDUE",
+      "WRITTEN_OFF"
+     ]
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "legacyPaymentId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "legacyPaymentId": {
+     "$type": "objectId"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "dueDate",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "referenceCode",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "referenceCode": {
+     "$type": "string"
+    }
+   }
+  }
+ },
+ {
+  "collection": "khataentries",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "khataentries",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "khataentries",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "invoiceId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "listingflags",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "riskLevel",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "listingflags",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "maintenancecomments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "requestId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "maintenancehistories",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "requestId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "maintenancerequests",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "category",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "maintenancerequests",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "providerId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "maintenancerequests",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "providerId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "manualstatusoverrides",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "manualstatusoverrides",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "mealcallreminders",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "mealType",
+    1
+   ],
+   [
+    "day",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "mealcallreminders",
+  "keys": [
+   [
+    "sentAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 604800
+  }
+ },
+ {
+  "collection": "moveinchecklists",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "moveoutchecklists",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "nightstatuses",
+  "keys": [
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "nightstatuses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "checkedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "nightstatuses",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "night",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "nightstatuslogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "nightstatuslogs",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "nightstatusprompts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "night",
+    1
+   ],
+   [
+    "kind",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "nightstatusprompts",
+  "keys": [
+   [
+    "sentAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 604800
+  }
+ },
+ {
+  "collection": "noticepushes",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "nextRunAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "noticepushes",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "noticepushes",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "seedKey",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "seedKey": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "noticereadstatuses",
+  "keys": [
+   [
+    "noticeId",
+    1
+   ],
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "noticereadstatuses",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "readAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "category",
+    1
+   ],
+   [
+    "publishedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notificationcampaigns",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notificationcampaigns",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "scheduledFor",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notificationcampaigns",
+  "keys": [
+   [
+    "scope",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notificationpreferences",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "notifications",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "readAt",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notifications",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notifications",
+  "keys": [
+   [
+    "campaignId",
+    1
+   ],
+   [
+    "readAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "notifications",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "kind",
+    1
+   ],
+   [
+    "actionState",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "oauthaccounts",
+  "keys": [
+   [
+    "provider",
+    1
+   ],
+   [
+    "providerAccountId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "oauthaccounts",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "provider",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "oauthaccounts",
+  "keys": [
+   [
+    "email",
+    1
+   ],
+   [
+    "provider",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "offerawards",
+  "keys": [
+   [
+    "quarter",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "offerawards",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "offerawards",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "offerperks",
+  "keys": [
+   [
+    "isActive",
+    1
+   ],
+   [
+    "sortOrder",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "otpchallenges",
+  "keys": [
+   [
+    "channel",
+    1
+   ],
+   [
+    "identifier",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "otpchallenges",
+  "keys": [
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 0
+  }
+ },
+ {
+  "collection": "otpchallenges",
+  "keys": [
+   [
+    "purpose",
+    1
+   ],
+   [
+    "verifiedAt",
+    1
+   ],
+   [
+    "consumedAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "idempotencyKey",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "provider",
+    1
+   ],
+   [
+    "providerTxnId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "providerTxnId": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "evidenceHash",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "evidenceHash": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "statementImportId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "statementImportId": {
+     "$type": "objectId"
+    }
+   }
+  }
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "occurredAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "settledAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "occurredAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "referenceCode",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "expiresAt": {
+     "$type": "date"
+    }
+   }
+  }
+ },
+ {
+  "collection": "paymentintents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "reference",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "paymentintents",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentintents",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentintents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "provider",
+    1
+   ],
+   [
+    "providerTxnId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "providerTxnId": {
+     "$type": "string"
+    }
+   }
+  }
+ },
+ {
+  "collection": "platformadmininvites",
+  "keys": [
+   [
+    "email",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "status": "PENDING"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "platformadmininvites",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformadmininvites",
+  "keys": [
+   [
+    "tokenHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformbackupreports",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformdocumentsequences",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "fiscalYear",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "platformpushschedules",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "nextRunAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformpushschedules",
+  "keys": [
+   [
+    "automatic",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "platformsettingchanges",
+  "keys": [
+   [
+    "key",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformsettingchanges",
+  "keys": [
+   [
+    "tokenHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "platformsettings",
+  "keys": [
+   [
+    "key",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "provideditems",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "provideditems",
+  "keys": [
+   [
+    "checklistId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "pushtickets",
+  "keys": [
+   [
+    "ticketId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "pushtickets",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "qractivations",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "qractivations",
+  "keys": [
+   [
+    "codeHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "qractivations",
+  "keys": [
+   [
+    "expiresAt",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "qractivations",
+  "keys": [
+   [
+    "usedAt",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "clickedAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "converted",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "clickedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "clickedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "questioncallclicks",
+  "keys": [
+   [
+    "converted",
+    1
+   ],
+   [
+    "clickedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "ratingreviews",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "ratingreviews",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "receiptcounters",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "kind",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "paymentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "receiptNumber",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "eventId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "eventId": {
+     "$type": "objectId"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "issuedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "certificationCode",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "certificationCode": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "receipts",
+  "keys": [
+   [
+    "certifiedAt",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "certificationCode": {
+     "$type": "string"
+    }
+   }
+  }
+ },
+ {
+  "collection": "reconciliationruns",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "startedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "reconciliationruns",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "kind",
+    1
+   ],
+   [
+    "startedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "referralcodes",
+  "keys": [
+   [
+    "code",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "referralcodes",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "referralrewards",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "referralrewards",
+  "keys": [
+   [
+    "referralId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "referrals",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "referrals",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "phone",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "referrals",
+  "keys": [
+   [
+    "referrerResidentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "referrals",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "joinedResidentId",
+    1
+   ],
+   [
+    "converted",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "rentconcessions",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "residentapplications",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "residentapplications",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "sentAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residentapplications",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residentdocuments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residentdocuments",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "documentType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residentjoinlinks",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "residentjoinlinks",
+  "keys": [
+   [
+    "token",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "residentleaves",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "phone",
+    1
+   ]
+  ],
+  "options": {
+   "name": "hostelId_1_phone_1_live",
+   "partialFilterExpression": {
+    "isDeleted": false,
+    "status": {
+     "$in": [
+      "PENDING",
+      "ACTIVE",
+      "SUSPENDED"
+     ]
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "email",
+    1
+   ]
+  ],
+  "options": {
+   "name": "hostelId_1_email_1_live",
+   "partialFilterExpression": {
+    "isDeleted": false,
+    "status": {
+     "$in": [
+      "PENDING",
+      "ACTIVE",
+      "SUSPENDED"
+     ]
+    },
+    "email": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "roomType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "roomId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "residents",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "reviewmoderationlogs",
+  "keys": [
+   [
+    "reviewId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "reviewmoderationlogs",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "rolepermissions",
+  "keys": [
+   [
+    "role",
+    1
+   ],
+   [
+    "module",
+    1
+   ],
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "rolepermissions",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "roomchangerequests",
+  "keys": [
+   [
+    "residentId",
+    1
+   ]
+  ],
+  "options": {
+   "name": "residentId_1_pending",
+   "partialFilterExpression": {
+    "status": "PENDING"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "roomchangerequests",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "roomconditionphotos",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "residentId",
+    1
+   ],
+   [
+    "checklistType",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviderapplications",
+  "keys": [
+   [
+    "providerId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviderapplications",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "submittedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviderdocuments",
+  "keys": [
+   [
+    "providerId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviders",
+  "keys": [
+   [
+    "category",
+    1
+   ],
+   [
+    "area",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviders",
+  "keys": [
+   [
+    "categories",
+    1
+   ],
+   [
+    "area",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviders",
+  "keys": [
+   [
+    "phone",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviders",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "serviceproviders",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true
+  }
+ },
+ {
+  "collection": "sessions",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "sessions",
+  "keys": [
+   [
+    "refreshTokenHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "sessions",
+  "keys": [
+   [
+    "temporaryCredentialId",
+    1
+   ],
+   [
+    "revokedAt",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true
+  }
+ },
+ {
+  "collection": "sessions",
+  "keys": [
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 0
+  }
+ },
+ {
+  "collection": "softmatodocuments",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "number",
+    1
+   ],
+   [
+    "version",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "softmatotasks",
+  "keys": [
+   [
+    "kind",
+    1
+   ],
+   [
+    "ref",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "doneAt": null
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "softmatotasks",
+  "keys": [
+   [
+    "doneAt",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "sosalerts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "sosalerts",
+  "keys": [
+   [
+    "residentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "sponsors",
+  "keys": [
+   [
+    "isActive",
+    1
+   ],
+   [
+    "priority",
+    -1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "statementimports",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "uploadedAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockentries",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockentries",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "on",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockentries",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "supplierId",
+    1
+   ],
+   [
+    "on",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockentries",
+  "keys": [
+   [
+    "recordedBy",
+    1
+   ],
+   [
+    "clientRequestId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "clientRequestId": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "stockitems",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "active",
+    -1
+   ],
+   [
+    "name",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockpayments",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "supplierId",
+    1
+   ],
+   [
+    "on",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "stockpayments",
+  "keys": [
+   [
+    "recordedBy",
+    1
+   ],
+   [
+    "clientRequestId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "clientRequestId": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "stocksuppliers",
+  "keys": [
+   [
+    "groupHostelId",
+    1
+   ],
+   [
+    "active",
+    -1
+   ],
+   [
+    "name",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storecarts",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "storecategories",
+  "keys": [
+   [
+    "slug",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "storecategories",
+  "keys": [
+   [
+    "isActive",
+    1
+   ],
+   [
+    "priority",
+    -1
+   ],
+   [
+    "name",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storeorders",
+  "keys": [
+   [
+    "orderNumber",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "storeorders",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storeorders",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storeproducts",
+  "keys": [
+   [
+    "slug",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "storeproducts",
+  "keys": [
+   [
+    "isActive",
+    1
+   ],
+   [
+    "categoryId",
+    1
+   ],
+   [
+    "priority",
+    -1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storeproducts",
+  "keys": [
+   [
+    "isActive",
+    1
+   ],
+   [
+    "isFeatured",
+    1
+   ],
+   [
+    "priority",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "storeproducts",
+  "keys": [
+   [
+    "name",
+    "text"
+   ],
+   [
+    "summary",
+    "text"
+   ],
+   [
+    "tags",
+    "text"
+   ],
+   [
+    "description",
+    "text"
+   ]
+  ],
+  "options": {
+   "name": "store_product_search",
+   "weights": {
+    "description": 1,
+    "name": 10,
+    "summary": 4,
+    "tags": 6
+   }
+  }
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "invoiceNumber",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "dueAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "agentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "localInvoiceNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "localInvoiceNo": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "softmatoInvoiceNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "softmatoInvoiceNo": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptioninvoices",
+  "keys": [
+   [
+    "softmatoBalanceInvoices.no",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true
+  }
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "invoiceId",
+    1
+   ]
+  ],
+  "options": {
+   "name": "invoiceId_1_inReview",
+   "partialFilterExpression": {
+    "status": "IN_REVIEW"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "status",
+    1
+   ],
+   [
+    "claimedAt",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "collectedBy",
+    1
+   ],
+   [
+    "settledAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "localTransactionNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "localTransactionNo": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "softmatoTransactionNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "softmatoTransactionNo": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "subscriptionpayments",
+  "keys": [
+   [
+    "receiptNumber",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "receiptNumber": {
+     "$type": "string"
+    }
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "teamprepayments",
+  "keys": [
+   [
+    "invoiceNumber",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "teamprepayments",
+  "keys": [
+   [
+    "softmatoInvoiceNo",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "softmatoInvoiceNo": {
+     "$type": "string"
+    }
+   }
+  }
+ },
+ {
+  "collection": "teamprepayments",
+  "keys": [
+   [
+    "agentId",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "teamwalletentries",
+  "keys": [
+   [
+    "agentId",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "teamwalletentries",
+  "keys": [
+   [
+    "subscriptionId",
+    1
+   ]
+  ],
+  "options": {
+   "partialFilterExpression": {
+    "type": "COMMISSION"
+   },
+   "unique": true
+  }
+ },
+ {
+  "collection": "teamwalletentries",
+  "keys": [
+   [
+    "agentId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "temporarycredentials",
+  "keys": [
+   [
+    "username",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "temporarycredentials",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "revokedAt",
+    1
+   ],
+   [
+    "expiresAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "temporarycredentials",
+  "keys": [
+   [
+    "expiresAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 2592000
+  }
+ },
+ {
+  "collection": "usagedailies",
+  "keys": [
+   [
+    "day",
+    1
+   ],
+   [
+    "userId",
+    1
+   ],
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "screen",
+    1
+   ],
+   [
+    "feature",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "usagedailies",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "day",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "usageevents",
+  "keys": [
+   [
+    "createdAt",
+    1
+   ]
+  ],
+  "options": {
+   "expireAfterSeconds": 7776000
+  }
+ },
+ {
+  "collection": "usageevents",
+  "keys": [
+   [
+    "userId",
+    1
+   ],
+   [
+    "at",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "userresidentprofiles",
+  "keys": [
+   [
+    "userId",
+    1
+   ]
+  ],
+  "options": {
+   "unique": true
+  }
+ },
+ {
+  "collection": "userresidentprofiles",
+  "keys": [
+   [
+    "primaryEmailHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "userresidentprofiles",
+  "keys": [
+   [
+    "primaryPhoneHash",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "email",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "phone",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "googleId",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "userResidentId",
+    1
+   ]
+  ],
+  "options": {
+   "sparse": true,
+   "unique": true
+  }
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "role",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "users",
+  "keys": [
+   [
+    "hostelIds",
+    1
+   ],
+   [
+    "status",
+    1
+   ]
+  ],
+  "options": {}
+ }
+]
