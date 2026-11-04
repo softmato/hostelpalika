@@ -1,0 +1,84 @@
+# Phase 10 multi-instance + failure check (PHASES.md). A stack of its own, never
+# the production one: two API replicas behind the production Caddyfile, its own
+# Redis and its own Mongo holding a copy of hp_p10_load. The API network has no
+# internet egress, so scheduled jobs on the live copy cannot email or push anyone.
+#
+#   docker compose -p hp10 -f deploy/compose.scale.yaml up -d --build --scale api=2
+#   docker compose -p hp10 -f deploy/compose.scale.yaml down -v
+name: hp10
+
+services:
+  caddy:
+    image: caddy:2
+    ports: ["127.0.0.1:8443:443", "127.0.0.1:8088:80"]
+    environment:
+      API_HOST: "http://localhost"
+      TS_UPSTREAM: http://127.0.0.1:9 # nothing: every path is on Go here
+      GO_PATHS: "/api/*"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      backend:
+        ipv4_address: 172.29.0.10
+      edge: {}
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        GOFLAGS: "-p=2" # the Docker VM shares a small host
+    image: hostelpalika-api:p10
+    env_file: ../.env
+    environment:
+      API_ADDR: ":8080"
+      METRICS_ADDR: ":9090"
+      TRUSTED_PROXIES: 172.29.0.10
+      GOMEMLIMIT: 850MiB
+      APP_ENV: development
+      MONGODB_URI: mongodb://mongo:27017/hp_p10_load?replicaSet=rs0
+      REDIS_URL: redis://redis:6379/0
+      SCHEDULER_ENABLED: "true"
+      LOG_LEVEL: info
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    stop_grace_period: 30s
+    depends_on:
+      redis: { condition: service_healthy }
+      mongo: { condition: service_healthy }
+    networks: [backend]
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    networks: [backend]
+
+  mongo:
+    image: mongo:8.0
+    command: ["--replSet", "rs0", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongo:27017'}]}).ok }"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+    networks: [backend]
+
+networks:
+  backend:
+    internal: true # no egress
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
+  edge: {}

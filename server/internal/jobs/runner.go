@@ -18,6 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/indexes"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
@@ -152,6 +153,7 @@ func (r *Runner) Run(parent context.Context, j *Job, trigger string) (any, error
 	if !ok {
 		row.Status, row.EndedAt, row.DurationMs = StatusSkipped, &now, new(int64)
 		r.insert(ctx, row)
+		obs.JobRun(j.Name, StatusSkipped)
 		log.InfoContext(ctx, "Job skipped: another run holds its lock")
 		return nil, ErrRunning
 	}
@@ -170,21 +172,25 @@ func (r *Runner) Run(parent context.Context, j *Job, trigger string) (any, error
 	end := time.Now().UTC().Truncate(time.Millisecond)
 	ms := end.Sub(now).Milliseconds()
 	set := bson.D{{Key: "endedAt", Value: end}, {Key: "durationMs", Value: ms}}
+	status := StatusOK
 	switch {
 	case err == nil:
 		set = append(set, bson.E{Key: "status", Value: StatusOK}, bson.E{Key: "counts", Value: counts(out)})
 		log.InfoContext(ctx, "Job finished", "durationMs", ms)
 	case errors.Is(err, context.DeadlineExceeded) || errors.Is(jctx.Err(), context.DeadlineExceeded):
 		set = append(set, bson.E{Key: "status", Value: StatusTimeout}, bson.E{Key: "error", Value: err.Error()})
+		status = StatusTimeout
 		log.ErrorContext(ctx, "Job ran past its deadline", "error", err, "deadline", j.Deadline.String())
 	default:
 		if r.stop.Err() != nil {
 			err = fmt.Errorf("stopped by shutdown: %w", err)
 		}
 		set = append(set, bson.E{Key: "status", Value: StatusFailed}, bson.E{Key: "error", Value: err.Error()})
+		status = StatusFailed
 		log.ErrorContext(ctx, "Job failed", "error", err, "durationMs", ms)
 	}
 	r.update(ctx, id, set)
+	obs.JobRun(j.Name, status)
 	return out, err
 }
 

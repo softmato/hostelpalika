@@ -10,6 +10,8 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY cmd ./cmd
 COPY internal ./internal
+# GOFLAGS=-p=2 on a small builder; empty (all cores) by default.
+ARG GOFLAGS=""
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=1 go build -tags=sonic -trimpath -ldflags="-s -w" -o /out/api ./cmd/api \
     && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/indexes ./cmd/indexes

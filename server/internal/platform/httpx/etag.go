@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf16"
 
 	"github.com/gin-gonic/gin"
@@ -46,14 +47,30 @@ func ETag() gin.HandlerFunc {
 // ETagOf is the tag withEtag gives a body.
 func ETagOf(body []byte) string { return etagOf(body) }
 
+// etagOf is FNV-1a over the body's UTF-16 code units, as JS strings hold it.
+// Walked rune by rune with no copy: building []rune then []uint16 allocated
+// about seven times the body on every response (P10-7).
 func etagOf(body []byte) string {
-	units := utf16.Encode([]rune(string(body)))
 	h := uint32(0x811c9dc5)
-	for _, u := range units {
+	n := int64(0)
+	mix := func(u rune) {
 		h ^= uint32(u)
 		h *= 0x01000193
+		n++
 	}
-	return `W/"` + strconv.FormatUint(uint64(h), 36) + "-" + strconv.FormatInt(int64(len(units)), 36) + `"`
+	for _, r := range string(body) { // range over a conversion does not copy
+		switch {
+		case r >= 0x10000 && r <= unicode.MaxRune:
+			r1, r2 := utf16.EncodeRune(r)
+			mix(r1)
+			mix(r2)
+		case r >= 0xD800 && r < 0xE000:
+			mix(unicode.ReplacementChar)
+		default:
+			mix(r)
+		}
+	}
+	return `W/"` + strconv.FormatUint(uint64(h), 36) + "-" + strconv.FormatInt(n, 36) + `"`
 }
 
 // bufferedWriter holds the status and body until the tag is known.

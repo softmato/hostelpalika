@@ -146,8 +146,9 @@ const METHOD_BY_PROVIDER: Record<string, string> = {
 export async function listReviewQueue(
   hostelId: Types.ObjectId | string,
   status: string = "PENDING",
+  residentId?: Types.ObjectId | string,
 ): Promise<ReviewQueueRow[]> {
-  return listQueue(hostelId, status, "RESIDENT_CLAIM");
+  return listQueue(hostelId, status, "RESIDENT_CLAIM", residentId);
 }
 
 /**
@@ -168,6 +169,7 @@ async function listQueue(
   hostelId: Types.ObjectId | string,
   status: string,
   source: string | { $in: string[] },
+  residentId?: Types.ObjectId | string,
 ): Promise<ReviewQueueRow[]> {
   await connectToDatabase();
 
@@ -175,6 +177,7 @@ async function listQueue(
     hostelId,
     source,
     status,
+    ...(residentId ? { residentId } : {}),
   })
     .sort({ occurredAt: -1 })
     .limit(200)

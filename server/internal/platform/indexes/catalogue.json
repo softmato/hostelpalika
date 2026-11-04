@@ -2671,6 +2671,34 @@
   "collection": "invoices",
   "keys": [
    [
+    "hostelId",
+    1
+   ],
+   [
+    "period",
+    1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "createdAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "invoices",
+  "keys": [
+   [
     "residentId",
     1
    ],
@@ -3545,6 +3573,38 @@
   "keys": [
    [
     "hostelId",
+    1
+   ],
+   [
+    "status",
+    1
+   ],
+   [
+    "occurredAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "hostelId",
+    1
+   ],
+   [
+    "settledAt",
+    -1
+   ]
+  ],
+  "options": {}
+ },
+ {
+  "collection": "paymentevents",
+  "keys": [
+   [
+    "residentId",
     1
    ],
    [

@@ -303,7 +303,9 @@ func firstNonEmpty(v ...string) string {
 	return ""
 }
 
-func (r planReminder) hostelName() string { return firstNonEmpty(r.hostel.Name, r.invoice.BilledTo.HostelName) }
+func (r planReminder) hostelName() string {
+	return firstNonEmpty(r.hostel.Name, r.invoice.BilledTo.HostelName)
+}
 
 // composePlanDue is composePlanDueNotice.
 func composePlanDue(r planReminder, now time.Time) (title, body string) {

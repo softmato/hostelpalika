@@ -501,7 +501,9 @@ func (a *Admin) createPerk(c *gin.Context) {
 	httpx.Write(c, http.StatusCreated, p.out(), "Perk created")
 }
 
-func perkNotFound() error { return opErr(http.StatusNotFound, "OFFER_PERK_NOT_FOUND", "Perk was not found.") }
+func perkNotFound() error {
+	return opErr(http.StatusNotFound, "OFFER_PERK_NOT_FOUND", "Perk was not found.")
+}
 
 func (a *Admin) updatePerk(c *gin.Context) {
 	body, err := valid.Body(c)

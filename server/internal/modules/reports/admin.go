@@ -674,10 +674,22 @@ type recentInvoice struct {
 }
 
 func (a *Admin) overview(c *gin.Context) {
-	_, s, month, ok := a.staffQuery(c)
+	p, s, month, ok := a.staffQuery(c)
 	if !ok {
 		return
 	}
+	// Cached per user and hostel version, as the dashboard: ~25 reads, a lifetime
+	// sum among them, re-ran on every view and saturated Mongo under load (P10-5).
+	key := "overview"
+	if raw := c.Request.URL.RawQuery; raw != "" {
+		key += "?" + raw
+	}
+	cache.Respond(c, a.Cache, p.HostelIDs, p.UserID, key, "Reports overview loaded", func() (ordered.Map, error) {
+		return a.buildOverview(c, s, month)
+	})
+}
+
+func (a *Admin) buildOverview(c context.Context, s scope, month string) (ordered.Map, error) {
 	now := time.Now()
 	// A month the calendar cannot read reports this one, as the performance report does.
 	if _, _, readable := bs.PeriodParts(month); !readable {
@@ -687,16 +699,14 @@ func (a *Admin) overview(c *gin.Context) {
 	if anchor == "" {
 		var err error
 		if anchor, err = bs.PeriodOf(now); err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, err
 		}
 	}
 	months := make([]string, overviewMonths)
 	for i := range months {
 		key, err := bs.AddMonths(anchor, i-(overviewMonths-1))
 		if err != nil {
-			httpx.Fail(c, err)
-			return
+			return nil, err
 		}
 		months[i] = key
 	}
@@ -794,13 +804,11 @@ func (a *Admin) overview(c *gin.Context) {
 		func(ctx context.Context) (err error) { views, err = a.viewStats(ctx, s.ids); return err },
 	)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
 	names, err := a.residentNames(c, recent)
 	if err != nil {
-		httpx.Fail(c, err)
-		return
+		return nil, err
 	}
 	totalBeds, vacant := bedsOf(hostels)
 	occupied := math.Max(totalBeds-vacant, 0)
@@ -822,7 +830,7 @@ func (a *Admin) overview(c *gin.Context) {
 		rows[i] = ordered.Map{{Key: "dueAmount", Value: r.Total}, {Key: "dueDate", Value: isoOrNull(r.DueDate)}, {Key: "id", Value: r.ID.Hex()}, {Key: "method", Value: finance.LegacyMethodFor(r.Method)}, {Key: "month", Value: period},
 			{Key: "paidAmount", Value: r.Paid}, {Key: "paidDate", Value: isoOrNull(r.PaidDate)}, {Key: "residentName", Value: who.name}, {Key: "roomType", Value: who.room}, {Key: "status", Value: finance.LegacyStatusFor(r.Status, r.Pending)}}
 	}
-	httpx.OK(c, ordered.Map{{Key: "overview", Value: ordered.Map{
+	return ordered.Map{{Key: "overview", Value: ordered.Map{
 		{Key: "complaints", Value: ordered.Map{{Key: "byCategory", Value: complaintCat}, {Key: "byStatus", Value: complaintBy}, {Key: "averageResolutionDays", Value: resolution},
 			{Key: "open", Value: valueOf(complaintBy, "PENDING") + valueOf(complaintBy, "IN_PROGRESS")}, {Key: "resolved", Value: valueOf(complaintBy, "RESOLVED")}, {Key: "slaBreached", Value: breached}, {Key: "total", Value: complaintTotal}}},
 		{Key: "food", Value: ordered.Map{{Key: "averageRating", Value: averageRating}, {Key: "feedbackCount", Value: feedback}}},
@@ -837,7 +845,7 @@ func (a *Admin) overview(c *gin.Context) {
 			{Key: "totalDue", Value: all_.Due}, {Key: "totalPaid", Value: all_.Paid}}},
 		{Key: "referrals", Value: ordered.Map{{Key: "byStatus", Value: referralBy}, {Key: "joined", Value: valueOf(referralBy, "JOINED") + valueOf(referralBy, "REWARDED")}, {Key: "rewardApprovedAmount", Value: approved}, {Key: "rewardPaidAmount", Value: paidOut}, {Key: "rewardTotalAmount", Value: rewardTotal}, {Key: "total", Value: referralTotal}}},
 		{Key: "visibility", Value: ordered.Map{{Key: "publicViewsLast30Days", Value: views.last30}, {Key: "totalPublicViews", Value: views.total}, {Key: "uniquePublicVisitors", Value: views.unique}}},
-	}}}, "Reports overview loaded")
+	}}}, nil
 }
 
 type residentName struct{ name, room string }

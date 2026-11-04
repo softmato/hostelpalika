@@ -301,7 +301,7 @@ func claimChecks(e *claimEvent, inv *checkInvoice, settled int64) []ClaimCheck {
 
 // ListReviewQueue is listReviewQueue: the newest 200 claims in one state.
 func ListReviewQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string) ([]ReviewRow, error) {
-	return listQueue(ctx, db, hostel, status, "RESIDENT_CLAIM")
+	return listQueue(ctx, db, hostel, status, "RESIDENT_CLAIM", nil)
 }
 
 // ListStaffQueue is the staff screen's queue. Pending cash above the hostel's threshold
@@ -310,11 +310,16 @@ func ListStaffQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectI
 	if status != "PENDING" {
 		return ListReviewQueue(ctx, db, hostel, status)
 	}
-	return listQueue(ctx, db, hostel, status, bson.D{{Key: "$in", Value: bson.A{"RESIDENT_CLAIM", "CASH_ENTRY"}}})
+	return listQueue(ctx, db, hostel, status, bson.D{{Key: "$in", Value: bson.A{"RESIDENT_CLAIM", "CASH_ENTRY"}}}, nil)
 }
 
-func listQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string, source any) ([]ReviewRow, error) {
-	cur, err := db.Collection("paymentevents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "source", Value: source}, {Key: "status", Value: status}},
+// listQueue reads the newest 200 events in one state; resident narrows it to theirs.
+func listQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, status string, source any, resident *bson.ObjectID) ([]ReviewRow, error) {
+	filter := bson.D{{Key: "hostelId", Value: hostel}, {Key: "source", Value: source}, {Key: "status", Value: status}}
+	if resident != nil {
+		filter = append(filter, bson.E{Key: "residentId", Value: *resident})
+	}
+	cur, err := db.Collection("paymentevents").Find(ctx, filter,
 		options.Find().SetSort(bson.D{{Key: "occurredAt", Value: -1}}).SetLimit(200))
 	if err != nil {
 		return nil, err
@@ -446,18 +451,16 @@ func listQueue(ctx context.Context, db *mongo.Database, hostel bson.ObjectID, st
 }
 
 // ListResidentClaims is listResidentClaims: pending, then settled, then rejected.
+// Read by resident: it used to take the hostel's newest 200 of each state and
+// keep this resident's, so their older claims vanished in a busy hostel (P10-6).
 func ListResidentClaims(ctx context.Context, db *mongo.Database, hostel, resident bson.ObjectID) ([]ReviewRow, error) {
 	out := []ReviewRow{}
 	for _, status := range []string{"PENDING", "SETTLED", "REJECTED"} {
-		rows, err := ListReviewQueue(ctx, db, hostel, status)
+		rows, err := listQueue(ctx, db, hostel, status, "RESIDENT_CLAIM", &resident)
 		if err != nil {
 			return nil, err
 		}
-		for _, r := range rows {
-			if r.ResidentID == resident.Hex() {
-				out = append(out, r)
-			}
-		}
+		out = append(out, rows...)
 	}
 	return out, nil
 }

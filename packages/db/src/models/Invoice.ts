@@ -259,6 +259,9 @@ invoiceSchema.index(
 );
 
 invoiceSchema.index({ hostelId: 1, status: 1, dueDate: 1 });
+/** A hostel's month (billing run, reports, invoice list) and its newest invoices; without them each read walks the hostel's whole history (P10-4). */
+invoiceSchema.index({ hostelId: 1, period: 1 });
+invoiceSchema.index({ hostelId: 1, createdAt: -1 });
 invoiceSchema.index({ residentId: 1, status: 1 });
 invoiceSchema.index(
   { referenceCode: 1 },

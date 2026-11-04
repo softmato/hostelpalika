@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestRetriesKeepOneIdempotencyKey(t *testing.T) {
@@ -47,5 +48,29 @@ func TestErrorsClassify(t *testing.T) {
 	}
 	if New("", "s", "w") != nil {
 		t.Fatal("not configured must be nil")
+	}
+}
+
+// A provider that accepts and never answers must cost the caller its timeout,
+// retries included, never a goroutine held for ever (Phase 10 failure test).
+func TestHangingProviderTimesOut(t *testing.T) {
+	stop := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case <-stop:
+		}
+	}))
+	defer srv.Close()
+	defer close(stop)
+	c := New(srv.URL, "s", "w")
+	c.HTTP.Timeout = 200 * time.Millisecond
+	start := time.Now()
+	_, err := c.GetInvoice(context.Background(), "INV-1")
+	if err == nil {
+		t.Fatal("no error from a provider that never answered")
+	}
+	if took := time.Since(start); took > 3*time.Second {
+		t.Fatalf("took %v", took)
 	}
 }

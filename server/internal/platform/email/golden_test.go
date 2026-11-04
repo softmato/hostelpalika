@@ -76,7 +76,6 @@ func TestTemplatesMatchTS(t *testing.T) {
 			got = StoreOrderStatusBuyer(s("status"), s("orderNumber"), s("orderUrl"), s("deliveryPromise"), s("note"), s("cancelledReason"), int64(in["total"].(float64)), storeItems(in["items"]))
 		case "hostelSubmissionReceived":
 
-
 			got = HostelSubmissionReceived(s("hostelName"), s("ownerName"))
 		case "bookingInvoice":
 			var rows []RefundRow
