@@ -105,10 +105,12 @@ jobs:
           docker network create smoke
           docker run -d --name mongo --network smoke mongo:7.0
           docker run -d --name redis --network smoke redis:7
+          # Throwaway values: config refuses to boot without them, and they open nothing real.
+          printf 'APP_ENV=development\nAPP_URL=http://localhost:8080\nJWT_ACCESS_SECRET=%s\nJWT_REFRESH_SECRET=%s\nMONGODB_URI=mongodb://mongo:27017/smoke\n' \
+            "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > smoke.env
           docker run -d --name api --network smoke -p 8080:8080 \
             --read-only --tmpfs /tmp:size=64m,mode=1777 --cap-drop ALL --security-opt no-new-privileges:true \
-            -e APP_ENV=development -e HOME=/tmp -e API_ADDR=:8080 \
-            -e MONGODB_URI=mongodb://mongo:27017/smoke -e REDIS_URL=redis://redis:6379/0 \
+            --env-file smoke.env -e HOME=/tmp -e API_ADDR=:8080 -e REDIS_URL=redis://redis:6379/0 \
             "$IMAGE:$GITHUB_SHA"
           for i in $(seq 1 30); do
             curl -fsS 'http://127.0.0.1:8080/api/v1/health?deep=1' && break
@@ -119,9 +121,10 @@ jobs:
           docker run --rm --read-only --tmpfs /tmp --cap-drop ALL -e HOME=/tmp \
             -v "$PWD/server/internal/modules/hostels/agreement-letterhead.pdf:/in.pdf:ro" \
             --entrypoint pdftotext "$IMAGE:$GITHUB_SHA" -q /in.pdf - >/dev/null
-          docker run --rm --network smoke --read-only --cap-drop ALL \
-            -e APP_ENV=development -e MONGODB_URI=mongodb://mongo:27017/smoke \
+          docker run --rm --network smoke --read-only --cap-drop ALL --env-file smoke.env \
             --entrypoint indexes "$IMAGE:$GITHUB_SHA" -dry-run | tail -3
+          # ops ships in the image: its usage lists the commands.
+          docker run --rm --entrypoint ops "$IMAGE:$GITHUB_SHA" 2>&1 | grep -q rotate-finance-key
           docker image ls "$IMAGE"
       - name: Smoke logs
         if: failure()
