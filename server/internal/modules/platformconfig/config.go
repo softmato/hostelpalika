@@ -65,13 +65,22 @@ func Default(section string) any {
 
 type Service struct {
 	db *mongo.Database
+	// TTL is how long this instance trusts what it read; 0 = read every time.
+	TTL time.Duration
 
 	mu     sync.Mutex
 	cached ordered.Map
 	at     time.Time
+	rows   map[string]rowMemo // single sections, same lifetime as cached (P11-17)
 }
 
-func New(db *mongo.Database) *Service { return &Service{db: db} }
+type rowMemo struct {
+	row   settingRow
+	found bool
+	at    time.Time
+}
+
+func New(db *mongo.Database) *Service { return &Service{db: db, TTL: cacheFor} }
 
 // cacheFor is getSiteConfig's per-instance memo: the staleness a platform admin
 // sees after saving on another instance.
@@ -123,7 +132,7 @@ func stored(v bson.RawValue) any {
 // SiteConfig is getSiteConfig: every section, stored where saved, else default.
 func (s *Service) SiteConfig(ctx context.Context) (ordered.Map, error) {
 	s.mu.Lock()
-	if s.cached != nil && time.Since(s.at) < cacheFor {
+	if s.cached != nil && time.Since(s.at) < s.TTL {
 		c := s.cached
 		s.mu.Unlock()
 		return c, nil
@@ -156,18 +165,43 @@ func (s *Service) SiteConfig(ctx context.Context) (ordered.Map, error) {
 func (s *Service) Invalidate() {
 	s.mu.Lock()
 	s.cached = nil
+	s.rows = nil
 	s.mu.Unlock()
 }
 
-// Section is getSiteConfigSection: one row, never memoised.
-func (s *Service) Section(ctx context.Context, section string) (any, error) {
-	var row settingRow
-	err := s.db.Collection("platformsettings").FindOne(ctx, bson.D{{Key: "key", Value: section}}).Decode(&row)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return Default(section), nil
+// row is one platformsettings row, memoised per instance for cacheFor like the
+// whole config (TS read it on every call: one Mongo trip per request, P11-17).
+// The raw value is kept, so every caller parses its own copy.
+func (s *Service) row(ctx context.Context, key string) (settingRow, bool, error) {
+	s.mu.Lock()
+	m, ok := s.rows[key]
+	s.mu.Unlock()
+	if ok && time.Since(m.at) < s.TTL {
+		return m.row, m.found, nil
 	}
+	var row settingRow
+	err := s.db.Collection("platformsettings").FindOne(ctx, bson.D{{Key: "key", Value: key}}).Decode(&row)
+	found := err == nil
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return row, false, err
+	}
+	s.mu.Lock()
+	if s.rows == nil {
+		s.rows = map[string]rowMemo{}
+	}
+	s.rows[key] = rowMemo{row, found, time.Now()}
+	s.mu.Unlock()
+	return row, found, nil
+}
+
+// Section is getSiteConfigSection: one row, stored where saved, else default.
+func (s *Service) Section(ctx context.Context, section string) (any, error) {
+	row, found, err := s.row(ctx, section)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return Default(section), nil
 	}
 	return coerce(section, stored(row.Value)), nil
 }
@@ -183,8 +217,7 @@ func Decode(v any, into any) error {
 
 // Operations is getOperationsConfig: any failure (read or parse) is the defaults.
 func (s *Service) Operations(ctx context.Context) ordered.Map {
-	var row settingRow
-	if err := s.db.Collection("platformsettings").FindOne(ctx, bson.D{{Key: "key", Value: "operations"}}).Decode(&row); err == nil {
+	if row, found, err := s.row(ctx, "operations"); err == nil && found {
 		if out, ok := schemas["operations"].Parse(stored(row.Value)); ok {
 			return out.(ordered.Map)
 		}
@@ -224,13 +257,22 @@ func (s *Service) OperationsTyped(ctx context.Context) OperationsConfig {
 
 // Store is getStoreConfig: the supply store's knobs; any failure is the defaults.
 func (s *Service) Store(ctx context.Context) ordered.Map {
-	var row settingRow
-	if err := s.db.Collection("platformsettings").FindOne(ctx, bson.D{{Key: "key", Value: "store"}}).Decode(&row); err == nil {
+	if row, found, err := s.row(ctx, "store"); err == nil && found {
 		if out, ok := schemas["store"].Parse(stored(row.Value)); ok {
 			return out.(ordered.Map)
 		}
 	}
 	return Default("store").(ordered.Map)
+}
+
+// Parse is a section's schema over a stored value; false = it does not parse
+// (or no such section).
+func Parse(section string, v any) (any, bool) {
+	d := schemas[section]
+	if d == nil {
+		return nil, false
+	}
+	return d.Parse(v)
 }
 
 // ParseStore is storeConfigSchema.parse over a merged value (saveStoreConfig).

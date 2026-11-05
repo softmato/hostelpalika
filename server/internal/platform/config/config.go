@@ -29,9 +29,16 @@ type Config struct {
 	AppURL   string // no trailing slash
 	LogLevel string // debug | info | warn | error | silent
 
-	MongoURI    string
-	RedisURL    string
-	CORSOrigins []string
+	MongoURI string
+	RedisURL string
+	// RedisCacheURL holds cached responses only, on a Redis that may evict anything;
+	// locks, limits and hostel versions stay on RedisURL (P11-16). Empty = RedisURL.
+	RedisCacheURL string
+	// InProcessCache keeps the short per-process memos (hostel gate, site config).
+	// IN_PROCESS_CACHE=off is for the contract suite, which reseeds the database
+	// under the running server between files.
+	InProcessCache bool
+	CORSOrigins    []string
 	// COOKIE_SECURE is read by exactly one TS route (public/search/parse);
 	// session cookies take `secure` from IsProduction instead.
 	CookieSecure   bool
@@ -218,11 +225,16 @@ func Parse(lookup func(string) (string, bool)) (*Config, []string, error) {
 	if c.MongoURI == "" {
 		r.fail("MONGODB_URI is required")
 	} else if !c.IsProduction() && strings.Contains(c.MongoURI, ".mongodb.net") {
-		// ponytail: any Atlas host is refused outside production, so a dev Atlas
-		// cluster can't be used either; add an explicit allow-list if one appears.
-		r.fail("MONGODB_URI points at Atlas while APP_ENV=" + c.Env + "; dev and test use a local Mongo (RULES.md §6)")
+		// Outside production only the one Atlas host the runner names is allowed: the
+		// owner's spare cluster, never the production one (RULES.md §6).
+		allow := r.str("ALLOW_DEV_ATLAS_HOST")
+		if u, err := url.Parse(c.MongoURI); err != nil || allow == "" || u.Hostname() != allow {
+			r.fail("MONGODB_URI points at Atlas while APP_ENV=" + c.Env + "; dev and test use a local Mongo or the ALLOW_DEV_ATLAS_HOST cluster (RULES.md §6)")
+		}
 	}
 	c.RedisURL = r.str("REDIS_URL")
+	c.RedisCacheURL = r.str("REDIS_CACHE_URL")
+	c.InProcessCache = r.str("IN_PROCESS_CACHE") != "off"
 	c.CORSOrigins = r.list("CORS_ORIGINS")
 	c.CookieSecure = r.str("COOKIE_SECURE") == "true"
 	c.CookieDomain = r.str("COOKIE_DOMAIN")

@@ -490,7 +490,7 @@ func (s *Service) paymentState(ctx context.Context, hostelID bson.ObjectID) (ord
 	}
 	var plan any
 	if state != nil {
-		var end any = state.Subscription.CurrentPeriodEnd
+		end := state.Subscription.CurrentPeriodEnd
 		if state.Subscription.LifetimeSince != nil {
 			end = nil
 		}

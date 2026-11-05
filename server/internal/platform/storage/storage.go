@@ -123,11 +123,10 @@ func (r *R2) WithKeyPrefix(key string) string {
 }
 
 // GenerateFileKey is <prefix>/<uuid>.<ext>, the extension lower-cased from fileName,
-// under WriteRoot when one is set.
+// under WriteRoot when one is set. The client names the file, so anything but 1–8
+// letters and digits (a "/", "..", a megabyte of text) becomes "bin" (P11-18).
 func (r *R2) GenerateFileKey(prefix, fileName string) string {
-	parts := strings.Split(fileName, ".")
-	ext := strings.ToLower(parts[len(parts)-1])
-	key := prefix + "/" + uuid4() + "." + ext
+	key := prefix + "/" + uuid4() + "." + SafeExt(fileName)
 	if r.cfg.WriteRoot != "" {
 		return r.cfg.WriteRoot + "/" + key
 	}
@@ -229,4 +228,13 @@ func uuid4() string {
 	b[6] = b[6]&0x0f | 0x40
 	b[8] = b[8]&0x3f | 0x80
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+// SafeExt is fileName's extension, lower-cased, when it is 1–8 of [a-z0-9]; else "bin".
+func SafeExt(fileName string) string {
+	ext := strings.ToLower(fileName[strings.LastIndex(fileName, ".")+1:])
+	if len(ext) == 0 || len(ext) > 8 || strings.TrimLeft(ext, "abcdefghijklmnopqrstuvwxyz0123456789") != "" {
+		return "bin"
+	}
+	return ext
 }

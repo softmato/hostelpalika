@@ -8,15 +8,31 @@
 # never printed. The dump holds personal data, so the archive is deleted as
 # soon as it is restored. Re-run any time for a fresh copy; it replaces the
 # local database wholesale (--drop).
+#
+#   pwsh server/deploy/copy-live-db.ps1 -TargetEnv MONGODB_URI_OLD
+#
+# restores into `hostelpalika_dev` on the cluster that .env key names instead
+# (the owner's spare cluster, while Docker is unavailable). Only that database's
+# collections are replaced; a target on the live cluster's host is refused.
+param([string]$TargetEnv = "")
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $target = "mongodb://127.0.0.1:27018/?directConnection=true"
 $targetDb = "hostelpalika_dev"
 
-$line = Get-Content (Join-Path $root ".env") | Where-Object { $_ -match '^\s*(MONGODB_URI|DATABASE_URL)\s*=' } | Select-Object -First 1
+$envLines = Get-Content (Join-Path $root ".env")
+$line = $envLines | Where-Object { $_ -match '^\s*(MONGODB_URI|DATABASE_URL)\s*=' } | Select-Object -First 1
 if (-not $line) { throw "MONGODB_URI not found in the repo-root .env" }
 $source = ($line -split "=", 2)[1].Trim().Trim('"').Trim("'")
+$hostOf = { param($u) if ($u -match '^mongodb(\+srv)?://(?:[^@/]*@)?([^/?]+)') { $Matches[2] } else { "" } }
+
+if ($TargetEnv) {
+    $t = $envLines | Where-Object { $_ -match "^\s*$TargetEnv\s*=" } | Select-Object -First 1
+    if (-not $t) { throw "$TargetEnv not found in the repo-root .env" }
+    $target = ($t -split "=", 2)[1].Trim().Trim('"').Trim("'") -replace '^(mongodb(\+srv)?://[^/?]+)/[^?]*', '$1/'
+    if ((& $hostOf $target) -eq (& $hostOf $source)) { throw "$TargetEnv is the live cluster; refusing to restore into it" }
+}
 
 # mongoose uses the database named in the URI path; "test" when there is none.
 $sourceDb = if ($source -match '^mongodb(\+srv)?://[^/]+/([^?]+)') { $Matches[2] } else { "test" }
@@ -36,7 +52,7 @@ try {
     & "$tools\mongorestore.exe" --uri=$target --archive=$archive --gzip --drop `
         --nsFrom="$sourceDb.*" --nsTo="$targetDb.*" --quiet
     if ($LASTEXITCODE -ne 0) { throw "mongorestore failed" }
-    Write-Host "Done: local $targetDb now mirrors live '$sourceDb'."
+    Write-Host "Done: $targetDb now mirrors live '$sourceDb'."
 }
 finally {
     Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue

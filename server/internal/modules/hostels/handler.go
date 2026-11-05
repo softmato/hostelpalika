@@ -7,7 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 	"github.com/softmato/hostelpalika/server/internal/platform/zschema"
 )
@@ -21,7 +23,7 @@ func NewHandler(public *Public) *Handler { return &Handler{public} }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	p := v1.Group("/public/hostels")
-	p.GET("", httpx.ETag(), h.list)
+	p.GET("", h.list) // cache.Respond sets the ETag
 	p.GET("/compare", httpx.ETag(), h.compare)
 	p.GET("/:slug", h.bySlug)
 }
@@ -49,13 +51,11 @@ func (h *Handler) list(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	out, err := h.public.List(c, q)
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
 	httpx.PublicCache(c)
-	httpx.OK(c, out, "Public hostels loaded")
+	// One shared copy per query for everyone (P11-17): "public" is never bumped,
+	// so a listing edit shows within cache.TTL, the s-maxage it already promised.
+	cache.Respond(c, h.public.Cache, []string{"public"}, "", "hostels?"+c.Request.URL.RawQuery, "Public hostels loaded",
+		func() (ordered.Map, error) { return h.public.List(c, q) })
 }
 
 func (h *Handler) bySlug(c *gin.Context) {

@@ -66,10 +66,7 @@ func (h *Handler) saveConfig(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	merged := ordered.Map{}
-	for _, e := range h.Config.Store(c) {
-		merged = append(merged, e)
-	}
+	merged := append(ordered.Map{}, h.Config.Store(c)...)
 	if in, ok := body.(map[string]any); ok {
 		for k, v := range in {
 			merged = merged.Set(k, v)
@@ -108,6 +105,7 @@ func (h *Handler) saveConfig(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	h.Config.Invalidate()
 	httpx.OK(c, ordered.Map{{Key: "config", Value: next}}, "Store settings saved")
 }
 

@@ -3,6 +3,24 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Pre-cut-over check — server side through Phase 11] — 2026-11-05
+
+Every tracker tick re-checked against the code (`READINESS.md`, re-check section).
+
+### Fixed
+- CI: two contract recordings stale after P11-19, one clock-dependent dashboard series, 7 staticcheck findings (P11-24).
+- P11-16 (security), P11-17 (latency), P11-18 (low) closed in Go and in TS where shared.
+- P11-22 unescaped name in the Softmato "server is back" email (Go and TS); P11-23 three Go booking emails drawn unlike TS.
+
+### Added
+- `cmd/ops`: `recover-admin`, `rotate-finance-key`, `verify-finance-ledger`, `check-private-documents`, `sync-plan-services`, `check-softmato`; `cmd/dev`: `generate-vapid`, `mint-session`, `send-test-emails` (P11-25). `ops` ships in the image.
+- Byte-for-byte goldens for all 95 email templates (`emails-all.ts`, `TestEveryTemplateMatchesTS`).
+- Second Redis for cached bodies (`redis-cache`, `REDIS_CACHE_URL`), `REDIS_PASSWORD` on both.
+- Spare-cluster test runs: `CONTRACT_MONGO_URI`, `ALLOW_DEV_ATLAS_HOST`; `copy-live-db.ps1 -TargetEnv`.
+
+### Docs
+- `PARITY.md` §2–§8 and §10 ticked from code (279 rows); §9 (web pages) and §11 (cut-over) stay open.
+
 ## [Phase 9 — done] — 2026-11-04
 
 ### Added

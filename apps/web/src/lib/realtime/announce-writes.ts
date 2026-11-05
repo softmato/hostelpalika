@@ -34,6 +34,18 @@ const WRITE_TOPICS: [string, RealtimeTopic[]][] = [
 
 const READS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+/**
+ * Signed-in writes that change no cached hostel read: sessions, devices,
+ * preferences, usage pings, socket auth, uploads not yet attached. Without this
+ * list every app open emptied its hostels' caches (P11-16). Anything not listed
+ * still bumps.
+ */
+const NOT_HOSTEL_DATA = [
+  "/api/v1/auth/", "/api/v1/usage/", "/api/v1/realtime/", "/api/v1/mobile/device-token", "/api/v1/push/",
+  "/api/v1/notifications/", "/api/v1/account/email-preferences", "/api/v1/account/notification-preferences",
+  "/api/v1/account/saved-hostels", "/api/v1/email-preferences", "/api/v1/files/presign", "/api/v1/files/upload",
+];
+
 export function topicsForWrite(method: string, path: string): RealtimeTopic[] {
   if (READS.has(method.toUpperCase())) return [];
 
@@ -48,14 +60,15 @@ export function topicsForWrite(method: string, path: string): RealtimeTopic[] {
 export function announceWrite(request: NextRequest, hostelIds: string[]) {
   if (hostelIds.length === 0 || !request.method) return;
 
-  if (!READS.has(request.method.toUpperCase())) {
+  const path = request.nextUrl?.pathname ?? (request.url ? new URL(request.url).pathname : "");
+
+  if (!READS.has(request.method.toUpperCase()) && !NOT_HOSTEL_DATA.some((prefix) => path.startsWith(prefix))) {
     // Once now and once after the response: a read that lands while the write
     // is still running could otherwise cache the old answer under the new version.
     void bumpHostelCache(hostelIds);
     afterResponse(() => bumpHostelCache(hostelIds));
   }
 
-  const path = request.nextUrl?.pathname ?? (request.url ? new URL(request.url).pathname : "");
   const topics = topicsForWrite(request.method, path);
 
   if (topics.length === 0) return;

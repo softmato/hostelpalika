@@ -115,7 +115,9 @@ export function withKeyPrefix(key: string): string {
 }
 
 export function generateFileKey(prefix: string, fileName: string) {
-  const ext = fileName.split(".").pop()?.toLowerCase() ?? "bin";
+  // The client names the file: anything but 1–8 letters and digits becomes "bin" (P11-18).
+  const raw = fileName.split(".").pop()?.toLowerCase() ?? "";
+  const ext = /^[a-z0-9]{1,8}$/.test(raw) ? raw : "bin";
   const uniqueId = crypto.randomUUID();
   return withKeyPrefix(`${prefix}/${uniqueId}.${ext}`);
 }

@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -31,16 +32,26 @@ const RecordURI = "mongodb://127.0.0.1:27018/hostelpalika_contract?directConnect
 // parallel run its own database, since every file drops and reseeds it.
 // CONTRACT_MONGO_ADDR moves it off 127.0.0.1:27018, for a run inside a
 // container (Windows cannot load libvips, so the suite runs in Linux there).
+// CONTRACT_MONGO_URI points it at a hosted cluster (no local Mongo); its path is
+// always replaced with the contract database, so it can never name a real one.
 var URI = func() string {
 	addr, db := os.Getenv("CONTRACT_MONGO_ADDR"), os.Getenv("CONTRACT_DB")
-	if addr == "" && db == "" {
+	if db == "" {
+		db = "hostelpalika_contract"
+	}
+	if raw := os.Getenv("CONTRACT_MONGO_URI"); raw != "" {
+		u, err := url.Parse(raw)
+		if err != nil {
+			panic("fixture: CONTRACT_MONGO_URI does not parse")
+		}
+		u.Path = "/" + db
+		return u.String()
+	}
+	if addr == "" && os.Getenv("CONTRACT_DB") == "" {
 		return RecordURI
 	}
 	if addr == "" {
 		addr = "127.0.0.1:27018"
-	}
-	if db == "" {
-		db = "hostelpalika_contract"
 	}
 	return "mongodb://" + addr + "/" + db + "?directConnection=true"
 }()

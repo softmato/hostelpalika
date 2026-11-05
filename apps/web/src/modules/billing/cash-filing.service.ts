@@ -3,8 +3,7 @@ import "server-only";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
 import { sendEmail } from "@hostel/shared/email/sender";
-import { formatRupees } from "@hostel/shared/email/templates/billing/subscription-invoice";
-import { detailsTable, emailLayout, escapeHtml, paragraph, smallPrint } from "@hostel/shared/email/templates/layout";
+import { fieldCashReceivedEmail } from "@hostel/shared/email/templates/billing/field-cash-received";
 
 import { connectToDatabase } from "@/lib/db";
 import { isSoftmatoDown, softmato } from "@/modules/billing/softmato/client";
@@ -101,24 +100,12 @@ export async function submitFieldCash(paymentId: string, collectedBy: string | n
   if (!email) return;
 
   await sendEmail({
-    category: "billing",
-    html: emailLayout({
-      bodyHtml: [
-        paragraph(`We have your cash payment for <strong>${escapeHtml(invoice.planName)}</strong>.`),
-        detailsTable([
-          { emphasis: true, label: "Amount", value: formatRupees(payment.amount) },
-          { label: "Received by", value: collectedBy || "Field agent" },
-          { label: "Reference", value: filed.transaction_id },
-        ]),
-        smallPrint(
-          "Your receipt will be emailed to you once we verify this cash. Thank you for your patience.",
-        ),
-      ].join(""),
-      eyebrow: "Cash received",
-      heading: "Cash payment received",
-      preheader: `${formatRupees(payment.amount)} cash received. Your receipt follows once it is confirmed.`,
+    ...fieldCashReceivedEmail({
+      amount: payment.amount,
+      collectedBy,
+      planName: invoice.planName,
+      transactionId: filed.transaction_id,
     }),
-    subject: `${formatRupees(payment.amount)} cash received — receipt to follow`,
     to: email,
   });
 }

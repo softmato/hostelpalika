@@ -276,7 +276,7 @@ func TestAnnounceWriteBumps(t *testing.T) {
 
 	tokens := auth.NewTokens("s", "r", time.Hour, time.Hour)
 	var bg background.Runner
-	g := New(tokens, &auth.Cookies{Tokens: tokens}, nil, cache.New(rdb), &bg)
+	g := New(tokens, &auth.Cookies{Tokens: tokens}, nil, cache.New(rdb, nil), &bg)
 	tok, _ := tokens.SignAccess(auth.TokenInput{UserID: "u", Role: string(Superadmin), HostelIDs: []string{hostel}})
 
 	e := gin.New()
@@ -290,5 +290,17 @@ func TestAnnounceWriteBumps(t *testing.T) {
 	_ = bg.Wait(ctx)
 	if v, _ := rdb.Get(ctx, "v:hostel:"+hostel).Int(); v != 2 {
 		t.Fatalf("a write bumps now and after the response (a read never): version %d", v)
+	}
+}
+
+func TestNotHostelData(t *testing.T) {
+	for path, want := range map[string]bool{
+		"/api/v1/usage/events": true, "/api/v1/realtime/auth": true, "/api/v1/auth/lock-pin/touch": true,
+		"/api/v1/notifications/read-all": true, "/api/v1/hostel-admin/residents": false,
+		"/api/v1/resident/location": false, "/api/v1/hostel-admin/notifications": false,
+	} {
+		if NotHostelData(path) != want {
+			t.Errorf("NotHostelData(%q) = %v", path, !want)
+		}
 	}
 }

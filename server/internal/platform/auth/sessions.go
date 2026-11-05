@@ -18,6 +18,11 @@ var ErrInvalidSession = httpx.NewError(http.StatusUnauthorized, "INVALID_SESSION
 // recently (an aborted navigation's cookie) without it counting as theft.
 const RefreshReuseWindow = time.Minute
 
+// LostReplyWindow is how long after a rotation the previous refresh token may
+// still replace a reply that never arrived (a phone that dropped it, then slept).
+// ponytail: a fixed day; shorten if replays of day-old tokens ever show up.
+const LostReplyWindow = 24 * time.Hour
+
 // Session is a row of the mongoose `sessions` collection (timestamps on).
 type Session struct {
 	ID                       bson.ObjectID  `bson:"_id"`
@@ -91,7 +96,10 @@ func (s *Sessions) Find(ctx context.Context, sessionID, refreshToken string) (*P
 	}
 	p := &Presented{Session: &sess, Hash: HashToken(refreshToken)}
 	p.IsCurrent = eq(sess.RefreshTokenHash, p.Hash)
-	isPrevious := eq(sess.PreviousRefreshTokenHash, p.Hash)
+	// The previous token buys a lost reply back only for LostReplyWindow after the
+	// rotation; older, it is a replayed copy like any other (P11-16).
+	isPrevious := eq(sess.PreviousRefreshTokenHash, p.Hash) && sess.RefreshTokenRotatedAt != nil &&
+		sess.RefreshTokenRotatedAt.After(now.Add(-LostReplyWindow))
 	p.JustRotated = isPrevious && sess.RefreshTokenRotatedAt != nil && sess.RefreshTokenRotatedAt.After(now.Add(-RefreshReuseWindow))
 	if !p.IsCurrent && !isPrevious {
 		if _, err := s.c.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "revokedAt", Value: nil}}, set(now, bson.E{Key: "revokedAt", Value: now})); err != nil {

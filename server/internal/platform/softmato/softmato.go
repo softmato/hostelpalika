@@ -257,10 +257,12 @@ func pathFor(ref string) string {
 }
 
 type InvoiceDetail struct {
-	DueMinor   int64  `json:"due_minor"`
-	PaidMinor  int64  `json:"paid_minor"`
-	TotalMinor int64  `json:"total_minor"`
-	Status     string `json:"status"` // unpaid, partially_paid, paid, past_due, void, written_off
+	InvoiceID    string        `json:"invoice_id"`
+	Presentation *Presentation `json:"presentation"`
+	DueMinor     int64         `json:"due_minor"`
+	PaidMinor    int64         `json:"paid_minor"`
+	TotalMinor   int64         `json:"total_minor"`
+	Status       string        `json:"status"` // unpaid, partially_paid, paid, past_due, void, written_off
 	// Nil when an older Softmato does not name the payments behind paid_minor.
 	Payments []struct {
 		AmountMinor   float64 `json:"amount_minor"`

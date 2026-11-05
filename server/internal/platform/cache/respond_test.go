@@ -22,7 +22,7 @@ func TestRespond(t *testing.T) {
 	}
 	defer rdb.Close()
 	gin.SetMode(gin.ReleaseMode)
-	c := New(rdb)
+	c := New(rdb, nil)
 	hostel := "respond-" + time.Now().Format("150405.000000")
 	defer rdb.Del(ctx, versionKey(hostel), "r:"+hostel+":0:u:list", "r:"+hostel+":1:u:list")
 

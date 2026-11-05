@@ -82,6 +82,7 @@ func TestParseErrors(t *testing.T) {
 		"short secret":  {map[string]string{"JWT_ACCESS_SECRET": "short"}, "JWT_ACCESS_SECRET"},
 		"no mongo":      {map[string]string{"MONGODB_URI": "<unset>"}, "MONGODB_URI is required"},
 		"atlas in dev":  {map[string]string{"MONGODB_URI": "mongodb+srv://u:p@x.abc.mongodb.net/db"}, "points at Atlas"},
+		"other atlas":   {map[string]string{"MONGODB_URI": "mongodb+srv://u:p@x.abc.mongodb.net/db", "ALLOW_DEV_ATLAS_HOST": "y.abc.mongodb.net"}, "points at Atlas"},
 		"bad url":       {map[string]string{"APP_URL": "localhost"}, "APP_URL"},
 		"bad ttl":       {map[string]string{"ACCESS_TOKEN_TTL": "15 minutes"}, "ACCESS_TOKEN_TTL"},
 		"bad int":       {map[string]string{"OTP_RATE_LIMIT_MAX": "five"}, "OTP_RATE_LIMIT_MAX"},
@@ -97,6 +98,12 @@ func TestParseErrors(t *testing.T) {
 				t.Fatalf("want error containing %q, got %v", tc.want, err)
 			}
 		})
+	}
+}
+
+func TestAllowedDevAtlas(t *testing.T) {
+	if _, _, err := Parse(env(map[string]string{"MONGODB_URI": "mongodb+srv://u:p@x.abc.mongodb.net/db", "ALLOW_DEV_ATLAS_HOST": "x.abc.mongodb.net"})); err != nil {
+		t.Fatal(err)
 	}
 }
 

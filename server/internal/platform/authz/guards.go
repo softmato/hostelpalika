@@ -5,7 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,10 +71,32 @@ type Guards struct {
 	Cache      *cache.Cache       // nil = nothing to bump
 	Background *background.Runner // nil only with a nil Cache
 	now        func() time.Time
+	// GateTTL is how long this process reuses the hostel rows every staff request
+	// reads (one Mongo trip each, P11-17); any signed-in write here clears them.
+	// 0 = read every time.
+	GateTTL time.Duration
+	gates   gateMemo
+}
+
+type gateMemo struct {
+	mu   sync.Mutex
+	rows map[string]gateRows
+}
+
+type gateRows struct {
+	rows []hostelGateRow
+	at   time.Time
 }
 
 func New(tokens *auth.Tokens, cookies *auth.Cookies, db *mongo.Database, c *cache.Cache, bg *background.Runner) *Guards {
-	return &Guards{tokens, cookies, db, c, bg, time.Now}
+	return &Guards{Tokens: tokens, Cookies: cookies, DB: db, Cache: c, Background: bg, now: time.Now, GateTTL: 5 * time.Second}
+}
+
+// forgetGates drops every memoised gate row: a write may have changed one.
+func (g *Guards) forgetGates() {
+	g.gates.mu.Lock()
+	g.gates.rows = nil
+	g.gates.mu.Unlock()
 }
 
 // Load is loadApiPrincipal: nil when signed out. A bearer token that no
@@ -210,6 +234,14 @@ func (g *Guards) Require(c *gin.Context) (*Principal, error) {
 	if p.PinLocked && !slices.ContainsFunc(openWhilePinLocked, func(s string) bool { return strings.HasPrefix(path, s) }) {
 		return nil, errPinRequired
 	}
+	if !isRead(c.Request.Method) && g.GateTTL > 0 {
+		// Before and after the write, as announceWrite's bump: a read landing
+		// mid-write must not keep the old row for the TTL.
+		g.forgetGates()
+		if g.Background != nil {
+			g.Background.After(c, func(context.Context) error { g.forgetGates(); return nil })
+		}
+	}
 	q, err := g.narrowToLiveHostels(c, p)
 	if err != nil {
 		return nil, err
@@ -223,12 +255,64 @@ func (g *Guards) Require(c *gin.Context) (*Principal, error) {
 // mid-write can't cache the old answer under the new version. Its realtime
 // topics half (topicsForWrite → publishResourceChange) arrives with Realtime.
 func (g *Guards) announceWrite(c *gin.Context, hostelIDs []string) {
-	if g.Cache == nil || len(hostelIDs) == 0 || isRead(c.Request.Method) {
+	if g.Cache == nil || len(hostelIDs) == 0 || isRead(c.Request.Method) || NotHostelData(c.Request.URL.Path) {
 		return
 	}
 	ids := slices.Clone(hostelIDs)
 	g.Cache.Bump(c, ids...)
 	g.Background.After(c, func(ctx context.Context) error { g.Cache.Bump(ctx, ids...); return nil })
+}
+
+// notHostelDataWrites are signed-in writes that change no cached hostel read:
+// sessions, devices, preferences, usage pings, socket auth, uploads not yet
+// attached. Without this list every app open emptied its hostels' caches (P11-16).
+// Anything not listed still bumps.
+var notHostelDataWrites = []string{
+	"/api/v1/auth/", "/api/v1/usage/", "/api/v1/realtime/", "/api/v1/mobile/device-token", "/api/v1/push/",
+	"/api/v1/notifications/", "/api/v1/account/email-preferences", "/api/v1/account/notification-preferences",
+	"/api/v1/account/saved-hostels", "/api/v1/email-preferences", "/api/v1/files/presign", "/api/v1/files/upload",
+}
+
+// NotHostelData reports a write path that leaves every hostel cache valid.
+func NotHostelData(path string) bool {
+	return slices.ContainsFunc(notHostelDataWrites, func(p string) bool { return strings.HasPrefix(path, p) })
+}
+
+// gateRows reads the hostels a principal names, reusing this process's copy for
+// GateTTL. The slice is shared: callers only read it.
+func (g *Guards) gateRows(c *gin.Context, ids []bson.ObjectID, isStaff bool, filter bson.D) ([]hostelGateRow, error) {
+	key := strconv.FormatBool(isStaff)
+	for _, id := range ids {
+		key += ":" + id.Hex()
+	}
+	now := time.Now()
+	if g.GateTTL > 0 {
+		g.gates.mu.Lock()
+		e, ok := g.gates.rows[key]
+		g.gates.mu.Unlock()
+		if ok && now.Sub(e.at) < g.GateTTL {
+			return e.rows, nil
+		}
+	}
+	cur, err := g.DB.Collection("hostels").Find(c, filter, options.Find().SetProjection(
+		bson.D{{Key: "_id", Value: 1}, {Key: "kyc", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "slug", Value: 1}, {Key: "suspension", Value: 1}}))
+	if err != nil {
+		return nil, err
+	}
+	var rows []hostelGateRow
+	if err := cur.All(c, &rows); err != nil {
+		return nil, err
+	}
+	if g.GateTTL > 0 {
+		g.gates.mu.Lock()
+		// ponytail: wholesale reset at 10k keys (one per distinct hostel set); an LRU if that ever churns.
+		if g.gates.rows == nil || len(g.gates.rows) >= 10000 {
+			g.gates.rows = map[string]gateRows{}
+		}
+		g.gates.rows[key] = gateRows{rows, now}
+		g.gates.mu.Unlock()
+	}
+	return rows, nil
 }
 
 type hostelGateRow struct {
@@ -271,13 +355,8 @@ func (g *Guards) narrowToLiveHostels(c *gin.Context, p *Principal) (*Principal, 
 	if isStaff {
 		filter = append(filter, bson.E{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}})
 	}
-	cur, err := g.DB.Collection("hostels").Find(c, filter, options.Find().SetProjection(
-		bson.D{{Key: "_id", Value: 1}, {Key: "kyc", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "slug", Value: 1}, {Key: "suspension", Value: 1}}))
+	rows, err := g.gateRows(c, valid, isStaff, filter)
 	if err != nil {
-		return nil, err
-	}
-	var rows []hostelGateRow
-	if err := cur.All(c, &rows); err != nil {
 		return nil, err
 	}
 

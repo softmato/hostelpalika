@@ -715,7 +715,7 @@ func (s *Service) AddAll(ctx context.Context, hostel bson.ObjectID, p *authz.Pri
 	}
 	notice := make([]addedResident, len(added))
 	for i, a := range added {
-		notice[i] = addedResident{rent: a.rent, resident: a.resident}
+		notice[i] = addedResident(a)
 	}
 	billsRaised := res.BillsRaised
 	s.runAfter(ctx, func(c context.Context) error { s.notifyAdded(c, notice, billsRaised, hostel, p); return nil })

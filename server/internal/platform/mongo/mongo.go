@@ -56,6 +56,12 @@ func connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 		SetMaxPoolSize(50).
 		SetMaxConnIdleTime(5 * time.Minute).
 		SetServerSelectionTimeout(10 * time.Second).
+		// Every reply crosses Kathmandu→Mumbai: compress the wire (Atlas speaks
+		// all three; the first both sides know wins) (P11-17).
+		SetCompressors([]string{"zstd", "snappy", "zlib"}).
+		// A backstop for an operation whose context has no deadline (jobs, boot);
+		// requests carry their own, which wins when shorter.
+		SetTimeout(2 * time.Minute).
 		SetMonitor(obs.MongoMonitor()).
 		SetPoolMonitor(obs.MongoPoolMonitor()))
 	if err != nil {

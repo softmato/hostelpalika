@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -623,5 +622,3 @@ func (p *Platform) listing(slug string) string {
 func (p *Platform) billingURL(slug string) string {
 	return p.SiteURL + "/" + url.PathEscape(slug) + "/admin/billing"
 }
-
-func trimmed(s string) string { return strings.TrimSpace(s) }

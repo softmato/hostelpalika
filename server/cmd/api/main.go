@@ -77,11 +77,18 @@ func run() error {
 	if rdb != nil {
 		defer func() { _ = rdb.Close() }()
 	}
+	cacheRdb, err := redis.Connect(ctx, cfg.RedisCacheURL)
+	if err != nil {
+		return err
+	}
+	if cacheRdb != nil {
+		defer func() { _ = cacheRdb.Close() }()
+	}
 
 	bg := &background.Runner{}
 	// Runs end with ctx: a job still going at SIGTERM is cancelled and its row closed.
 	runner := jobs.New(ctx, db, rdb)
-	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, Background: bg, Jobs: runner})
+	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, RedisCache: cacheRdb, Background: bg, Jobs: runner})
 	if err != nil {
 		return err
 	}
@@ -138,11 +145,19 @@ func run() error {
 	slog.Info("shutting down")
 	sctx, cancel := context.WithTimeout(context.Background(), shutdownGrace)
 	defer cancel()
-	if err := srv.Shutdown(sctx); err != nil {
+	// A Shutdown that runs out of grace still drains what the handlers queued
+	// (emails, publishes, cron rows): returning here lost them (P11-17).
+	shutdownErr := srv.Shutdown(sctx)
+	if shutdownErr != nil {
+		slog.Warn("http shutdown did not finish", "error", shutdownErr)
+	} else if err := <-errc; !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
-	if err := <-errc; !errors.Is(err, http.ErrServerClosed) {
-		return err
+	if sctx.Err() != nil {
+		// The 4 s fit inside compose's stop_grace_period (30 s) after shutdownGrace (25 s).
+		var cancelDrain context.CancelFunc
+		sctx, cancelDrain = context.WithTimeout(context.Background(), 4*time.Second)
+		defer cancelDrain()
 	}
 	// Handlers are done; let their afterResponse work land before Mongo closes.
 	if err := bg.Wait(sctx); err != nil {
@@ -150,6 +165,9 @@ func run() error {
 	}
 	if err := runner.Wait(sctx); err != nil {
 		slog.Warn("cron runs still open at shutdown", "category", "jobs", "error", err)
+	}
+	if shutdownErr != nil {
+		return shutdownErr
 	}
 	slog.Info("stopped cleanly")
 	return nil

@@ -9,27 +9,52 @@ on the local stack in Phase 10 (`PHASES.md`) unless it says "VPS: not yet run".
 The stack is `deploy/compose.yaml` on the Kathmandu VPS: Caddy, `api` (one or more
 replicas), Redis. Mongo is Atlas.
 
-1. CI on `main` must be green (`.github/workflows/server.yml`: gofmt, vet, race tests
-   with Mongo + Redis, staticcheck, govulncheck, image build).
-2. Build and tag the image with the commit SHA: `API_TAG=<sha> docker compose build api`
-   (or pull it from the registry once one is set up).
-3. **Indexes first** when the release adds one (any change to
-   `internal/platform/indexes/catalogue.json`, `jobs.IndexSpecs` or `log.IndexSpecs`):
-   `docker compose run --rm --entrypoint indexes api -dry-run`, read it, then without
-   `-dry-run`. It only ever creates; a unique index that fails names its collection —
-   fix the rows that break it, run again. The API never builds indexes at boot.
-4. Roll the API with no gap: `API_TAG=<sha> docker compose up -d --no-deps --scale api=2 api`
-   brings the new replicas up beside Caddy's view of the old; Caddy re-resolves `api`
-   every 5 s (`dynamic a`) and retries a refused connection on another replica
-   (`lb_try_duration 5s`), so a replica stopping mid-request loses nothing. Then
-   `--scale api=1` if one replica is the target.
-5. Verify: `curl -fsS https://api.hostelpalika.com/api/v1/health?deep=1` (200 with
-   Mongo and Redis `ok`), then the dashboard numbers in §3 for a few minutes.
+**Automatic: a push to `main` that touches `server/` deploys itself.**
+`.github/workflows/server.yml` runs three jobs:
+
+1. **test** — gofmt, vet, race tests with Mongo + Redis (a skipped contract suite
+   fails), staticcheck, govulncheck, shellcheck on `deploy/deploy.sh`.
+2. **image** — builds `deploy/Dockerfile` once (layer + Go caches kept between runs),
+   boots it exactly as production runs it (read-only root, tmpfs `/tmp`, no
+   capabilities) against a throwaway Mongo + Redis, checks deep health, the logged
+   `revision`, `pdftotext` and `indexes -dry-run`, then pushes
+   `ghcr.io/softmato/hostelpalika-api:<sha>` and `:latest`. The VPS never compiles.
+3. **deploy** — only when the repo variable `DEPLOY_ENABLED` is `true`. Copies
+   `server/deploy/` to the VPS, logs Docker in to GHCR with the job's own short-lived
+   token, and runs `deploy.sh <sha>`, which:
+   - writes changed config in place (same inode, so Caddy's bind mount sees it);
+   - pulls the image, starts Redis;
+   - runs `indexes` (create-only and idempotent; a unique index the data breaks stops
+     the deploy with the old release still serving — fix the rows, re-run the job);
+   - starts the new replicas **beside** the old (`--no-recreate --scale`), waits for
+     Docker health, then stops the old ones (SIGTERM drains in-flight work; Caddy
+     re-resolves `api` every 5 s and retries a refused connection on another replica,
+     so nothing is lost). A replica that never turns healthy is removed and the old
+     release keeps serving;
+   - starts or reloads Caddy, checks `/api/v1/health?deep=1` through Caddy;
+   - records the sha in `~/hostelpalika/deployed.txt` and keeps only the current and
+     previous images on disk.
+
+`API_REPLICAS` (default 1) in the VPS shell or `.env` sets the replica count.
+
+**VPS one-time setup** (owner; `review_fixes_needed.md` "Owner steps left by Phase 10"):
+Docker + compose plugin and `curl`; a deploy user in the `docker` group;
+`~/hostelpalika/.env` (mode 600) with the production values from `ENVIRONMENT.md`; then
+in GitHub → Settings → Secrets and variables → Actions: secrets `VPS_HOST`, `VPS_USER`,
+`VPS_SSH_KEY` (a key only for deploys), `VPS_KNOWN_HOSTS` (`ssh-keyscan <host>`),
+optional `VPS_PORT`; variable `DEPLOY_ENABLED=true`. Optionally add required
+reviewers to the `production` environment to approve each deploy.
+
+**By hand** (same steps, from the VPS): `bash ~/hostelpalika/deploy/deploy.sh <sha>`
+after `docker login ghcr.io`.
 
 ## 2. Rollback
 
-- **Bad release:** redeploy the previous SHA the same way (step 4 with the old tag).
-  Indexes are additive, so an older binary runs on a newer index set.
+- **Bad release:** GitHub → Actions → Go server → Run workflow with the previous sha
+  (second line of `~/hostelpalika/deployed.txt`): test and image are skipped and that
+  image is rolled out the same gapless way. Or on the VPS:
+  `bash ~/hostelpalika/deploy/deploy.sh <previous-sha>`. Indexes are additive, so an
+  older binary runs on a newer index set.
 - **Bad Go side as a whole (before TS is deleted):** unset `GO_PATHS` in Caddy's env
   (only `/api/v1/health` stays on Go, everything else goes to `TS_UPSTREAM`) and
   `docker compose up -d caddy`. Phase 11 replaces this with the `BACKEND` lever.
@@ -101,7 +126,19 @@ All checked on the local stack (`compose.scale.yaml`, numbers in `testdata/k6/re
   with a sign-out of every session (same as TS); `PERSONAL_DATA_KEY` never rotates
   without a re-encryption migration.
 - Dev and test never use production Atlas: `config.Load` refuses an Atlas URI unless
-  `APP_ENV=production`.
+  `APP_ENV=production` or the URI's host is `ALLOW_DEV_ATLAS_HOST` (the spare cluster).
+- Redis: both instances (`redis` for locks and limits, `redis-cache` for cached bodies)
+  require `REDIS_PASSWORD` from the VPS `.env`; `deploy.sh` reads that file for compose
+  and stops if the password is missing.
+
+## 6a. Operator tools (`ops`)
+
+`docker compose --env-file ~/hostelpalika/.env run --rm --entrypoint ops api <command>`:
+`recover-admin` (`ADMIN_RECOVERY_EMAIL`, `ADMIN_RECOVERY_PASSWORD`, `ADMIN_RECOVERY_CONFIRM=YES`;
+ends every session of that account), `rotate-finance-key [-dry-run]` (new key in
+`FINANCE_MASTER_KEY`, old in `FINANCE_MASTER_KEY_PREVIOUS`; dry-run first),
+`verify-finance-ledger`, `check-private-documents [-strict-missing]`,
+`sync-plan-services [-dry-run] slug...`, `check-softmato -api URL` (local Softmato only).
 
 ## 7. Tracing decision
 

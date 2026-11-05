@@ -45,7 +45,7 @@ func bookingFactsTable(f BookingFacts, extra []DetailRow, emphasisFee bool) stri
 	if f.Stay != nil {
 		rows = append(rows, DetailRow{Label: "Stay", Value: strconv.FormatInt(f.Stay.Nights, 10) + " nights · " + f.Stay.Dates},
 			DetailRow{Label: "Nights", Value: Rupees(f.Stay.Amount)}, DetailRow{Label: "Booking fee", Value: Rupees(f.Fee)},
-			DetailRow{Emphasis: emphasisFee, Label: "Total", Value: Rupees(f.Total)})
+			DetailRow{Emphasis: emphasisFee, Label: "Total", Value: Rupees(payable(f))})
 	} else {
 		rows = append(rows, DetailRow{Label: "Monthly rent", Value: Rupees(f.MonthlyRent)}, DetailRow{Emphasis: emphasisFee, Label: "Booking fee", Value: Rupees(f.Fee)})
 	}
@@ -92,15 +92,15 @@ func BookingInvoice(in BookingInvoiceInput) Content {
 		Greeting(in.Name),
 		Paragraph("Please pay to book your bed at <strong>" + EscapeHTML(b.HostelName) + "</strong>."),
 		bookingFactsTable(b, []DetailRow{{Label: "Bill no.", Value: in.InvoiceNumber}, {Label: "Pay by", Value: in.PayBy}}, true),
-		Paragraph("Open your booking and scan the " + PlatformName + " QR. Pay <strong>" + Rupees(b.Total) + "</strong> and write <strong>" + EscapeHTML(b.Code) + "</strong> in the remarks. Then send us the payment screenshot."),
+		Paragraph("Open your booking and scan the " + PlatformName + " QR. Pay <strong>" + Rupees(payable(b)) + "</strong> and write <strong>" + EscapeHTML(b.Code) + "</strong> in the remarks. Then send us the payment screenshot."),
 		CTAButton(in.BookingURL, "Pay booking fee"),
 		Paragraph("We check it in " + in.PaymentCheckHours + " hours. Then the hostel has " + in.HostelAnswerHours + " hours to say yes to your bed."),
 		Paragraph("<strong>Refunds</strong>"),
-		refundLadderTable(b.Total, in.NoShowRefund, in.RefundRows, b.Stay),
+		refundLadderTable(payable(b), in.NoShowRefund, in.RefundRows, b.Stay),
 		SmallPrint("Refund rules: " + TextLink(in.PolicyURL, "read here") + "."),
 	}, "")
-	return Content{Category: Billing, Subject: "Please pay " + Rupees(b.Total) + " to book your bed — " + b.HostelName, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Bill", Heading: "Please pay your booking fee",
-		Preheader: "Pay " + Rupees(b.Total) + " with code " + b.Code + " to book " + RoomTypeLabel(b.RoomType) + " at " + b.HostelName + "."})}
+	return Content{Category: Billing, Subject: "Please pay " + Rupees(payable(b)) + " to book your bed — " + b.HostelName, HTML: EmailLayout(Layout{BodyHTML: body, Eyebrow: "Bill", Heading: "Please pay your booking fee",
+		Preheader: "Pay " + Rupees(payable(b)) + " with code " + b.Code + " to book " + RoomTypeLabel(b.RoomType) + " at " + b.HostelName + "."})}
 }
 
 // bookingEndedCopy is ENDED_COPY; {h} is the escaped hostel name.
@@ -237,7 +237,7 @@ func payable(f BookingFacts) int64 {
 func BookingPaymentVerified(b BookingFacts, bookingURL, hostelAnswerBy, name, paidOn, receiptNumber string) Content {
 	body := strings.Join([]string{Greeting(name),
 		Paragraph("We got your booking fee. " + PlatformName + " keeps it safe until the booking ends."),
-		bookingFactsTable(b, []DetailRow{{Label: "Receipt", Value: receiptNumber}, {Label: "Paid on", Value: paidOn}, {Label: "Hostel answers by", Value: hostelAnswerBy}}, false),
+		bookingFactsTable(b, []DetailRow{{Label: "Receipt", Value: receiptNumber}, {Label: "Paid on", Value: paidOn}, {Label: "Hostel answers by", Value: hostelAnswerBy}}, true),
 		Paragraph("Now " + EscapeHTML(b.HostelName) + " will say yes or no. If it says no or does not answer by " + EscapeHTML(hostelAnswerBy) + ", you get all " + Rupees(payable(b)) + " back."),
 		CTAButton(bookingURL, "View booking"),
 	}, "")
@@ -264,7 +264,7 @@ func BookingRequest(answerBy string, answerHours float64, bookingsURL, code, gue
 func BookingProofReceived(b BookingFacts, bookingURL, checkBy, name, reference string) Content {
 	body := strings.Join([]string{Greeting(name),
 		Paragraph("We got your payment screenshot. We are checking it now."),
-		bookingFactsTable(b, []DetailRow{{Label: "Your reference", Value: reference}, {Label: "We check by", Value: checkBy}}, false),
+		bookingFactsTable(b, []DetailRow{{Label: "Your reference", Value: reference}, {Label: "We check by", Value: checkBy}}, true),
 		Paragraph("We will email you when it is checked."),
 		CTAButton(bookingURL, "View booking"),
 	}, "")

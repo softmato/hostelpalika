@@ -25,18 +25,33 @@ const (
 )
 
 type Cache struct {
-	Redis *goredis.Client // nil = no cache
-	group singleflight.Group
+	Redis *goredis.Client // hostel versions; nil = no cache
+	// Entries holds the cached bodies, on a Redis that may evict anything, so a
+	// flood of entries can never push out a lock or a rate limit (P11-16). nil = Redis.
+	Entries *goredis.Client
+	group   singleflight.Group
 }
 
-func New(rdb *goredis.Client) *Cache { return &Cache{Redis: rdb} }
+// New takes the versions' Redis and, optionally, a separate one for entries.
+func New(rdb, entries *goredis.Client) *Cache { return &Cache{Redis: rdb, Entries: entries} }
+
+func (c *Cache) entries() *goredis.Client {
+	if c.Entries != nil {
+		return c.Entries
+	}
+	return c.Redis
+}
+
+// maxKeyLen: a key past this (a query string nobody's client sends) is answered
+// uncached, so request variety cannot mint unbounded keys (P11-16).
+const maxKeyLen = 256
 
 func versionKey(hostelID string) string { return "v:hostel:" + hostelID }
 
 // Read is cachedRead. hostelIDs is the narrowed principal's; a request spanning
 // several hostels is not cached. Concurrent misses on one key share one load.
 func Read[T any](ctx context.Context, c *Cache, hostelIDs []string, userID, key string, load func() (T, error)) (T, error) {
-	if c == nil || c.Redis == nil || len(hostelIDs) != 1 {
+	if c == nil || c.Redis == nil || len(hostelIDs) != 1 || len(key) > maxKeyLen {
 		return load()
 	}
 	hostelID := hostelIDs[0]
@@ -56,7 +71,7 @@ func Read[T any](ctx context.Context, c *Cache, hostelIDs []string, userID, key 
 	cacheKey := "c:" + hostelID + ":" + version + ":" + userID + ":" + key
 
 	tctx, cancel = context.WithTimeout(ctx, Timeout)
-	raw, err := c.Redis.Get(tctx, cacheKey).Bytes()
+	raw, err := c.entries().Get(tctx, cacheKey).Bytes()
 	cancel()
 	if err == nil {
 		// Wrapped so a cached null reads as a hit, not a miss.
@@ -72,7 +87,7 @@ func Read[T any](ctx context.Context, c *Cache, hostelIDs []string, userID, key 
 	}
 	obs.CacheLookup(false)
 
-	v, err, _ := c.group.Do(cacheKey, func() (any, error) {
+	v, err, shared := c.group.Do(cacheKey, func() (any, error) {
 		value, err := load()
 		if err != nil {
 			return value, err
@@ -82,11 +97,15 @@ func Read[T any](ctx context.Context, c *Cache, hostelIDs []string, userID, key 
 		}{value}); merr == nil {
 			// Detached from the request: a client that hung up still leaves the answer.
 			sctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), Timeout)
-			_ = c.Redis.Set(sctx, cacheKey, b, TTL).Err()
+			_ = c.entries().Set(sctx, cacheKey, b, TTL).Err()
 			cancel()
 		}
 		return value, nil
 	})
+	if err != nil && shared && ctx.Err() == nil && isContextErr(err) {
+		// The first caller hung up and took the shared load with it; this one is live (P11-17).
+		return load()
+	}
 	if err != nil {
 		var zero T
 		if t, ok := v.(T); ok {
@@ -118,4 +137,9 @@ func (c *Cache) Bump(ctx context.Context, hostelIDs ...string) {
 		pipe.Incr(tctx, versionKey(id))
 	}
 	_, _ = pipe.Exec(tctx)
+}
+
+// isContextErr: the load died with its caller's context, not on its own.
+func isContextErr(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
 }

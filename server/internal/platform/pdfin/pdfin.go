@@ -19,6 +19,23 @@ const MaxBytes = 20 << 20
 
 const timeout = 15 * time.Second
 
+// maxText bounds what pdftotext may print: a small PDF can expand to gigabytes of
+// text (repeated content streams), and all of it was held in memory (P11-18).
+const maxText = 8 << 20
+
+// capped keeps up to max bytes, then fails the write, which ends pdftotext.
+type capped struct {
+	bytes.Buffer
+	max int
+}
+
+func (c *capped) Write(p []byte) (int, error) {
+	if c.Len()+len(p) > c.max {
+		return 0, errors.New("pdfin: text past maxText")
+	}
+	return c.Buffer.Write(p)
+}
+
 // ErrNoText covers every failure: TS's readPdfText answers null for all of them.
 var ErrNoText = errors.New("no readable text in this PDF")
 
@@ -41,7 +58,7 @@ func Text(ctx context.Context, pdf []byte) (string, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	var out bytes.Buffer
+	out := capped{max: maxText}
 	cmd := exec.CommandContext(ctx, "pdftotext", "-q", "-enc", "UTF-8", f.Name(), "-")
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {

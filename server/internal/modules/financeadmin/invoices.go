@@ -705,7 +705,7 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 	for i := len(periods) - 1; i >= 0; i-- {
 		period := periods[i]
 		inv := byPeriod[period]
-		m := ordered.Map{}
+		var m ordered.Map
 		if inv == nil {
 			m = ordered.Map{{Key: "dueAmount", Value: 0}, {Key: "dueDate", Value: nil}, {Key: "invoiceId", Value: nil}, {Key: "lines", Value: []finance.LedgerLine{}}, {Key: "paidAmount", Value: 0},
 				{Key: "payments", Value: []ordered.Map{}}, {Key: "period", Value: period}, {Key: "status", Value: "NOT_BILLED"}}

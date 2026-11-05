@@ -554,13 +554,6 @@ func (h *Handler) receiptDoc(ctx context.Context, r *ledger.Receipt) (any, error
 	return out, nil
 }
 
-func hexOrNil(id *bson.ObjectID) any {
-	if id == nil {
-		return nil
-	}
-	return id.Hex()
-}
-
 // voidInvoice is voidInvoice, with the status, the released khata lines and nothing
 // half done in one transaction. A paid invoice must have its payments reversed first.
 func (h *Handler) voidInvoice(c *gin.Context) {

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"time"
@@ -155,9 +156,20 @@ func (s *Service) setPassword(ctx context.Context, u *userRow, password string) 
 	if err != nil {
 		return err
 	}
-	if err := s.setUser(ctx, u.ID, bson.E{Key: "passwordHash", Value: hash}, bson.E{Key: "mustChangePassword", Value: false},
-		bson.E{Key: "tokenVersion", Value: u.tokenVersion() + 1}); err != nil {
+	// Compare-and-set on the version read: of two resets with one link (or two
+	// changes at once) only the first lands; the other is told it is stale (P11-18).
+	version := bson.D{{Key: "$in", Value: bson.A{u.tokenVersion()}}}
+	if u.TokenVersion == nil {
+		version = bson.D{{Key: "$in", Value: bson.A{int64(0), nil}}}
+	}
+	res, err := s.db.Collection("users").UpdateOne(ctx, bson.D{{Key: "_id", Value: u.ID}, {Key: "tokenVersion", Value: version}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "passwordHash", Value: hash}, {Key: "mustChangePassword", Value: false},
+			{Key: "tokenVersion", Value: u.tokenVersion() + 1}, {Key: "updatedAt", Value: s.now()}}}})
+	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return errPasswordRaced
 	}
 	u.MustChangePassword = false
 	// Temporary logins die with the password: one minted from a stolen session
@@ -169,6 +181,9 @@ func (s *Service) setPassword(ctx context.Context, u *userRow, password string) 
 	}
 	return s.sessions.RevokeAll(ctx, u.ID)
 }
+
+// errPasswordRaced: the account's version moved between the read and the write.
+var errPasswordRaced = fail(http.StatusConflict, "PASSWORD_CHANGED", "Your password was just changed. Sign in again.")
 
 func (s *Service) ResetPassword(ctx context.Context, token, password string) (map[string]any, error) {
 	id, claims, err := s.purposeUser(token, platauth.PasswordReset, fail(http.StatusBadRequest, "RESET_TOKEN_INVALID", "Reset link is invalid or expired."))
@@ -187,6 +202,9 @@ func (s *Service) ResetPassword(ctx context.Context, token, password string) (ma
 		return nil, fail(http.StatusBadRequest, "RESET_TOKEN_STALE", "Reset link is no longer valid.")
 	}
 	if err := s.setPassword(ctx, u, password); err != nil {
+		if errors.Is(err, errPasswordRaced) {
+			return nil, fail(http.StatusBadRequest, "RESET_TOKEN_STALE", "Reset link is no longer valid.")
+		}
 		return nil, err
 	}
 	return map[string]any{"reset": true}, nil

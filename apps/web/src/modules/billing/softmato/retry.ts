@@ -4,7 +4,7 @@ import { BookingModel } from "@hostel/db/models/Booking";
 import { SoftmatoTaskModel } from "@hostel/db/models/SoftmatoTask";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
 import { sendEmail } from "@hostel/shared/email/sender";
-import { ctaButton, emailLayout, paragraph } from "@hostel/shared/email/templates/layout";
+import { softmatoBackEmail } from "@hostel/shared/email/templates/billing/softmato-back";
 
 import { connectToDatabase } from "@/lib/db";
 import { submitFieldCash } from "@/modules/billing/cash-filing.service";
@@ -88,7 +88,7 @@ export async function retrySoftmatoTasks(now = new Date()) {
     try {
       const needsPerson = await (HANDLERS[task.kind] ?? (async () => false))(task);
 
-      if (needsPerson && task.email && task.link) await sendEmail({ ...backEmail(task.link, task.name), to: task.email });
+      if (needsPerson && task.email && task.link) await sendEmail({ ...softmatoBackEmail({ link: task.link, name: task.name }), to: task.email });
 
       await SoftmatoTaskModel.updateOne({ _id: task._id }, { $set: { doneAt: now } });
       done += 1;
@@ -103,19 +103,4 @@ export async function retrySoftmatoTasks(now = new Date()) {
   }
 
   return { done };
-}
-
-function backEmail(link: string, name?: string | null) {
-  return {
-    category: "billing" as const,
-    html: emailLayout({
-      bodyHtml: [
-        paragraph(`${name ? `Hi ${name}, t` : "T"}hank you for waiting. Our parent company's server is responding again, so you can finish what you started.`),
-        ctaButton(link, "Complete it now"),
-      ].join(""),
-      heading: "You can finish now",
-      preheader: "The server is back. Your payment is ready to complete.",
-    }),
-    subject: "The server is back — you can complete your payment",
-  };
 }

@@ -3,3 +3,11 @@ docs
 testdata
 deploy
 .env
+.env.*
+# Tests never ship and must not bust the build cache.
+**/*_test.go
+**/testdata
+*.md
+*.exe
+*.prof
+*.out

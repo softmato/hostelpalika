@@ -31,7 +31,7 @@ func (e *Engine) RunBillingCycleForAll(ctx context.Context, period string) ([]or
 		if ctx.Err() != nil {
 			return out, ctx.Err()
 		}
-		var name any = ordered.Undefined
+		name := ordered.Undefined
 		if h.Name != nil {
 			name = *h.Name
 		}

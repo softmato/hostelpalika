@@ -28,10 +28,9 @@ services:
         ipv4_address: 172.28.0.10 # = TRUSTED_PROXIES; the only hop allowed to set X-Forwarded-For
 
   api:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile
-    image: hostelpalika-api:${API_TAG:-local}
+    # Built once per commit by CI (.github/workflows/server.yml) and pulled here;
+    # the VPS never compiles. compose.local.yaml builds it locally instead.
+    image: ${API_IMAGE:-ghcr.io/softmato/hostelpalika-api}:${API_TAG:-latest}
     restart: unless-stopped
     env_file: ../.env
     environment:
@@ -39,11 +38,20 @@ services:
       METRICS_ADDR: ":9090" # reachable on the backend network only; no ports entry on purpose
       TRUSTED_PROXIES: 172.28.0.10
       GOMEMLIMIT: 850MiB # ≈ 85 % of the limit below
+      HOME: /tmp # the root filesystem is read-only; /tmp is the one writable place
+      # Both Redis instances take one password (REDIS_PASSWORD in the VPS .env, hex).
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      REDIS_CACHE_URL: redis://:${REDIS_PASSWORD:-}@redis-cache:6379/0
     deploy:
       resources:
         limits:
           memory: 1g
     stop_grace_period: 30s # > shutdownGrace in cmd/api, so in-flight work drains before SIGKILL
+    # The API writes only temp files (pdfin → pdftotext). Everything else is
+    # read-only and it holds no Linux capabilities (it listens on 8080).
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     logging: &logs # one VPS: unrotated logs are how the disk fills
       driver: json-file
@@ -51,22 +59,42 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      redis-cache:
+        condition: service_healthy
     networks: [backend]
 
+  # Locks, rate limits and hostel cache versions: never evicted (redis.conf).
   redis:
     image: redis:7
     restart: unless-stopped
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: ["sh", "-c", "exec redis-server /usr/local/etc/redis/redis.conf --requirepass \"$$REDIS_PASSWORD\""]
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
     security_opt: ["no-new-privileges:true"]
     logging: *logs
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+    healthcheck: &redis-health
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
       interval: 5s
       timeout: 2s
       retries: 5
     networks: [backend] # never published to the host
+
+  # Cached responses only: evicts anything, so a flood of entries never pushes out
+  # a lock or a limit (P11-16).
+  redis-cache:
+    image: redis:7
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: ["sh", "-c", "exec redis-server /usr/local/etc/redis/redis.conf --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - ./redis-cache.conf:/usr/local/etc/redis/redis.conf:ro
+    security_opt: ["no-new-privileges:true"]
+    logging: *logs
+    healthcheck: *redis-health
+    networks: [backend]
 
 networks:
   backend:

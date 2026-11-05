@@ -10,7 +10,7 @@ func BookingPaymentRejected(b BookingFacts, bookingURL, name, payBy, reason stri
 	body := strings.Join([]string{Greeting(name),
 		Paragraph("We did not get the money shown in your screenshot."),
 		DetailsTable([]DetailRow{{Label: "Reason", Value: reason}}),
-		bookingFactsTable(b, []DetailRow{{Label: "Send again by", Value: payBy}}, false),
+		bookingFactsTable(b, []DetailRow{{Label: "Send again by", Value: payBy}}, true),
 		Paragraph("If you have paid, send the screenshot from your banking app again. If you have not, pay first."),
 		CTAButton(bookingURL, "Send screenshot again"),
 	}, "")

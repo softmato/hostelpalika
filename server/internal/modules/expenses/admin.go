@@ -23,6 +23,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
@@ -39,6 +40,7 @@ type Admin struct {
 	Cache    *cache.Cache
 	R2       *storage.R2
 	Evidence *finance.Reader
+	Limiter  *ratelimit.Limiter
 }
 
 func (a *Admin) Register(v1 *gin.RouterGroup) {
@@ -908,6 +910,11 @@ var (
 const whatFallback = "Shared payment receipt"
 
 func (a *Admin) readReceipt(c *gin.Context) {
+	// Each read is a paid vision call: 30 an hour, as TS (P11-16).
+	if err := a.Limiter.Check(c, "expense-receipt-read", 30, time.Hour); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
 	p, err := a.Guards.RequireHostelCapability(c, "recordExpenses")
 	if err != nil {
 		httpx.Fail(c, err)

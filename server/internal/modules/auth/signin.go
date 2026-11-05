@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"errors"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"strings"
@@ -112,47 +113,20 @@ func (s *Service) OTPRequest(ctx context.Context, channel, identifier, purpose s
 			return nil, fail(http.StatusConflict, "ACCOUNT_ALREADY_EXISTS", "An account already exists for this email. Try signing in.")
 		}
 	}
-	now := s.now()
+	// The row is written first and counted with the others, so a parallel burst
+	// cannot all pass a count read before any of them wrote (P11-16). A refused or
+	// undelivered request removes its own row.
+	now := s.now().Truncate(time.Millisecond)
 	coll := s.db.Collection("otpchallenges")
-	recent, err := coll.CountDocuments(ctx, bson.D{{Key: "channel", Value: channel},
-		{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: now.Add(-s.cfg.OTP.RateLimitWindow)}}},
-		{Key: "identifier", Value: identifier}, {Key: "purpose", Value: purpose}})
-	if err != nil {
-		return nil, err
-	}
-	if recent >= int64(s.cfg.OTP.RateLimitMax) {
-		return nil, fail(http.StatusTooManyRequests, "OTP_RATE_LIMITED", "Too many OTP requests. Please wait before trying again.")
-	}
-	var latest struct {
-		CodeLastSentAt *time.Time `bson:"codeLastSentAt"`
-	}
-	err = coll.FindOne(ctx, bson.D{{Key: "channel", Value: channel}, {Key: "consumedAt", Value: nil},
-		{Key: "expiresAt", Value: bson.D{{Key: "$gt", Value: now}}}, {Key: "identifier", Value: identifier}, {Key: "purpose", Value: purpose}},
-		options.FindOne().SetSort(bson.D{{Key: "createdAt", Value: -1}})).Decode(&latest)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if latest.CodeLastSentAt != nil && now.Sub(*latest.CodeLastSentAt) < s.cfg.OTP.ResendCooldown {
-		return nil, fail(http.StatusTooManyRequests, "OTP_RESEND_COOLDOWN", "Please wait before requesting another OTP.")
-	}
 	n, err := rand.Int(rand.Reader, big.NewInt(900000))
 	if err != nil {
 		return nil, err
 	}
 	code := big.NewInt(0).Add(n, big.NewInt(100000)).String()
 	expiresAt := now.Add(s.cfg.OTP.TTL).Truncate(time.Millisecond)
-	instruction := ""
-	if purpose == "biometric" {
-		instruction = "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
-	}
-	delivery, err := s.dispatchOTP(ctx, channel, code, identifier, instruction)
-	if err != nil {
-		return nil, err
-	}
-	sent := s.now().Truncate(time.Millisecond)
 	id := bson.NewObjectID()
 	doc := bson.D{{Key: "_id", Value: id}, {Key: "attempts", Value: 0}, {Key: "channel", Value: channel},
-		{Key: "codeHash", Value: s.hashOTP(identifier, code)}, {Key: "codeLastSentAt", Value: sent},
+		{Key: "codeHash", Value: s.hashOTP(identifier, code)}, {Key: "codeLastSentAt", Value: now},
 		{Key: "consumedAt", Value: nil}, {Key: "expiresAt", Value: expiresAt}, {Key: "identifier", Value: identifier}}
 	if rc.IP != "" {
 		doc = append(doc, bson.E{Key: "ipAddress", Value: rc.IP})
@@ -161,10 +135,46 @@ func (s *Service) OTPRequest(ctx context.Context, channel, identifier, purpose s
 	if rc.UserAgent != "" {
 		doc = append(doc, bson.E{Key: "userAgent", Value: rc.UserAgent})
 	}
-	doc = append(doc, bson.E{Key: "verifiedAt", Value: nil}, bson.E{Key: "createdAt", Value: sent},
-		bson.E{Key: "updatedAt", Value: sent}, bson.E{Key: "__v", Value: 0})
-	if _, err := coll.InsertOne(ctx, doc); err != nil {
+	doc = append(doc, bson.E{Key: "verifiedAt", Value: nil}, bson.E{Key: "createdAt", Value: now},
+		bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
+	refuse := func(err error) (*otpChallenge, error) {
+		if _, derr := coll.DeleteOne(context.WithoutCancel(ctx), bson.D{{Key: "_id", Value: id}}); derr != nil {
+			slog.WarnContext(ctx, derr.Error(), "action", "otp_challenge_cleanup_failed")
+		}
 		return nil, err
+	}
+	// An insert that errors may still have landed (a reply lost on the way back):
+	// remove it by id, a no-op when it did not.
+	if _, err := coll.InsertOne(ctx, doc); err != nil {
+		return refuse(err)
+	}
+	same := bson.D{{Key: "channel", Value: channel}, {Key: "identifier", Value: identifier}, {Key: "purpose", Value: purpose}}
+	// Only rows up to this one count, so the earliest requests of a burst are the ones served.
+	recent, err := coll.CountDocuments(ctx, append(same, bson.E{Key: "_id", Value: bson.D{{Key: "$lte", Value: id}}},
+		bson.E{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: now.Add(-s.cfg.OTP.RateLimitWindow)}}}))
+	if err != nil {
+		return refuse(err)
+	}
+	if recent > int64(s.cfg.OTP.RateLimitMax) {
+		return refuse(fail(http.StatusTooManyRequests, "OTP_RATE_LIMITED", "Too many OTP requests. Please wait before trying again."))
+	}
+	// Of two requests inside the cooldown, the earlier row wins.
+	earlier, err := s.exists(ctx, "otpchallenges", append(same, bson.E{Key: "_id", Value: bson.D{{Key: "$lt", Value: id}}},
+		bson.E{Key: "consumedAt", Value: nil}, bson.E{Key: "expiresAt", Value: bson.D{{Key: "$gt", Value: now}}},
+		bson.E{Key: "codeLastSentAt", Value: bson.D{{Key: "$gt", Value: now.Add(-s.cfg.OTP.ResendCooldown)}}}))
+	if err != nil {
+		return refuse(err)
+	}
+	if earlier {
+		return refuse(fail(http.StatusTooManyRequests, "OTP_RESEND_COOLDOWN", "Please wait before requesting another OTP."))
+	}
+	instruction := ""
+	if purpose == "biometric" {
+		instruction = "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
+	}
+	delivery, err := s.dispatchOTP(ctx, channel, code, identifier, instruction)
+	if err != nil {
+		return refuse(err)
 	}
 	out := &otpChallenge{ChallengeID: id.Hex(), Delivery: delivery, ExpiresAt: httpx.ISO(expiresAt)}
 	if !s.cfg.IsProduction() {

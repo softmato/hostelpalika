@@ -16,6 +16,7 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/modules/food"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/zschema"
@@ -26,9 +27,21 @@ import (
 type Public struct {
 	db  *mongo.Database
 	cfg *platformconfig.Service
+	// Cache holds the public list per query for cache.TTL; nil = read every time.
+	Cache *cache.Cache
 }
 
-func NewPublic(db *mongo.Database, cfg *platformconfig.Service) *Public { return &Public{db, cfg} }
+func NewPublic(db *mongo.Database, cfg *platformconfig.Service) *Public {
+	return &Public{db: db, cfg: cfg}
+}
+
+// cardFields are the only fields serializePublic and the list's ranking read: the
+// list no longer drags KYC, payout and owner data across the wire (P11-17).
+var cardFields = bson.D{{Key: "name", Value: 1}, {Key: "slug", Value: 1}, {Key: "description", Value: 1},
+	{Key: "facilities", Value: 1}, {Key: "food", Value: 1}, {Key: "hostelType", Value: 1}, {Key: "isDemoData", Value: 1},
+	{Key: "demoDataLabel", Value: 1}, {Key: "location", Value: 1}, {Key: "contact.phone", Value: 1}, {Key: "pricing", Value: 1},
+	{Key: "roomTypes", Value: 1}, {Key: "rules", Value: 1}, {Key: "verificationStatus", Value: 1}, {Key: "capacitySummary", Value: 1},
+	{Key: "photos", Value: 1}, {Key: "nearbyPlaces", Value: 1}, {Key: "parentHostelId", Value: 1}}
 
 var errNotFound = httpx.NewError(http.StatusNotFound, "HOSTEL_NOT_FOUND", "Hostel was not found.", nil)
 
@@ -375,7 +388,7 @@ func (p *Public) List(ctx context.Context, q ListQuery) (ordered.Map, error) {
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() (err error) {
 		cheapest, err = p.find(gctx, filter, options.Find().
-			SetSort(bson.D{{Key: "pricing.monthlyRentMin", Value: 1}, {Key: "createdAt", Value: -1}}).SetLimit(60))
+			SetSort(bson.D{{Key: "pricing.monthlyRentMin", Value: 1}, {Key: "createdAt", Value: -1}}).SetLimit(60).SetProjection(cardFields))
 		return err
 	})
 	if len(badgedIDs) > 0 {
@@ -384,7 +397,7 @@ func (p *Public) List(ctx context.Context, q ListQuery) (ordered.Map, error) {
 				bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: badgedIDs}}}},
 				bson.D{{Key: "parentHostelId", Value: bson.D{{Key: "$in", Value: badgedIDs}}}},
 			}}}}})
-			badged, err = p.find(gctx, bf, options.Find().SetLimit(60))
+			badged, err = p.find(gctx, bf, options.Find().SetLimit(60).SetProjection(cardFields))
 			return err
 		})
 	}

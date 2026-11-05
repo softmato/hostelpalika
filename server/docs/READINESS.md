@@ -1,4 +1,4 @@
-# READINESS.md — Phase 10 readiness report (2026-11-04)
+# READINESS.md — Phase 10 readiness report (2026-11-04, re-checked 2026-11-05)
 
 Against `MISSION.md` §21, criterion by criterion. "Met" means verified, with where;
 "Not met" says what is left and whose step it is. This is not a declaration of
@@ -36,3 +36,39 @@ Kathmandu VPS, and that is the one gate of Phase 10 this report cannot close.
    `RUNBOOK.md` §3 rules.
 4. **CI green on `main` (R17).** Pushed with this phase; the run's result is read and
    fixed by Claude until it is green.
+
+## Re-check, 2026-11-05 (owner: "don't believe the ticks, check really")
+
+Checked in code and by running things, not from the trackers:
+
+- **Routes:** `ROUTES_COMPLETE=1 TestRoutesMatchWeb`: TS 630, Go 642, 0 missing. No stub
+  handlers, no TODOs. The two TS-only commits since the last intake are in Go.
+- **Jobs 19/19, collections 146/146, email templates 95/95.** Every template now has a
+  byte-for-byte golden against TS (`TestEveryTemplateMatchesTS`, 190 vectors); that test
+  found P11-22 (an unescaped name, Go and TS) and P11-23 (three booking emails drawn
+  differently), both fixed.
+- **CI was red** on every 2026-11-05 commit (P11-24): two stale recordings and one
+  clock-dependent series. Fixed; staticcheck's 7 findings fixed; govulncheck clean.
+- **P11-16, P11-17, P11-18 closed** in Go and TS where shared. One carried item: the
+  PWA's PIN lock is client-side only until the PWA moves to cookie sessions (client work).
+- **Operator tools were never ported** (P11-25): `cmd/ops` and three `cmd/dev` tools now,
+  run against the live copy (ledger invariants hold, private documents pass, all 24 live
+  finance envelopes reopen under Go's scopes).
+
+| §21 criterion | State on 2026-11-05 |
+|---|---|
+| Existing required functionality migrated and verified | Met: routes, jobs, collections, templates and operator tools, each checked above |
+| Automated tests and static checks pass | Met locally (full suite, staticcheck, govulncheck); CI green is R17, read after the push |
+| No critical security or reliability findings unresolved | Met: no Critical or High open; P11-16..18 closed |
+| Caching and rate limiting where justified | Met; locks and limits no longer share an evicting Redis with cached bodies |
+
+## Not met on 2026-11-05, and whose step
+
+1. **VPS numbers and the failure-table repeat** (Phase 10 gate): owner, unchanged.
+2. **Production indexes, alerting, `REDIS_PASSWORD` in the VPS `.env`**: owner steps in
+   `review_fixes_needed.md`.
+3. **CI green on `main` (R17)**: Claude, after this push.
+4. **Cut-over (Phase 11)**: VPS deploy, rollback lever, OTA base URL, cron-job.org off.
+   Owner approves; outward-facing.
+5. **Web side (`PARITY.md` §9)** and the PWA cookie-session move: the next piece of work.
+6. **Docker on this machine** (P11-27): D: is full; outside the repo.

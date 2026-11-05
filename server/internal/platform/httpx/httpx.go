@@ -132,8 +132,10 @@ func describe(c *gin.Context, err error) (int, failure) {
 		slog.ErrorContext(c, "Softmato refused a request", "error", err)
 		return http.StatusBadGateway, failure{false, "Our payment server could not accept this: " + s.Error(), "SOFTMATO_REJECTED", nil}
 	case mongo.IsDuplicateKeyError(err):
-		slog.WarnContext(c, "Duplicate value refused", "error", err)
-		msg, ok := duplicateMessages[duplicateField(err)]
+		// The field only: the error text quotes the duplicate value (an email, a phone) (P11-18).
+		field := duplicateField(err)
+		slog.WarnContext(c, "Duplicate value refused", "field", field)
+		msg, ok := duplicateMessages[field]
 		if !ok {
 			msg = "This is already saved. Refresh and check before adding it again."
 		}

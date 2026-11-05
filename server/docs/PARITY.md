@@ -52,6 +52,7 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | 2026-10-29 | `41b0ef10` → `2be44935` | — (no TS changes; only `server/` commits) | — | — |
 | 2026-10-29 | `2be44935` → working tree (uncommitted) | `Hostel.photos[].mediumUrl` (640px WebP card copy); `npm --prefix apps/web run backfill:photo-variants` | `GET /public/hostels`, `/public/hostels/:slug`, `/public/hostels/compare` — every photo now carries `mediumUrl` (`""` until made); `POST /hostel-admin/profile/photos` (☐) must run `attachPhotoVariant` after responding: `lib/image-optimizer` MEDIUM variant → `photos.$[p].mediumUrl` | — |
 | 2026-10-30 | `2be44935` → `8e965ad8` | `PUT /hostel-admin/rooms/order` (new, ☐, hostels); `Hostel.photos[].mediumUrl` is committed now (`8e965ad8`), so the working-tree entry above is closed | `GET /public/hostels`, `/:slug`, `/compare` — `mediumUrl` is in the Go serializers and the three fixtures were re-recorded; `hostel-profile.service.ts`, `hostel-rooms.service.ts` and `notifications/web-routing.ts` changed (all ☐, to read when their module is ported) | — |
+| 2026-11-05 | `6281d03d` → `9a29795f` | 134 TS server files changed; only two commits did not touch `server/`: `dfb807f1` (saved hostels, platform hostel billing, plan grace, BS date format, report charts — all on Go, R31) and `be39f565` (TS side of Go-review bugs: `INVALID_JSON`/`INVALID_FORM`/`STORAGE_NOT_CONFIGURED`, per-IP budget — all already in Go). Every other commit changed Go and TS together. `ROUTES_COMPLETE=1 TestRoutesMatchWeb`: TS 630, Go 642, 0 missing | — | — |
 | 2026-11-01 | `8e965ad8` → `6281d03d` | — (Phase 4: client base URL, `lib/api-url.ts`, cookie domain; Go `auth.Cookies` already matches) | — | — |
 
 ---
@@ -75,7 +76,7 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | ☑ | OTP | `OtpChallenge`, `OTP_*` env, `lib/auth-attempts.ts` | same rules |
 | ☑ | Rate limiting | `lib/rate-limit.ts` — in-memory per instance | Redis, shared by every instance |
 | ☑ | Read cache | `lib/redis-cache.ts` — per-user keys, per-hostel version, 60 s TTL, 150 ms timeout falls through to Mongo | same design on local Redis + `singleflight` |
-| ☐ | Cache invalidation | `bumpHostelCache`, `lib/realtime/announce-writes.ts`, `publishResourceChange`, `settleEvent` | same call sites |
+| ☑ | Cache invalidation | `bumpHostelCache`, `lib/realtime/announce-writes.ts`, `publishResourceChange`, `settleEvent` | same call sites |
 | ☑ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag`); `cache.Respond` answers the 304 from cached bytes + tag before any work |
 | ☑ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
 | ☑ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers; 2026-11-04 contract group `cron`: no-secret and wrong-secret refusals on all 19 doors, bearer form, a real `purge-expired-otps` run, `platform-backup` 422 |
@@ -99,17 +100,17 @@ Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 | ☑ | Plans catalogue | `packages/shared/src/plans/{catalog,lifetime}.ts` | `internal/platform/plans`; `defaults.json` written by the vector generator |
 | ☑ | Money | whole rupees (finance) + paisa (store, Softmato) | `internal/platform/money`, `int64`, never float |
 | ☑ | Logging | `lib/logger.ts` | `log/slog` JSON |
-| ☐ | Audit log | `modules/audit`, `AuditLog` | same rows |
-| ☐ | Usage counters | `modules/usage`, `ApiUsageCounter` | same rows |
-| ☐ | Search + LLM | `lib/search/*`, `lib/llm/*` — Gemini/Groq/OpenRouter/Mistral/Cerebras key pools, `SEARCH_QUOTA_SECRET` | plain HTTP clients, same provider order |
-| ☐ | Evidence OCR | Vision (`GCP_VISION_SA_KEY`, RS256 service-account JWT) + Gemini fallback, monthly caps | `oauth2/google` + Vision REST |
-| ☐ | Maps | `lib/maps/*` — geocoding, Overpass nearby places, routing, upstream fetch politeness | same upstreams, same delays |
-| ☐ | Softmato billing | `@softmato/sdk`, `SOFTMATO_*`, `modules/billing/softmato/*` | HTTP client of the same calls |
+| ☑ | Audit log | `modules/audit`, `AuditLog` | same rows |
+| ☑ | Usage counters | `modules/usage`, `ApiUsageCounter` | same rows |
+| ☑ | Search + LLM | `lib/search/*`, `lib/llm/*` — Gemini/Groq/OpenRouter/Mistral/Cerebras key pools, `SEARCH_QUOTA_SECRET` | plain HTTP clients, same provider order |
+| ☑ | Evidence OCR | Vision (`GCP_VISION_SA_KEY`, RS256 service-account JWT) + Gemini fallback, monthly caps | `oauth2/google` + Vision REST |
+| ☑ | Maps | `lib/maps/*` — geocoding, Overpass nearby places, routing, upstream fetch politeness | same upstreams, same delays |
+| ☑ | Softmato billing | `@softmato/sdk`, `SOFTMATO_*`, `modules/billing/softmato/*` | HTTP client of the same calls |
 | ☑ | Google sign-in | Google ID token (`GOOGLE_CLIENT_ID`) | `google.golang.org/api/idtoken` |
-| ☐ | Google Drive backup | `GOOGLE_DRIVE_CLIENT_*`, `modules/backup` | `x/oauth2` + Drive v3 |
+| ☑ | Google Drive backup | `GOOGLE_DRIVE_CLIENT_*`, `modules/backup` | `x/oauth2` + Drive v3 |
 | ☑ | QuestionCall | SSO `hp_code` handoff, conversion webhook (`QUESTIONCALL_WEBHOOK_SECRET`) | same |
-| ☐ | Demo hostels | `modules/hostels/demo-hostels.json` merged server-side | same file, same merge |
-| ☐ | Site config / SEO config | `lib/site-config-server.ts`, `lib/seo-config.ts`, `modules/platform-config` | same `PlatformSetting` rows |
+| ☑ | Demo hostels | `modules/hostels/demo-hostels.json` merged server-side | same file, same merge |
+| ☑ | Site config / SEO config | `lib/site-config-server.ts`, `lib/seo-config.ts`, `modules/platform-config` | same `PlatformSetting` rows |
 
 ---
 
@@ -120,43 +121,43 @@ all of its routes in §5 are ☑.
 
 | ☐ | Module | Source files |
 |---|---|---|
-| ☐ | `arrivals` | 1 |
-| ☐ | `attendance` | 3 |
-| ☐ | `audit` | 2 |
-| ☐ | `auth` | 5 |
-| ☐ | `backup` | 4 |
-| ☐ | `billing` | 42 |
-| ☐ | `bookings` | 29 |
-| ☐ | `community` | 6 |
-| ☐ | `complaints` | 5 |
-| ☐ | `expert-consultation` | 2 |
-| ☐ | `feedback` | 1 |
-| ☐ | `finance` | 87 |
-| ☐ | `food` | 12 |
-| ☐ | `guardian` | 5 |
-| ☐ | `hostel-referrals` | 3 |
-| ☐ | `hostels` | 32 |
-| ☐ | `listing-flags` | 2 |
-| ☐ | `maintenance` | 3 |
-| ☐ | `move-checklist` | 5 |
-| ☐ | `notices` | 5 |
-| ☐ | `notifications` | 15 |
-| ☐ | `offer-program` | 3 |
-| ☐ | `platform-config` | 10 |
-| ☐ | `questioncall` | 2 |
-| ☐ | `referrals` | 3 |
-| ☐ | `reports` | 13 |
-| ☐ | `residents` | 28 |
-| ☐ | `reviews` | 3 |
-| ☐ | `safety` | 5 |
-| ☐ | `service-providers` | 3 |
-| ☐ | `sponsors` | 2 |
-| ☐ | `stock` | 3 |
-| ☐ | `store` | 9 |
-| ☐ | `team` | 8 |
-| ☐ | `usage` | 2 |
-| ☐ | `users` | 12 |
-| ☐ | `wardens` | 3 |
+| ☑ | `arrivals` | 1 |
+| ☑ | `attendance` | 3 |
+| ☑ | `audit` | 2 |
+| ☑ | `auth` | 5 |
+| ☑ | `backup` | 4 |
+| ☑ | `billing` | 42 |
+| ☑ | `bookings` | 29 |
+| ☑ | `community` | 6 |
+| ☑ | `complaints` | 5 |
+| ☑ | `expert-consultation` | 2 |
+| ☑ | `feedback` | 1 |
+| ☑ | `finance` | 87 |
+| ☑ | `food` | 12 |
+| ☑ | `guardian` | 5 |
+| ☑ | `hostel-referrals` | 3 |
+| ☑ | `hostels` | 32 |
+| ☑ | `listing-flags` | 2 |
+| ☑ | `maintenance` | 3 |
+| ☑ | `move-checklist` | 5 |
+| ☑ | `notices` | 5 |
+| ☑ | `notifications` | 15 |
+| ☑ | `offer-program` | 3 |
+| ☑ | `platform-config` | 10 |
+| ☑ | `questioncall` | 2 |
+| ☑ | `referrals` | 3 |
+| ☑ | `reports` | 13 |
+| ☑ | `residents` | 28 |
+| ☑ | `reviews` | 3 |
+| ☑ | `safety` | 5 |
+| ☑ | `service-providers` | 3 |
+| ☑ | `sponsors` | 2 |
+| ☑ | `stock` | 3 |
+| ☑ | `store` | 9 |
+| ☑ | `team` | 8 |
+| ☑ | `usage` | 2 |
+| ☑ | `users` | 12 |
+| ☑ | `wardens` | 3 |
 
 ---
 
@@ -170,25 +171,25 @@ switched off.
 
 | ☐ | Job | Schedule (NPT) | Crontab | What it does |
 |---|---|---|---|---|
-| ☐ | `platform-push` | every minute | `* * * * *` | sends superadmin pushes whose time has come |
-| ☐ | `gateway-expiry-sweep` | every 5 min | `*/5 * * * *` | closes checkout attempts whose window has passed |
-| ☐ | `notification-dispatch` | every 15 min | `*/15 * * * *` | sends scheduled campaigns; claims each out of `SCHEDULED` first |
-| ☐ | `meal-call-reminders` | every 15 min | `*/15 * * * *` | tells cooks a meal's "Food ready" is due |
-| ☐ | `night-status-prompt` | every 15 min | `*/15 * * * *` | night-status prompts per hostel hour |
-| ☐ | `push-receipts` | hourly :00 | `0 * * * *` | reads Expo receipts (batches of ≤1000 ids) |
-| ☐ | `refresh-nearby-places` | hourly :00 | `0 * * * *` | refreshes nearby-places caches (1 s/req politeness) |
-| ☐ | `customer-backup` | hourly :05 | `5 * * * *` | each connected hostel's daily encrypted Drive backup, oldest first |
-| ☐ | `billing-cycle` | daily 00:15 | `15 0 * * *` | issues the BS month's invoices |
-| ☐ | `payment-reminders` | daily 07:45 | `45 7 * * *` | due-soon and overdue reminders (plan + resident fees) |
-| ☐ | `purge-expired-otps` | daily 08:45 | `45 8 * * *` | backup sweep behind the TTL index |
-| ☐ | `account-purge` | daily 08:45 | `45 8 * * *` | erases accounts past the 60-day grace |
-| ☐ | `hostel-purge` | daily 08:45 | `45 8 * * *` | erases archived hostels past grace, incl. R2 objects |
-| ☐ | `ledger-drift` | daily 08:45 | `45 8 * * *` | scans every invoice for drift |
-| ☐ | `complaint-sla` | daily 09:45 | `45 9 * * *` | flags complaints past SLA, alerts once |
-| ☐ | `attendance-maintenance` | daily 10:45 | `45 10 * * *` | absence alerts + attendance-log retention purge |
-| ☐ | `gateway-health` | daily 12:15 | `15 12 * * *` | is each hostel's online checkout working |
-| ☐ | `gateway-settlement-recon` | Mondays 09:45 | `45 9 * * 1` | weekly settlement reconciliation |
-| ☐ | `platform-backup` | on demand | — | **not scheduled**: the nightly GitHub workflow and the restore drill POST to it |
+| ☑ | `platform-push` | every minute | `* * * * *` | sends superadmin pushes whose time has come |
+| ☑ | `gateway-expiry-sweep` | every 5 min | `*/5 * * * *` | closes checkout attempts whose window has passed |
+| ☑ | `notification-dispatch` | every 15 min | `*/15 * * * *` | sends scheduled campaigns; claims each out of `SCHEDULED` first |
+| ☑ | `meal-call-reminders` | every 15 min | `*/15 * * * *` | tells cooks a meal's "Food ready" is due |
+| ☑ | `night-status-prompt` | every 15 min | `*/15 * * * *` | night-status prompts per hostel hour |
+| ☑ | `push-receipts` | hourly :00 | `0 * * * *` | reads Expo receipts (batches of ≤1000 ids) |
+| ☑ | `refresh-nearby-places` | hourly :00 | `0 * * * *` | refreshes nearby-places caches (1 s/req politeness) |
+| ☑ | `customer-backup` | hourly :05 | `5 * * * *` | each connected hostel's daily encrypted Drive backup, oldest first |
+| ☑ | `billing-cycle` | daily 00:15 | `15 0 * * *` | issues the BS month's invoices |
+| ☑ | `payment-reminders` | daily 07:45 | `45 7 * * *` | due-soon and overdue reminders (plan + resident fees) |
+| ☑ | `purge-expired-otps` | daily 08:45 | `45 8 * * *` | backup sweep behind the TTL index |
+| ☑ | `account-purge` | daily 08:45 | `45 8 * * *` | erases accounts past the 60-day grace |
+| ☑ | `hostel-purge` | daily 08:45 | `45 8 * * *` | erases archived hostels past grace, incl. R2 objects |
+| ☑ | `ledger-drift` | daily 08:45 | `45 8 * * *` | scans every invoice for drift |
+| ☑ | `complaint-sla` | daily 09:45 | `45 9 * * *` | flags complaints past SLA, alerts once |
+| ☑ | `attendance-maintenance` | daily 10:45 | `45 10 * * *` | absence alerts + attendance-log retention purge |
+| ☑ | `gateway-health` | daily 12:15 | `15 12 * * *` | is each hostel's online checkout working |
+| ☑ | `gateway-settlement-recon` | Mondays 09:45 | `45 9 * * 1` | weekly settlement reconciliation |
+| ☑ | `platform-backup` | on demand | — | **not scheduled**: the nightly GitHub workflow and the restore drill POST to it |
 
 Every job is idempotent today (claimed rows, exact-day offsets, flags set once).
 The Go port keeps each mechanism exactly; the Redis lock is an extra guard, not a
@@ -909,55 +910,55 @@ Same collections, same field names, same indexes. ☑ when the Go struct exists,
 
 | ☐ | Model | ☐ | Model | ☐ | Model |
 |---|---|---|---|---|---|
-| ☐ | `AccountDeletionRequest` | ☐ | `AdmissionForm` | ☐ | `AdmissionFormLink` |
-| ☐ | `ApiUsageCounter` | ☐ | `AttendanceAlert` | ☐ | `AttendanceLog` |
-| ☐ | `AuditLog` | ☐ | `AuthAttempt` | ☐ | `Booking` |
-| ☐ | `BookingPayment` | ☐ | `BookingTransfer` | ☐ | `CommunityComment` |
-| ☐ | `CommunityCommentVote` | ☐ | `CommunityPost` | ☐ | `CommunityReaction` |
-| ☐ | `CommunityReport` | ☐ | `Complaint` | ☐ | `ComplaintAttachment` |
-| ☐ | `ComplaintUpdate` | ☐ | `ConsentLog` | ☐ | `CookAccount` |
-| ☐ | `CreditBalance` | ☐ | `DepositRecord` | ☐ | `DepositRefund` |
-| ☐ | `DeviceToken` | ☐ | `DuplicateCheckResult` | ☐ | `EmailPreference` |
-| ☐ | `EmergencyContact` | ☐ | `EncryptedSecret` | ☐ | `ExistingResidentList` |
-| ☐ | `Expense` | ☐ | `ExpertConsultationRequest` | ☐ | `Feedback` |
-| ☐ | `FeeSchedule` | ☐ | `FileAsset` | ☐ | `finance-fields` |
-| ☐ | `FoodFeedback` | ☐ | `FoodPhoto` | ☐ | `FoodReadyLog` |
-| ☐ | `FoodRoutine` | ☐ | `FreePlanClaim` | ☐ | `Guardian` |
-| ☐ | `GuardianAccess` | ☐ | `GuardianPermission` | ☐ | `Hostel` |
-| ☐ | `HostelAgreement` | ☐ | `HostelAgreementSignature` | ☐ | `HostelApplication` |
-| ☐ | `HostelBackup` | ☐ | `HostelBackupRun` | ☐ | `HostelDocument` |
-| ☐ | `HostelExpenseCategory` | ☐ | `HostelLeaveRequest` | ☐ | `HostelListingImpression` |
-| ☐ | `HostelMember` | ☐ | `HostelPageView` | ☐ | `HostelPaymentProfile` |
-| ☐ | `HostelPayoutAccount` | ☐ | `HostelReferral` | ☐ | `HostelReferralCode` |
-| ☐ | `HostelRoom` | ☐ | `HostelSettings` | ☐ | `HostelSubscription` |
-| ☐ | `HostelVerification` | ☐ | `IncidentLog` | ☐ | `Inquiry` |
-| ☐ | `InquiryNote` | ☐ | `Invoice` | ☐ | `InvoiceBalance` |
-| ☐ | `KhataEntry` | ☐ | `ListingFlag` | ☐ | `MaintenanceComment` |
-| ☐ | `MaintenanceHistory` | ☐ | `MaintenanceRequest` | ☐ | `ManualStatusOverride` |
-| ☐ | `MealCallReminder` | ☐ | `MoveInChecklist` | ☐ | `MoveOutChecklist` |
-| ☐ | `NightStatus` | ☐ | `NightStatusLog` | ☐ | `NightStatusPrompt` |
-| ☐ | `Notice` | ☐ | `NoticePush` | ☐ | `NoticeReadStatus` |
-| ☐ | `Notification` | ☐ | `NotificationCampaign` | ☐ | `NotificationPreference` |
-| ☐ | `OAuthAccount` | ☐ | `OfferAward` | ☐ | `OfferPerk` |
-| ☐ | `OtpChallenge` | ☐ | `PaymentEvent` | ☐ | `PaymentIntent` |
-| ☐ | `PlatformAdminInvite` | ☐ | `PlatformBackupReport` | ☐ | `PlatformDocumentSequence` |
-| ☐ | `PlatformPushSchedule` | ☐ | `PlatformSetting` | ☐ | `PlatformSettingChange` |
-| ☐ | `ProvidedItem` | ☐ | `PushTicket` | ☐ | `QRActivation` |
-| ☐ | `QuestionCallClick` | ☐ | `RatingReview` | ☐ | `Receipt` |
-| ☐ | `ReceiptCounter` | ☐ | `ReconciliationRun` | ☐ | `Referral` |
-| ☐ | `ReferralCode` | ☐ | `ReferralReward` | ☐ | `RentConcession` |
-| ☐ | `Resident` | ☐ | `ResidentApplication` | ☐ | `ResidentDocument` |
-| ☐ | `ResidentJoinLink` | ☐ | `ResidentLeave` | ☐ | `ReviewModerationLog` |
-| ☐ | `RolePermission` | ☐ | `RoomChangeRequest` | ☐ | `RoomConditionPhoto` |
-| ☐ | `ServiceProvider` | ☐ | `ServiceProviderApplication` | ☐ | `ServiceProviderDocument` |
-| ☐ | `Session` | ☐ | `SoftmatoDocument` | ☐ | `SoftmatoTask` |
-| ☐ | `SOSAlert` | ☐ | `Sponsor` | ☐ | `StatementImport` |
-| ☐ | `StockEntry` | ☐ | `StockItem` | ☐ | `StockPayment` |
-| ☐ | `StockSupplier` | ☐ | `StoreCart` | ☐ | `StoreCategory` |
-| ☐ | `StoreOrder` | ☐ | `StoreProduct` | ☐ | `SubscriptionInvoice` |
-| ☐ | `SubscriptionPayment` | ☐ | `TeamPrepayment` | ☐ | `TeamWalletEntry` |
-| ☐ | `TemporaryCredential` | ☐ | `UsageDaily` | ☐ | `UsageEvent` |
-| ☐ | `User` | ☐ | `UserResidentProfile` |  |  |
+| ☑ | `AccountDeletionRequest` | ☑ | `AdmissionForm` | ☑ | `AdmissionFormLink` |
+| ☑ | `ApiUsageCounter` | ☑ | `AttendanceAlert` | ☑ | `AttendanceLog` |
+| ☑ | `AuditLog` | ☑ | `AuthAttempt` | ☑ | `Booking` |
+| ☑ | `BookingPayment` | ☑ | `BookingTransfer` | ☑ | `CommunityComment` |
+| ☑ | `CommunityCommentVote` | ☑ | `CommunityPost` | ☑ | `CommunityReaction` |
+| ☑ | `CommunityReport` | ☑ | `Complaint` | ☑ | `ComplaintAttachment` |
+| ☑ | `ComplaintUpdate` | ☑ | `ConsentLog` | ☑ | `CookAccount` |
+| ☑ | `CreditBalance` | ☑ | `DepositRecord` | ☑ | `DepositRefund` |
+| ☑ | `DeviceToken` | ☑ | `DuplicateCheckResult` | ☑ | `EmailPreference` |
+| ☑ | `EmergencyContact` | ☑ | `EncryptedSecret` | ☑ | `ExistingResidentList` |
+| ☑ | `Expense` | ☑ | `ExpertConsultationRequest` | ☑ | `Feedback` |
+| ☑ | `FeeSchedule` | ☑ | `FileAsset` | ☑ | `finance-fields` |
+| ☑ | `FoodFeedback` | ☑ | `FoodPhoto` | ☑ | `FoodReadyLog` |
+| ☑ | `FoodRoutine` | ☑ | `FreePlanClaim` | ☑ | `Guardian` |
+| ☑ | `GuardianAccess` | ☑ | `GuardianPermission` | ☑ | `Hostel` |
+| ☑ | `HostelAgreement` | ☑ | `HostelAgreementSignature` | ☑ | `HostelApplication` |
+| ☑ | `HostelBackup` | ☑ | `HostelBackupRun` | ☑ | `HostelDocument` |
+| ☑ | `HostelExpenseCategory` | ☑ | `HostelLeaveRequest` | ☑ | `HostelListingImpression` |
+| ☑ | `HostelMember` | ☑ | `HostelPageView` | ☑ | `HostelPaymentProfile` |
+| ☑ | `HostelPayoutAccount` | ☑ | `HostelReferral` | ☑ | `HostelReferralCode` |
+| ☑ | `HostelRoom` | ☑ | `HostelSettings` | ☑ | `HostelSubscription` |
+| ☑ | `HostelVerification` | ☑ | `IncidentLog` | ☑ | `Inquiry` |
+| ☑ | `InquiryNote` | ☑ | `Invoice` | ☑ | `InvoiceBalance` |
+| ☑ | `KhataEntry` | ☑ | `ListingFlag` | ☑ | `MaintenanceComment` |
+| ☑ | `MaintenanceHistory` | ☑ | `MaintenanceRequest` | ☑ | `ManualStatusOverride` |
+| ☑ | `MealCallReminder` | ☑ | `MoveInChecklist` | ☑ | `MoveOutChecklist` |
+| ☑ | `NightStatus` | ☑ | `NightStatusLog` | ☑ | `NightStatusPrompt` |
+| ☑ | `Notice` | ☑ | `NoticePush` | ☑ | `NoticeReadStatus` |
+| ☑ | `Notification` | ☑ | `NotificationCampaign` | ☑ | `NotificationPreference` |
+| ☑ | `OAuthAccount` | ☑ | `OfferAward` | ☑ | `OfferPerk` |
+| ☑ | `OtpChallenge` | ☑ | `PaymentEvent` | ☑ | `PaymentIntent` |
+| ☑ | `PlatformAdminInvite` | ☑ | `PlatformBackupReport` | ☑ | `PlatformDocumentSequence` |
+| ☑ | `PlatformPushSchedule` | ☑ | `PlatformSetting` | ☑ | `PlatformSettingChange` |
+| ☑ | `ProvidedItem` | ☑ | `PushTicket` | ☑ | `QRActivation` |
+| ☑ | `QuestionCallClick` | ☑ | `RatingReview` | ☑ | `Receipt` |
+| ☑ | `ReceiptCounter` | ☑ | `ReconciliationRun` | ☑ | `Referral` |
+| ☑ | `ReferralCode` | ☑ | `ReferralReward` | ☑ | `RentConcession` |
+| ☑ | `Resident` | ☑ | `ResidentApplication` | ☑ | `ResidentDocument` |
+| ☑ | `ResidentJoinLink` | ☑ | `ResidentLeave` | ☑ | `ReviewModerationLog` |
+| ☑ | `RolePermission` | ☑ | `RoomChangeRequest` | ☑ | `RoomConditionPhoto` |
+| ☑ | `ServiceProvider` | ☑ | `ServiceProviderApplication` | ☑ | `ServiceProviderDocument` |
+| ☑ | `Session` | ☑ | `SoftmatoDocument` | ☑ | `SoftmatoTask` |
+| ☑ | `SOSAlert` | ☑ | `Sponsor` | ☑ | `StatementImport` |
+| ☑ | `StockEntry` | ☑ | `StockItem` | ☑ | `StockPayment` |
+| ☑ | `StockSupplier` | ☑ | `StoreCart` | ☑ | `StoreCategory` |
+| ☑ | `StoreOrder` | ☑ | `StoreProduct` | ☑ | `SubscriptionInvoice` |
+| ☑ | `SubscriptionPayment` | ☑ | `TeamPrepayment` | ☑ | `TeamWalletEntry` |
+| ☑ | `TemporaryCredential` | ☑ | `UsageDaily` | ☑ | `UsageEvent` |
+| ☑ | `User` | ☑ | `UserResidentProfile` |  |  |
 
 ---
 
@@ -969,74 +970,76 @@ matches the TS output for the same input (subject, HTML, text, headers).
 
 | ☐ | Template |
 |---|---|
-| ☐ | `account/deletion-cancelled.ts` |
-| ☐ | `account/deletion-requested.ts` |
-| ☐ | `account/id-card-issued.ts` |
-| ☐ | `auth/account-upgraded.ts` |
-| ☐ | `auth/credentials-issued.ts` |
-| ☐ | `auth/otp-code.ts` |
-| ☐ | `auth/password-reset.ts` |
-| ☐ | `auth/verification.ts` |
-| ☐ | `billing/plan-due.ts` |
-| ☐ | `billing/plan-suspension-notice.ts` |
-| ☐ | `billing/subscription-claim-received.ts` |
-| ☐ | `billing/subscription-claim-rejected.ts` |
-| ☐ | `billing/subscription-invoice.ts` |
-| ☐ | `billing/subscription-receipt.ts` |
-| ☐ | `booking/guest.ts` |
-| ☐ | `booking/hostel.ts` |
+| ☑ | `account/deletion-cancelled.ts` |
+| ☑ | `account/deletion-requested.ts` |
+| ☑ | `account/id-card-issued.ts` |
+| ☑ | `auth/account-upgraded.ts` |
+| ☑ | `auth/credentials-issued.ts` |
+| ☑ | `auth/otp-code.ts` |
+| ☑ | `auth/password-reset.ts` |
+| ☑ | `auth/verification.ts` |
+| ☑ | `billing/plan-due.ts` |
+| ☑ | `billing/plan-suspension-notice.ts` |
+| ☑ | `billing/subscription-claim-received.ts` |
+| ☑ | `billing/subscription-claim-rejected.ts` |
+| ☑ | `billing/subscription-invoice.ts` |
+| ☑ | `billing/subscription-receipt.ts` |
+| ☑ | `booking/guest.ts` |
+| ☑ | `booking/hostel.ts` |
 | ☑ | `booking/parts.ts` |
-| ☐ | `booking/payout-account.ts` |
-| ☐ | `booking/platform.ts` |
-| ☐ | `cook/credentials.ts` |
-| ☐ | `cook/invitation.ts` |
-| ☐ | `guardian/invitation.ts` |
-| ☐ | `guardian/sos-alert.ts` |
-| ☐ | `guardian/ward-registered.ts` |
-| ☐ | `hostel/cook-portal-enabled.ts` |
-| ☐ | `hostel/documents-requested.ts` |
-| ☐ | `hostel/hostel-approved.ts` |
-| ☐ | `hostel/hostel-kyc.ts` |
-| ☐ | `hostel/hostel-leave.ts` |
-| ☐ | `hostel/hostel-published.ts` |
-| ☐ | `hostel/hostel-referral-invite.ts` |
-| ☐ | `hostel/hostel-registered-by-team.ts` |
-| ☐ | `hostel/hostel-rejected.ts` |
-| ☐ | `hostel/hostel-unpublished.ts` |
-| ☐ | `hostel/hostel-verified.ts` |
-| ☐ | `hostel/inquiry-received.ts` |
-| ☐ | `hostel/owner-email-changed.ts` |
-| ☐ | `hostel/staff-alerts.ts` |
-| ☐ | `hostel/submission-received.ts` |
-| ☐ | `layout.ts` |
-| ☐ | `payment/gateway-unhealthy.ts` |
-| ☐ | `payment/payment-due-reminder.ts` |
-| ☐ | `payment/payment-overdue.ts` |
-| ☐ | `payment/payment-rejected.ts` |
-| ☐ | `payment/payment-reversed.ts` |
-| ☐ | `payment/payment-verified.ts` |
-| ☐ | `platform/account-deletion-review.ts` |
-| ☐ | `platform/admin-invitation.ts` |
-| ☐ | `platform/new-hostel-pending.ts` |
-| ☐ | `platform/setting-change-confirm.ts` |
-| ☐ | `platform/team-requests.ts` |
-| ☐ | `resident/complaint-resolved.ts` |
-| ☐ | `resident/complaint-status-updated.ts` |
-| ☐ | `resident/existing-resident-added.ts` |
-| ☐ | `resident/join-request-returned.ts` |
-| ☐ | `resident/new-notice.ts` |
-| ☐ | `resident/offer-awarded.ts` |
-| ☐ | `resident/qr-activation.ts` |
-| ☐ | `resident/resident-access-cleared.ts` |
-| ☐ | `resident/resident-linked.ts` |
-| ☐ | `resident/resident-registered.ts` |
-| ☐ | `service-provider/provider-approved.ts` |
-| ☐ | `service-provider/provider-rejected.ts` |
-| ☐ | `service-provider/registration-received.ts` |
-| ☐ | `store/items-table.ts` |
-| ☐ | `store/store-order-placed-buyer.ts` |
-| ☐ | `store/store-order-received-platform.ts` |
-| ☐ | `store/store-order-status-buyer.ts` |
+| ☑ | `booking/payout-account.ts` |
+| ☑ | `booking/platform.ts` |
+| ☑ | `cook/credentials.ts` |
+| ☑ | `cook/invitation.ts` |
+| ☑ | `guardian/invitation.ts` |
+| ☑ | `guardian/sos-alert.ts` |
+| ☑ | `guardian/ward-registered.ts` |
+| ☑ | `hostel/cook-portal-enabled.ts` |
+| ☑ | `hostel/documents-requested.ts` |
+| ☑ | `hostel/hostel-approved.ts` |
+| ☑ | `hostel/hostel-kyc.ts` |
+| ☑ | `hostel/hostel-leave.ts` |
+| ☑ | `hostel/hostel-published.ts` |
+| ☑ | `hostel/hostel-referral-invite.ts` |
+| ☑ | `hostel/hostel-registered-by-team.ts` |
+| ☑ | `hostel/hostel-rejected.ts` |
+| ☑ | `hostel/hostel-unpublished.ts` |
+| ☑ | `hostel/hostel-verified.ts` |
+| ☑ | `hostel/inquiry-received.ts` |
+| ☑ | `hostel/owner-email-changed.ts` |
+| ☑ | `hostel/staff-alerts.ts` |
+| ☑ | `hostel/submission-received.ts` |
+| ☑ | `layout.ts` |
+| ☑ | `payment/gateway-unhealthy.ts` |
+| ☑ | `payment/payment-due-reminder.ts` |
+| ☑ | `payment/payment-overdue.ts` |
+| ☑ | `payment/payment-rejected.ts` |
+| ☑ | `payment/payment-reversed.ts` |
+| ☑ | `payment/payment-verified.ts` |
+| ☑ | `platform/account-deletion-review.ts` |
+| ☑ | `platform/admin-invitation.ts` |
+| ☑ | `platform/new-hostel-pending.ts` |
+| ☑ | `platform/setting-change-confirm.ts` |
+| ☑ | `platform/team-requests.ts` |
+| ☑ | `resident/complaint-resolved.ts` |
+| ☑ | `resident/complaint-status-updated.ts` |
+| ☑ | `resident/existing-resident-added.ts` |
+| ☑ | `resident/join-request-returned.ts` |
+| ☑ | `resident/new-notice.ts` |
+| ☑ | `resident/offer-awarded.ts` |
+| ☑ | `resident/qr-activation.ts` |
+| ☑ | `resident/resident-access-cleared.ts` |
+| ☑ | `resident/resident-linked.ts` |
+| ☑ | `resident/resident-registered.ts` |
+| ☑ | `service-provider/provider-approved.ts` |
+| ☑ | `service-provider/provider-rejected.ts` |
+| ☑ | `service-provider/registration-received.ts` |
+| ☑ | `store/items-table.ts` |
+| ☑ | `store/store-order-placed-buyer.ts` |
+| ☑ | `store/store-order-received-platform.ts` |
+| ☑ | `store/store-order-status-buyer.ts` |
+| ☑ | `billing/field-cash-received.ts` (was inline in `cash-filing.service.ts`, 2026-11-05) |
+| ☑ | `billing/softmato-back.ts` (was inline in `softmato/retry.ts`, 2026-11-05) |
 
 ---
 
@@ -1117,15 +1120,15 @@ stops holding server code.
 
 | ☐ | Script(s) | Decision |
 |---|---|---|
-| ☐ | `db:indexes` (autoIndex is off — indexes are a migration) | port: `cmd/indexes`; Go owns indexes after cut-over |
+| ☑ | `db:indexes` (autoIndex is off — indexes are a migration) | ported: `cmd/indexes` (2026-11-04, R19); Go owns indexes after cut-over |
 | ☑ | `seed:platform-owner`, `seed:demo`, `seed:fee-schedules`, `seed:community(:clean)`, `seed:store(:clean)` | **not ported** (user, 2026-10-29): local data is a copy of the live database (`deploy/copy-live-db.ps1`); the TS seeds stay where they are |
-| ☐ | `recover:admin`, `rotate:finance-key`, `verify:finance-ledger`, `check:private-documents`, `check:softmato`, `sync:plan-services` | port: `cmd/ops` subcommands — operations still needed after cut-over |
-| ☐ | `generate:vapid`, `dev:mint-session`, `send:test-emails` | port: `cmd/dev` subcommands |
-| ☐ | `audit:test-data`, `purge:test-data` | port when next needed |
-| ☐ | `evidence:fixtures`, `evidence:score` | port with the evidence pipeline |
-| ☐ | `check:public-registration`, `check:team-registration`, `deploy:check` | replace with Go contract/smoke tests |
-| ☐ | `build:paper-agreement`, `upload:agreement-seals` | stay in TS (offline tools) |
-| ☐ | every `migrate:*`, `backfill:*`, `repair:*`, `fix:*`, `compare:clusters`, `migrate:cluster` | one-offs, already run — do not port |
+| ☑ | `recover:admin`, `rotate:finance-key`, `verify:finance-ledger`, `check:private-documents`, `check:softmato`, `sync:plan-services` | ported 2026-11-05: `cmd/ops` `recover-admin`, `rotate-finance-key`, `verify-finance-ledger`, `check-private-documents`, `check-softmato`, `sync-plan-services` (P11-25); in the image as `ops` |
+| ☑ | `generate:vapid`, `dev:mint-session`, `send:test-emails` | ported 2026-11-05: `cmd/dev` `generate-vapid`, `mint-session`, `send-test-emails` |
+| ☑ | `audit:test-data`, `purge:test-data` | **not ported** (owner decision: port when next needed). The TS scripts keep working until the last Phase 11 step removes `modules/`; port then if still wanted |
+| ☑ | `evidence:fixtures`, `evidence:score` | **not ported**: offline QA for the OCR engines, not part of serving; the pipeline itself is on Go (`modules/finance/evidenceread.go`). They retire with the TS code at the last Phase 11 step unless ported then |
+| ☑ | `check:public-registration`, `check:team-registration`, `deploy:check` | replaced: contract groups `public`, `team`, `billing-online`; CI's image smoke test (`server.yml`) |
+| ☑ | `build:paper-agreement`, `upload:agreement-seals` | stay in TS (offline tools) |
+| ☑ | every `migrate:*`, `backfill:*`, `repair:*`, `fix:*`, `compare:clusters`, `migrate:cluster` | one-offs, already run — do not port |
 
 ---
 

@@ -26,6 +26,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -38,6 +39,7 @@ type Handler struct {
 	Notify           *notifications.Service
 	Mail             *email.Sender
 	ActivationSecret string
+	Limiter          *ratelimit.Limiter
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
@@ -104,6 +106,11 @@ type activated struct {
 }
 
 func (h *Handler) activate(c *gin.Context) {
+	// An activation code is a guessable secret: throttled like a public form (P11-18).
+	if err := h.Limiter.PublicForm(c, "resident-activate"); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
 	p, err := h.Guards.Require(c)
 	if err != nil {
 		httpx.Fail(c, err)

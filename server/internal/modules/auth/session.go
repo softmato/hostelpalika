@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
@@ -269,24 +270,26 @@ func (s *Service) Me(ctx context.Context, accessToken string) (*MeUser, *plataut
 	if u == nil {
 		return nil, nil, errUserInactive
 	}
-	sp, err := s.isApprovedServiceProvider(ctx, u)
-	if err != nil {
-		return nil, nil, err
-	}
 	safe := publicUser(u)
-	var susp *hostels.AccountSuspension
+	// One parallel wave: each was a Kathmandu→Mumbai round trip in a row (P11-17).
+	var (
+		sp   bool
+		susp *hostels.AccountSuspension
+		kyc  *hostels.AccountKyc
+		cook *bool
+	)
+	g, gctx := errgroup.WithContext(ctx)
+	g.Go(func() (err error) { sp, err = s.isApprovedServiceProvider(gctx, u); return })
 	switch u.Role {
 	case "HOSTEL_ADMIN", "WARDEN", "RESIDENT", "GUARDIAN", "COOK":
-		if susp, err = hostels.SuspensionForAccount(ctx, s.db, safe.HostelIDs, s.now()); err != nil {
-			return nil, nil, err
-		}
+		g.Go(func() (err error) {
+			susp, err = hostels.SuspensionForAccount(gctx, s.db, safe.HostelIDs, s.now())
+			return
+		})
 	}
-	kyc, err := s.hostelKyc(ctx, u)
-	if err != nil {
-		return nil, nil, err
-	}
-	cook, err := s.cookFingerprintLock(ctx, u)
-	if err != nil {
+	g.Go(func() (err error) { kyc, err = s.hostelKyc(gctx, u); return })
+	g.Go(func() (err error) { cook, err = s.cookFingerprintLock(gctx, u); return })
+	if err := g.Wait(); err != nil {
 		return nil, nil, err
 	}
 	stale := claims.Role != u.Role || !sameIDs(claims.HostelIDs, safe.HostelIDs) || claims.LockPin != (safe.HasLockPin && !via)

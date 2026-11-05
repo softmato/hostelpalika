@@ -45,7 +45,18 @@ Side effects that leave the process (email, push, Pusher, R2, gateways, LLMs)
 are captured by fakes in both recordings and replays, and their calls are part
 of the diff.
 
+**On the spare cluster** (when no local Mongo is available): `CONTRACT_MONGO_URI=<the
+MONGODB_URI_OLD value> ALLOW_DEV_ATLAS_HOST=<its host>`; the fixture always uses the
+`hostelpalika_contract` database there (or `CONTRACT_DB`), never another. Run packages
+one at a time (`go test -p 1`): they share that database.
+
 ## 4. Golden files
+
+**Email:** `testdata/vectors/emails.json` (hand-written cases) and `emails-all.json`
+(every template, two inputs each, built from the TS parameter types). Re-record after
+any template change, from the repo root: `node_modules/.bin/jiti
+server/testdata/vectors/emails-all.ts`; a new Go template also needs its row in
+`internal/platform/email/template_table_test.go`.
 
 `server/testdata/golden/` — email HTML/text, PDFs (page images compared with a
 tolerance), images, ID cards, CSV/xlsx exports. Produced by TS from the same

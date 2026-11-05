@@ -32,7 +32,7 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 		}
 		return httpx.Envelope(v, message)
 	}
-	if ch == nil || ch.Redis == nil || len(hostelIDs) != 1 {
+	if ch == nil || ch.Redis == nil || len(hostelIDs) != 1 || len(key) > maxKeyLen {
 		body, err := build()
 		if err != nil {
 			httpx.Fail(c, err)
@@ -44,7 +44,7 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 	rkey, ok := ch.responseKey(c, hostelIDs[0], userID, key)
 	if ok {
 		tctx, cancel := context.WithTimeout(c, Timeout)
-		raw, err := ch.Redis.Get(tctx, rkey).Bytes()
+		raw, err := ch.entries().Get(tctx, rkey).Bytes()
 		cancel()
 		if err == nil {
 			if tag, body, found := bytes.Cut(raw, []byte("\n")); found {
@@ -68,17 +68,27 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 		send(c, httpx.ETagOf(body), body)
 		return
 	}
-	v, err, _ := ch.group.Do(rkey, func() (any, error) {
+	v, err, shared := ch.group.Do(rkey, func() (any, error) {
 		body, err := build()
 		if err != nil {
 			return nil, err
 		}
 		tag := httpx.ETagOf(body)
 		sctx, cancel := context.WithTimeout(context.WithoutCancel(c), Timeout)
-		_ = ch.Redis.Set(sctx, rkey, append([]byte(tag+"\n"), body...), TTL).Err()
+		_ = ch.entries().Set(sctx, rkey, append([]byte(tag+"\n"), body...), TTL).Err()
 		cancel()
 		return [2][]byte{[]byte(tag), body}, nil
 	})
+	if err != nil && shared && c.Err() == nil && isContextErr(err) {
+		// The first caller hung up and took the shared load with it; this one is live (P11-17).
+		body, err := build()
+		if err != nil {
+			httpx.Fail(c, err)
+			return
+		}
+		send(c, httpx.ETagOf(body), body)
+		return
+	}
 	if err != nil {
 		httpx.Fail(c, err)
 		return

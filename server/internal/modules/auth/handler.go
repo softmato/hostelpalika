@@ -374,7 +374,12 @@ func (h *Handler) setLockPin(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	spent, ok := h.passwordProofBudget(c, p.UserID, proof)
+	if !ok {
+		return
+	}
 	out, err := h.svc.SetLockPin(c, p.UserID, pin, proof)
+	spent(err)
 	if err == nil {
 		// Whoever just set it has proved themselves: unlock this browser.
 		err = h.cookies.ApplyPinUnlock(c.Writer.Header(), p.UserID, p.SessionID)
@@ -400,12 +405,36 @@ func (h *Handler) removeLockPin(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	spent, ok := h.passwordProofBudget(c, p.UserID, proof)
+	if !ok {
+		return
+	}
 	out, err := h.svc.RemoveLockPin(c, p.UserID, proof)
+	spent(err)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
 	httpx.Write(c, http.StatusOK, out, "App lock is off")
+}
+
+// passwordProofBudget: a PIN change proved by the account password is a password
+// guess, so it spends the change-password failure budget (P11-16). spent keeps the
+// reservation only for a wrong password.
+func (h *Handler) passwordProofBudget(c *gin.Context, userID string, proof pinProof) (spent func(error), ok bool) {
+	if proof.Password == nil || *proof.Password == "" {
+		return func(error) {}, true
+	}
+	release, err := h.svc.refuseIfTooManyFailures(c, "auth-change-password", userID)
+	if err != nil {
+		httpx.Fail(c, err)
+		return nil, false
+	}
+	return func(err error) {
+		if err == nil || !isCode(err, "INVALID_CREDENTIALS") {
+			release()
+		}
+	}, true
 }
 
 func (h *Handler) verifyLockPin(c *gin.Context) {

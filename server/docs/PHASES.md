@@ -261,7 +261,8 @@ concurrency before any test.
   - 2026-11-04: request id + `Server-Timing` + System → Logs lookup; no OpenTelemetry (`RUNBOOK.md` §7)
 - ☑ Operator docs: runbook, alerts on the metrics, deploy, rollback and recovery steps, secret handling
   - 2026-11-04: `RUNBOOK.md` (deploy with indexes first and a gapless roll, rollback, 13 alerts as PromQL incl. the new `hostelpalika_job_runs_total`, failure table, scaling, secrets, profiling)
-- ☐ Final readiness report against `MISSION.md` §21, listing anything not met
+- ☑ Final readiness report against `MISSION.md` §21, listing anything not met
+  - `READINESS.md` (2026-11-04, re-checked in code 2026-11-05): every criterion with its evidence; not met: the VPS numbers, the owner steps, CI green (R17), cut-over
 
 **Gate:** targets met and recorded on the VPS; no Critical or High open in `review_fixes_needed.md`.
 

@@ -79,6 +79,8 @@ import (
 type Deps struct {
 	DB    *mongo.Database
 	Redis *goredis.Client
+	// RedisCache holds cached responses only; nil = Redis.
+	RedisCache *goredis.Client
 	// Tracks afterResponse work so shutdown drains it; nil in tests that run none.
 	Background *background.Runner
 	// Jobs runs the scheduled jobs and their /cron doors; nil builds one bound to
@@ -139,41 +141,46 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	}
 	tokens := auth.NewTokens(cfg.Auth.AccessSecret, cfg.Auth.RefreshSecret, cfg.Auth.AccessTTL, cfg.Auth.RefreshTTL)
 	cookies := &auth.Cookies{Tokens: tokens, Secure: cfg.IsProduction(), Domain: cfg.CookieDomain}
-	guards := authz.New(tokens, cookies, d.DB, cache.New(d.Redis), bg)
+	guards := authz.New(tokens, cookies, d.DB, cache.New(d.Redis, d.RedisCache), bg)
 	limiter := ratelimit.New(d.Redis, cfg.Limits.PublicFormMax, cfg.Limits.PublicFormWindow)
 	sender := email.NewSender(cfg.Email.ResendAPIKey, cfg.Email.Domain, cfg.Email.ReplyTo, d.DB)
 	sender.PrefSecret, sender.Outbound = cfg.Auth.AccessSecret, cfg.OutboundURL()
 	log := audit.New(d.DB)
 	rt := realtime.New(cfg.Pusher)
 	pushSender := push.New(d.DB, cfg.Push, notifications.Hooks(d.DB))
-	notify := &notifications.Service{DB: d.DB, Push: pushSender, RT: rt, Cache: cache.New(d.Redis), BG: bg}
+	notify := &notifications.Service{DB: d.DB, Push: pushSender, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), BG: bg}
 
 	authSvc := authmod.NewService(d.DB, cfg, tokens, auth.NewSessions(d.DB, cfg.Auth.RefreshTTL), sender, log)
 	authmod.NewHandler(authSvc, guards, cookies, limiter).Register(v1)
 
 	siteConfig := platformconfig.New(d.DB)
+	if !cfg.InProcessCache {
+		siteConfig.TTL = 0
+		guards.GateTTL = 0
+	}
 	platformconfig.NewHandler(siteConfig).Register(v1)
 	pubHostels := hostels.NewPublic(d.DB, siteConfig)
+	pubHostels.Cache = cache.New(d.Redis, d.RedisCache)
 	hostels.NewHandler(pubHostels).Register(v1)
 	hostels.NewWrites(hostels.WriteDeps{DB: d.DB, Guards: guards, Limiter: limiter, Secure: cfg.IsProduction(), Public: pubHostels,
-		Mail: sender, Notify: notify, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL()}).Register(v1)
+		Mail: sender, Notify: notify, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), Outbound: cfg.OutboundURL()}).Register(v1)
 	arrivals.NewHandler(d.DB, guards, limiter, notify).Register(v1)
 	claims := files.Claims{Secret: cfg.Auth.AccessSecret}
 	hostels.NewApplications(d.DB, guards, claims, log).Register(v1)
 	files.NewHandler(d.DB, storage.New(cfg.R2), cfg.R2, limiter, claims).Register(v1)
 	(&files.Assets{DB: d.DB, R2: storage.New(cfg.R2), R2Cfg: cfg.R2, Limits: cfg.Uploads, Guards: guards, Claims: claims}).Register(v1)
 	personal, _ := crypto.NewPersonal(cfg.Crypto.PersonalDataKey)
-	(&residents.Public{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Personal: personal, Notify: notify, RT: rt, Cache: cache.New(d.Redis)}).Register(v1)
+	(&residents.Public{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Personal: personal, Notify: notify, RT: rt, Cache: cache.New(d.Redis, d.RedisCache)}).Register(v1)
 	refs := hostelreferrals.NewService(d.DB)
 	bookingsSvc := bookings.NewService(d.DB, siteConfig)
-	(&hostels.Registration{Refs: refs, DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
+	(&hostels.Registration{Refs: refs, DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), Outbound: cfg.OutboundURL(),
 		FinanceKey: cfg.Crypto.FinanceMasterKey, FinancePrev: cfg.Crypto.FinanceMasterKeyPrev, PersonalKey: cfg.Crypto.PersonalDataKey,
 		ShortStayLimits: func(ctx context.Context) (float64, float64) {
 			c := bookingsSvc.BookingConfig(ctx)
 			return c.ShortStayMinMarkupPercent, c.ShortStayMaxNights
 		}}).Register(v1)
 	referrals.NewHandler(d.DB, limiter).Register(v1)
-	(&serviceproviders.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL()}).Register(v1)
+	(&serviceproviders.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), Outbound: cfg.OutboundURL()}).Register(v1)
 	refHandler := hostelreferrals.NewHandler(refs, limiter)
 	refHandler.Cover = hostels.ExteriorPhoto
 	refHandler.Register(v1)
@@ -190,7 +197,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
 	platformlogs.NewHandler(d.DB, guards).Register(v1)
 	(&team.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Audit: log, RT: rt, Now: time.Now}).Register(v1)
-	(&store.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Notify: notify, Push: pushSender, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis),
+	(&store.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Notify: notify, Push: pushSender, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache),
 		SiteURL: strings.TrimRight(cfg.AppURL, "/"), Now: time.Now}).Register(v1)
 
 	deletion := &users.Deletion{DB: d.DB, Guards: guards, Tokens: tokens, Mail: sender, Audit: log, Notify: notify, Now: time.Now,
@@ -209,35 +216,35 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 			return id.SupportEmail
 		}}).Register(v1)
 
-	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis),
+	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis, d.RedisCache),
 		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
 	safetySvc.Register(v1)
-	portal := &residentportal.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: cache.New(d.Redis)}
+	portal := &residentportal.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis, d.RedisCache), Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: cache.New(d.Redis, d.RedisCache)}
 	portal.Register(v1)
-	(&residentaccount.Handler{DB: d.DB, Guards: guards, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
+	(&residentaccount.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
 	issuer := &users.Issuer{DB: d.DB, Mail: sender, Audit: log, AppURL: strings.TrimRight(cfg.AppURL, "/")}
 	appURL := func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }
 	(&hostelleave.Handler{DB: d.DB, Guards: guards, R2: storage.New(cfg.R2), BG: bg, Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
-	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis), R2: storage.New(cfg.R2),
+	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache), R2: storage.New(cfg.R2),
 		Reader: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}}).Register(v1)
-	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
-	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), Cache: cache.New(d.Redis)}).Register(v1)
-	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
-	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
+	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache)}).Register(v1)
+	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis, d.RedisCache), Cache: cache.New(d.Redis, d.RedisCache)}).Register(v1)
+	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis, d.RedisCache)}).Register(v1)
+	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis, d.RedisCache), BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
 	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL}).Register(v1)
-	kitchenH := &kitchen.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}
+	kitchenH := &kitchen.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis, d.RedisCache), Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}
 	kitchenH.Register(v1)
-	(&notices.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis)}).Register(v1)
-	complaintsSvc := &complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}
+	(&notices.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis, d.RedisCache)}).Register(v1)
+	complaintsSvc := &complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), AppURL: appURL}
 	complaintsSvc.Register(v1)
 	(&attendance.Handler{DB: d.DB, Guards: guards, Audit: log}).Register(v1)
 	notifications.NewHandler(d.DB, guards, sender, pushSender, rt, cfg.Pusher).Register(v1)
 	sh := &shared{Cfg: cfg, D: d, BG: bg, Tokens: tokens, Cookies: cookies, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, RT: rt, Push: pushSender, Notify: notify,
-		Cache: cache.New(d.Redis), R2: storage.New(cfg.R2), Config: siteConfig, Claims: claims, Personal: personal, Refs: refs, Bookings: bookingsSvc, Safety: safetySvc, Issuer: issuer, Auth: authSvc,
+		Cache: cache.New(d.Redis, d.RedisCache), R2: storage.New(cfg.R2), Config: siteConfig, Claims: claims, Personal: personal, Refs: refs, Bookings: bookingsSvc, Safety: safetySvc, Issuer: issuer, Auth: authSvc,
 		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL(),
 		J: &jobHosts{Safety: safetySvc, Portal: portal, Kitchen: kitchenH, Complaints: complaintsSvc, Deletion: deletion}}
 	mountHostelAdmin(v1, sh)
-	signedBookings := &bookings.Signed{Service: bookingsSvc, Softmato: softmato.New(cfg.Softmato.BaseURL, cfg.Softmato.Secret, cfg.Softmato.WebhookSecret), Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
+	signedBookings := &bookings.Signed{Service: bookingsSvc, Softmato: softmato.New(cfg.Softmato.BaseURL, cfg.Softmato.Secret, cfg.Softmato.WebhookSecret), Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache), Outbound: cfg.OutboundURL(),
 		FinanceKeys: func() ([]crypto.MasterKey, error) {
 			return crypto.MasterKeys(cfg.Crypto.FinanceMasterKey, cfg.Crypto.FinanceMasterKeyPrev)
 		}, SoftmatoOn: cfg.Softmato.BaseURL != "" && cfg.Softmato.Secret != "" && cfg.Softmato.WebhookSecret != ""}

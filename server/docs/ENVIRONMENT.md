@@ -43,7 +43,12 @@ folder) — never the root `.env`, which points at production.
 |---|---|
 | `APP_ENV` | `production` / `development` / `test` (replaces `NODE_ENV`) |
 | `API_ADDR` | listen address, e.g. `:8080` |
-| `REDIS_URL` | `redis://redis:6379/0` — the in-compose container, production included, from day one (ARCHITECTURE.md §5) |
+| `REDIS_URL` | `redis://:<REDIS_PASSWORD>@redis:6379/0` — locks, rate limits and hostel cache versions, on a `noeviction` Redis (`redis.conf`). Compose builds it from `REDIS_PASSWORD` |
+| `REDIS_CACHE_URL` | `redis://:<REDIS_PASSWORD>@redis-cache:6379/0` — cached response bodies only, on an `allkeys-lru` Redis (`redis-cache.conf`), so a flood of entries never evicts a lock or a limit (P11-16). Empty = `REDIS_URL` |
+| `REDIS_PASSWORD` | VPS `.env` only: 32+ hex characters (`openssl rand -hex 32`); both Redis run with `--requirepass`, and `deploy.sh` refuses to deploy without it |
+| `IN_PROCESS_CACHE` | `off` disables the per-process memos (hostel gate 5 s, site config 1 min). Only the contract suite sets it, because it reseeds the database under a running server |
+| `ALLOW_DEV_ATLAS_HOST` | Outside production, the one Atlas host `config` accepts (the owner's spare cluster, for tests while Docker is unavailable). Never the production host |
+| `CONTRACT_MONGO_URI` | Test runs only: the contract fixture's cluster; its path is always replaced with the contract database, and `fixture.Reset` refuses any other name |
 | `CORS_ORIGINS` | comma-separated allowed web origins |
 | `COOKIE_DOMAIN` | `.hostelpalika.com` |
 | `TRUSTED_PROXIES` | Caddy's address on the Docker network |

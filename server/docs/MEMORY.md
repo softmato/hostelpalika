@@ -215,3 +215,11 @@ Done and contract-green: all of finance (statements import/reconcile/assign/ask-
 Statements code: parsers `finance/stmtparse.go`, legacy `.xls` reader `finance/xlsread.go` (own BIFF8 reader; `extrame/xls` failed the eSewa export and was dropped), ladder `finance/matching.go`, routes `financeadmin/statements.go`. PDFs: `financeadmin/reportpdfs.go`; `pdf.Doc.AppendPDF` merges a part into a document; `hostels.Admin.BranchFigures` and `reports.Admin.PerformanceFor` feed it.
 Gotchas: the contract env has R2 off, so a real import is only unit-tested on parsers; fixtures `admin_reports_statements.go` (ids c0–c7, resident b4) shifted `finance-invoices.json` and `reports.json`, both re-recorded. Long Bash heredocs fail here: write scripts with the Write tool, run them by path.
 Residents work starts with `resident.service.ts` (1996 lines); bookings need `booking-*.service.ts` (about 2000); neither has a Go counterpart beyond the public/signed slices already in `bookings/` and the desk/join slices in `residents/`.
+
+## Pre-cut-over check (2026-11-05)
+
+- Ticks were wrong both ways: `PARITY.md` left 279 done rows unticked, and `cmd/ops` was an empty folder behind a "port to cmd/ops" decision. Check the code before trusting a tick.
+- No local Mongo while Docker is down (D: is full): run the contract suite on the spare cluster with `CONTRACT_MONGO_URI` + `ALLOW_DEV_ATLAS_HOST`, `go test -p 1`. Run Go tests from PowerShell: Git Bash's PATH makes test binaries fail with `0xc0000139`.
+- In-process memos (gate 5 s, site config 1 min) are off in the contract env (`IN_PROCESS_CACHE=off`): the fixture reseeds under the running router.
+- Email goldens cover every template; a new template needs `emails-all.ts` re-run and a row in `template_table_test.go`.
+

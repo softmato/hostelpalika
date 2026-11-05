@@ -30,6 +30,8 @@ var contractEnv = map[string]string{
 	"PERSONAL_DATA_ENCRYPTION_KEY": "0000000000000000000000000000000000000000000000000000000000000001",
 	"FINANCE_MASTER_KEY":           "0000000000000000000000000000000000000000000000000000000000000002",
 	"CRON_SECRET":                  "contract-cron-secret",
+	"ALLOW_DEV_ATLAS_HOST":         os.Getenv("ALLOW_DEV_ATLAS_HOST"),
+	"IN_PROCESS_CACHE":             "off",
 }
 
 // TestContract replays every recorded TS response against the Go router.

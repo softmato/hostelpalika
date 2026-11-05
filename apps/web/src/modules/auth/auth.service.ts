@@ -424,44 +424,65 @@ export async function requestOtpChallenge(
     }
   }
 
-  const rateLimitStartedAt = new Date(Date.now() - otpRateLimitWindowMs());
-  const recentRequestCount = await OtpChallengeModel.countDocuments({
-    channel: input.channel,
-    createdAt: { $gte: rateLimitStartedAt },
-    identifier,
-    purpose: input.purpose,
-  });
-
-  if (recentRequestCount >= otpRateLimitMax()) {
-    throw new AuthServiceError(
-      "Too many OTP requests. Please wait before trying again.",
-      "OTP_RATE_LIMITED",
-      429,
-    );
-  }
-
-  const latestChallenge = await OtpChallengeModel.findOne({
-    channel: input.channel,
-    consumedAt: null,
-    expiresAt: { $gt: new Date() },
-    identifier,
-    purpose: input.purpose,
-  }).sort({ createdAt: -1 });
-
-  if (
-    latestChallenge?.codeLastSentAt &&
-    Date.now() - new Date(latestChallenge.codeLastSentAt).getTime() <
-      otpResendCooldownMs()
-  ) {
-    throw new AuthServiceError(
-      "Please wait before requesting another OTP.",
-      "OTP_RESEND_COOLDOWN",
-      429,
-    );
-  }
-
+  /*
+   * The row is written first and counted with the others, so a parallel burst
+   * cannot all pass a count read before any of them wrote (P11-16). Only rows up
+   * to this one count, and of two inside the cooldown the earlier wins. A refused
+   * or undelivered request removes its own row.
+   */
   const code = generateOtpCode();
-  const expiresAt = new Date(Date.now() + otpTtlMs());
+  const now = new Date();
+  const challenge = await OtpChallengeModel.create({
+    channel: input.channel,
+    codeHash: hashOtpCode(identifier, code),
+    codeLastSentAt: now,
+    expiresAt: new Date(now.getTime() + otpTtlMs()),
+    identifier,
+    ipAddress: context?.ipAddress,
+    purpose: input.purpose,
+    userAgent: context?.userAgent,
+  });
+  const expiresAt = challenge.expiresAt;
+  const same = { channel: input.channel, identifier, purpose: input.purpose };
+  const refuse = async (error: unknown): Promise<never> => {
+    await OtpChallengeModel.deleteOne({ _id: challenge._id }).catch(() => undefined);
+    throw error;
+  };
+
+  try {
+    const recentRequestCount = await OtpChallengeModel.countDocuments({
+      ...same,
+      _id: { $lte: challenge._id },
+      createdAt: { $gte: new Date(now.getTime() - otpRateLimitWindowMs()) },
+    });
+
+    if (recentRequestCount > otpRateLimitMax()) {
+      throw new AuthServiceError(
+        "Too many OTP requests. Please wait before trying again.",
+        "OTP_RATE_LIMITED",
+        429,
+      );
+    }
+
+    const earlier = await OtpChallengeModel.exists({
+      ...same,
+      _id: { $lt: challenge._id },
+      codeLastSentAt: { $gt: new Date(now.getTime() - otpResendCooldownMs()) },
+      consumedAt: null,
+      expiresAt: { $gt: now },
+    });
+
+    if (earlier) {
+      throw new AuthServiceError(
+        "Please wait before requesting another OTP.",
+        "OTP_RESEND_COOLDOWN",
+        429,
+      );
+    }
+  } catch (error) {
+    return refuse(error);
+  }
+
   const delivery = await dispatchOtpChallenge({
     channel: input.channel,
     code,
@@ -470,17 +491,7 @@ export async function requestOtpChallenge(
       input.purpose === "biometric"
         ? "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
         : undefined,
-  });
-  const challenge = await OtpChallengeModel.create({
-    channel: input.channel,
-    codeHash: hashOtpCode(identifier, code),
-    codeLastSentAt: new Date(),
-    expiresAt,
-    identifier,
-    ipAddress: context?.ipAddress,
-    purpose: input.purpose,
-    userAgent: context?.userAgent,
-  });
+  }).catch(refuse);
 
   return {
     challengeId: String(challenge._id),
@@ -930,6 +941,8 @@ export async function login(input: LoginInput, context?: RequestContext) {
  * token: a thief who redeems it pushes the owner's copy two generations back.
  */
 const REFRESH_REUSE_WINDOW_MS = 60 * 1000;
+/** How long after a rotation the previous token may still replace a lost reply. */
+const LOST_REPLY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export async function refreshAccessToken(
   refreshToken: string,
@@ -962,7 +975,12 @@ export async function refreshAccessToken(
   }
 
   const isCurrent = session.refreshTokenHash === refreshTokenHash;
-  const isPrevious = session.previousRefreshTokenHash === refreshTokenHash;
+  // The previous token buys a lost reply back only for a day after the rotation;
+  // older, it is a replayed copy like any other (P11-16).
+  const isPrevious =
+    session.previousRefreshTokenHash === refreshTokenHash &&
+    session.refreshTokenRotatedAt instanceof Date &&
+    session.refreshTokenRotatedAt.getTime() > now.getTime() - LOST_REPLY_WINDOW_MS;
   const justRotated =
     isPrevious &&
     session.refreshTokenRotatedAt instanceof Date &&
@@ -1426,10 +1444,24 @@ export async function resetPasswordWithToken(input: ResetPasswordInput) {
     );
   }
 
-  user.passwordHash = await hashPassword(input.newPassword);
-  user.mustChangePassword = false;
-  user.tokenVersion = (user.tokenVersion ?? 0) + 1;
-  await user.save();
+  // Compare-and-set on the version read: of two resets with one link only the
+  // first lands (P11-18).
+  const version = user.tokenVersion ?? 0;
+  const written = await UserModel.updateOne(
+    { _id: user._id, tokenVersion: version === 0 ? { $in: [0, null] } : version },
+    {
+      $set: {
+        mustChangePassword: false,
+        passwordHash: await hashPassword(input.newPassword),
+        tokenVersion: version + 1,
+      },
+    },
+  );
+
+  if (written.matchedCount === 0) {
+    throw new AuthServiceError("Reset link is no longer valid.", "RESET_TOKEN_STALE", 400);
+  }
+
   await revokeAllSessions(user._id);
   // Temporary logins die with the password (Go P11-8).
   await TemporaryCredentialModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });

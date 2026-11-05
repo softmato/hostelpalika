@@ -75,6 +75,11 @@ func recordRequest(method, route string, status int, took time.Duration) {
 	if route == "" {
 		route = "unmatched" // a scanner's paths must not become labels
 	}
+	switch method { // nor its made-up methods (P11-18)
+	case "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS":
+	default:
+		method = "OTHER"
+	}
 	httpRequests.WithLabelValues(method, route, strconv.Itoa(status)).Inc()
 	httpDuration.WithLabelValues(route).Observe(took.Seconds())
 }

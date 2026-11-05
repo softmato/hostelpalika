@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -18,7 +19,7 @@ type row struct {
 func TestNoRedis(t *testing.T) {
 	n := 0
 	for i := 0; i < 2; i++ {
-		_, _ = Read(context.Background(), New(nil), []string{"h"}, "u", "k", func() (row, error) { n++; return row{}, nil })
+		_, _ = Read(context.Background(), New(nil, nil), []string{"h"}, "u", "k", func() (row, error) { n++; return row{}, nil })
 	}
 	if n != 2 {
 		t.Fatal("no Redis = no cache")
@@ -33,7 +34,7 @@ func TestRead(t *testing.T) {
 		t.Skip("local Redis not running")
 	}
 	defer rdb.Close()
-	c := New(rdb)
+	c := New(rdb, nil)
 	hostel := "test-" + time.Now().Format("150405.000000")
 	defer rdb.Del(ctx, versionKey(hostel))
 
@@ -99,4 +100,38 @@ func TestRead(t *testing.T) {
 	if rdb.Exists(ctx, "c:"+hostel+":1:u3:err").Val() != 0 {
 		t.Fatal("an error was cached")
 	}
+}
+
+// Entries live on their own Redis and an overlong key is never stored (P11-16).
+func TestEntriesSeparateAndKeyCapped(t *testing.T) {
+	ctx := context.Background()
+	versions := goredis.NewClient(&goredis.Options{Addr: "127.0.0.1:6380"})
+	if versions.Ping(ctx).Err() != nil {
+		t.Skip("local Redis not running")
+	}
+	defer versions.Close()
+	entries := goredis.NewClient(&goredis.Options{Addr: "127.0.0.1:6380", DB: 1})
+	defer entries.Close()
+	c := New(versions, entries)
+	hostel := "split-" + time.Now().Format("150405.000000")
+	defer versions.Del(ctx, versionKey(hostel))
+
+	loads := 0
+	load := func() (*row, error) { loads++; return &row{"a"}, nil }
+	for _, key := range []string{"short", "short", strings.Repeat("q", maxKeyLen+1), strings.Repeat("q", maxKeyLen+1)} {
+		if _, err := Read(ctx, c, []string{hostel}, "u", key, load); err != nil {
+			t.Fatal(err)
+		}
+	}
+	time.Sleep(100 * time.Millisecond) // the store is written after the answer
+	if loads != 3 {
+		t.Fatalf("loads = %d, want 3 (short cached once, long never)", loads)
+	}
+	if n, _ := versions.Exists(ctx, "c:"+hostel+":0:u:short").Result(); n != 0 {
+		t.Fatal("entry written to the versions Redis")
+	}
+	if n, _ := entries.Exists(ctx, "c:"+hostel+":0:u:short").Result(); n != 1 {
+		t.Fatal("entry missing from the entries Redis")
+	}
+	entries.Del(ctx, "c:"+hostel+":0:u:short")
 }

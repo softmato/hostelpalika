@@ -201,9 +201,7 @@
         "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
       }
     },
-    "masks": [
-      "**dates"
-    ],
+    "masks": ["**dates", "data.report.series.hostels", "data.report.series.inquiries", "data.report.series.revenue"],
     "response": {
       "status": 200,
       "contentType": "application/json",
