@@ -252,10 +252,8 @@ describe("the receipt's coverage window and certification", () => {
     });
     const text = await textOf(bytes);
 
-    expect(text).toContain("Covers from");
-    expect(text).toContain("01 Aug 2026");
-    expect(text).toContain("Covers until");
-    expect(text).toContain("31 Aug 2026");
+    expect(text).toContain("Covers");
+    expect(text).toContain("01 Aug 2026 to 31 Aug 2026");
   });
 
   it("omits the coverage lines when the invoice buys no period", async () => {
@@ -271,7 +269,7 @@ describe("the receipt's coverage window and certification", () => {
       }),
     );
 
-    expect(text).not.toContain("Covers from");
+    expect(text).not.toContain("Covers");
   });
 
   it("does not certify a voided receipt", async () => {

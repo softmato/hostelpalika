@@ -135,9 +135,26 @@ export type ReceiptPdfInput = {
   receiptNumber: string;
   referenceCode?: string | null;
   residentName: string;
+  /** `Room 204, Double Sharing` — see `roomLabel`. Empty when the resident has neither. */
+  room?: string | null;
   voidReason?: string | null;
   voidedAt?: Date | null;
 };
+
+/**
+ * The room as a resident would write it on the paper form: number first, then
+ * the type. `SINGLE` (an old enum-style value) reads as `Single`.
+ */
+export function roomLabel(roomNumber?: string | null, roomType?: string | null): string {
+  let type = (roomType ?? "").trim().replace(/_/g, " ");
+  if (type && type === type.toUpperCase()) {
+    type = type.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  }
+  const number = (roomNumber ?? "").trim();
+  if (number && type) return `Room ${number}, ${type}`;
+  if (number) return `Room ${number}`;
+  return type;
+}
 
 /**
  * Standard-font PDFs are WinAnsi-encoded, and a hostel or resident name in
@@ -311,81 +328,65 @@ export async function renderReceiptPdf(input: ReceiptPdfInput): Promise<Uint8Arr
   });
   cursor -= 20;
   write(`Issued on behalf of ${input.hostelName}`, { color: muted, size: 12 });
-  cursor -= 30;
+  cursor -= 22;
+  page.drawLine({ color: ink, end: { x: 595.28 - margin, y: cursor }, start: { x: margin, y: cursor }, thickness: 1.5 });
+  cursor -= 26;
 
-  page.drawLine({
-    color: rgb(0.55, 0.55, 0.55),
-    end: { x: 595.28 - margin, y: cursor },
-    start: { x: margin, y: cursor },
-    thickness: 1,
-  });
-  cursor -= 30;
-
-  const rows: [string, string][] = [
-    ["Receipt number", input.receiptNumber],
-    ["Issued", formatDate(input.issuedAt)],
-    ["Resident", input.residentName],
-    ["Paid to", input.hostelName],
-    ["Amount", formatNPR(input.amount)],
-  ];
-
-  if (input.invoicePeriod) {
-    rows.push(["Period", input.invoicePeriod]);
-  }
-
-  // Stated as two labelled dates rather than one range string, so a reader
-  // scanning for "until when am I paid up" finds a line with that label on it.
-  if (input.coversFrom && input.coversTo) {
-    rows.push(["Covers from", formatLongDate(input.coversFrom)]);
-    rows.push(["Covers until", formatLongDate(input.coversTo)]);
-  }
-
-  if (input.referenceCode) {
-    rows.push(["Reference", input.referenceCode]);
-  }
-
-  if (input.method) {
-    rows.push(["Method", input.method]);
-  }
-
-  if (input.certificationCode && !input.voidedAt) {
-    rows.push(["Verification code", input.certificationCode]);
-  }
-
-  for (const [label, value] of rows) {
-    write(label, { color: muted, size: 12 });
-    // Values bold, labels regular — the reader's eye goes to the facts.
-    page.drawText(sanitize(value), {
-      color: ink,
-      font: bold,
-      size: label === "Amount" ? 15 : 12,
-      x: margin + 150,
-      y: cursor,
+  // Laid out like the hostel's paper form: a shaded band per section, then
+  // label-over-value fields on a ruled line, two to a row. A reader finds a
+  // fact by its label, and the page reads as a filled-in document.
+  const contentWidth = 595.28 - 2 * margin;
+  const column = contentWidth / 2;
+  const section = (title: string) => {
+    page.drawRectangle({ color: rgb(0.93, 0.95, 0.94), height: 20, width: contentWidth, x: margin, y: cursor - 6 });
+    page.drawText(title, { color: ink, font: bold, size: 10, x: margin + 8, y: cursor });
+    cursor -= 28;
+  };
+  type Field = [string, string | null | undefined];
+  const row = (fields: Field[], full = false) => {
+    const shown = fields.filter(([, value]) => Boolean(value));
+    if (shown.length === 0) return;
+    shown.forEach(([label, value], i) => {
+      const x = margin + i * column;
+      const width = full ? contentWidth : column;
+      page.drawText(label, { color: ink, font: regular, size: 9, x, y: cursor });
+      page.drawText(sanitize(value ?? ""), { color: ink, font: bold, size: label === "Amount" ? 16 : 12, x, y: cursor - 16 });
+      page.drawLine({ color: rgb(0.7, 0.7, 0.7), end: { x: x + width - 16, y: cursor - 22 }, start: { x, y: cursor - 22 }, thickness: 0.5 });
     });
-    cursor -= 24;
+    cursor -= 36;
+  };
+
+  section("RECEIPT DETAILS");
+  row([["Receipt number", input.receiptNumber], ["Issued on", formatLongDate(input.issuedAt)]]);
+  section("RECEIVED FROM");
+  row([["Resident", input.residentName], ["Room", input.room]]);
+  row([["Paid to", input.hostelName]], true);
+  section("PAYMENT");
+  row([["Amount", formatNPR(input.amount)], ["Period", input.invoicePeriod]]);
+  // Stated as dates, never a month key: "paid up until when" is the question.
+  if (input.coversFrom && input.coversTo) {
+    row([["Covers", `${formatLongDate(input.coversFrom)} to ${formatLongDate(input.coversTo)}`]], true);
   }
+  row([["Reference", input.referenceCode], ["Verification code", input.voidedAt ? null : input.certificationCode]]);
+  row([["Method", input.method]], true);
 
   if (input.invoiceLines && input.invoiceLines.length > 1) {
-    cursor -= 8;
-    write("Bill", { bold: true, size: 12 });
-    cursor -= 20;
-
+    section("BILL");
+    const right = (text: string, font: Font) => {
+      page.drawText(sanitize(text), { color: ink, font, size: 10, x: 595.28 - margin - font.widthOfTextAtSize(sanitize(text), 10), y: cursor });
+    };
+    let total = 0;
     for (const line of input.invoiceLines) {
-      const amount = formatNPR(line.amount);
-
-      write(line.description.length > 72 ? `${line.description.slice(0, 71)}...` : line.description, {
-        color: muted,
-        size: 10,
-      });
-      page.drawText(sanitize(amount), {
-        color: ink,
-        font: regular,
-        size: 10,
-        x: 595.28 - margin - regular.widthOfTextAtSize(sanitize(amount), 10),
-        y: cursor,
-      });
+      total += line.amount;
+      write(line.description.length > 72 ? `${line.description.slice(0, 71)}...` : line.description, { size: 10 });
+      right(formatNPR(line.amount), regular);
       cursor -= 16;
     }
+    page.drawLine({ color: ink, end: { x: 595.28 - margin, y: cursor + 10 }, start: { x: margin, y: cursor + 10 }, thickness: 0.5 });
+    cursor -= 4;
+    write("Bill total", { bold: true, size: 10 });
+    right(formatNPR(total), bold);
+    cursor -= 16;
   }
 
   // A voided receipt still renders — a resident holding one is exactly who needs

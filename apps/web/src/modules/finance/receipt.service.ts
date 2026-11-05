@@ -7,7 +7,7 @@ import { bsPeriodBounds, hostelPeriodOf, isBsPeriod } from "@/lib/hostel-day";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { listResidentInvoices } from "@/modules/finance/ledger-read.service";
-import { renderReceiptPdf, renderStatementPdf } from "@/modules/finance/receipt-pdf";
+import { renderReceiptPdf, renderStatementPdf, roomLabel } from "@/modules/finance/receipt-pdf";
 import {
   maskedName,
   newCertificationCode,
@@ -274,8 +274,8 @@ export async function renderReceiptById(
       .select("name")
       .lean<{ name?: string } | null>(),
     ResidentModel.findOne({ _id: receipt.residentId })
-      .select("firstName fullName lastName")
-      .lean<{ firstName?: string; fullName?: string; lastName?: string } | null>(),
+      .select("firstName fullName lastName roomNumber roomType")
+      .lean<{ firstName?: string; fullName?: string; lastName?: string; roomNumber?: string | null; roomType?: string } | null>(),
     receipt.invoiceId
       ? InvoiceModel.findOne({ _id: receipt.invoiceId })
           .select("coversFrom coversTo lines period referenceCode")
@@ -322,6 +322,7 @@ export async function renderReceiptById(
       resident?.fullName ??
       [resident?.firstName, resident?.lastName].filter(Boolean).join(" ") ??
       "Resident",
+    room: roomLabel(resident?.roomNumber, resident?.roomType),
     voidReason: receipt.voidReason ?? null,
     voidedAt: receipt.voidedAt ?? null,
   });

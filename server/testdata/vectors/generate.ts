@@ -648,7 +648,7 @@ if (process.env.HP_ONLY === "config") {
   writeFileSync(join(here, "testdata/golden/pdf/receipt.pdf"), await receiptPdf.renderReceiptPdf({
     amount: 12500, coversFrom: new Date("2026-08-17T00:00:00.000Z"), coversTo: new Date("2026-09-16T00:00:00.000Z"), hostelName: "Education Light Hostel",
     invoiceLines: [{ amount: 12000, description: "Rent" }, { amount: 500, description: "Late fine with a very long description that should be cut before it runs off the page" }],
-    invoicePeriod: "Bhadra 2083 BS", issuedAt: stamp, method: "Paid by HostelPalika - Resident Offer Program", receiptNumber: "RCP-EDU-2083-05-00012", referenceCode: "EDU-0002-P", residentName: "Sita Sharma é",
+    invoicePeriod: "Bhadra 2083 BS", issuedAt: stamp, method: "Paid by HostelPalika - Resident Offer Program", receiptNumber: "RCP-EDU-2083-05-00012", referenceCode: "EDU-0002-P", residentName: "Sita Sharma é", room: "Room 204, Double Sharing",
   }));
   writeFileSync(join(here, "testdata/golden/pdf/receipt-certified.pdf"), await receiptPdf.renderReceiptPdf({
     amount: 9000, certificationCode: "HP-7KQ2-9XWM", hostelName: "Education Light Hostel", issuedAt: stamp, receiptNumber: "RCP-EDU-2083-05-00013", residentName: "Ram",

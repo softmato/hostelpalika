@@ -205,7 +205,7 @@ func TestReceiptAndStatementGolden(t *testing.T) {
 	from, to := time.Date(2026, 8, 17, 0, 0, 0, 0, time.UTC), time.Date(2026, 9, 16, 0, 0, 0, 0, time.UTC)
 	got, err := RenderReceiptPDF(ReceiptInput{Amount: 12500, CoversFrom: &from, CoversTo: &to, HostelName: "Education Light Hostel",
 		Lines: []ReceiptLine{{12000, "Rent"}, {500, "Late fine with a very long description that should be cut before it runs off the page"}}, InvoicePeriod: "Bhadra 2083 BS", IssuedAt: stamp,
-		Method: "Paid by HostelPalika - Resident Offer Program", ReceiptNumber: "RCP-EDU-2083-05-00012", ReferenceCode: "EDU-0002-P", ResidentName: "Sita Sharma é"})
+		Method: "Paid by HostelPalika - Resident Offer Program", ReceiptNumber: "RCP-EDU-2083-05-00012", ReferenceCode: "EDU-0002-P", ResidentName: "Sita Sharma é", Room: "Room 204, Double Sharing"})
 	goldenPDF(t, "receipt.pdf", got, err)
 	got, err = RenderReceiptPDF(ReceiptInput{Amount: 9000, CertificationCode: "HP-7KQ2-9XWM", HostelName: "Education Light Hostel", IssuedAt: stamp, ReceiptNumber: "RCP-EDU-2083-05-00013", ResidentName: "Ram"})
 	goldenPDF(t, "receipt-certified.pdf", got, err)
@@ -228,4 +228,12 @@ func TestReceiptAndStatementGolden(t *testing.T) {
 func itoa(i int) string {
 	b, _ := json.Marshal(i)
 	return string(b)
+}
+
+func TestRoomLabel(t *testing.T) {
+	for _, c := range [][3]string{{"204", "Double Sharing", "Room 204, Double Sharing"}, {"", "SINGLE", "Single"}, {"12", "", "Room 12"}, {"", "TWO_SEATER", "Two Seater"}, {"", "", ""}} {
+		if got := RoomLabel(c[0], c[1]); got != c[2] {
+			t.Errorf("RoomLabel(%q, %q) = %q, want %q", c[0], c[1], got, c[2])
+		}
+	}
 }

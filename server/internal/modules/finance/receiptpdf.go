@@ -91,6 +91,7 @@ type ReceiptInput struct {
 	ReceiptNumber        string
 	ReferenceCode        string
 	ResidentName         string
+	Room                 string // RoomLabel
 	VoidReason           string
 	VoidedAt             *time.Time
 }
@@ -140,49 +141,87 @@ func RenderReceiptPDF(in ReceiptInput) ([]byte, error) {
 	d.Text(receiptPageWidth-receiptMargin-d.Width(title, pdf.Bold, 10), cursor+4, title, pdf.Bold, 10, receiptInk)
 	cursor -= 20
 	write("Issued on behalf of "+in.HostelName, pdf.Regular, 12, receiptInk, cursor)
-	cursor -= 30
-	d.Line(receiptMargin, cursor, receiptPageWidth-receiptMargin, cursor, 1, pdf.RGB{R: 0.55, G: 0.55, B: 0.55})
-	cursor -= 30
-	rows := [][2]string{{"Receipt number", in.ReceiptNumber}, {"Issued", isoDay(in.IssuedAt)}, {"Resident", in.ResidentName}, {"Paid to", in.HostelName}, {"Amount", money.FormatNPR(in.Amount)}}
-	if in.InvoicePeriod != "" {
-		rows = append(rows, [2]string{"Period", in.InvoicePeriod})
+	cursor -= 22
+	d.Line(receiptMargin, cursor, receiptPageWidth-receiptMargin, cursor, 1.5, receiptInk)
+	cursor -= 26
+
+	// Laid out like the hostel's paper form: a shaded band per section, then
+	// label-over-value fields on a ruled line, two to a row.
+	contentWidth := receiptPageWidth - 2*receiptMargin
+	column := contentWidth / 2
+	band := pdf.RGB{R: 0.93, G: 0.95, B: 0.94}
+	rule := pdf.RGB{R: 0.7, G: 0.7, B: 0.7}
+	section := func(title string) {
+		d.Rect(receiptMargin, cursor-6, contentWidth, 20, nil, 0, &band)
+		d.Text(receiptMargin+8, cursor, title, pdf.Bold, 10, receiptInk)
+		cursor -= 28
 	}
-	if in.CoversFrom != nil && in.CoversTo != nil {
-		rows = append(rows, [2]string{"Covers from", longDate(*in.CoversFrom)}, [2]string{"Covers until", longDate(*in.CoversTo)})
-	}
-	if in.ReferenceCode != "" {
-		rows = append(rows, [2]string{"Reference", in.ReferenceCode})
-	}
-	if in.Method != "" {
-		rows = append(rows, [2]string{"Method", in.Method})
-	}
-	if in.CertificationCode != "" && in.VoidedAt == nil {
-		rows = append(rows, [2]string{"Verification code", in.CertificationCode})
-	}
-	for _, row := range rows {
-		write(row[0], pdf.Regular, 12, receiptInk, cursor)
-		size := 12.0
-		if row[0] == "Amount" {
-			size = 15
+	row := func(full bool, fields ...[2]string) {
+		shown := fields[:0:0]
+		for _, f := range fields {
+			if f[1] != "" {
+				shown = append(shown, f)
+			}
 		}
-		d.Text(receiptMargin+150, cursor, pdfSanitize(row[1]), pdf.Bold, size, receiptInk)
-		cursor -= 24
+		if len(shown) == 0 {
+			return
+		}
+		for i, f := range shown {
+			x := receiptMargin + float64(i)*column
+			width := column
+			if full {
+				width = contentWidth
+			}
+			size := 12.0
+			if f[0] == "Amount" {
+				size = 16
+			}
+			d.Text(x, cursor, f[0], pdf.Regular, 9, receiptInk)
+			d.Text(x, cursor-16, pdfSanitize(f[1]), pdf.Bold, size, receiptInk)
+			d.Line(x, cursor-22, x+width-16, cursor-22, 0.5, rule)
+		}
+		cursor -= 36
 	}
+	section("RECEIPT DETAILS")
+	row(false, [2]string{"Receipt number", in.ReceiptNumber}, [2]string{"Issued on", longDate(in.IssuedAt)})
+	section("RECEIVED FROM")
+	row(false, [2]string{"Resident", in.ResidentName}, [2]string{"Room", in.Room})
+	row(true, [2]string{"Paid to", in.HostelName})
+	section("PAYMENT")
+	row(false, [2]string{"Amount", money.FormatNPR(in.Amount)}, [2]string{"Period", in.InvoicePeriod})
+	if in.CoversFrom != nil && in.CoversTo != nil {
+		row(true, [2]string{"Covers", longDate(*in.CoversFrom) + " to " + longDate(*in.CoversTo)})
+	}
+	verification := in.CertificationCode
+	if in.VoidedAt != nil {
+		verification = ""
+	}
+	row(false, [2]string{"Reference", in.ReferenceCode}, [2]string{"Verification code", verification})
+	row(true, [2]string{"Method", in.Method})
 	if len(in.Lines) > 1 {
-		cursor -= 8
-		write("Bill", pdf.Bold, 12, receiptInk, cursor)
-		cursor -= 20
+		section("BILL")
+		right := func(text string, font pdf.Font) {
+			text = pdfSanitize(text)
+			d.Text(receiptPageWidth-receiptMargin-d.Width(text, font, 10), cursor, text, font, 10, receiptInk)
+		}
+		var total int64
 		for _, l := range in.Lines {
+			total += l.Amount
 			desc := l.Description
 			if valid.JSLen(desc) > 72 {
 				desc = valid.JSPrefix(desc, 71) + "..."
 			}
 			write(desc, pdf.Regular, 10, receiptInk, cursor)
-			amount := pdfSanitize(money.FormatNPR(l.Amount))
-			d.Text(receiptPageWidth-receiptMargin-d.Width(amount, pdf.Regular, 10), cursor, amount, pdf.Regular, 10, receiptInk)
+			right(money.FormatNPR(l.Amount), pdf.Regular)
 			cursor -= 16
 		}
+		d.Line(receiptMargin, cursor+10, receiptPageWidth-receiptMargin, cursor+10, 0.5, receiptInk)
+		cursor -= 4
+		write("Bill total", pdf.Bold, 10, receiptInk, cursor)
+		right(money.FormatNPR(total), pdf.Bold)
+		cursor -= 16
 	}
+
 	if in.VoidedAt != nil {
 		cursor -= 18
 		write("VOID", pdf.Bold, 16, pdf.RGB{R: 0.7, G: 0.15, B: 0.15}, cursor)
@@ -337,9 +376,11 @@ func renderReceipt(ctx context.Context, db *mongo.Database, filter bson.D) ([]by
 		return nil, "", err
 	}
 	var person struct {
-		First string  `bson:"firstName"`
-		Full  *string `bson:"fullName"`
-		Last  string  `bson:"lastName"`
+		First    string  `bson:"firstName"`
+		Full     *string `bson:"fullName"`
+		Last     string  `bson:"lastName"`
+		RoomNo   *string `bson:"roomNumber"`
+		RoomType string  `bson:"roomType"`
 	}
 	if err := db.Collection("residents").FindOne(ctx, bson.D{{Key: "_id", Value: rc.ResidentID}}).Decode(&person); err != nil && err != mongo.ErrNoDocuments {
 		return nil, "", err
@@ -359,6 +400,7 @@ func renderReceipt(ctx context.Context, db *mongo.Database, filter bson.D) ([]by
 		}
 		in.ResidentName = strings.Join(names, " ")
 	}
+	in.Room = RoomLabel(deref(person.RoomNo), person.RoomType)
 	period := ""
 	if rc.InvoiceID != nil {
 		var inv struct {
@@ -394,4 +436,25 @@ func renderReceipt(ctx context.Context, db *mongo.Database, filter bson.D) ([]by
 	}
 	out, err := RenderReceiptPDF(in)
 	return out, rc.Number, err
+}
+
+// RoomLabel is roomLabel: the room as written on the paper form, number first
+// (`Room 204, Double Sharing`); an all-caps type such as `SINGLE` reads `Single`.
+func RoomLabel(number, roomType string) string {
+	t := strings.TrimSpace(strings.ReplaceAll(roomType, "_", " "))
+	if t != "" && t == strings.ToUpper(t) {
+		words := strings.Fields(strings.ToLower(t))
+		for i, w := range words {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+		t = strings.Join(words, " ")
+	}
+	number = strings.TrimSpace(number)
+	switch {
+	case number != "" && t != "":
+		return "Room " + number + ", " + t
+	case number != "":
+		return "Room " + number
+	}
+	return t
 }
