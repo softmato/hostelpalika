@@ -313,13 +313,28 @@ func (a *Admin) byField(out *ordered.Map, l ledgerScope, field string) func(cont
 		if field == "method" {
 			status = "SETTLED"
 		}
-		ev := append(append(bson.D{}, l.hostel...), bson.E{Key: "direction", Value: "CREDIT"}, bson.E{Key: "status", Value: status}, bson.E{Key: "invoiceId", Value: bson.D{{Key: "$ne", Value: nil}}})
+		// The scope's invoices first, then their events by invoiceId: an event is
+		// in scope through its invoice (as TS joined it), not through a hostelId
+		// it may not carry.
+		cur, err := a.invoices(ctx, l.join(-1).stages(bson.D{{Key: "$project", Value: bson.D{{Key: "status", Value: 1}}}}))
+		invoices, err := decodeAll[struct {
+			ID     bson.ObjectID `bson:"_id"`
+			Status string        `bson:"status"`
+		}](ctx, cur, err)
+		if err != nil {
+			return err
+		}
+		ids := make(bson.A, len(invoices))
+		for i, inv := range invoices {
+			ids[i] = inv.ID
+		}
+		ev := bson.D{{Key: "invoiceId", Value: bson.D{{Key: "$in", Value: ids}}}, {Key: "direction", Value: "CREDIT"}, {Key: "status", Value: status}}
 		pipe := bson.A{bson.D{{Key: "$match", Value: ev}}}
 		if field == "method" { // the last settlement's provider, as the ledger's lastSettled
 			pipe = append(pipe, bson.D{{Key: "$sort", Value: bson.D{{Key: "settledAt", Value: -1}}}})
 		}
 		pipe = append(pipe, bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$invoiceId"}, {Key: "provider", Value: bson.D{{Key: "$first", Value: "$provider"}}}}}})
-		cur, err := a.DB.Collection("paymentevents").Aggregate(ctx, pipe)
+		cur, err = a.DB.Collection("paymentevents").Aggregate(ctx, pipe)
 		events, err := decodeAll[struct {
 			ID       bson.ObjectID `bson:"_id"`
 			Provider string        `bson:"provider"`
@@ -330,14 +345,6 @@ func (a *Admin) byField(out *ordered.Map, l ledgerScope, field string) func(cont
 		byInvoice := make(map[bson.ObjectID]string, len(events))
 		for _, e := range events {
 			byInvoice[e.ID] = e.Provider
-		}
-		cur, err = a.invoices(ctx, l.join(-1).stages(bson.D{{Key: "$project", Value: bson.D{{Key: "status", Value: 1}}}}))
-		invoices, err := decodeAll[struct {
-			ID     bson.ObjectID `bson:"_id"`
-			Status string        `bson:"status"`
-		}](ctx, cur, err)
-		if err != nil {
-			return err
 		}
 		type group struct {
 			pending bool

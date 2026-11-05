@@ -989,7 +989,8 @@
     "masks": [
       "**dates",
       "data.rows.1.payment.dueAmount",
-      "data.rows.1.payment.lines"
+      "data.rows.1.payment.lines",
+      "data.totals.due"
     ],
     "response": {
       "status": 200,

@@ -145,7 +145,7 @@ func firstBy[T any](ctx context.Context, db *mongo.Database, coll string, ids bs
 // directory is listPlatformDirectory: every account, and residents with none,
 // with the resident facts a platform admin answers calls about.
 func (h *Handler) directory(c *gin.Context) {
-	ucur, err := h.DB.Collection("users").Find(c, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}).SetLimit(listLimit))
+	ucur, err := h.DB.Collection("users").Find(c, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}, {Key: "_id", Value: -1}}).SetLimit(listLimit))
 	if err != nil {
 		httpx.Fail(c, err)
 		return

@@ -291,16 +291,19 @@ Four read-only audits before Phase 11 (auth/tenancy, edge input, rate limit + Re
 | ☑ | P11-3 | Medium | Web Push posted to any https endpoint a client registered, following redirects → blind SSRF | `push.IsPushService` allowlist (FCM, Mozilla, WNS, Apple) at send, no redirects. All 23 production WEB rows are FCM or Apple | `isPushService` at send |
 | ☑ | P11-4 | Medium | Upload verify read the object unbounded; a refused object stayed in R2 | `LimitReader(size+1)` + length re-check; refused object deleted. ContentLength stays unsigned on purpose (`lib/r2.ts` note) | — |
 | ☑ | P11-5 | Medium | `excelize` 16 GB unzip default: xlsx zip bomb | 64 MB / 32 MB caps in `sheets` and `stmtparse` | n/a (SheetJS) |
-| ☐ | P11-6 | High | Guard trusts JWT role/hostels for the access TTL; revoke/demote/`tokenVersion` bump not read (P7-29 tick is wrong) | check `tokenVersion` per user, cached, bumped on revoke/role change | same |
-| ☐ | P11-7 | High | Pre-account takeover: Google sign-in verifies an unverified LOCAL row and keeps the squatter's password | unset `passwordHash` + `RevokeAll` on that link | same |
-| ☐ | P11-8 | High | `setPassword` does not revoke temporary credentials | revoke them | same |
-| ☐ | P11-9 | High | Rate-limit key holds the full User-Agent (≤1 MB): fills Redis / memory map | hash UA, `MaxHeaderBytes` 64 KB | — |
-| ☐ | P11-10 | High | Login/OTP failure budget is check-then-act: a parallel burst gets unlimited guesses | increment first, account-wide key | same (`auth-attempts.ts`) |
-| ☐ | P11-11 | High | Resident dashboard 12 sequential Mongo trips, resident invoices 7, admin invoices 9 (each × Kathmandu→Mumbai RTT) | parallel waves | — |
-| ☐ | P11-12 | High | `Distinct(visitorKey)` on `hostelpageviews` grows to the 16 MB cap | `$group`+`$count` | same |
-| ☐ | P11-13 | High | Pusher/email sends inside the request with no request deadline | `BG.After` | — |
-| ☐ | P11-14 | High | `background.Parallel` unbounded (dunning: one goroutine per hostel vs pool 50) | bound it | — |
+| ☑ | P11-6 | High | Guard trusts JWT role/hostels for the access TTL; revoke/demote/`tokenVersion` bump not read (P7-29 tick is wrong) | check `tokenVersion` per user, cached, bumped on revoke/role change | same |
+| ☑ | P11-7 | High | Pre-account takeover: Google sign-in verifies an unverified LOCAL row and keeps the squatter's password | unset `passwordHash` + `RevokeAll` on that link | same |
+| ☑ | P11-8 | High | `setPassword` does not revoke temporary credentials | revoke them | same |
+| ☑ | P11-9 | High | Rate-limit key holds the full User-Agent (≤1 MB): fills Redis / memory map | hash UA, `MaxHeaderBytes` 64 KB | — |
+| ☑ | P11-10 | High | Login/OTP failure budget is check-then-act: a parallel burst gets unlimited guesses | increment first, account-wide key | same (`auth-attempts.ts`) |
+| ☑ | P11-11 | High | Resident dashboard 12 sequential Mongo trips, resident invoices 7, admin invoices 9 (each × Kathmandu→Mumbai RTT) | parallel waves | — |
+| ☑ | P11-12 | High | `Distinct(visitorKey)` on `hostelpageviews` grows to the 16 MB cap | `$group`+`$count` | same |
+| ☑ | P11-13 | High | Pusher/email sends inside the request with no request deadline | `BG.After` | — |
+| ☑ | P11-14 | High | `background.Parallel` unbounded (dunning: one goroutine per hostel vs pool 50) | bound it | — |
 | ☐ | P11-15 | — | Atlas M0 (≈100 ops/s, shared 500 connections) under Go's projected load: outside the repo, tier decision for the owner | — | — |
 | ☐ | P11-16 | Medium | Lock-PIN password proof unthrottled; refresh N-1 grace unbounded; Bearer skips PIN lock; `receipt/read` unlimited (TS 30/h); OTP send check-then-act; every non-GET bumps hostel cache version (usage events too); `?RawQuery` cache keys unbounded; `volatile-lru` evicts locks/limits; Redis no `requirepass` | per item | where shared |
 | ☐ | P11-17 | Medium | Latency: hostel gate read per request uncached, `platformconfig.Section` uncached, public list no projection/cache, `/auth/me` reads hostels twice, Mongo client no compression/`SetTimeout`, shutdown skips drain on `Shutdown` error, singleflight on first caller's context | per item | — |
 | ☐ | P11-18 | Low | E11000 logged with the email; metrics label raw method; storage ext from filename; pdftotext unbounded stdout; reset link not CAS; `/resident/activate` unthrottled; forgot-password enumerates | per item | where shared |
+| ☑ | P11-19 | Low | `/hostel-admin/residents` and `/platform/users` sorted on `createdAt` alone: ties came back in scan order, so CI and local disagreed | `_id` tiebreaker (newest first); recordings re-taken from Go (`CONTRACT_ACCEPT`) | not changed (TS is discarded at cut-over) |
+| ☑ | P11-20 | Medium | Platform payments overview filtered pending events by `hostelId`, so an event without one (fixture; TS joined through the invoice) dropped out of `PENDING_PROOF` | events looked up by the scope's invoice ids | — |
+| ☑ | P11-21 | Low | Contract recordings depended on the clock: cart delivery promise ("today"/"tomorrow"), intake invoice total due | masked, as the row's due already was | — |

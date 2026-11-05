@@ -29,11 +29,20 @@ const RecordURI = "mongodb://127.0.0.1:27018/hostelpalika_contract?directConnect
 
 // URI is where the Go replay reads the fixture database. CONTRACT_DB gives a
 // parallel run its own database, since every file drops and reseeds it.
+// CONTRACT_MONGO_ADDR moves it off 127.0.0.1:27018, for a run inside a
+// container (Windows cannot load libvips, so the suite runs in Linux there).
 var URI = func() string {
-	if db := os.Getenv("CONTRACT_DB"); db != "" {
-		return "mongodb://127.0.0.1:27018/" + db + "?directConnection=true"
+	addr, db := os.Getenv("CONTRACT_MONGO_ADDR"), os.Getenv("CONTRACT_DB")
+	if addr == "" && db == "" {
+		return RecordURI
 	}
-	return RecordURI
+	if addr == "" {
+		addr = "127.0.0.1:27018"
+	}
+	if db == "" {
+		db = "hostelpalika_contract"
+	}
+	return "mongodb://" + addr + "/" + db + "?directConnection=true"
 }()
 
 // groupSeeds adds rows for one testdata/contract/<group> only, on top of Reset,

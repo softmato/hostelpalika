@@ -53,7 +53,7 @@ func (s *Service) List(ctx context.Context, q ListQuery, p *authz.Principal) (*L
 	}
 	rng := pagination.RangeOf(q.Page)
 	coll := s.DB.Collection("residents")
-	cur, err := coll.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}).SetSkip(int64(rng.Skip)).SetLimit(int64(rng.Limit)))
+	cur, err := coll.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}, {Key: "_id", Value: -1}}).SetSkip(int64(rng.Skip)).SetLimit(int64(rng.Limit)))
 	if err != nil {
 		return nil, err
 	}
