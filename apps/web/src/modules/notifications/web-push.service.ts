@@ -185,6 +185,10 @@ export async function sendWebPush(
         return "skipped" as const;
       }
 
+      // The endpoint is whatever the browser (or a forged request) sent: post
+      // only to the real push services, never anywhere else (SSRF).
+      if (!isPushService(target.token)) return "skipped" as const;
+
       const subscription: WebPushSubscription = {
         endpoint: target.token,
         expirationTime: target.expirationTime ?? null,
@@ -228,4 +232,19 @@ export async function sendWebPush(
   }
 
   return { revoked: dead, sent };
+}
+
+const PUSH_HOSTS = ["fcm.googleapis.com", "push.services.mozilla.com", "notify.windows.com", "push.apple.com"];
+
+/** Whether `endpoint` is an https URL on a browser push service (Go: push.IsPushService). */
+export function isPushService(endpoint: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:" || url.port !== "") return false;
+  const host = url.hostname.toLowerCase();
+  return PUSH_HOSTS.some((d) => host === d || host.endsWith(`.${d}`));
 }

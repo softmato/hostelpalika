@@ -34,7 +34,9 @@ var (
 
 var pointParams = []string{"q", "query", "ll", "sll", "center", "daddr", "destination", "viewpoint"}
 
-var shorteners = []string{"goo.gl", "maps.app.goo.gl", "g.co", "share.google", "bit.ly", "osm.org"}
+// Google and OSM only: a general shortener (bit.ly) would let anyone point the
+// server at any host (SSRF). Redirects are held to the same hosts by mapRedirect.
+var shorteners = []string{"goo.gl", "maps.app.goo.gl", "g.co", "share.google", "osm.org"}
 
 func toCoordinates(lat, lng string) (Coordinates, bool) {
 	c := Coordinates{valid.JSNumber(lat), valid.JSNumber(lng)}

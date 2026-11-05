@@ -104,8 +104,8 @@ describe("browser push delivery", () => {
 
   it("routes the same notification to each recipient's own portal", async () => {
     devicesResolveTo([
-      browser("resident-1", "https://push.example/r"),
-      browser("admin-1", "https://push.example/a"),
+      browser("resident-1", "https://fcm.googleapis.com/fcm/send/r"),
+      browser("admin-1", "https://fcm.googleapis.com/fcm/send/a"),
     ]);
     usersResolveTo([
       { _id: "resident-1", role: "RESIDENT" },
@@ -124,16 +124,16 @@ describe("browser push delivery", () => {
 
     expect(new Map(urls)).toEqual(
       new Map([
-        ["https://push.example/r", "/resident/payments"],
-        ["https://push.example/a", "/hostel-admin/payments"],
+        ["https://fcm.googleapis.com/fcm/send/r", "/resident/payments"],
+        ["https://fcm.googleapis.com/fcm/send/a", "/hostel-admin/payments"],
       ]),
     );
   });
 
   it("sends the installed app's subscription to the app's own screen, not the portal", async () => {
     devicesResolveTo([
-      browser("resident-1", "https://push.example/site"),
-      { ...browser("resident-1", "https://push.example/app"), capabilities: ["pwa"] },
+      browser("resident-1", "https://fcm.googleapis.com/fcm/send/site"),
+      { ...browser("resident-1", "https://fcm.googleapis.com/fcm/send/app"), capabilities: ["pwa"] },
     ]);
     usersResolveTo([{ _id: "resident-1", role: "RESIDENT" }]);
 
@@ -145,14 +145,14 @@ describe("browser push delivery", () => {
       ),
     );
 
-    expect(urls.get("https://push.example/site")).toMatch(/^\/resident\//);
-    expect(urls.get("https://push.example/app")).toMatch(/^\/app\?push=%2F/);
+    expect(urls.get("https://fcm.googleapis.com/fcm/send/site")).toMatch(/^\/resident\//);
+    expect(urls.get("https://fcm.googleapis.com/fcm/send/app")).toMatch(/^\/app\?push=%2F/);
   });
 
   it("reaches a phone and a browser held by the same person", async () => {
     devicesResolveTo([
       { platform: "ANDROID", token: "ExponentPushToken[a]", userId: "user-1" },
-      browser("user-1", "https://push.example/b"),
+      browser("user-1", "https://fcm.googleapis.com/fcm/send/b"),
     ]);
     usersResolveTo([{ _id: "user-1", role: "RESIDENT" }]);
     vi.stubGlobal(
@@ -173,8 +173,8 @@ describe("browser push delivery", () => {
 
   it("revokes an endpoint the push service reports as gone, and only that one", async () => {
     devicesResolveTo([
-      browser("user-1", "https://push.example/live"),
-      browser("user-1", "https://push.example/dead"),
+      browser("user-1", "https://fcm.googleapis.com/fcm/send/live"),
+      browser("user-1", "https://fcm.googleapis.com/fcm/send/dead"),
     ]);
     usersResolveTo([{ _id: "user-1", role: "RESIDENT" }]);
     mocks.sendNotification.mockImplementation((subscription: { endpoint: string }) =>
@@ -189,12 +189,12 @@ describe("browser push delivery", () => {
 
     const [filter, update] = mocks.updateMany.mock.calls[0];
 
-    expect(filter.token).toEqual({ $in: ["https://push.example/dead"] });
+    expect(filter.token).toEqual({ $in: ["https://fcm.googleapis.com/fcm/send/dead"] });
     expect(update.$set.status).toBe("REVOKED");
   });
 
   it("leaves an endpoint alone when the push service is merely unhappy", async () => {
-    devicesResolveTo([browser("user-1", "https://push.example/busy")]);
+    devicesResolveTo([browser("user-1", "https://fcm.googleapis.com/fcm/send/busy")]);
     usersResolveTo([{ _id: "user-1", role: "RESIDENT" }]);
     mocks.sendNotification.mockRejectedValue(
       Object.assign(new Error("Too Many Requests"), { statusCode: 429 }),
@@ -214,7 +214,7 @@ describe("browser push delivery", () => {
    */
   it("bounds how many browsers it dials at once", async () => {
     const endpoints = Array.from({ length: 120 }, (_, index) =>
-      browser("user-1", `https://push.example/${index}`),
+      browser("user-1", `https://fcm.googleapis.com/fcm/send/${index}`),
     );
     devicesResolveTo(endpoints);
     usersResolveTo([{ _id: "user-1", role: "RESIDENT" }]);
@@ -238,7 +238,7 @@ describe("browser push delivery", () => {
 
   it("skips a row whose encryption keys never arrived rather than revoking it", async () => {
     devicesResolveTo([
-      { keys: {}, platform: "WEB", token: "https://push.example/keyless", userId: "u" },
+      { keys: {}, platform: "WEB", token: "https://fcm.googleapis.com/fcm/send/keyless", userId: "u" },
     ]);
     usersResolveTo([{ _id: "u", role: "RESIDENT" }]);
 
@@ -258,7 +258,7 @@ describe("browser push delivery", () => {
   it("stays quiet when the deployment has no VAPID pair", async () => {
     vi.resetModules();
     vi.stubEnv("VAPID_PRIVATE_KEY", "");
-    devicesResolveTo([browser("user-1", "https://push.example/a")]);
+    devicesResolveTo([browser("user-1", "https://fcm.googleapis.com/fcm/send/a")]);
     usersResolveTo([{ _id: "user-1", role: "RESIDENT" }]);
 
     const { sendPushToUsers: send } = await import(

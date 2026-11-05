@@ -51,6 +51,11 @@ jobs:
           set -o pipefail
           GIN_MODE=release go test -race -tags=sonic -v ./... | tee test.txt | grep -E '^(ok|FAIL|panic)|--- FAIL|^ +[a-z_]+_test\.go:[0-9]+:'
           ! grep -E -- '--- SKIP: (TestContract|TestAnonymousIsRefused)' test.txt
+      # The filter above keeps only the first line of each failure; this prints the diffs.
+      - name: Failing test detail
+        if: failure()
+        shell: bash
+        run: grep -A40 -E -- '_test\.go:[0-9]+: .*(body|status|cookie)' test.txt | head -800 || true
       - name: Static analysis
         run: go run honnef.co/go/tools/cmd/staticcheck@latest ./...
       - name: Known vulnerabilities

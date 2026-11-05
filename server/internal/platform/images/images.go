@@ -26,9 +26,26 @@ func start() {
 	})
 }
 
+// MaxPixels refuses an image before its pixels are decoded: a few MB of PNG can
+// declare 50000×50000, and decoding that would take the container down. 64 MP
+// covers a 50 MP phone photo. sharp's limitInputPixels did this for TS.
+const MaxPixels = 1 << 26
+
+// ErrTooLarge is an image whose declared size is over MaxPixels.
+var ErrTooLarge = errors.New("images: image is over the pixel limit")
+
+// load reads only the header (libvips loads lazily), so the size check costs nothing.
 func load(b []byte) (*vips.ImageRef, error) {
 	start()
-	return vips.NewImageFromBuffer(b)
+	img, err := vips.NewImageFromBuffer(b)
+	if err != nil {
+		return nil, err
+	}
+	if int64(img.Width())*int64(img.Height()) > MaxPixels {
+		img.Close()
+		return nil, ErrTooLarge
+	}
+	return img, nil
 }
 
 // VariantName is THUMBNAIL | MEDIUM | LARGE.

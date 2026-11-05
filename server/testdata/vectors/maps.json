@@ -238,10 +238,7 @@
   },
   {
    "url": "http://bit.ly/3abc",
-   "out": {
-    "kind": "shortLink",
-    "url": "http://bit.ly/3abc"
-   }
+   "out": null
   },
   {
    "url": "https://g.co/kgs/abc",

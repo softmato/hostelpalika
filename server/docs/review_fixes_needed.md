@@ -116,14 +116,19 @@ the outside work. No repo item waits for the owner. In the order to do them:
    without `-dry-run` (or `npm --prefix apps/web run db:indexes`, same result while TS
    lives). It creates PLAN-1's `subscriptionpayments.invoiceId_1_inReview`, P10-2's
    `receipts.invoiceId_1`, P10-4's three and P10-6's one. Only creates.
-2. **The VPS runs (R32 / Phase 10 load item).** Once the Kathmandu VPS exists: deploy
-   with `RUNBOOK.md` §1, then from a machine in Nepal run `testdata/k6/load.js` in all
+2. **Turn on continuous deploy.** Once the Kathmandu VPS exists: the one-time setup in
+   `RUNBOOK.md` §1 (Docker, deploy user, `~/hostelpalika/.env`, the `VPS_*` secrets and
+   `DEPLOY_ENABLED=true` in GitHub). From then on every green push to `main` that touches
+   `server/` rolls the VPS with no gap; rollback is "Run workflow" with an older sha.
+   Until Phase 11 Caddy sends only `/api/v1/health` to Go, so this is safe to enable
+   before cut-over.
+3. **The VPS runs (R32 / Phase 10 load item).** Once deployed, then from a machine in Nepal run `testdata/k6/load.js` in all
    four modes against `https://api.hostelpalika.com` with tokens minted on a staging
    copy (never production accounts), record them in `testdata/k6/results/` as
    `go-vps-*.json`, and set the p99 targets from what they show. Also time VPS → Atlas
    (`mongosh` ping) as `ENVIRONMENT.md` §3 asks; repeat the Redis/Mongo/SIGTERM rows of
    `RUNBOOK.md` §4 there.
-3. **Prometheus + alerting** on the VPS scraping `:9090`, with the alerts in
+4. **Prometheus + alerting** on the VPS scraping `:9090`, with the alerts in
    `RUNBOOK.md` §3, and somewhere for them to go (email or phone).
 
 **Where the owner comes in:** outside work Claude cannot reach, such as Vercel with no
@@ -274,3 +279,28 @@ owner runs `cmd/indexes` (or `npm --prefix apps/web run db:indexes`) on producti
 | ☑ | P10-10 | Medium | No metric for scheduled jobs (`MISSION.md` §11 asks for job throughput and failures), so nothing could alert on a failed or missing run | `hostelpalika_job_runs_total{job,status}` | — |
 | ☑ | P10-11 | Medium | CI red since Phase 6: the Format step failed on ten files on `main` that were not gofmt-clean, so vet, race tests, staticcheck and govulncheck never ran (R17) | gofmt'd | — |
 | ☑ | P10-12 | Medium | go-redis ignores a context deadline on the socket unless `ContextTimeoutEnabled` is set, so the cache's 150 ms Redis wait (`cache.Timeout`) was really 500 ms × retries, and the rate limiter used the request's context with no cap at all: with Redis hung each limited request took ~4 s (p99 2.7 s under load, 0 errors) | `ContextTimeoutEnabled` in `redis.Connect`; the limiter waits at most 150 ms, then counts in memory. Unit test against a Redis that never answers: 0.16 s, was 4.3 s | — (Upstash REST client has its own timeout) |
+
+## Pre-cut-over audit (2026-11-04)
+
+Four read-only audits before Phase 11 (auth/tenancy, edge input, rate limit + Redis, latency). Severity per `MISSION.md` §3. Columns: done | id | sev | finding | Go | TS.
+
+| | Id | Sev | Finding | Go | TS |
+|---|---|---|---|---|---|
+| ☑ | P11-1 | High | libvips decoded any upload with no pixel cap: a 2 MB PNG declaring 50000×50000 OOM-kills the container | `images.load` refuses over 64 MP from the header (lazy load), `TestRefusesHugeDeclaredSize` | sharp's default `limitInputPixels` already caps |
+| ☑ | P11-2 | Medium | Map short links: `bit.ly` allowed and redirects followed anywhere → SSRF to metadata / internal hosts | bit.ly dropped; `mapRedirect` keeps redirects on https Google/OSM hosts | bit.ly dropped |
+| ☑ | P11-3 | Medium | Web Push posted to any https endpoint a client registered, following redirects → blind SSRF | `push.IsPushService` allowlist (FCM, Mozilla, WNS, Apple) at send, no redirects. All 23 production WEB rows are FCM or Apple | `isPushService` at send |
+| ☑ | P11-4 | Medium | Upload verify read the object unbounded; a refused object stayed in R2 | `LimitReader(size+1)` + length re-check; refused object deleted. ContentLength stays unsigned on purpose (`lib/r2.ts` note) | — |
+| ☑ | P11-5 | Medium | `excelize` 16 GB unzip default: xlsx zip bomb | 64 MB / 32 MB caps in `sheets` and `stmtparse` | n/a (SheetJS) |
+| ☐ | P11-6 | High | Guard trusts JWT role/hostels for the access TTL; revoke/demote/`tokenVersion` bump not read (P7-29 tick is wrong) | check `tokenVersion` per user, cached, bumped on revoke/role change | same |
+| ☐ | P11-7 | High | Pre-account takeover: Google sign-in verifies an unverified LOCAL row and keeps the squatter's password | unset `passwordHash` + `RevokeAll` on that link | same |
+| ☐ | P11-8 | High | `setPassword` does not revoke temporary credentials | revoke them | same |
+| ☐ | P11-9 | High | Rate-limit key holds the full User-Agent (≤1 MB): fills Redis / memory map | hash UA, `MaxHeaderBytes` 64 KB | — |
+| ☐ | P11-10 | High | Login/OTP failure budget is check-then-act: a parallel burst gets unlimited guesses | increment first, account-wide key | same (`auth-attempts.ts`) |
+| ☐ | P11-11 | High | Resident dashboard 12 sequential Mongo trips, resident invoices 7, admin invoices 9 (each × Kathmandu→Mumbai RTT) | parallel waves | — |
+| ☐ | P11-12 | High | `Distinct(visitorKey)` on `hostelpageviews` grows to the 16 MB cap | `$group`+`$count` | same |
+| ☐ | P11-13 | High | Pusher/email sends inside the request with no request deadline | `BG.After` | — |
+| ☐ | P11-14 | High | `background.Parallel` unbounded (dunning: one goroutine per hostel vs pool 50) | bound it | — |
+| ☐ | P11-15 | — | Atlas M0 (≈100 ops/s, shared 500 connections) under Go's projected load: outside the repo, tier decision for the owner | — | — |
+| ☐ | P11-16 | Medium | Lock-PIN password proof unthrottled; refresh N-1 grace unbounded; Bearer skips PIN lock; `receipt/read` unlimited (TS 30/h); OTP send check-then-act; every non-GET bumps hostel cache version (usage events too); `?RawQuery` cache keys unbounded; `volatile-lru` evicts locks/limits; Redis no `requirepass` | per item | where shared |
+| ☐ | P11-17 | Medium | Latency: hostel gate read per request uncached, `platformconfig.Section` uncached, public list no projection/cache, `/auth/me` reads hostels twice, Mongo client no compression/`SetTimeout`, shutdown skips drain on `Shutdown` error, singleflight on first caller's context | per item | — |
+| ☐ | P11-18 | Low | E11000 logged with the email; metrics label raw method; storage ext from filename; pdftotext unbounded stdout; reset link not CAS; `/resident/activate` unthrottled; forgot-password enumerates | per item | where shared |

@@ -53,7 +53,6 @@ const SHORTENERS = [
   "maps.app.goo.gl",
   "g.co",
   "share.google",
-  "bit.ly",
   "osm.org",
 ];
 

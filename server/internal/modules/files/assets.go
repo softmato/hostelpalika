@@ -1,8 +1,10 @@
 package files
 
 import (
+	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -380,6 +382,11 @@ func (a *Assets) complete(c *gin.Context) {
 	if err != nil {
 		var ve *storage.VerificationError
 		if errors.As(err, &ve) {
+			// The bytes failed the check: they are not kept (a presigned PUT can
+			// carry any size, so a refused object must not stay in the bucket).
+			if derr := a.R2.Delete(context.WithoutCancel(c.Request.Context()), row.Bucket, row.Key); derr != nil {
+				slog.Warn("refused upload not deleted", "asset", row.ID.Hex(), "error", derr)
+			}
 			if err := tombstone(); err != nil {
 				httpx.Fail(c, err)
 				return

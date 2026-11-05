@@ -7,6 +7,7 @@ package maps
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -62,7 +63,7 @@ type Client struct {
 }
 
 func NewClient(googleKey, siteURL string) *Client {
-	return &Client{HTTP: &http.Client{Timeout: upstreamTimeout}, GoogleKey: googleKey,
+	return &Client{HTTP: &http.Client{Timeout: upstreamTimeout, CheckRedirect: mapRedirect}, GoogleKey: googleKey,
 		UserAgent: "HostelPalika/1.0 (hostel discovery; +" + siteURL + ")"}
 }
 
@@ -381,4 +382,24 @@ func (c *Client) reverseGoogle(ctx context.Context, at Coordinates) (*AddressPar
 		return nil, "", false
 	}
 	return &a, data.Results[0].Formatted, true
+}
+
+// redirectHosts are where a map short link may lead. Anything else (an internal
+// host, a metadata address, plain http) stops the redirect: a short link the
+// user pasted must not turn the server into a fetcher of arbitrary URLs.
+var redirectHosts = []string{"google.com", "google.com.np", "goo.gl", "g.co", "share.google", "openstreetmap.org", "osm.org"}
+
+func mapRedirect(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("maps: too many redirects")
+	}
+	host := strings.ToLower(req.URL.Hostname())
+	if req.URL.Scheme == "https" {
+		for _, d := range redirectHosts {
+			if host == d || strings.HasSuffix(host, "."+d) {
+				return nil
+			}
+		}
+	}
+	return http.ErrUseLastResponse
 }

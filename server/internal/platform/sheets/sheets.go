@@ -55,7 +55,7 @@ const dateLayout = "2006-01-02 15:04:05"
 var builtinDateFormats = map[int]bool{14: true, 22: true}
 
 func readXLSX(b []byte, maxRows int) ([]Sheet, error) {
-	f, err := excelize.OpenReader(bytes.NewReader(b))
+	f, err := excelize.OpenReader(bytes.NewReader(b), xlsxLimits)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUnreadable, err)
 	}
@@ -271,3 +271,7 @@ func Write(sheets []WriteSheet) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+
+// xlsxLimits caps what an .xlsx may unzip to (excelize defaults to 16 GB): a
+// zip bomb uploaded as a statement would otherwise exhaust memory and /tmp.
+var xlsxLimits = excelize.Options{UnzipSizeLimit: 64 << 20, UnzipXMLSizeLimit: 32 << 20}

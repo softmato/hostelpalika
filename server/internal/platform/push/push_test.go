@@ -137,8 +137,28 @@ func TestSendWeb(t *testing.T) {
 		P256dh string `bson:"p256dh"`
 	}{base64.RawURLEncoding.EncodeToString(auth), base64.RawURLEncoding.EncodeToString(sub.PublicKey().Bytes())}
 	s := New(nil, config.Push{VAPIDPrivateKey: priv, VAPIDPublicKey: pub, VAPIDSubject: "mailto:alerts@hostelpalika.com"}, Hooks{})
+	pushAllowed = func(string) bool { return true }
+	defer func() { pushAllowed = IsPushService }()
 	n, dead := s.sendWeb([]device{{Token: srv.URL + "/ok", Keys: keys}, {Token: srv.URL + "/gone", Keys: keys}, {Token: srv.URL + "/nokeys"}}, []byte(`{"title":"x"}`), true)
 	if n != 1 || len(dead) != 1 || dead[0] != srv.URL+"/gone" || urgency != "high" {
 		t.Fatalf("sent %d, dead %v, urgency %q", n, dead, urgency)
+	}
+}
+
+func TestIsPushService(t *testing.T) {
+	for raw, ok := range map[string]bool{
+		"https://fcm.googleapis.com/fcm/send/abc":           true,
+		"https://updates.push.services.mozilla.com/wpush/x": true,
+		"https://wns2-par02p.notify.windows.com/w/?token=x": true,
+		"https://web.push.apple.com/QGx":                    true,
+		"http://fcm.googleapis.com/fcm/send/abc":            false,
+		"https://fcm.googleapis.com:8443/x":                 false,
+		"https://169.254.169.254/latest":                    false,
+		"https://push.example/x":                            false,
+		"https://fcm.googleapis.com.evil.example/x":         false,
+	} {
+		if IsPushService(raw) != ok {
+			t.Errorf("%s: want %v", raw, ok)
+		}
 	}
 }

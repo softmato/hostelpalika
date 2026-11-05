@@ -184,9 +184,14 @@ func (r *R2) VerifyUploadedObject(ctx context.Context, limits config.Uploads, bu
 		return Verified{}, err // TS lets the GetObject error escape too
 	}
 	defer body.Close()
-	b, err := io.ReadAll(body)
+	// Bounded: the object could be swapped for a bigger one between the HEAD
+	// above and this GET, and an unbounded read would take the process down.
+	b, err := io.ReadAll(io.LimitReader(body, size+1))
 	if err != nil {
 		return fail("UPLOAD_UNREADABLE", "The uploaded file could not be read back from storage. Please try again.")
+	}
+	if int64(len(b)) != size {
+		return fail("UPLOAD_SIZE_MISMATCH", "The uploaded file is not the size it was declared as.")
 	}
 	if mismatch := ContentTypeMismatch(mimeType, b); mismatch != "" {
 		return fail("UPLOAD_CONTENT_MISMATCH", mismatch)

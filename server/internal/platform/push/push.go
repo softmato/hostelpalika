@@ -14,7 +14,9 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -84,7 +86,7 @@ type Sender struct {
 
 func New(db *mongo.Database, cfg config.Push, hooks Hooks) *Sender {
 	return &Sender{DB: db, ExpoToken: cfg.ExpoAccessToken, Endpoint: expoEndpoint,
-		HTTP: &http.Client{Timeout: 10 * time.Second}, VAPID: cfg, Hooks: hooks}
+		HTTP: &http.Client{Timeout: 10 * time.Second, CheckRedirect: noRedirect}, VAPID: cfg, Hooks: hooks}
 }
 
 // WebPushConfigured is whether all three VAPID values are set.
@@ -429,7 +431,7 @@ func (s *Sender) sendWeb(targets []device, body []byte, urgent bool) (int, []str
 	for start := 0; start < len(targets); start += maxWebInFlight {
 		var wg sync.WaitGroup
 		for _, t := range targets[start:min(start+maxWebInFlight, len(targets))] {
-			if t.Keys == nil || t.Keys.Auth == "" || t.Keys.P256dh == "" {
+			if t.Keys == nil || t.Keys.Auth == "" || t.Keys.P256dh == "" || !pushAllowed(t.Token) {
 				continue
 			}
 			wg.Add(1)
@@ -464,3 +466,28 @@ func (s *Sender) sendWeb(targets []device, body []byte, urgent bool) (int, []str
 	}
 	return sent, dead
 }
+
+// pushHosts are the browser push services. A subscription endpoint is whatever
+// the client sent, so the server posts only to these (no SSRF through a fake
+// subscription) and never follows a redirect.
+var pushHosts = []string{"fcm.googleapis.com", "push.services.mozilla.com", "notify.windows.com", "push.apple.com"}
+
+// IsPushService is whether endpoint is an https URL on a known push service.
+func IsPushService(endpoint string) bool {
+	u, err := url.Parse(endpoint)
+	if err != nil || u.Scheme != "https" || u.Port() != "" {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	for _, d := range pushHosts {
+		if host == d || strings.HasSuffix(host, "."+d) {
+			return true
+		}
+	}
+	return false
+}
+
+// pushAllowed is IsPushService; tests point it at their own server.
+var pushAllowed = IsPushService
+
+func noRedirect(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }

@@ -219,3 +219,20 @@ func TestResolveShortLink(t *testing.T) {
 		t.Errorf("empty: %+v", l)
 	}
 }
+
+func TestMapRedirectStaysOnMapHosts(t *testing.T) {
+	for raw, ok := range map[string]bool{
+		"https://www.google.com/maps/place/x":  true,
+		"https://consent.google.com/m?x":       true,
+		"https://www.openstreetmap.org/#map=1": true,
+		"http://www.google.com/maps":           false,
+		"https://169.254.169.254/latest":       false,
+		"https://evilgoogle.com/maps":          false,
+		"https://google.com.evil.example/maps": false,
+	} {
+		req := httptest.NewRequest(http.MethodGet, raw, nil)
+		if got := mapRedirect(req, nil) == nil; got != ok {
+			t.Errorf("%s: followed=%v, want %v", raw, got, ok)
+		}
+	}
+}

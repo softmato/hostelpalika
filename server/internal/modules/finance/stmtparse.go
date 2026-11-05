@@ -345,7 +345,7 @@ func csvGrid(text string) ([][]string, error) {
 // sheets is every sheet of a workbook as a grid of text, xlsx or legacy xls.
 func sheets(b []byte, maxRows int) (names []string, grids [][][]string, err error) {
 	if b[0] == 0x50 {
-		f, e := excelize.OpenReader(bytes.NewReader(b))
+		f, e := excelize.OpenReader(bytes.NewReader(b), excelize.Options{UnzipSizeLimit: 64 << 20, UnzipXMLSizeLimit: 32 << 20}) // zip-bomb cap, as platform/sheets
 		if e != nil {
 			return nil, nil, stmtErr(0, "This file could not be opened as a spreadsheet: %s.", e.Error())
 		}

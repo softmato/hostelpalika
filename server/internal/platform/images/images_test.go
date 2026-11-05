@@ -3,7 +3,10 @@ package images
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
+	"hash/crc32"
 	"image"
 	"math"
 	"os"
@@ -97,4 +100,25 @@ func diff(a, b image.Image, x, y int) float64 {
 	r1, g1, b1, _ := a.At(x, y).RGBA()
 	r2, g2, b2, _ := b.At(x, y).RGBA()
 	return (math.Abs(float64(r1)-float64(r2)) + math.Abs(float64(g1)-float64(g2)) + math.Abs(float64(b1)-float64(b2))) / 3 / 257
+}
+
+// A PNG header declaring 50000×50000 is refused before any pixel is decoded.
+func TestRefusesHugeDeclaredSize(t *testing.T) {
+	ihdr := make([]byte, 13)
+	binary.BigEndian.PutUint32(ihdr[0:], 50000)
+	binary.BigEndian.PutUint32(ihdr[4:], 50000)
+	ihdr[8], ihdr[9] = 8, 2 // 8-bit RGB
+	chunk := func(kind string, data []byte) []byte {
+		b := binary.BigEndian.AppendUint32(nil, uint32(len(data)))
+		b = append(append(b, kind...), data...)
+		return binary.BigEndian.AppendUint32(b, crc32.ChecksumIEEE(append([]byte(kind), data...)))
+	}
+	png := append([]byte("\x89PNG\r\n\x1a\n"), chunk("IHDR", ihdr)...)
+	png = append(png, chunk("IEND", nil)...)
+	if _, err := load(png); !errors.Is(err, ErrTooLarge) {
+		t.Fatalf("load = %v, want ErrTooLarge", err)
+	}
+	if Inspect(png) != nil {
+		t.Fatal("Inspect read a huge image")
+	}
 }
