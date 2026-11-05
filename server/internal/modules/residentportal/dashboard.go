@@ -4,6 +4,7 @@ package residentportal
 
 import (
 	"context"
+	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -199,32 +200,48 @@ func (h *Handler) loadDashboard(c *gin.Context, p *authz.Principal) (dashboardOu
 	if err != nil {
 		return dashboardOut{}, err
 	}
-	hostel, err := h.hostel(c, r.HostelID)
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	payments, err := finance.ListResidentInvoices(c, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID, Limit: 6})
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	unsettled, err := finance.ListResidentInvoices(c, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID, UnsettledOnly: true})
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	cur, err := h.DB.Collection("notices").Find(c, notices.ResidentFilter(r.HostelID), options.Find().SetSort(bson.D{{Key: "isUrgent", Value: -1}, {Key: "publishedAt", Value: -1}}).SetLimit(5))
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	var rows []notices.Row
-	if err := cur.All(c, &rows); err != nil {
-		return dashboardOut{}, err
-	}
-	ids := bson.A{}
-	for _, n := range rows {
-		ids = append(ids, n.ID)
-	}
-	reads, err := notices.ReadAts(c, h.DB, ids, uid)
-	if err != nil {
+	// Every read below needs only the resident: one parallel wave, so a cache
+	// miss pays about two Mongo round trips instead of ten (P11-11).
+	var (
+		hostel              any
+		payments, unsettled []finance.LedgerInvoice
+		rows                []notices.Row
+		reads               map[string]time.Time
+		menu                []any
+		night               ordered.Map
+		sos                 any
+		summary             complaints.Summary
+	)
+	g, ctx := errgroup.WithContext(c.Request.Context())
+	g.Go(func() (err error) { hostel, err = h.hostel(ctx, r.HostelID); return })
+	g.Go(func() (err error) {
+		payments, err = finance.ListResidentInvoices(ctx, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID, Limit: 6})
+		return
+	})
+	g.Go(func() (err error) {
+		unsettled, err = finance.ListResidentInvoices(ctx, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID, UnsettledOnly: true})
+		return
+	})
+	g.Go(func() error {
+		cur, err := h.DB.Collection("notices").Find(ctx, notices.ResidentFilter(r.HostelID), options.Find().SetSort(bson.D{{Key: "isUrgent", Value: -1}, {Key: "publishedAt", Value: -1}}).SetLimit(5))
+		if err != nil {
+			return err
+		}
+		if err := cur.All(ctx, &rows); err != nil {
+			return err
+		}
+		ids := bson.A{}
+		for _, n := range rows {
+			ids = append(ids, n.ID)
+		}
+		reads, err = notices.ReadAts(ctx, h.DB, ids, uid)
+		return err
+	})
+	g.Go(func() (err error) { menu, err = food.MealsToday(ctx, h.DB, r.HostelID, time.Now()); return })
+	g.Go(func() (err error) { night, err = h.Safety.NightFor(ctx, r.ID); return })
+	g.Go(func() (err error) { sos, err = h.Safety.LatestSOS(ctx, r.ID); return })
+	g.Go(func() (err error) { summary, err = complaints.Summarize(ctx, h.DB, r); return })
+	if err := g.Wait(); err != nil {
 		return dashboardOut{}, err
 	}
 	noticeList := []noticeOut{}
@@ -235,22 +252,6 @@ func (h *Handler) loadDashboard(c *gin.Context, p *authz.Principal) (dashboardOu
 			out.PublishedAt = httpx.ISO(*n.PublishedAt)
 		}
 		noticeList = append(noticeList, out)
-	}
-	menu, err := food.MealsToday(c, h.DB, r.HostelID, time.Now())
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	night, err := h.Safety.NightFor(c, r.ID)
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	sos, err := h.Safety.LatestSOS(c, r.ID)
-	if err != nil {
-		return dashboardOut{}, err
-	}
-	summary, err := complaints.Summarize(c, h.DB, r)
-	if err != nil {
-		return dashboardOut{}, err
 	}
 	return dashboardOut{dashboardBody{accommodation{r.RoomType}, summary, feeSummary(payments, unsettled), menu, hostel, night, noticeList, residents.Summary(r), sos}}, nil
 }

@@ -3,6 +3,7 @@ package financeadmin
 import (
 	"context"
 	"errors"
+	"golang.org/x/sync/errgroup"
 	"sort"
 	"time"
 
@@ -175,50 +176,64 @@ func (h *Handler) matrix(ctx context.Context, hostel bson.ObjectID, period strin
 	if err != nil {
 		return nil, finance.Err("FEE_SCHEDULE_MISSING", err.Error())
 	}
-	cur, err := h.DB.Collection("residents").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}},
-		{Key: "$or", Value: bson.A{bson.D{{Key: "moveInDate", Value: bson.D{{Key: "$lte", Value: b.End}}}}, bson.D{{Key: "moveInDate", Value: nil}}, bson.D{{Key: "moveInDate", Value: bson.D{{Key: "$exists", Value: false}}}}}},
-		{Key: "status", Value: "ACTIVE"}}, options.Find().SetProjection(residentFields))
-	if err != nil {
-		return nil, err
-	}
-	var people []matrixResident
-	if err := cur.All(ctx, &people); err != nil {
-		return nil, err
-	}
-	icur, err := h.DB.Collection("invoices").Find(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}, {Key: "status", Value: bson.D{{Key: "$ne", Value: "VOID"}}}})
-	if err != nil {
-		return nil, err
-	}
-	var invoices []struct {
-		ID         bson.ObjectID        `bson:"_id"`
-		FineWaived bool                 `bson:"fineWaived"`
-		Lines      []finance.LedgerLine `bson:"lines"`
-		ResidentID bson.ObjectID        `bson:"residentId"`
-	}
-	if err := icur.All(ctx, &invoices); err != nil {
-		return nil, err
-	}
-	schedule, err := finance.EffectiveSchedule(ctx, h.DB, hostel, period)
-	if err != nil {
-		return nil, err
-	}
-	var hostelDoc struct {
-		Rooms []bson.D `bson:"roomConfigurations"`
-	}
-	if err := h.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: hostel}}, options.FindOne().SetProjection(bson.D{{Key: "roomConfigurations", Value: 1}})).Decode(&hostelDoc); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	var concession struct {
-		PercentOff int64 `bson:"percentOff"`
-	}
-	if err := h.DB.Collection("rentconcessions").FindOne(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}}).Decode(&concession); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	// Six independent reads: one parallel wave instead of six round trips (P11-11).
+	var (
+		people   []matrixResident
+		invoices []struct {
+			ID         bson.ObjectID        `bson:"_id"`
+			FineWaived bool                 `bson:"fineWaived"`
+			Lines      []finance.LedgerLine `bson:"lines"`
+			ResidentID bson.ObjectID        `bson:"residentId"`
+		}
+		schedule  *finance.Schedule
+		hostelDoc struct {
+			Rooms []bson.D `bson:"roomConfigurations"`
+		}
+		concession struct {
+			PercentOff int64 `bson:"percentOff"`
+		}
+		balances []finance.LedgerInvoice
+	)
+	g, gctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		cur, err := h.DB.Collection("residents").Find(gctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}},
+			{Key: "$or", Value: bson.A{bson.D{{Key: "moveInDate", Value: bson.D{{Key: "$lte", Value: b.End}}}}, bson.D{{Key: "moveInDate", Value: nil}}, bson.D{{Key: "moveInDate", Value: bson.D{{Key: "$exists", Value: false}}}}}},
+			{Key: "status", Value: "ACTIVE"}}, options.Find().SetProjection(residentFields))
+		if err != nil {
+			return err
+		}
+		return cur.All(gctx, &people)
+	})
+	g.Go(func() error {
+		icur, err := h.DB.Collection("invoices").Find(gctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}, {Key: "status", Value: bson.D{{Key: "$ne", Value: "VOID"}}}})
+		if err != nil {
+			return err
+		}
+		return icur.All(gctx, &invoices)
+	})
+	g.Go(func() (err error) { schedule, err = finance.EffectiveSchedule(gctx, h.DB, hostel, period); return })
+	g.Go(func() error {
+		err := h.DB.Collection("hostels").FindOne(gctx, bson.D{{Key: "_id", Value: hostel}}, options.FindOne().SetProjection(bson.D{{Key: "roomConfigurations", Value: 1}})).Decode(&hostelDoc)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil
+		}
+		return err
+	})
+	g.Go(func() error {
+		err := h.DB.Collection("rentconcessions").FindOne(gctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}}).Decode(&concession)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil
+		}
+		return err
+	})
+	g.Go(func() (err error) {
+		balances, err = finance.ListLedger(gctx, h.DB, finance.UnvoidedMatch(bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}}), bson.D{{Key: "createdAt", Value: -1}}, 1000)
+		return
+	})
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 	listed := finance.ListedRates(hostelDoc.Rooms)
-	balances, err := finance.ListLedger(ctx, h.DB, finance.UnvoidedMatch(bson.D{{Key: "hostelId", Value: hostel}, {Key: "period", Value: period}}), bson.D{{Key: "createdAt", Value: -1}}, 1000)
-	if err != nil {
-		return nil, err
-	}
 	byID := map[string]*finance.LedgerInvoice{}
 	for i := range balances {
 		byID[balances[i].ID] = &balances[i]

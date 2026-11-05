@@ -179,16 +179,26 @@ func (s *Service) publish(ctx context.Context, r Row) {
 			_ = send(ctx)
 		}
 	}
-	defer func() {
-		if p := recover(); p != nil {
-			slog.WarnContext(ctx, "notification publish failed", "panic", p)
+	// The live bell and topic fan-out are two Pusher POSTs: after the response
+	// too, so a slow Pusher never holds the request that wrote the row (P11-13).
+	live := func(ctx context.Context) error {
+		defer func() {
+			if p := recover(); p != nil {
+				slog.WarnContext(ctx, "notification publish failed", "panic", p)
+			}
+		}()
+		if s.RT != nil {
+			s.RT.PublishNotification(ctx, in.UserID, r.serialized())
 		}
-	}()
-	if s.RT != nil {
-		s.RT.PublishNotification(ctx, in.UserID, r.serialized())
+		if topics := realtime.TopicsForCategory(in.Category); len(topics) > 0 {
+			realtime.PublishResourceChange(ctx, s.RT, s.Cache, realtime.Change{Topics: topics, UserIDs: []string{in.UserID}})
+		}
+		return nil
 	}
-	if topics := realtime.TopicsForCategory(in.Category); len(topics) > 0 {
-		realtime.PublishResourceChange(ctx, s.RT, s.Cache, realtime.Change{Topics: topics, UserIDs: []string{in.UserID}})
+	if s.BG != nil {
+		s.BG.After(ctx, live)
+	} else {
+		_ = live(ctx)
 	}
 }
 

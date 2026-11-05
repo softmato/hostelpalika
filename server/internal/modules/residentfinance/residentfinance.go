@@ -4,6 +4,7 @@ package residentfinance
 
 import (
 	"context"
+	"golang.org/x/sync/errgroup"
 	"strings"
 	"time"
 
@@ -88,18 +89,20 @@ func (h *Handler) invoices(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	rows, err := finance.ListResidentInvoices(c, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID})
-	if err != nil {
-		httpx.Fail(c, err)
+	// Ledger, claims and credit are independent: one round trip, not three (P11-11).
+	var (
+		rows   []finance.LedgerInvoice
+		claims []finance.ReviewRow
+		credit int64
+	)
+	g, ctx := errgroup.WithContext(c.Request.Context())
+	g.Go(func() (err error) {
+		rows, err = finance.ListResidentInvoices(ctx, h.DB, finance.LedgerScope{HostelID: r.HostelID, ResidentID: r.ID})
 		return
-	}
-	claims, err := finance.ListResidentClaims(c, h.DB, r.HostelID, r.ID)
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
-	credit, err := finance.CreditAmount(c, h.DB, r.HostelID, r.ID)
-	if err != nil {
+	})
+	g.Go(func() (err error) { claims, err = finance.ListResidentClaims(ctx, h.DB, r.HostelID, r.ID); return })
+	g.Go(func() (err error) { credit, err = finance.CreditAmount(ctx, h.DB, r.HostelID, r.ID); return })
+	if err := g.Wait(); err != nil {
 		httpx.Fail(c, err)
 		return
 	}

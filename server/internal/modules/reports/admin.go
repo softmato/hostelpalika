@@ -466,9 +466,15 @@ func (a *Admin) viewStats(ctx context.Context, ids []bson.ObjectID) (viewStats, 
 		}
 		return err
 	}, func(ctx context.Context) error {
-		var keys []any
-		err := views.Distinct(ctx, "visitorKey", in).Decode(&keys)
-		out.unique = int64(len(keys))
+		// Counted in Mongo: Distinct returned every key, which grows with the
+		// hostel's history until it hits the 16 MB reply limit (P11-12).
+		cur, err := views.Aggregate(ctx, mongo.Pipeline{{{Key: "$match", Value: append(append(bson.D{}, in...), bson.E{Key: "visitorKey", Value: bson.D{{Key: "$exists", Value: true}}})}}, {{Key: "$group", Value: bson.D{{Key: "_id", Value: "$visitorKey"}}}}, {{Key: "$count", Value: "n"}}})
+		rows, err := decodeAll[struct {
+			N int64 `bson:"n"`
+		}](ctx, cur, err)
+		if len(rows) > 0 {
+			out.unique = rows[0].N
+		}
 		return err
 	}, count(&out.last30, a.DB, "hostelpageviews", append(append(bson.D{}, in...), bson.E{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: time.Now().Add(-30 * 24 * time.Hour)}}})))
 	return out, err

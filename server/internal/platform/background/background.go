@@ -28,14 +28,22 @@ const (
 
 var slots = make(chan struct{}, maxRunning)
 
-// Parallel runs each fn on its own goroutine and waits for all of them. A panic
-// in one is logged and costs only that one: a bare `go` would take the process.
+// parallelLimit is how many of one Parallel call's fns run at once: a job that
+// fans out per hostel must not take the whole Mongo pool from requests (P11-14).
+const parallelLimit = 16
+
+// Parallel runs fns on goroutines, at most parallelLimit at a time, and waits
+// for all of them. A panic in one is logged and costs only that one: a bare
+// `go` would take the process.
 func Parallel(ctx context.Context, fns ...func()) {
 	var wg sync.WaitGroup
+	sem := make(chan struct{}, parallelLimit)
 	for _, fn := range fns {
 		wg.Add(1)
+		sem <- struct{}{}
 		go func() {
 			defer wg.Done()
+			defer func() { <-sem }()
 			defer func() {
 				if p := recover(); p != nil {
 					slog.ErrorContext(ctx, "parallel work panicked", "panic", p)

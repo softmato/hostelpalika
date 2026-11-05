@@ -130,7 +130,12 @@ export async function getHostelViewStats(hostelIds: Types.ObjectId[]) {
     HostelModel.find({ _id: { $in: hostelIds } })
       .select("publicViewCount")
       .lean<{ publicViewCount?: number }[]>(),
-    HostelPageViewModel.distinct("visitorKey", { hostelId: { $in: hostelIds } }),
+    // Counted in Mongo: distinct() returned every key and hits the 16 MB cap (Go P11-12).
+    HostelPageViewModel.aggregate<{ n: number }>([
+      { $match: { hostelId: { $in: hostelIds }, visitorKey: { $exists: true } } },
+      { $group: { _id: "$visitorKey" } },
+      { $count: "n" },
+    ]),
     HostelPageViewModel.countDocuments({
       createdAt: { $gte: thirtyDaysAgo },
       hostelId: { $in: hostelIds },
@@ -143,6 +148,6 @@ export async function getHostelViewStats(hostelIds: Types.ObjectId[]) {
       (total, hostel) => total + (hostel.publicViewCount ?? 0),
       0,
     ),
-    uniquePublicVisitors: uniqueVisitors.length,
+    uniquePublicVisitors: uniqueVisitors[0]?.n ?? 0,
   };
 }
