@@ -2,6 +2,7 @@ package images
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -114,6 +115,11 @@ func TestRefusesHugeDeclaredSize(t *testing.T) {
 		return binary.BigEndian.AppendUint32(b, crc32.ChecksumIEEE(append([]byte(kind), data...)))
 	}
 	png := append([]byte("\x89PNG\r\n\x1a\n"), chunk("IHDR", ihdr)...)
+	var idat bytes.Buffer // a valid (short) stream: libvips wants an IDAT, not the pixels
+	zw := zlib.NewWriter(&idat)
+	_, _ = zw.Write(make([]byte, 1024))
+	_ = zw.Close()
+	png = append(png, chunk("IDAT", idat.Bytes())...)
 	png = append(png, chunk("IEND", nil)...)
 	if _, err := load(png); !errors.Is(err, ErrTooLarge) {
 		t.Fatalf("load = %v, want ErrTooLarge", err)

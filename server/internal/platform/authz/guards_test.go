@@ -102,6 +102,9 @@ func TestGuards(t *testing.T) {
 		bson.M{"hostelId": branch, "userId": warden, "status": "ACTIVE", "permissions": []string{"manageFood"}},
 	})
 	revoked, active := id(), id()
+	// The session every token below names: the guard requires it live (P11-6).
+	sid := bson.NewObjectID()
+	_, _ = db.Collection("sessions").InsertOne(ctx, bson.D{{Key: "_id", Value: sid}, {Key: "revokedAt", Value: nil}})
 	_, _ = db.Collection("temporarycredentials").InsertMany(ctx, []any{
 		bson.M{"_id": revoked, "expiresAt": future, "revokedAt": past},
 		bson.M{"_id": active, "expiresAt": future, "revokedAt": nil},
@@ -143,7 +146,7 @@ func TestGuards(t *testing.T) {
 		if role == Warden {
 			uid = warden.Hex()
 		}
-		s, err := tokens.SignAccess(auth.TokenInput{UserID: uid, Role: string(role), HostelIDs: ids, LockPin: lockPin, SessionID: "s1", TemporaryCredentialID: tempID})
+		s, err := tokens.SignAccess(auth.TokenInput{UserID: uid, Role: string(role), HostelIDs: ids, LockPin: lockPin, SessionID: sid.Hex(), TemporaryCredentialID: tempID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -205,7 +208,7 @@ func TestGuards(t *testing.T) {
 	expect("pin open path", call{cookie: auth.AccessCookie + "=" + locked, path: "/api/v1/auth/lock-pin/verify"}, g.Require, "")
 	claims, _ := tokens.VerifyAccess(locked)
 	h := http.Header{}
-	_ = g.Cookies.ApplyPinUnlock(h, claims.Subject, "s1")
+	_ = g.Cookies.ApplyPinUnlock(h, claims.Subject, sid.Hex())
 	unlock := strings.SplitN(h.Get("Set-Cookie"), ";", 2)[0]
 	expect("pin unlocked", call{cookie: auth.AccessCookie + "=" + locked + "; " + unlock}, g.Require, "")
 

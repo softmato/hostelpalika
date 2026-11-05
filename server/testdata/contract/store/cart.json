@@ -52,7 +52,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -106,7 +107,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -200,7 +202,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -365,7 +368,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -487,7 +491,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -578,7 +583,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -669,7 +675,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -782,7 +789,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
@@ -832,7 +840,8 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.cart.config.deliveryPromise"
     ],
     "response": {
       "status": 200,
