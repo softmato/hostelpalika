@@ -35,13 +35,15 @@ func NewPublic(db *mongo.Database, cfg *platformconfig.Service) *Public {
 	return &Public{db: db, cfg: cfg}
 }
 
-// cardFields are the only fields serializePublic and the list's ranking read: the
+// cardFields are the only fields serializePublic (with arrivalGuide and
+// roomConfigurations) and the list's ranking read: the
 // list no longer drags KYC, payout and owner data across the wire (P11-17).
 var cardFields = bson.D{{Key: "name", Value: 1}, {Key: "slug", Value: 1}, {Key: "description", Value: 1},
 	{Key: "facilities", Value: 1}, {Key: "food", Value: 1}, {Key: "hostelType", Value: 1}, {Key: "isDemoData", Value: 1},
 	{Key: "demoDataLabel", Value: 1}, {Key: "location", Value: 1}, {Key: "contact.phone", Value: 1}, {Key: "pricing", Value: 1},
 	{Key: "roomTypes", Value: 1}, {Key: "rules", Value: 1}, {Key: "verificationStatus", Value: 1}, {Key: "capacitySummary", Value: 1},
-	{Key: "photos", Value: 1}, {Key: "nearbyPlaces", Value: 1}, {Key: "parentHostelId", Value: 1}}
+	{Key: "photos", Value: 1}, {Key: "nearbyPlaces", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "arrivalGuide", Value: 1},
+	{Key: "roomConfigurations", Value: 1}}
 
 var errNotFound = httpx.NewError(http.StatusNotFound, "HOSTEL_NOT_FOUND", "Hostel was not found.", nil)
 
