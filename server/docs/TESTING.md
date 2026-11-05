@@ -91,3 +91,26 @@ k6 run testdata/k6/reads.js
 - ☐ Tenant isolation case covered for hostel-owned data
 - ☐ `go test -race` clean
 - ☐ `Server-Timing` within budget on the local stack
+
+## The web on the Go API, locally
+
+Everything the browser and the web's server components ask of `/api/v1` goes to Go;
+pages are still rendered by `next dev`.
+
+```bash
+docker compose -f deploy/compose.yaml -f deploy/compose.local.yaml up -d --build api
+```
+
+```bash
+curl -s http://127.0.0.1:8080/api/v1/health?deep=1
+```
+
+Then in the repo root `.env` (or the shell) for `npm --prefix apps/web run dev`:
+`API_URL=http://127.0.0.1:8080`, `API_REWRITE_ENABLED=true`. The rewrite sends every
+`/api/v1/*` the browser makes to Go (same origin, so cookies just work), and
+`lib/server-api.ts` sends the server-rendered reads there too. The API's database is
+`hostelpalika_dev` in the local Mongo (`deploy/copy-live-db.ps1` refreshes it from
+production, read only). Response times: the `Server-Timing` header on every Go answer.
+
+Linux-only tests (libvips) on Windows: run the suite in a container on the compose network,
+`-e CONTRACT_MONGO_ADDR=mongo:27017`, image = `golang` + `libvips-dev`.

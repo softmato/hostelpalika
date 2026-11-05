@@ -9,6 +9,13 @@ services:
       TS_UPSTREAM: http://host.docker.internal:3000
 
   api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: hostelpalika-api:local
+    # Published so `next dev` can rewrite /api/v1 straight to Go (API_URL=http://127.0.0.1:8080).
+    ports:
+      - "127.0.0.1:8080:8080"
     environment:
       APP_ENV: development
       MONGODB_URI: mongodb://mongo:27017/hostelpalika_dev?replicaSet=rs0

@@ -4,7 +4,7 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import { CommunityPageContent } from "@/app/_components/community-page";
 import { NOINDEX, pageMetadata, snippet } from "@/lib/seo";
-import { getCommunityPost } from "@/modules/community/community.service";
+import { serverApi } from "@/lib/server-api";
 
 type PageParams = {
   params: Promise<{ postId: string }>;
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const { postId } = await params;
 
   try {
-    const { post } = await getCommunityPost(postId, null);
+    const { post } = await serverApi<{ post: { body?: string | null } }>(`/api/v1/community/${encodeURIComponent(postId)}`);
     const body = (post.body ?? "").replace(/\s+/g, " ").trim();
 
     return pageMetadata({
