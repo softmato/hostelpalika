@@ -5,6 +5,8 @@ package ratelimit
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"math"
 	"net/http"
 	"strings"
@@ -55,7 +57,10 @@ func clientKey(c *gin.Context) string {
 	if ua == "" {
 		ua = "unknown-agent"
 	}
-	return clientIP(c) + ":" + ua
+	// Hashed: the header is client-sized, and a raw one in every key let one IP
+	// fill Redis (or the memory fallback) with megabyte keys (P11-9).
+	sum := sha256.Sum256([]byte(ua))
+	return clientIP(c) + ":" + hex.EncodeToString(sum[:8])
 }
 
 func clientIP(c *gin.Context) string {

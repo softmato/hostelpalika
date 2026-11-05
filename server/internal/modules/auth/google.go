@@ -163,9 +163,22 @@ func (s *Service) Google(ctx context.Context, idToken string, rc reqCtx) (*Issue
 			set = append(set, bson.E{Key: "googleId", Value: g.ProviderAccountID})
 			user.GoogleID = g.ProviderAccountID
 		}
+		// An unverified row was never proven to be this person's: whoever signed
+		// up with the address first could have set its password. Google proves
+		// the address now, so that password and its sessions go (P11-7).
+		squatted := !user.verified() && user.PasswordHash != ""
 		if !user.verified() {
 			set = append(set, bson.E{Key: "emailVerified", Value: true}, bson.E{Key: "emailVerifiedAt", Value: now})
 			user.EmailVerified, user.EmailVerifiedAt = true, &now
+		}
+		if squatted {
+			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.D{{Key: "_id", Value: user.ID}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "passwordHash", Value: ""}}}}); err != nil {
+				return nil, err
+			}
+			if err := s.sessions.RevokeAll(ctx, user.ID); err != nil {
+				return nil, err
+			}
+			user.PasswordHash = ""
 		}
 		// The first sign-in activates an admin-issued account, as in login.
 		if user.Status == "INVITED" {

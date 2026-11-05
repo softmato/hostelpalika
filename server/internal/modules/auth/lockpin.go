@@ -184,8 +184,8 @@ const (
 )
 
 type attemptKeys struct {
-	expiresAt   time.Time
-	ip, subject string
+	expiresAt            time.Time
+	ip, subject, account string
 }
 
 func (s *Service) attemptKeys(c *gin.Context, namespace, subject string) attemptKeys {
@@ -200,49 +200,56 @@ func (s *Service) attemptKeys(c *gin.Context, namespace, subject string) attempt
 		expiresAt: time.UnixMilli((window + 1) * ms).UTC(),
 		ip:        namespace + "|" + ip + "|*|" + w,
 		subject:   namespace + "|" + ip + "|" + strings.ToLower(strings.TrimSpace(subject)) + "|" + w,
+		account:   namespace + "|*|" + strings.ToLower(strings.TrimSpace(subject)) + "|" + w,
 	}
 }
 
-// refuseIfTooManyFailures: a 429 once either budget is spent, checked before the secret.
-func (s *Service) refuseIfTooManyFailures(c *gin.Context, namespace, subject string) error {
+// refuseIfTooManyFailures reserves this attempt against every budget before
+// the secret is checked: the count goes up first, atomically, so a parallel
+// burst cannot all pass a read that no failure has reached yet (P11-10). It
+// returns release, which hands the slot back; callers call it unless the
+// secret was wrong, so only failures stay counted. The per-account budget
+// spans every IP, against guessing spread over many addresses.
+func (s *Service) refuseIfTooManyFailures(c *gin.Context, namespace, subject string) (release func(), err error) {
 	k := s.attemptKeys(c, namespace, subject)
-	cur, err := s.db.Collection("authattempts").Find(c, bson.D{{Key: "key", Value: bson.D{{Key: "$in", Value: bson.A{k.ip, k.subject}}}}},
-		options.Find().SetProjection(bson.D{{Key: "key", Value: 1}, {Key: "count", Value: 1}}))
-	if err != nil {
-		return err
-	}
-	var rows []struct {
-		Key   string `bson:"key"`
-		Count int64  `bson:"count"`
-	}
-	if err := cur.All(c, &rows); err != nil {
-		return err
-	}
-	count := func(key string) int64 {
-		for _, r := range rows {
-			if r.Key == key {
-				return r.Count
+	coll := s.db.Collection("authattempts")
+	var taken []string
+	release = func() {
+		ctx := context.WithoutCancel(c.Request.Context())
+		for _, key := range taken {
+			if _, err := coll.UpdateOne(ctx, bson.D{{Key: "key", Value: key}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: -1}}}}); err != nil {
+				slogWarn(c, "auth_attempt_release_failed", err, namespace)
 			}
 		}
-		return 0
+		taken = nil
 	}
-	if count(k.subject) < failedAttemptLimit && count(k.ip) < failedAttemptsPerIP {
-		return nil
-	}
-	retry := (k.expiresAt.Sub(s.now()) + time.Second - 1) / time.Second // Math.ceil
-	return httpx.NewError(http.StatusTooManyRequests, "RATE_LIMITED", "Too many failed attempts. Please wait before trying again.",
-		map[string]int64{"retryAfterSeconds": max(1, int64(retry))})
-}
-
-// recordFailedAttempt counts one wrong guess against both budgets; never throws.
-func (s *Service) recordFailedAttempt(c *gin.Context, namespace, subject string) {
-	k := s.attemptKeys(c, namespace, subject)
-	for _, key := range []string{k.ip, k.subject} {
-		if _, err := s.db.Collection("authattempts").UpdateOne(c, bson.D{{Key: "key", Value: key}},
-			bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: 1}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "expiresAt", Value: k.expiresAt}}}},
-			options.UpdateOne().SetUpsert(true)); err != nil {
-			slogWarn(c, "auth_attempt_count_failed", err, namespace)
-			return
+	for _, b := range []struct {
+		key   string
+		limit int64
+	}{{k.subject, failedAttemptLimit}, {k.ip, failedAttemptsPerIP}, {k.account, failedAttemptsPerIP}} {
+		var row struct {
+			Count int64 `bson:"count"`
+		}
+		take := func() error {
+			return coll.FindOneAndUpdate(c, bson.D{{Key: "key", Value: b.key}},
+				bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: 1}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "expiresAt", Value: k.expiresAt}}}},
+				options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After).SetProjection(bson.D{{Key: "count", Value: 1}})).Decode(&row)
+		}
+		err := take()
+		if mongo.IsDuplicateKeyError(err) { // two first attempts raced on the upsert
+			err = take()
+		}
+		if err != nil {
+			release()
+			return func() {}, err
+		}
+		taken = append(taken, b.key)
+		if row.Count > b.limit {
+			release()
+			retry := (k.expiresAt.Sub(s.now()) + time.Second - 1) / time.Second // Math.ceil
+			return func() {}, httpx.NewError(http.StatusTooManyRequests, "RATE_LIMITED", "Too many failed attempts. Please wait before trying again.",
+				map[string]int64{"retryAfterSeconds": max(1, int64(retry))})
 		}
 	}
+	return release, nil
 }

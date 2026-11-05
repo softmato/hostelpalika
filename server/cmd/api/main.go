@@ -29,6 +29,10 @@ import (
 // requests finish before Docker sends SIGKILL.
 const shutdownGrace = 25 * time.Second
 
+// revision is the git commit, set at build time (-ldflags "-X main.revision=<sha>")
+// so a deploy can be matched to the build that is running.
+var revision = "dev"
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
 		os.Exit(healthcheck())
@@ -91,6 +95,7 @@ func run() error {
 		Addr:              cfg.Addr,
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
+		MaxHeaderBytes:    64 << 10,          // no real client sends more; caps what a header can cost (P11-9)
 		ReadTimeout:       120 * time.Second, // /files/upload takes 10 MB over Nepali mobile links
 		IdleTimeout:       120 * time.Second,
 		// No WriteTimeout: NDJSON progress routes stream for longer than any
@@ -120,7 +125,7 @@ func run() error {
 
 	errc := make(chan error, 1)
 	go func() {
-		slog.Info("api listening", "addr", cfg.Addr, "env", cfg.Env)
+		slog.Info("api listening", "addr", cfg.Addr, "env", cfg.Env, "revision", revision)
 		errc <- srv.ListenAndServe()
 	}()
 

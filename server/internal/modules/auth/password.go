@@ -160,6 +160,13 @@ func (s *Service) setPassword(ctx context.Context, u *userRow, password string) 
 		return err
 	}
 	u.MustChangePassword = false
+	// Temporary logins die with the password: one minted from a stolen session
+	// must not outlive the reset that was meant to lock the thief out (P11-8).
+	now := s.now().UTC().Truncate(time.Millisecond)
+	if _, err := s.db.Collection("temporarycredentials").UpdateMany(ctx, bson.D{{Key: "userId", Value: u.ID}, {Key: "revokedAt", Value: nil}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "revokedAt", Value: now}, {Key: "updatedAt", Value: now}}}}); err != nil {
+		return err
+	}
 	return s.sessions.RevokeAll(ctx, u.ID)
 }
 

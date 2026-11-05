@@ -39,6 +39,7 @@ import { COOK_LOGIN_DOMAIN } from "@/modules/food/cook-identity";
 import { OtpChallengeModel } from "@hostel/db/models/OtpChallenge";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { linkDeskIntakeOnSignIn } from "@/modules/residents/desk-intake-link";
+import { TemporaryCredentialModel } from "@hostel/db/models/TemporaryCredential";
 import { SessionModel } from "@hostel/db/models/Session";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { UserModel } from "@hostel/db/models/User";
@@ -1430,6 +1431,8 @@ export async function resetPasswordWithToken(input: ResetPasswordInput) {
   user.tokenVersion = (user.tokenVersion ?? 0) + 1;
   await user.save();
   await revokeAllSessions(user._id);
+  // Temporary logins die with the password (Go P11-8).
+  await TemporaryCredentialModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
 
   return { reset: true };
 }
@@ -1484,6 +1487,8 @@ export async function changePassword(
   user.tokenVersion = (user.tokenVersion ?? 0) + 1;
   await user.save();
   await revokeAllSessions(user._id);
+  // Temporary logins die with the password (Go P11-8).
+  await TemporaryCredentialModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
 
   return issueSessionForUser(user, context);
 }

@@ -106,18 +106,19 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 	in, err := parseLogin(b)
+	release := func() {}
 	if err == nil {
-		err = h.svc.refuseIfTooManyFailures(c, "auth-login", in.Identifier)
+		release, err = h.svc.refuseIfTooManyFailures(c, "auth-login", in.Identifier)
 	}
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
 	r, err := h.svc.Login(c, in.Identifier, in.Password, rc(c))
+	if err == nil || !isCode(err, "INVALID_CREDENTIALS") {
+		release()
+	}
 	if err != nil {
-		if isCode(err, "INVALID_CREDENTIALS") {
-			h.svc.recordFailedAttempt(c, "auth-login", in.Identifier)
-		}
 		httpx.Fail(c, err)
 		return
 	}
@@ -292,18 +293,19 @@ func (h *Handler) otpVerify(c *gin.Context) {
 		return
 	}
 	in, err := parseOTPVerify(b)
+	release := func() {}
 	if err == nil {
-		err = h.svc.refuseIfTooManyFailures(c, "auth-otp-verify", in.ChallengeID)
+		release, err = h.svc.refuseIfTooManyFailures(c, "auth-otp-verify", in.ChallengeID)
 	}
 	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
 	out, err := h.svc.OTPVerify(c, in.ChallengeID, in.Code)
+	if err == nil || !isCode(err, "OTP_INCORRECT") {
+		release()
+	}
 	if err != nil {
-		if isCode(err, "OTP_INCORRECT") {
-			h.svc.recordFailedAttempt(c, "auth-otp-verify", in.ChallengeID)
-		}
 		httpx.Fail(c, err)
 		return
 	}
@@ -474,24 +476,27 @@ func (h *Handler) changePassword(c *gin.Context) {
 		httpx.Fail(c, fail(http.StatusForbidden, "TEMPORARY_CREDENTIAL_FORBIDDEN", "A temporary login cannot change the account password."))
 		return
 	}
-	if err := h.svc.refuseIfTooManyFailures(c, "auth-change-password", claims.Subject); err != nil {
+	release, err := h.svc.refuseIfTooManyFailures(c, "auth-change-password", claims.Subject)
+	if err != nil {
 		httpx.Fail(c, err)
 		return
 	}
 	b, ok := body(c)
 	if !ok {
+		release()
 		return
 	}
 	in, err := parseChange(b)
 	if err != nil {
+		release()
 		httpx.Fail(c, err)
 		return
 	}
 	r, err := h.svc.ChangePassword(c, claims.Subject, in.Current, in.NewPassword, rc(c))
+	if err == nil || !isCode(err, "INVALID_CREDENTIALS") {
+		release()
+	}
 	if err != nil {
-		if isCode(err, "INVALID_CREDENTIALS") {
-			h.svc.recordFailedAttempt(c, "auth-change-password", claims.Subject)
-		}
 		httpx.Fail(c, err)
 		return
 	}

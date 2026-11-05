@@ -301,6 +301,11 @@ func (a *Admins) changeRole(c *gin.Context) {
 			httpx.Fail(c, err)
 			return
 		}
+		// Their tokens carry the old role: end the sessions so it stops now (P11-6).
+		if _, err := a.DB.Collection("sessions").DeleteMany(c, bson.D{{Key: "userId", Value: id}}); err != nil {
+			httpx.Fail(c, err)
+			return
+		}
 		if err := a.Audit.Write(c, audit.Entry{Action: "PLATFORM_ADMIN_ROLE_CHANGED", ActorID: actor(c), EntityID: id.Hex(), EntityType: "User", Metadata: bson.D{{Key: "from", Value: from}, {Key: "to", Value: role}}}); err != nil {
 			httpx.Fail(c, err)
 			return

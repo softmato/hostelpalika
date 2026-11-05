@@ -211,6 +211,11 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 	for coll, docs := range joinDocs(now) {
 		inserts[coll] = append(inserts[coll], docs...)
 	}
+	// The session every Mint token names: the guard needs it live (P11-6). It
+	// belongs to no user, so no listing or sign-out in a recording touches it.
+	mintSession, _ := bson.ObjectIDFromHex("6c00000000000000000000ff")
+	inserts["sessions"] = append(inserts["sessions"], bson.D{{Key: "_id", Value: mintSession}, {Key: "userId", Value: bson.ObjectID{}},
+		{Key: "expiresAt", Value: now.Add(365 * day)}, {Key: "revokedAt", Value: nil}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}})
 	for coll, docs := range inserts {
 		if _, err := db.Collection(coll).InsertMany(ctx, docs); err != nil {
 			return err

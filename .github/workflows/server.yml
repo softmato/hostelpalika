@@ -55,7 +55,8 @@ jobs:
       - name: Failing test detail
         if: failure()
         shell: bash
-        run: grep -A40 -E -- '_test\.go:[0-9]+: .*(body|status|cookie)' test.txt | head -800 || true
+        run: |
+          grep -A40 -E -- '_test\.go:[0-9]+: .*(body|status|cookie)' test.txt | head -800 || true
       - name: Static analysis
         run: go run honnef.co/go/tools/cmd/staticcheck@latest ./...
       - name: Known vulnerabilities

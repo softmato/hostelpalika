@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -118,6 +119,19 @@ func (g *Guards) load(c *gin.Context, token string, isBearer bool) (*Principal, 
 			return nil, auth.ErrInvalidToken
 		}
 	}
+	// The token's role and hostels are trusted only while its session lives:
+	// a reset, sign-out everywhere, removal or demotion ends the session, and
+	// that now bites within sessionCheckTTL instead of at the token's expiry
+	// (P11-6; TS trusted the token for its whole life).
+	if sid := claims.SessionID; sid != "" {
+		ok, err := g.sessionLive(c, sid)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, auth.ErrInvalidToken
+		}
+	}
 	p := &Principal{
 		UserID: claims.Subject, Role: Role(claims.Role), HostelIDs: claims.HostelIDs,
 		SessionID: claims.SessionID, TemporaryCredentialID: claims.TemporaryCredentialID,
@@ -130,6 +144,43 @@ func (g *Guards) load(c *gin.Context, token string, isBearer bool) (*Principal, 
 		p.PinLocked = !g.Cookies.PinUnlocked(c.Request, p.UserID, p.SessionID)
 	}
 	return p, nil
+}
+
+// sessionCheckTTL is how long a live session is remembered in Redis: the most
+// a revoked token keeps working.
+const sessionCheckTTL = 30 * time.Second
+
+func (g *Guards) sessionLive(ctx context.Context, sid string) (bool, error) {
+	id, err := bson.ObjectIDFromHex(sid)
+	if err != nil {
+		return false, nil
+	}
+	key := "sl:" + sid
+	rdb := g.redis()
+	if rdb != nil {
+		if v, err := rdb.Get(ctx, key).Result(); err == nil && v == "1" {
+			return true, nil
+		}
+	}
+	err = g.DB.Collection("sessions").FindOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "revokedAt", Value: nil}},
+		options.FindOne().SetProjection(bson.D{{Key: "_id", Value: 1}})).Err()
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if rdb != nil {
+		_ = rdb.Set(context.WithoutCancel(ctx), key, "1", sessionCheckTTL).Err() // a miss only costs the read again
+	}
+	return true, nil
+}
+
+func (g *Guards) redis() *goredis.Client {
+	if g.Cache == nil {
+		return nil
+	}
+	return g.Cache.Redis
 }
 
 func (g *Guards) temporaryCredentialActive(ctx context.Context, id string) (bool, error) {
