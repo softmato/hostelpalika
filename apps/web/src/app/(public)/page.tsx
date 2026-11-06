@@ -7,7 +7,7 @@ import {
 import { PublicHomePage } from "@/app/_components/public-home-page";
 import type { HostelSummary } from "@/app/_components/public-hostel-types";
 import { staticPageMetadata } from "@/lib/seo-config";
-import { serverApi } from "@/lib/server-api";
+import { listPublicHostels } from "@/modules/hostels/hostel.service";
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata("home");
@@ -23,7 +23,7 @@ export function generateMetadata(): Promise<Metadata> {
  */
 async function loadHostels(): Promise<HostelSummary[]> {
   try {
-    const { hostels } = await serverApi<{ hostels: PublicHostel[] }>("/api/v1/public/hostels");
+    const { hostels } = await listPublicHostels({});
     return (hostels as PublicHostel[]).map(mapPublicHostelToSummary);
   } catch {
     return [];

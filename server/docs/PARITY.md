@@ -1054,16 +1054,16 @@ imports `@/modules/*` or `@hostel/db`.
 | ☐ | File (under `apps/web/src/app/`) |
 |---|---|
 | ☐ | `(hostel-admin)/[hostelSlug]/admin/layout.tsx` |
-| ☑ | `(public)/community/[postId]/page.tsx` |
+| ☐ | `(public)/community/[postId]/page.tsx` |
 | ☐ | `(public)/features/[module]/page.tsx` |
-| ☑ | `(public)/hostels/[slug]/load-hostel.ts` |
-| ☑ | `(public)/how-booking-works/page.tsx` |
+| ☐ | `(public)/hostels/[slug]/load-hostel.ts` |
+| ☐ | `(public)/how-booking-works/page.tsx` |
 | ☐ | `(public)/layout.tsx` |
-| ☑ | `(public)/page.tsx` |
+| ☐ | `(public)/page.tsx` |
 | ☐ | `(public)/plans-pricing/[service]/page.tsx` |
 | ☐ | `(public)/plans-pricing/badge/[tier]/page.tsx` |
 | ☐ | `(public)/plans-pricing/page.tsx` |
-| ☑ | `(public)/refund-policy/page.tsx` |
+| ☐ | `(public)/refund-policy/page.tsx` |
 | ☐ | `(public)/service-providers/page.tsx` |
 | ☐ | `(public)/vs/[slug]/page.tsx` |
 | ☐ | `_components/admission-forms-panel.tsx` |

@@ -87,7 +87,8 @@ database, Redis, R2, email, push or payment secrets.
 |---|---|---|
 | `caddy` | `caddy` | 80/443 (+443/udp for HTTP/3), `encode zstd gzip`, reverse proxy chosen by `BACKEND` — `ts` (everything to the Vercel TS server — rollback only; nothing calls the API host before cut-over) or `go` (`api:8080` with health checks) — ARCHITECTURE.md §11; `flush_interval -1` on NDJSON progress routes |
 | `api` | built from `deploy/Dockerfile` | multi-stage: `golang` builder (cgo on, `-tags=sonic`, `-trimpath`, `-ldflags="-s -w"`) → `debian:stable-slim` runtime with `libvips` + `poppler-utils` + `ca-certificates` + `tzdata`; runs as non-root; `stop_grace_period` long enough to drain background work |
-| `redis` | `redis:7` | `deploy/redis.conf`: `maxmemory`, `maxmemory-policy volatile-lru`, `save ""`, `appendonly no`; no published port |
+| `redis` | `redis:7` | `deploy/redis.conf`: locks, rate limits, cache versions; `maxmemory 48mb`, `noeviction`, `save ""`, `appendonly no`, `--requirepass`; no published port |
+| `redis-cache` | `redis:7` | `deploy/redis-cache.conf`: cached response bodies only; `maxmemory 200mb`, `allkeys-lru`, `--requirepass`; no published port (P11-16) |
 
 `tzdata` matters: `time.LoadLocation("Asia/Kathmandu")` fails without it.
 

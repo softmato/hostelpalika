@@ -4,7 +4,7 @@ import { formatRupees } from "./subscription-invoice";
 /** Sent once Softmato has cash a field agent collected: the receipt follows after it is verified. */
 export function fieldCashReceivedEmail(input: {
   amount: number;
-  collectedBy: string;
+  collectedBy: string | null;
   planName: string;
   transactionId: string;
 }) {
