@@ -8,8 +8,7 @@ import { RoleButton, SoftBadge } from "@/app/_components/portal-dashboard-ui";
 import { Textarea } from "@/components/ui/textarea";
 import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
-import type { FieldCashRow } from "@/lib/billing/billing.types";
-import type { PlanPaymentClaim } from "@/lib/billing/billing.types";
+import type { FieldCashRow, PlanPaymentClaim } from "@/lib/billing/billing.types";
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";
 
 /**

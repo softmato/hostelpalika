@@ -162,6 +162,7 @@ and by an existing superadmin in the portal; never by a public endpoint.
 | Variable | Required | Notes |
 |---|---|---|
 | `CRON_SECRET` | **yes in production** | Protects all twelve `/api/v1/cron/*` endpoints. A missing value makes them answer `500 CRON_NOT_CONFIGURED` — they never fall open. |
+| `REVALIDATE_SECRET` | **yes once the web reads the Go API** | Bearer the Go API sends to `POST /api/revalidate` after a listing changes, so public pages drop their 6 h cache. Same value in `server/.env`. Unset: the route answers 401 and edits wait out the cache. |
 | `ACTIVATION_CODE_SECRET` | no | Signs resident QR activation codes. Falls back to `CRON_SECRET`, so set it separately if you ever intend to rotate the cron secret — otherwise that rotation invalidates every unredeemed activation code. |
 
 ### Resident identity encryption
@@ -246,6 +247,13 @@ Empty keeps them host-only. There is no `COOKIE_SECURE`: `secure` comes from
 `NEXT_PUBLIC_API_URL` is where the browser calls the API; empty means this origin.
 `API_REWRITE_ENABLED=true` with `API_URL` sends `/api/v1/*` to that host. Both change
 only at the Go cut-over (`server/docs/ARCHITECTURE.md` §11).
+
+**Standby (decided 2026-11-08):** the TS routes stay deployed as Go's standby, so in
+production set `NEXT_PUBLIC_API_URL=https://api.hostelpalika.com` and `API_URL` to the
+same host, and leave `API_REWRITE_ENABLED` **off**: this origin's `/api/v1` *is* the
+standby. `lib/api-failover.ts` (browser `apiFetch`/`apiUrl` and server `serverApi`)
+moves traffic to it only after Go is confirmed unreachable, and back after two healthy
+`/api/v1/health` probes. The standby costs Vercel nothing while Go answers.
 
 ### Push notifications (Phase 6)
 

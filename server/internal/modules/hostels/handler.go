@@ -55,20 +55,20 @@ func (h *Handler) list(c *gin.Context) {
 		return
 	}
 	httpx.PublicCache(c)
-	// One shared copy per query for everyone (P11-17): "public" is never bumped,
-	// so a listing edit shows within cache.TTL, the s-maxage it already promised.
-	cache.Respond(c, h.public.Cache, []string{"public"}, "", "hostels?"+c.Request.URL.RawQuery, "Public hostels loaded",
+	// One shared copy per query for everyone (P11-17), dropped by PublicChanged.
+	cache.Respond(c, h.public.Cache, []string{cache.PublicScope}, "", "hostels?"+c.Request.URL.RawQuery, "Public hostels loaded",
 		func() (ordered.Map, error) { return h.public.List(c, q) })
 }
 
 func (h *Handler) bySlug(c *gin.Context) {
-	out, err := h.public.BySlug(c, c.Param("slug"))
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
 	httpx.PublicCache(c)
-	httpx.OK(c, out, "Public hostel loaded")
+	publicRead(c, h, "Public hostel loaded", func() (ordered.Map, error) { return h.public.BySlug(c, c.Param("slug")) })
+}
+
+// publicRead is one shared Redis copy of a signed-out read, keyed by its URL and
+// dropped by PublicChanged. A failed load is not cached.
+func publicRead(c *gin.Context, h *Handler, message string, load func() (ordered.Map, error)) {
+	cache.Respond(c, h.public.Cache, []string{cache.PublicScope}, "", c.Request.URL.RequestURI(), message, load)
 }
 
 var objectIDRe = regexp.MustCompile(`(?i)^[a-f\d]{24}$`)

@@ -10,7 +10,6 @@ import {
   settlementFor,
   type BookingEnding,
   type BookingTerms,
-  type PolicyRow,
 } from "@/modules/bookings/booking-terms";
 import { amountDue, stayDatesText, type BookingStay } from "@/modules/bookings/short-stay";
 import {

@@ -379,6 +379,7 @@ func (h *Handler) projectOntoListing(ctx context.Context, hostel bson.ObjectID, 
 		slog.ErrorContext(ctx, "Could not project the rate card onto the public listing.", "error", err, "hostelId", hostel.Hex())
 		return
 	}
+	h.Cache.PublicChanged(ctx)
 	var onCardOnly []string
 	for _, r := range rates {
 		if r.RoomType != nil && *r.RoomType != "" && !matched[rateKey(r.RoomType)] {

@@ -17,7 +17,7 @@ import {
 } from "@hostel/db/models/SubscriptionPayment";
 import { hostelDaysBetween } from "@hostel/shared/calendar/bs";
 import { monthsLabel } from "@hostel/shared/plans/catalog";
-import type { BillingInvoiceRow, BillingPaymentRow, BillingPlan, BillingHistory } from "@/lib/billing/billing.types";
+import type { BillingHistory } from "@/lib/billing/billing.types";
 export type { BillingInvoiceRow, BillingPaymentRow, BillingPlan, BillingHistory } from "@/lib/billing/billing.types";
 
 /**

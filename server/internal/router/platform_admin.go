@@ -59,10 +59,10 @@ func mountPlatform(v1 *gin.RouterGroup, s *shared, settler *billing.Settler) {
 	communityAdmin := &community.Handler{DB: s.D.DB, Guards: s.Guards, Notify: s.Notify, RT: s.RT, Bump: s.Cache, BG: s.BG, LLM: s.LLM}
 	communityAdmin.RegisterPlatform(v1, s.Audit)
 	communityAdmin.RegisterSponsors(v1, s.Audit)
-	configAdmin := &platformconfig.Admin{Config: s.Config, DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Mail: s.Mail, SiteURL: siteURL, Now: time.Now}
+	configAdmin := &platformconfig.Admin{Config: s.Config, DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Mail: s.Mail, SiteURL: siteURL, Now: time.Now, Cache: s.Cache}
 	configAdmin.Register(v1)
 	(&platformdesk.Handler{DB: s.D.DB, Guards: s.Guards, R2: s.R2, Now: time.Now}).Register(v1)
-	leaveOwner := &hostelleave.Owner{Handler: &hostelleave.Handler{DB: s.D.DB, Guards: s.Guards, R2: s.R2, BG: s.BG, Mail: s.Mail, Audit: s.Audit, AppURL: s.AppURL}, Notify: s.Notify, RT: s.RT, Cache: s.Cache}
+	leaveOwner := &hostelleave.Owner{Handler: &hostelleave.Handler{DB: s.D.DB, Guards: s.Guards, R2: s.R2, BG: s.BG, Mail: s.Mail, Audit: s.Audit, AppURL: s.AppURL, Public: s.Cache}, Notify: s.Notify, RT: s.RT, Cache: s.Cache}
 	(&hostelleave.Review{Owner: leaveOwner, Archive: platform.Archive}).Register(v1)
 	(&hostelreferrals.Platform{Service: s.Refs, Guards: s.Guards, Audit: s.Audit, AppURL: s.AppURL}).Register(v1)
 	(&serviceproviders.Platform{Handler: &serviceproviders.Handler{DB: s.D.DB, Guards: s.Guards, Mail: s.Mail, Notify: s.Notify, Audit: s.Audit, RT: s.RT, Cache: s.Cache},

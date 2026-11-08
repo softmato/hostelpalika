@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 )
@@ -123,6 +124,7 @@ func (k *Capacity) Write(ctx context.Context, hostel bson.ObjectID, cs []Config)
 		return err
 	}
 	realtime.PublishResourceChange(ctx, k.RT, k.Bump, realtime.Change{HostelIDs: []string{hostel.Hex()}, Topics: []realtime.Topic{realtime.Rooms, realtime.Residents}})
+	cache.PublicChangedOn(ctx, k.Bump) // free beds show on the listing
 	return nil
 }
 

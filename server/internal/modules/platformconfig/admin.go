@@ -23,6 +23,7 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -41,6 +42,7 @@ type Admin struct {
 	Mail    *email.Sender
 	SiteURL string
 	Now     func() time.Time
+	Cache   *cache.Cache // PublicChanged on every save: the settings feed the public pages
 }
 
 func (a *Admin) Register(v1 *gin.RouterGroup) {
@@ -96,6 +98,9 @@ func (a *Admin) save(ctx context.Context, key string, value any, by bson.ObjectI
 		bson.D{{Key: "$set", Value: bson.D{{Key: "key", Value: key}, {Key: "updatedBy", Value: by}, {Key: "value", Value: value}, {Key: "updatedAt", Value: now}}},
 			{Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}, {Key: "__v", Value: 0}}}}, options.UpdateOne().SetUpsert(true))
 	a.Config.Invalidate()
+	if err == nil {
+		a.Cache.PublicChanged(ctx)
+	}
 	return err
 }
 

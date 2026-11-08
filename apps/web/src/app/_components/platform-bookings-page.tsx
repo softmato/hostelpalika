@@ -52,10 +52,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { usePortalResource } from "@/lib/portal-query";
 import { uploadFile } from "@/lib/uploads/uploader";
 import type { BookingConfig } from "@/lib/bookings/booking-config.validation";
-import type { BookingPaymentToCheck } from "@/lib/bookings/booking.types";
-import type { TransferView } from "@/lib/bookings/booking.types";
-import type { PlatformBookingView } from "@/lib/bookings/booking.types";
-import type { PayoutAccountForReview } from "@/lib/bookings/booking.types";
+import type { BookingPaymentToCheck, PayoutAccountForReview, PlatformBookingView, TransferView } from "@/lib/bookings/booking.types";
 import type { PendingSettingChange } from "@/lib/platform-config/platform-config.types";
 
 /**

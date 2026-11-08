@@ -336,6 +336,8 @@ const nextConfig: NextConfig = {
          * stale tabs, cached PWAs, old app builds, `sw.js`, and `/api/v1/files/…`
          * paths saved in the data. `/api/v1` only: `/api/receipt-share` and the
          * AASA handler stay on the web. Off until `API_REWRITE_ENABLED=true`.
+         * Leave it off in production: this origin's `/api/v1` is Go's standby
+         * (lib/api-failover.ts); it is for local runs without NEXT_PUBLIC_API_URL.
          */
         ...(process.env.API_REWRITE_ENABLED === "true" && process.env.API_URL
           ? [{ destination: `${process.env.API_URL.replace(/\/+$/, "")}/api/v1/:path*`, source: "/api/v1/:path*" }]

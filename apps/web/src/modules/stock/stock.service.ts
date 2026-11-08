@@ -51,11 +51,8 @@ import {
   emptyAtPlace,
   type FoldEntry,
   foldStock,
-  type ItemAtPlace,
-  type ReportFigures,
   reportFigures,
   supplierLedger,
-  type UsageRow,
   usageRows,
 } from "@/lib/stock/stock-balance";
 import type {
@@ -67,8 +64,7 @@ import type {
   StockReportRange,
   UpdateStockSupplierInput,
 } from "@/lib/stock/stock.validation";
-import type { StockRights, StockRecorderRole, StockBill, StockEntryRow, StockItemRow, StockSupplierRow, StockSummary, StockHome, StockUsageRange, StockUsage, StockReportItem, StockReport } from "@/lib/stock/stock.types";
-import type { Place, AtRow } from "@/lib/stock/stock.types";
+import type { AtRow, Place, StockEntryRow, StockHome, StockItemRow, StockRecorderRole, StockReport, StockReportItem, StockRights, StockSummary, StockSupplierRow, StockUsage, StockUsageRange } from "@/lib/stock/stock.types";
 export type { Place, AtRow } from "@/lib/stock/stock.types";
 export type { StockRights, StockRecorderRole, StockBill, StockEntryRow, StockItemRow, StockSupplierRow, StockSummary, StockHome, StockUsageRange, StockUsage, StockReportItem, StockReport } from "@/lib/stock/stock.types";
 

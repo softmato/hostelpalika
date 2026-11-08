@@ -1,0 +1,106 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/workspaces"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "public user",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/workspaces",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Workspaces loaded",
+        "data": {
+          "held": false,
+          "hostels": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "hostel admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/workspaces",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Workspaces loaded",
+        "data": {
+          "held": false,
+          "hostels": [
+            {
+              "branchCap": 0,
+              "coverUrl": null,
+              "id": "6c00000000000000000000a1",
+              "isBranch": false,
+              "name": "Contract Hostel",
+              "slug": "contract-hostel"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "hostel admin, unknown slug",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/workspaces?slug=no-such-hostel",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Workspaces loaded",
+        "data": {
+          "held": false,
+          "hostels": [
+            {
+              "branchCap": 0,
+              "coverUrl": null,
+              "id": "6c00000000000000000000a1",
+              "isBranch": false,
+              "name": "Contract Hostel",
+              "slug": "contract-hostel"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  }
+]

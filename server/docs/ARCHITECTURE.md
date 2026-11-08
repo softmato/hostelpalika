@@ -140,7 +140,7 @@ One Redis 7 container beside the API, reached over the Docker network.
 |---|---|---|
 | Hostel cache version | `v:hostel:{hostelId}` | `INCR` on every write to that hostel |
 | Read cache | `c:{hostelId}:{version}:{userId}:{routeKey}` | 60 s TTL; value JSON `{"value": …}`; only when the principal has exactly one hostel; 150 ms timeout → Mongo |
-| Warm data (Go only) | `s:{name}` | public/static reads — site config sections, plans, demo hostels, public listings, cities, SEO — loaded at boot, rewritten on every write to them, 24 h TTL as a backstop |
+| Public reads (Go only) | `r:public:{version}::{url}` | signed-out reads (listing, hostel page, sitemap, locations, near) as finished envelopes with their ETag; version `v:hostel:public`, bumped by `cache.PublicChanged` at every write a listing shows (the same writes that clear the web's page cache); 10 min TTL as the backstop |
 | Rate limits | `rl:{namespace}:{subject}` | shared across instances (TS today is per instance, in memory) |
 | Job locks | `gocron` lock keys | one runner per job per tick |
 | Realtime fan-out | `rt:*` pub/sub | only once we run our own WebSockets on more than one instance |
@@ -166,8 +166,10 @@ be rebuilt. Turn AOF on only if a durable job queue is ever added.
 
 Go additions on top of the TS design:
 
-- **warm at boot** — `s:*` is loaded before `/health?deep=1` passes, so a
-  deploy or restart never serves its first public reads from Mongo.
+- **one public invalidation** — `cache.PublicChanged` bumps the public version and
+  POSTs the web's `/api/revalidate` (Bearer `REVALIDATE_SECRET`), so a listing edit
+  clears both caches at once. Not built: warming at boot; the first public read
+  after a deploy goes to Mongo once, then serves from Redis.
 - **singleflight** — concurrent misses for the same key run one Mongo query.
 - **pre-serialized bytes** — the cached value is the final JSON; a hit is
   written to the socket without decoding or re-encoding.

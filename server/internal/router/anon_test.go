@@ -28,6 +28,7 @@ var openToAnyone = map[string]bool{
 	"GET /api/v1/community/:postId":                     true,
 	"GET /api/v1/community/:postId/comments":            true,
 	"POST /api/v1/community/sponsors/:sponsorId/click":  true,
+	"GET /api/v1/email-preferences":                     true, // signed link in ?token
 	"POST /api/v1/email-preferences":                    true, // signed link in the body
 	"POST /api/v1/email-preferences/unsubscribe":        true, // signed link in the body
 	"GET /api/v1/files/:assetId/url":                    true, // public assets; private ones check inside

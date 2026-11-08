@@ -24,6 +24,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/export"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
@@ -62,6 +63,8 @@ type Handler struct {
 	Mail   *email.Sender
 	Audit  *audit.Log
 	AppURL func(string) string
+	// Public drops the public pages when a hostel is restored; nil = none.
+	Public *cache.Cache
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
@@ -407,6 +410,7 @@ func (h *Handler) restore(ctx context.Context, p *authz.Principal, me, id bson.O
 	if existing.DeletedAt != nil {
 		archivedAt = httpx.ISO(*existing.DeletedAt)
 	}
+	h.Public.PublicChanged(ctx)
 	return h.Audit.Write(ctx, audit.Entry{ActorID: me, HostelID: id, Action: "HOSTEL_RESTORED", EntityType: "Hostel", EntityID: id.Hex(), Metadata: bson.D{{Key: "archivedAt", Value: archivedAt}}})
 }
 

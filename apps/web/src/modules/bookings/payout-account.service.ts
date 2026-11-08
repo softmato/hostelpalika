@@ -28,8 +28,7 @@ import type { SecretEnvelope } from "@/modules/finance/gateway/envelope-crypto";
 import { openValue, sealValue } from "@/modules/finance/gateway/secret-store";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { appUrl, resolveHostelAdminContacts } from "@/modules/residents/resident-notify";
-import type { PayoutAccountView, PayoutAccountForReview } from "@/lib/bookings/booking.types";
-import type { PayoutAccountStatus } from "@/lib/bookings/booking.types";
+import type { PayoutAccountForReview, PayoutAccountStatus, PayoutAccountView } from "@/lib/bookings/booking.types";
 export type { PayoutAccountStatus } from "@/lib/bookings/booking.types";
 export type { PayoutAccountView, PayoutAccountForReview } from "@/lib/bookings/booking.types";
 

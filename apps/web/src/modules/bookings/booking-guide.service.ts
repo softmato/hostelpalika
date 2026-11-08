@@ -2,7 +2,6 @@ import "server-only";
 
 import { getBookingConfig } from "@/modules/bookings/booking-config";
 import { bookingGuideIntro, bookingGuideSections } from "@/modules/bookings/booking-guide";
-import type { PolicySection } from "@/modules/bookings/booking-policy";
 import type { BookingGuide } from "@/lib/bookings/booking.types";
 export type { BookingGuide } from "@/lib/bookings/booking.types";
 

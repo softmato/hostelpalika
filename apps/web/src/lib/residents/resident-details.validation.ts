@@ -4,7 +4,6 @@ import {
   BLOOD_GROUP_VALUES,
   DIETARY_PREFERENCE_VALUES,
   GENDER_VALUES,
-  type ResidentProfileData,
   residentSignatureSchema,
 } from "@/lib/users/resident-identity.validation";
 

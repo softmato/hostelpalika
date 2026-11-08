@@ -23,6 +23,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/users"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/maps"
@@ -360,6 +361,7 @@ func (t *TeamRegistration) fileListing(ctx context.Context, in TeamReg, shortSta
 	if err := t.DB.Collection("hostelapplications").FindOne(ctx, bson.D{{Key: "_id", Value: appID}}).Decode(&a); err != nil {
 		return nil, err
 	}
+	cache.PublicChangedOn(ctx, t.Cache)
 	var billingOut any
 	if state != nil {
 		billingOut = state

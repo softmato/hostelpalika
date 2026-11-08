@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
@@ -75,7 +76,7 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 		}
 		tag := httpx.ETagOf(body)
 		sctx, cancel := context.WithTimeout(context.WithoutCancel(c), Timeout)
-		_ = ch.entries().Set(sctx, rkey, append([]byte(tag+"\n"), body...), TTL).Err()
+		_ = ch.entries().Set(sctx, rkey, append([]byte(tag+"\n"), body...), ttlFor(hostelIDs[0])).Err()
 		cancel()
 		return [2][]byte{[]byte(tag), body}, nil
 	})
@@ -95,6 +96,14 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 	}
 	pair := v.([2][]byte)
 	send(c, string(pair[0]), pair[1])
+}
+
+// ttlFor: public reads are dropped by PublicChanged, so they may live longer.
+func ttlFor(scope string) time.Duration {
+	if scope == PublicScope {
+		return PublicTTL
+	}
+	return TTL
 }
 
 // responseKey reads the hostel version; ok=false means Redis is not answering.

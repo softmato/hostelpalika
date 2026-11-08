@@ -1,0 +1,25 @@
+[
+  {
+    "name": "stats",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/stats"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider stats loaded",
+        "data": {
+          "stats": {
+            "areaCount": 3,
+            "medianApprovalDays": null,
+            "totalProviders": 5
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  }
+]

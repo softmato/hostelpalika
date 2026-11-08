@@ -463,6 +463,7 @@ func (a *Admin) profilePatch(c *gin.Context) {
 			updated = fresh
 		}
 	}
+	a.Cache.PublicChanged(c)
 	httpx.OK(c, profileOut{SerializeHostel(updated, time.Now()), priced}, "Hostel profile updated")
 }
 

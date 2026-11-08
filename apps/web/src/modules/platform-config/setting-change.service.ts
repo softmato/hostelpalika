@@ -8,7 +8,7 @@ import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { PlatformSettingChangeModel } from "@hostel/db/models/PlatformSettingChange";
 import { UserModel } from "@hostel/db/models/User";
 import { sendEmail } from "@hostel/shared/email/sender";
-import { emailDateTime, type ComparisonRow } from "@hostel/shared/email/templates/layout";
+import { emailDateTime } from "@hostel/shared/email/templates/layout";
 import { settingChangeConfirmEmail } from "@hostel/shared/email/templates/platform/setting-change-confirm";
 
 import { assertPrimaryCredentialPrincipal, type ApiPrincipal } from "@/lib/api-auth";

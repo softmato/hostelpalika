@@ -64,6 +64,7 @@ type Config struct {
 	Softmato Softmato
 
 	CronSecret                string
+	RevalidateSecret          string // REVALIDATE_SECRET: Bearer for the web's POST /api/revalidate; empty = never called
 	QuestionCallWebhookSecret string
 }
 
@@ -329,6 +330,7 @@ func Parse(lookup func(string) (string, bool)) (*Config, []string, error) {
 	}
 
 	c.CronSecret = r.str("CRON_SECRET")
+	c.RevalidateSecret = r.str("REVALIDATE_SECRET")
 	c.LLM = LLM{Keys: map[string][]string{}, ProviderOrder: r.list("LLM_PROVIDER_ORDER")}
 	for _, p := range []string{"cerebras", "gemini", "groq", "mistral", "openrouter"} {
 		if keys := r.list(strings.ToUpper(p) + "_API_KEYS"); len(keys) > 0 {

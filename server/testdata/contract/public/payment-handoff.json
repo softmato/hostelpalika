@@ -1,0 +1,19 @@
+[
+  {
+    "name": "unknown reference",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/payments/nope-ref/handoff"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This payment link is not valid.",
+        "errorCode": "HANDOFF_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  }
+]

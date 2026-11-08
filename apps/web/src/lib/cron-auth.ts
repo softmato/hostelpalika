@@ -20,7 +20,7 @@ function normalizeSecret(value: string | null | undefined) {
   return value?.trim() || "";
 }
 
-function safeEqual(a: string, b: string): boolean {
+export function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a, "utf8");
   const bufB = Buffer.from(b, "utf8");
   // timingSafeEqual throws on length mismatch, so compare lengths first.

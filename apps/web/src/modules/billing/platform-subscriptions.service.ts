@@ -11,7 +11,7 @@ import {
 
 import { connectToDatabase } from "@/lib/db";
 import { siteUrl } from "@/lib/site";
-import type { PlatformInvoiceRow, PlatformPaymentRow, PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
+import type { PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
 export type { PlatformInvoiceRow, PlatformPaymentRow, PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
 
 /**

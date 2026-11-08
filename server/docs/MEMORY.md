@@ -223,3 +223,11 @@ Residents work starts with `resident.service.ts` (1996 lines); bookings need `bo
 - In-process memos (gate 5 s, site config 1 min) are off in the contract env (`IN_PROCESS_CACHE=off`): the fixture reseeds under the running router.
 - Email goldens cover every template; a new template needs `emails-all.ts` re-run and a row in `template_table_test.go`.
 
+
+## Web on Go, step 2 (2026-11-08, branch `web-on-go`)
+
+- Public cache: `cache.PublicChanged(ctx)` bumps `v:hostel:public` (drops every `r:public:*` read) and POSTs the web's `/api/revalidate` with `REVALIDATE_SECRET` (same value in root `.env` and `server/.env`; empty = no call). Called at the Go twins of TS's 16 `revalidatePublicPages` sites plus every `capacitySummary` write. A field typed `realtime.Bumper` uses `cache.PublicChangedOn`.
+- Cached signed-out reads (`Respond` with `cache.PublicScope`, 10 min TTL, ETag/304): listing, hostel by slug, sitemap, locations, near. Site config and pulse keep their in-process memos.
+- One `*cache.Cache` for the whole router now (`ch` in `mountAPI`): one singleflight group.
+- Locally the API container's `APP_URL` is `localhost:3000`, so its revalidate POST fails (logged, harmless); production's `APP_URL` is the web.
+- Router contract suite needs `-timeout 60m` (it passed 10 min).

@@ -4,6 +4,7 @@ import { PUBLIC_CACHE, handleRouteError, successResponse } from "@/lib/api-respo
 import { listPublicHostelsNear, listPublicHostelsNearAll } from "@/modules/hostels/hostel.service";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Every campus a published hostel found nearby, each with those hostels and

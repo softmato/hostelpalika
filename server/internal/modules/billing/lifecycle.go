@@ -248,7 +248,10 @@ func (s *Service) publishForSubscription(ctx context.Context, hostelID bson.Obje
 		set = append(set, bson.E{Key: "updatedBy", Value: *actor})
 	}
 	set = append(set, bson.E{Key: "verificationStatus", Value: "VERIFIED"}, bson.E{Key: "updatedAt", Value: nowMS()})
-	_, err := s.DB.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: hostelID}, {Key: "status", Value: bson.D{{Key: "$ne", Value: "PUBLISHED"}}}}, bson.D{{Key: "$set", Value: set}})
+	res, err := s.DB.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: hostelID}, {Key: "status", Value: bson.D{{Key: "$ne", Value: "PUBLISHED"}}}}, bson.D{{Key: "$set", Value: set}})
+	if err == nil && res.ModifiedCount > 0 {
+		s.Cache.PublicChanged(ctx)
+	}
 	return err
 }
 

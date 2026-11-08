@@ -37,8 +37,7 @@ import { BookingError } from "@/modules/bookings/booking.errors";
 import { revealHostelPayoutAccount } from "@/modules/bookings/payout-account.service";
 import type { PayoutMethod } from "@/lib/bookings/payout-account.validation";
 import { openValue } from "@/modules/finance/gateway/secret-store";
-import type { TransferView } from "@/lib/bookings/booking.types";
-import type { TransferBlock } from "@/lib/bookings/booking.types";
+import type { TransferBlock, TransferView } from "@/lib/bookings/booking.types";
 export type { TransferBlock } from "@/lib/bookings/booking.types";
 export type { TransferView } from "@/lib/bookings/booking.types";
 

@@ -1,3 +1,5 @@
+import { ApiBreaker } from "@/lib/api-failover";
+
 /**
  * The one setting that says where the browser reaches the API. Empty means this
  * origin, which is the deployed TS server today; at cut-over it becomes
@@ -7,13 +9,17 @@
  */
 const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
+/** Go first; this origin's TS routes take over while Go is unreachable (api-failover.ts). */
+const breaker = new ApiBreaker(API_ORIGIN, "");
+
 export function apiUrl(path: string) {
-  return API_ORIGIN && path.startsWith("/api/") ? `${API_ORIGIN}${path}` : path;
+  return path.startsWith("/api/") ? `${breaker.origin()}${path}` : path;
 }
 
 /** `fetch` for our API: on another host, cookies only travel when asked for. */
 export function apiFetch(path: string, init?: RequestInit) {
-  return fetch(apiUrl(path), { credentials: "include", ...init });
+  const options: RequestInit = { credentials: "include", ...init };
+  return path.startsWith("/api/") ? breaker.fetch(path, options) : fetch(path, options);
 }
 
 /**

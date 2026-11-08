@@ -2,6 +2,9 @@ import "server-only";
 
 import { headers } from "next/headers";
 
+import { ApiBreaker } from "@/lib/api-failover";
+import { siteUrl } from "@/lib/site";
+
 /**
  * Server-side reads from the Go API (server/docs/PARITY.md §9): the web holds no
  * database. `API_URL` is required in production — a build that falls back to its
@@ -38,11 +41,19 @@ type Options = {
   session?: boolean;
 };
 
+let breaker: ApiBreaker | null = null;
+
+/** Go first; this deployment's own TS routes while Go is unreachable (api-failover.ts). */
+function serverBreaker() {
+  breaker ??= new ApiBreaker(apiBase(), siteUrl().replace(/\/+$/, ""));
+  return breaker;
+}
+
 /** GET `path` (e.g. `/api/v1/public/hostels`) and return the envelope's `data`. */
 export async function serverApi<T>(path: string, options: Options = {}): Promise<T> {
   const revalidate = options.session ? 0 : (options.revalidate ?? 21600);
   const cookie = options.session ? (await headers()).get("cookie") : null;
-  const response = await fetch(`${apiBase()}${path}`, {
+  const response = await serverBreaker().fetch(path, {
     headers: { accept: "application/json", ...(cookie ? { cookie } : {}) },
     ...(revalidate === 0 ? { cache: "no-store" as const } : { next: { revalidate } }),
   });

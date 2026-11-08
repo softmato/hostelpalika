@@ -32,13 +32,7 @@ import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
-import type { FieldCashRow } from "@/lib/billing/billing.types";
-import type { PlanPaymentClaim } from "@/lib/billing/billing.types";
-import type {
-  PlatformInvoiceRow,
-  PlatformPaymentRow,
-  PlatformSubscriptionLedger,
-} from "@/lib/billing/billing.types";
+import type { FieldCashRow, PlanPaymentClaim, PlatformInvoiceRow, PlatformPaymentRow, PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
 import { Message } from "./core-portal-shared";
 import { MoneyHero, SplitBar } from "./platform-page-ui";
 import { WalletMark } from "@/components/wallet-mark";

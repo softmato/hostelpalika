@@ -17,8 +17,7 @@ import {
   sameRoomType,
 } from "@/modules/finance/fee-schedule.service";
 import { revalidatePublicPages } from "@/lib/revalidate-public";
-import type { ShortStaySettingsView } from "@/lib/bookings/booking.types";
-import type { ShortStayRoom } from "@/lib/bookings/booking.types";
+import type { ShortStayRoom, ShortStaySettingsView } from "@/lib/bookings/booking.types";
 export type { ShortStayRoom } from "@/lib/bookings/booking.types";
 export type { ShortStaySettingsView } from "@/lib/bookings/booking.types";
 

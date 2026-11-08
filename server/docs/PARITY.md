@@ -1053,64 +1053,87 @@ imports `@/modules/*` or `@hostel/db`.
 
 | ☐ | File (under `apps/web/src/app/`) |
 |---|---|
-| ☐ | `(hostel-admin)/[hostelSlug]/admin/layout.tsx` |
-| ☐ | `(public)/community/[postId]/page.tsx` |
-| ☐ | `(public)/features/[module]/page.tsx` |
-| ☐ | `(public)/hostels/[slug]/load-hostel.ts` |
-| ☐ | `(public)/how-booking-works/page.tsx` |
-| ☐ | `(public)/layout.tsx` |
-| ☐ | `(public)/page.tsx` |
-| ☐ | `(public)/plans-pricing/[service]/page.tsx` |
-| ☐ | `(public)/plans-pricing/badge/[tier]/page.tsx` |
-| ☐ | `(public)/plans-pricing/page.tsx` |
-| ☐ | `(public)/refund-policy/page.tsx` |
-| ☐ | `(public)/service-providers/page.tsx` |
-| ☐ | `(public)/vs/[slug]/page.tsx` |
-| ☐ | `_components/admission-forms-panel.tsx` |
-| ☐ | `_components/booking-checkout-page.tsx` |
-| ☐ | `_components/branch-registration-form.tsx` |
-| ☐ | `_components/checkout-return-page.tsx` |
-| ☐ | `_components/existing-residents-panel.tsx` |
-| ☐ | `_components/existing-residents-sheet.tsx` |
-| ☐ | `_components/hostel-admin-billing-page.tsx` |
-| ☐ | `_components/hostel-admin-bookings-page.tsx` |
-| ☐ | `_components/hostel-admin-fee-schedule-page.tsx` |
-| ☐ | `_components/hostel-admin-pay-plan.tsx` |
-| ☐ | `_components/hostel-admin-proof-review-modal.tsx` |
-| ☐ | `_components/hostel-admin-review-queue.tsx` |
-| ☐ | `_components/hostel-admin-stock-page.tsx` |
-| ☐ | `_components/hostel-admin-wardens-page.tsx` |
-| ☐ | `_components/hostel-booking-requests-reminder.tsx` |
-| ☐ | `_components/hostel-branch-detail-page.tsx` |
-| ☐ | `_components/hostel-payout-account-panel.tsx` |
-| ☐ | `_components/hostel-short-stays-panel.tsx` |
-| ☐ | `_components/lifetime-deal.tsx` |
-| ☐ | `_components/my-bookings-page.tsx` |
-| ☐ | `_components/plan-checkout-page.tsx` |
-| ☐ | `_components/plans-catalog.ts` |
-| ☐ | `_components/platform-bookings-page.tsx` |
-| ☐ | `_components/platform-config-content-page.tsx` |
-| ☐ | `_components/platform-config-lifetime-tab.tsx` |
-| ☐ | `_components/platform-config-seo-page.tsx` |
-| ☐ | `_components/platform-config-shared.tsx` |
-| ☐ | `_components/platform-subscription-claims.tsx` |
-| ☐ | `_components/platform-subscriptions-page.tsx` |
-| ☐ | `_components/platform-usage-page.tsx` |
-| ☐ | `_components/public-booking-guide-page.tsx` |
-| ☐ | `_components/public-hostel-detail-page.tsx` |
-| ☐ | `_components/public-refund-policy-page.tsx` |
-| ☐ | `_components/public-software-pages.tsx` |
-| ☐ | `_components/registration-track-sheet.tsx` |
-| ☐ | `_components/resident-join-page.tsx` |
-| ☐ | `_components/resident-join-panel.tsx` |
-| ☐ | `_components/team-desk-page.tsx` |
-| ☐ | `_components/team-register-hostel-page.tsx` |
-| ☐ | `email-preferences/page.tsx` |
-| ☐ | `pay/[reference]/page.tsx` |
-| ☐ | `sitemap.ts` |
-| ☐ | `verify-receipt/page.tsx` |
+| ☑ | `(hostel-admin)/[hostelSlug]/admin/layout.tsx` |
+| ☑ | `(public)/community/[postId]/page.tsx` |
+| ☑ | `(public)/features/[module]/page.tsx` |
+| ☑ | `(public)/hostels/[slug]/load-hostel.ts` |
+| ☑ | `(public)/how-booking-works/page.tsx` |
+| ☑ | `(public)/layout.tsx` |
+| ☑ | `(public)/page.tsx` |
+| ☑ | `(public)/plans-pricing/[service]/page.tsx` |
+| ☑ | `(public)/plans-pricing/badge/[tier]/page.tsx` |
+| ☑ | `(public)/plans-pricing/page.tsx` |
+| ☑ | `(public)/refund-policy/page.tsx` |
+| ☑ | `(public)/service-providers/page.tsx` |
+| ☑ | `(public)/vs/[slug]/page.tsx` |
+| ☑ | `_components/admission-forms-panel.tsx` |
+| ☑ | `_components/booking-checkout-page.tsx` |
+| ☑ | `_components/branch-registration-form.tsx` |
+| ☑ | `_components/checkout-return-page.tsx` |
+| ☑ | `_components/existing-residents-panel.tsx` |
+| ☑ | `_components/existing-residents-sheet.tsx` |
+| ☑ | `_components/hostel-admin-billing-page.tsx` |
+| ☑ | `_components/hostel-admin-bookings-page.tsx` |
+| ☑ | `_components/hostel-admin-fee-schedule-page.tsx` |
+| ☑ | `_components/hostel-admin-pay-plan.tsx` |
+| ☑ | `_components/hostel-admin-proof-review-modal.tsx` |
+| ☑ | `_components/hostel-admin-review-queue.tsx` |
+| ☑ | `_components/hostel-admin-stock-page.tsx` |
+| ☑ | `_components/hostel-admin-wardens-page.tsx` |
+| ☑ | `_components/hostel-booking-requests-reminder.tsx` |
+| ☑ | `_components/hostel-branch-detail-page.tsx` |
+| ☑ | `_components/hostel-payout-account-panel.tsx` |
+| ☑ | `_components/hostel-short-stays-panel.tsx` |
+| ☑ | `_components/lifetime-deal.tsx` |
+| ☑ | `_components/my-bookings-page.tsx` |
+| ☑ | `_components/plan-checkout-page.tsx` |
+| ☑ | `_components/plans-catalog.ts` |
+| ☑ | `_components/platform-bookings-page.tsx` |
+| ☑ | `_components/platform-config-content-page.tsx` |
+| ☑ | `_components/platform-config-lifetime-tab.tsx` |
+| ☑ | `_components/platform-config-seo-page.tsx` |
+| ☑ | `_components/platform-config-shared.tsx` |
+| ☑ | `_components/platform-subscription-claims.tsx` |
+| ☑ | `_components/platform-subscriptions-page.tsx` |
+| ☑ | `_components/platform-usage-page.tsx` |
+| ☑ | `_components/public-booking-guide-page.tsx` |
+| ☑ | `_components/public-hostel-detail-page.tsx` |
+| ☑ | `_components/public-refund-policy-page.tsx` |
+| ☑ | `_components/public-software-pages.tsx` |
+| ☑ | `_components/registration-track-sheet.tsx` |
+| ☑ | `_components/resident-join-page.tsx` |
+| ☑ | `_components/resident-join-panel.tsx` |
+| ☑ | `_components/team-desk-page.tsx` |
+| ☑ | `_components/team-register-hostel-page.tsx` |
+| ☑ | `email-preferences/page.tsx` |
+| ☑ | `pay/[reference]/page.tsx` |
+| ☑ | `sitemap.ts` |
+| ☑ | `verify-receipt/page.tsx` |
+| ☑ | `_components/hostel-admin-dashboard-page.tsx` |
+| ☑ | `_components/hostel-admin-residents-page.tsx` |
+| ☑ | `_components/proof-actions.tsx` |
 
 ---
+
+Outside `app/` (under `apps/web/src/`), missed by the generated list because they
+reached server code through another file. `lib/search-image-urls.ts` moved to
+`modules/hostels/` (server only) instead.
+
+| ☐ | File (under `apps/web/src/`) |
+|---|---|
+| ☑ | `lib/site-config-server.ts` |
+| ☑ | `lib/seo-config.ts` |
+| ☑ | `lib/llms-data.ts` |
+| ☑ | `lib/location-pages.ts` |
+| ☑ | `lib/near-pages.ts` |
+| ☑ | `lib/hostel-workspace.ts` |
+| ☑ | `components/site-config-provider.tsx` |
+| ☑ | `components/residency-invite-prompt.tsx` |
+| ☑ | `components/resident-identity.tsx` |
+| ☑ | `proxy.ts` |
+| ☑ | `components/bookings/book-button.tsx` |
+| ☑ | `components/bookings/payout-account-fields.tsx` |
+| ☑ | `components/bookings/review-payout-account.tsx` |
 
 ## 10. Scripts and one-off jobs
 

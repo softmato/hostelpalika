@@ -146,6 +146,7 @@ func (p *Platform) setStatus(ctx context.Context, id, actor bson.ObjectID, statu
 	if err := p.auditHostel(ctx, actor, id, action, meta); err != nil {
 		return nil, err
 	}
+	p.Cache.PublicChanged(ctx)
 	return ordered.Map{{Key: "hostel", Value: p.serialize(h)}}, nil
 }
 
@@ -298,6 +299,7 @@ func (p *Platform) approveHostel(ctx context.Context, id, actor bson.ObjectID, r
 		m := email.HostelVerified(creds, ft, p.supportPhone(ctx), o.HostelName, o.Name, !portalNow, sub.PlanName, p.statusURL())
 		p.Mail.Notify(ctx, email.Notification{Action: "hostel_verified", To: o.Email, Subject: m.Subject, HTML: m.HTML, Category: m.Category})
 	}
+	p.Cache.PublicChanged(ctx)
 	return result, nil
 }
 
@@ -390,6 +392,7 @@ func (p *Platform) completeKyc(ctx context.Context, id, actor bson.ObjectID) err
 		body = "Every feature is open and your hostel is live. Your free trial has ended — check your email to choose your plan."
 	}
 	p.bell(ctx, o.ID, id, "/hostel-admin", body, "Your KYC is verified", "HOSTEL_KYC_APPROVED")
+	p.Cache.PublicChanged(ctx)
 	if p.SendIDCard != nil {
 		p.SendIDCard(ctx, o.ID, "HOSTEL_OWNER")
 	}

@@ -2580,12 +2580,13 @@
                 "icon": "users",
                 "title": "Built for families"
               }
-            ]
+            ],
+            "trialDays": 3
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "wrong method",
@@ -2597,6 +2598,6 @@
       "status": 405,
       "contentType": ""
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 e4059554"
   }
 ]

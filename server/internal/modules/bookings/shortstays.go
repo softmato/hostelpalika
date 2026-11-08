@@ -18,6 +18,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
@@ -188,7 +189,7 @@ func (h *Hostel) SaveShortStays(ctx context.Context, hostel bson.ObjectID, in Sh
 		return nil, err
 	}
 	_ = h.Audit.Write(ctx, audit.Entry{ActorID: actor, HostelID: hostel, Action: "HOSTEL_SHORT_STAYS_SAVED", EntityType: "Hostel", EntityID: hostel.Hex(), Metadata: stays})
-	// ponytail: TS also revalidates the public pages here; the Go public reads are not page-cached.
+	cache.PublicChangedOn(ctx, h.Bump)
 	return h.ShortStays(ctx, hostel)
 }
 

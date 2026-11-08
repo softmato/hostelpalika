@@ -7,7 +7,6 @@ import {
   policyValues,
   refundPolicyIntro,
   refundPolicySections,
-  type PolicySection,
 } from "@/modules/bookings/booking-policy";
 import { termsFromConfig } from "@/modules/bookings/booking-terms";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";

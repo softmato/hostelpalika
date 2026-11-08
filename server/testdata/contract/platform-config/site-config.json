@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "site config as moderator",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "site config",
@@ -2673,7 +2673,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save unknown section",
@@ -2697,7 +2697,7 @@
         "errorCode": "UNKNOWN_SECTION"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save invalid",
@@ -2723,7 +2723,7 @@
         "errorCode": "INVALID_SITE_CONFIG"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save announcement",
@@ -2760,7 +2760,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save stats",
@@ -2799,7 +2799,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save social",
@@ -2835,7 +2835,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "save as moderator",
@@ -2859,7 +2859,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "site config after",
@@ -5477,7 +5477,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "public config after",
@@ -8048,11 +8048,12 @@
                 "icon": "users",
                 "title": "Built for families"
               }
-            ]
+            ],
+            "trialDays": 3
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 e4059554"
   }
 ]

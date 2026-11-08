@@ -5,6 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { listWorkspaces } from "@/modules/hostels/hostel-workspace.service";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /** The web portal's workspace switcher and access check (PARITY §9: the layout reads the API). */
 export async function GET(request: NextRequest) {

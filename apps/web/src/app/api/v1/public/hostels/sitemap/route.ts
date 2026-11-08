@@ -5,6 +5,7 @@ import { listPublishedHostelSlugs } from "@/modules/hostels/hostel.service";
 import { resolveSearchImageUrls } from "@/modules/hostels/search-image-urls";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Every published hostel for sitemap.xml, or one with `?slug=` for its social

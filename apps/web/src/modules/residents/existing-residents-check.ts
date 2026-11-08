@@ -1,8 +1,7 @@
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { addBsMonths, bsPeriodBounds, formatBsPeriod } from "@/lib/hostel-day";
 import { computeInvoiceAmount } from "@/modules/finance/fee-schedule.service";
-import type { ListRow, RowField, RowProblem, BillPreview, CheckedRow, RoomTypeSummary, CheckResult } from "@/lib/residents/existing-residents.types";
-import type { NumberedRoom } from "@/lib/residents/existing-residents.types";
+import type { BillPreview, CheckedRow, CheckResult, ListRow, NumberedRoom, RoomTypeSummary, RowField, RowProblem } from "@/lib/residents/existing-residents.types";
 export type { NumberedRoom } from "@/lib/residents/existing-residents.types";
 export type { ListRow, RowField, RowProblem, BillPreview, CheckedRow, RoomTypeSummary, CheckResult } from "@/lib/residents/existing-residents.types";
 

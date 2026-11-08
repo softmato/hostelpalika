@@ -1,11 +1,8 @@
 import { decryptPersonalData, encryptPersonalData } from "@/lib/personal-data-crypto";
 import {
-  BLOOD_GROUP_VALUES,
-  DIETARY_PREFERENCE_VALUES,
-  GENDER_VALUES,
   type ResidentProfileData,
 } from "@/lib/users/resident-identity.validation";
-import { residentDetailsSchema, type ResidentDetails } from "@/lib/residents/resident-details.validation";
+import type { ResidentDetails } from "@/lib/residents/resident-details.validation";
 
 export * from "@/lib/residents/resident-details.validation";
 

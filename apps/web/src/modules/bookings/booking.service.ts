@@ -56,8 +56,6 @@ import {
   policySummary,
   toGuestView,
   type BookingRecord,
-  type GuestBookingView,
-  type PolicySummary,
   type TransferRecord,
 } from "@/modules/bookings/booking-views";
 import { BookingError } from "@/modules/bookings/booking.errors";

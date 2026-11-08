@@ -1,0 +1,44 @@
+[
+  {
+    "name": "no code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/receipts/verify"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Receipt checked",
+        "data": {
+          "verification": {
+            "found": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "unknown code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/receipts/verify?code=NOPE-0000"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Receipt checked",
+        "data": {
+          "verification": {
+            "found": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  }
+]

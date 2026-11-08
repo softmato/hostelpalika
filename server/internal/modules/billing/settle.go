@@ -429,6 +429,7 @@ func (s *Settler) liftSuspension(ctx context.Context, hostelID bson.ObjectID, ac
 	if _, err := hostels.UpdateMany(ctx, bson.D{{Key: "parentHostelId", Value: hostelID}}, clear); err != nil {
 		return err
 	}
+	s.Cache.PublicChanged(ctx)
 	meta := bson.D{{Key: "cause", Value: "PAID"}}
 	var grace, started, reason any
 	stage := ""

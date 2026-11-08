@@ -15,6 +15,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/softmato"
@@ -36,6 +37,8 @@ type Service struct {
 	Mail     *email.Sender
 	// PayLinkSecret is JWT_ACCESS_SECRET, which signs planPayLink; empty sends the plain billing URL.
 	PayLinkSecret string
+	// Cache drops the public pages when a hostel goes live or reopens; nil = none.
+	Cache *cache.Cache
 }
 
 // HostelCode is hostelCode: the id an owner types at the plan checkout.

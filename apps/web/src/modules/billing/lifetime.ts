@@ -6,7 +6,6 @@ import {
   lifetimeOfferFor,
   lifetimeSeatsLeft,
   lifetimeWindow,
-  type LifetimeWindow,
 } from "@hostel/shared/plans/lifetime";
 import type { LifetimeAvailability } from "@/lib/billing/billing.types";
 export type { LifetimeAvailability } from "@/lib/billing/billing.types";

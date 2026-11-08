@@ -23,33 +23,18 @@ import (
 // gate as the listing.
 
 func (h *Handler) sitemap(c *gin.Context) {
-	out, err := h.public.Sitemap(c, c.Query("slug"))
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
 	httpx.PublicCache(c)
-	httpx.OK(c, out, "Published hostels loaded")
+	publicRead(c, h, "Published hostels loaded", func() (ordered.Map, error) { return h.public.Sitemap(c, c.Query("slug")) })
 }
 
 func (h *Handler) locations(c *gin.Context) {
-	out, err := h.public.Locations(c)
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
 	httpx.PublicCache(c)
-	httpx.OK(c, out, "Hostel locations loaded")
+	publicRead(c, h, "Hostel locations loaded", func() (ordered.Map, error) { return h.public.Locations(c) })
 }
 
 func (h *Handler) near(c *gin.Context) {
-	out, err := h.public.Near(c, c.Query("place"))
-	if err != nil {
-		httpx.Fail(c, err)
-		return
-	}
 	httpx.PublicCache(c)
-	httpx.OK(c, out, "Nearby places loaded")
+	publicRead(c, h, "Nearby places loaded", func() (ordered.Map, error) { return h.public.Near(c, c.Query("place")) })
 }
 
 // Sitemap is listPublishedHostelSlugs with each hostel's first ten photos as

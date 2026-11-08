@@ -4,6 +4,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { verifyReceiptByCode } from "@/modules/finance/receipt.service";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * What `/verify-receipt` shows for a certified receipt's code (PARITY §9: the

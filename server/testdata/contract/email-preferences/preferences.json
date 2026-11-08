@@ -17,7 +17,7 @@
         "errorCode": "INVALID_UNSUBSCRIBE_LINK"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "unsubscribe bad topic",
@@ -37,7 +37,7 @@
         "errorCode": "INVALID_UNSUBSCRIBE_LINK"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "unsubscribe ok",
@@ -59,7 +59,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "unsubscribe again",
@@ -81,7 +81,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "unsubscribe GET refused",
@@ -96,7 +96,7 @@
       "status": 405,
       "contentType": ""
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "form bad token",
@@ -114,7 +114,7 @@
       "contentType": "",
       "location": "/email-preferences?token=nope\u0026topic=NOTICES"
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "form mute",
@@ -132,7 +132,7 @@
       "contentType": "",
       "location": "/email-preferences?token=cmVhZGVyQGNvbnRyYWN0LnRlc3Q.3ULsRdYG95BANhZhNqFbzEzImAxL_gLASNiCT4GNiOs\u0026topic=NOTICES\u0026saved=1"
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "form save",
@@ -150,7 +150,7 @@
       "contentType": "",
       "location": "/email-preferences?token=cmVhZGVyQGNvbnRyYWN0LnRlc3Q.3ULsRdYG95BANhZhNqFbzEzImAxL_gLASNiCT4GNiOs\u0026saved=1"
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
   },
   {
     "name": "form no topic",
@@ -168,6 +168,52 @@
       "contentType": "",
       "location": "/email-preferences?token=nope"
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "GET, bad token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/email-preferences?token=nope",
+      "headers": {
+        "user-agent": "ep-get-1"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This link is not valid.",
+        "errorCode": "INVALID_TOKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
+  },
+  {
+    "name": "GET, good token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/email-preferences?token={{preference:Reader@Contract.test}}",
+      "headers": {
+        "user-agent": "ep-get-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email preferences loaded",
+        "data": {
+          "email": "re•••@contract.test",
+          "muted": [
+            "COMPLAINT_UPDATES",
+            "RENT_REMINDERS"
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 e4059554"
   }
 ]

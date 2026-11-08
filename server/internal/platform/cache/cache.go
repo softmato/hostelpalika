@@ -29,6 +29,7 @@ type Cache struct {
 	// Entries holds the cached bodies, on a Redis that may evict anything, so a
 	// flood of entries can never push out a lock or a rate limit (P11-16). nil = Redis.
 	Entries *goredis.Client
+	Web     Web // public pages to clear on PublicChanged; zero = none
 	group   singleflight.Group
 }
 

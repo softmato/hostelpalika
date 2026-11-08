@@ -21,6 +21,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -42,6 +43,7 @@ type Quick struct {
 	Audit   *audit.Log
 	// SiteURL is siteUrl(): where the KYC link in the welcome mail points.
 	SiteURL string
+	Cache   *cache.Cache
 }
 
 func (q *Quick) Register(v1 *gin.RouterGroup) {
@@ -254,6 +256,7 @@ func (q *Quick) quickRegister(ctx context.Context, in quickIn, userID string) (o
 		q.tellOwner(ctx, user.ID, hostel.ID, "/hostel-admin", fmt.Sprintf("You got %d days free — enjoy and explore.", trialDays), "Congratulations! "+hostel.Name+" is on HostelPalika", "HOSTEL_PORTAL_OPEN")
 		q.tellOwner(ctx, user.ID, hostel.ID, "/hostel-admin/kyc", "Complete your hostel KYC now. Our team checks it within 24 hours, then every feature opens.", "Please complete your KYC", "HOSTEL_KYC")
 	}
+	q.Cache.PublicChanged(ctx)
 	var endsAt any
 	if trialEnds != nil {
 		endsAt = httpx.ISO(*trialEnds)

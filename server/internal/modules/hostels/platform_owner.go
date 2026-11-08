@@ -184,6 +184,7 @@ func (p *Platform) suspend(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	p.Cache.PublicChanged(c)
 	msg := "Pre-suspension started"
 	if sent != true {
 		msg = "Pre-suspension started, but the owner could not be emailed"
@@ -231,6 +232,7 @@ func (p *Platform) liftHostelSuspension(ctx context.Context, id bson.ObjectID, a
 	if actor != nil {
 		entry.ActorID, entry.ActorType = *actor, "USER"
 	}
+	p.Cache.PublicChanged(ctx)
 	return true, p.Audit.Write(ctx, entry)
 }
 

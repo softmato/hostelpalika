@@ -71,6 +71,7 @@ func (p *Platform) Archive(ctx context.Context, id bson.ObjectID, reason string,
 	if err := p.auditHostel(ctx, actor, id, "HOSTEL_ARCHIVED", bson.D{{Key: "purgeScheduledAt", Value: httpx.ISO(purgeAt)}, {Key: "reason", Value: reason}, {Key: "sessionsRevoked", Value: revoked}}); err != nil {
 		return nil, 0, err
 	}
+	p.Cache.PublicChanged(ctx)
 	return h, revoked, nil
 }
 
