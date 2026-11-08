@@ -37,15 +37,36 @@ replicas), Redis. Mongo is Atlas.
 
 `API_REPLICAS` (default 1) in the VPS shell or `.env` sets the replica count.
 
-**VPS one-time setup** (owner; `review_fixes_needed.md` "Owner steps left by Phase 10"):
-Docker + compose plugin and `curl`; a deploy user in the `docker` group;
-`~/hostelpalika/.env` (mode 600) with the production values from `ENVIRONMENT.md`; then
-in GitHub → Settings → Secrets and variables → Actions: secrets `VPS_HOST`, `VPS_USER`,
-`VPS_SSH_KEY` (a key only for deploys), `VPS_KNOWN_HOSTS` (`ssh-keyscan <host>`),
-optional `VPS_PORT`; variable `DEPLOY_ENABLED=true`. Optionally add required
-reviewers to the `production` environment to approve each deploy.
+**The VPS:** LD Cloud instance `production`, Ubuntu 24.04, 2 vCPU / 4 GB, public IP
+`163.128.128.52` NATed into its VPC (private `10.1.1.5`). Outside the box: LD Cloud's
+security group allows inbound TCP 22, 80, 443 and UDP 443; Cloudflare DNS has
+`api.hostelpalika.com` A → that IP, **DNS only** (grey cloud), because Caddy gets its
+own certificate and is the one proxy `TRUSTED_PROXIES` trusts.
 
-**By hand** (same steps, from the VPS): `bash ~/hostelpalika/deploy/deploy.sh <sha>`
+**Access.** Two SSH keys, no passwords once set up:
+- *admin*: the provider's account (`lduser`) with a key from the operator's machine,
+  passwordless sudo. Installed once with the provider password (the only time it is used).
+- *deploy*: user `deploy` (docker group), whose key exists only in the GitHub secret
+  `VPS_SSH_KEY`. CI logs in as it; nothing else does.
+
+**One-time setup**, in order:
+1. Admin key into `lduser`'s `~/.ssh/authorized_keys`.
+2. `sudo bash vps-setup.sh '<deploy public key>'` (`deploy/vps-setup.sh`, re-runnable):
+   Docker + compose, the `deploy` user and `~deploy/hostelpalika/`, SSH keys-only and no
+   root, ufw 22/80/443, overcommit for Redis, unattended security upgrades.
+3. `~deploy/hostelpalika/.env` (mode 600, owner `deploy`): production values from
+   `ENVIRONMENT.md`, `REDIS_PASSWORD` (`openssl rand -hex 32`), `GO_PATHS` (paths Caddy
+   sends to Go; `/api/*` once the web reads Go) and `SCHEDULER_ENABLED=false` while TS
+   jobs still run from cron-job.org — with both on, every job runs twice.
+4. GitHub → Settings → Secrets and variables → Actions: secrets `VPS_HOST`,
+   `VPS_USER=deploy`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS` (`ssh-keyscan <host>`), optional
+   `VPS_PORT`; variable `DEPLOY_ENABLED=true`. Optionally add required reviewers to the
+   `production` environment to approve each deploy.
+
+**A branch before it is on main:** Actions → Go server → Run workflow on that branch,
+sha empty: test, image and deploy run for it. Push to `main` takes over again after.
+
+**By hand** (same steps, from the VPS as `deploy`): `bash ~/hostelpalika/deploy/deploy.sh <sha>`
 after `docker login ghcr.io`.
 
 ## 2. Rollback
@@ -55,9 +76,10 @@ after `docker login ghcr.io`.
   image is rolled out the same gapless way. Or on the VPS:
   `bash ~/hostelpalika/deploy/deploy.sh <previous-sha>`. Indexes are additive, so an
   older binary runs on a newer index set.
-- **Bad Go side as a whole (before TS is deleted):** unset `GO_PATHS` in Caddy's env
-  (only `/api/v1/health` stays on Go, everything else goes to `TS_UPSTREAM`) and
-  `docker compose up -d caddy`. Phase 11 replaces this with the `BACKEND` lever.
+- **Bad Go side as a whole (before TS is deleted):** remove `GO_PATHS` from
+  `~deploy/hostelpalika/.env` (only `/api/v1/health` stays on Go, everything else goes to
+  `TS_UPSTREAM`) and, in `~/hostelpalika/deploy`,
+  `docker compose --env-file ../.env up -d caddy`. Phase 11 replaces this with the `BACKEND` lever.
 - **Bad data write:** restore from the platform backup (`POST /cron/platform-backup`
   writes it; the superadmin Backups screen restores a hostel). Restores are per hostel.
 

@@ -8,6 +8,8 @@ name: Go server
 #           variable DEPLOY_ENABLED is "true" (server/docs/RUNBOOK.md §1).
 # Rollback: Actions → Go server → Run workflow with an older sha; test and image are
 # skipped and that already-built image is rolled out.
+# Run workflow on another branch with no sha tests, builds and deploys that branch:
+# a deliberate release that is not on main yet (web-on-go before the web cut-over).
 
 on:
   push:
@@ -75,7 +77,7 @@ jobs:
       - name: Known vulnerabilities
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
       - name: Deploy script
-        run: shellcheck deploy/deploy.sh
+        run: shellcheck deploy/deploy.sh deploy/vps-setup.sh
 
   image:
     needs: test
@@ -130,7 +132,7 @@ jobs:
         if: failure()
         run: docker logs api 2>&1 | tail -80 || true
       - name: Push
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           docker push "$IMAGE:$GITHUB_SHA"
@@ -138,10 +140,11 @@ jobs:
 
   deploy:
     needs: image
-    # Runs after a green image on main, or alone for a rollback sha.
+    # Runs after a green image from a push to main or a Run workflow, or alone for a
+    # rollback sha.
     if: >-
-      always() && vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' &&
-      github.event_name != 'pull_request' &&
+      always() && vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
       (needs.image.result == 'success' ||
        (github.event_name == 'workflow_dispatch' && inputs.tag != '' && needs.image.result == 'skipped'))
     runs-on: ubuntu-24.04

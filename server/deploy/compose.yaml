@@ -13,6 +13,8 @@ services:
     environment:
       API_HOST: ${API_HOST:-api.hostelpalika.com}
       TS_UPSTREAM: ${TS_UPSTREAM:-https://hostelpalika.com}
+      # Paths the Caddyfile sends to Go; the rest go to TS_UPSTREAM. Set in the VPS .env.
+      GO_PATHS: ${GO_PATHS:-/api/v1/health}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
