@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Presentation } from "@softmato/sdk";
 
-import type { PlansConfig } from "@/modules/platform-config/site-config.validation";
+import type { PlansConfig } from "@/lib/platform-config/site-config.validation";
 
 /**
  * The plan, in our words, printed on Softmato's invoice and checkout page.

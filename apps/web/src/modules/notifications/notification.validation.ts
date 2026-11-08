@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { paginationQuerySchema } from "@/lib/pagination";
-import { EMAIL_TOPIC_VALUES } from "@/modules/notifications/email-topics";
+import { EMAIL_TOPIC_VALUES } from "@/lib/notifications/email-topics";
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, "Invalid object id.");
 

@@ -29,7 +29,7 @@ import {
   suspensionStage,
   type SuspensionRecord,
 } from "@/modules/hostels/hostel-suspension";
-import type { WardenPermissionKey } from "@/modules/wardens/warden.validation";
+import type { WardenPermissionKey } from "@/lib/wardens/warden.validation";
 
 export type ApiPrincipal = {
   /**

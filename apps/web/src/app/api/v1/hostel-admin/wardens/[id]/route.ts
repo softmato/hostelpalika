@@ -6,7 +6,7 @@ import {
   deactivateHostelWarden,
   updateHostelWarden,
 } from "@/modules/wardens/warden.service";
-import { wardenUpdateSchema } from "@/modules/wardens/warden.validation";
+import { wardenUpdateSchema } from "@/lib/wardens/warden.validation";
 
 type RouteContext = {
   params: Promise<{

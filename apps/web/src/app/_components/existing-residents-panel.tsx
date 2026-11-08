@@ -19,16 +19,16 @@ import { currency } from "@/app/_components/shared-ui";
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { cn } from "@/lib/utils";
-import type { CheckResult, ListRow } from "@/modules/residents/existing-residents-check";
+import type { CheckResult, ListRow } from "@/lib/residents/existing-residents.types";
 import type {
   AddResult,
   ExistingResidentsView,
-} from "@/modules/residents/existing-residents.service";
+} from "@/lib/residents/existing-residents.types";
 import {
   joinedDateText,
   rentStatusLabel,
   type SheetOutRow,
-} from "@/modules/residents/existing-residents-sheet-model";
+} from "@/lib/residents/existing-residents-sheet-model";
 
 import { ExistingResidentsSheet } from "./existing-residents-sheet";
 import { RoleButton, SectionCard, SoftBadge } from "./portal-dashboard-ui";

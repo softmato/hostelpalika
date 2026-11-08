@@ -12,6 +12,8 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
+import type { ResidencyInvite } from "@/lib/residents/resident.types";
+export type { ResidencyInvite } from "@/lib/residents/resident.types";
 
 /**
  * "Your hostel added you as a resident — is this you?" (docs/EXISTING_RESIDENTS.md).
@@ -47,16 +49,6 @@ export class ResidencyInviteError extends Error {
   }
 }
 
-export type ResidencyInvite = {
-  firstName: string;
-  hostelName: string;
-  /** Rupees due right now across open bills. Zero means all clear. */
-  dueAmount: number;
-  /** `Aswin 2083` when the hostel recorded one, for "all clear till". */
-  paidTill: string | null;
-  residentId: string;
-  roomType: string;
-};
 
 type AccountRow = {
   _id: Types.ObjectId;

@@ -1,16 +1,15 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { readAccessTokenCookie } from "@/lib/auth-cookies";
-import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { verifyAccessToken } from "@/lib/auth";
-import { connectToDatabase } from "@/lib/db";
-import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { Role } from "@/lib/roles";
-import { planBranchCap } from "@/modules/billing/billing-hostel";
-import { HostelModel } from "@hostel/db/models/Hostel";
+import { serverApi, ServerApiError } from "@/lib/server-api";
 
 type WorkspaceHostel = {
+  /** Branches this hostel's plan includes — 0 on every plan but Max. */
+  branchCap: number;
   /** First exterior photo — the hostel's face in the switcher. */
   coverUrl: string | null;
   id: string;
@@ -20,88 +19,33 @@ type WorkspaceHostel = {
   slug: string;
 };
 
-const isAuthBypassed = isAuthBypassEnabled;
-
-/** Dev-only stand-in for "the hostels this session belongs to". */
-async function previewHostels(): Promise<WorkspaceHostel[]> {
-  await connectToDatabase();
-
-  const hostels = await HostelModel.find({ isDeleted: { $ne: true } })
-    .select("name photos.kind photos.url slug")
-    .limit(10)
-    .lean<Array<{ _id: { toString(): string }; name: string; photos?: HostelPhoto[]; slug: string }>>();
-
-  return hostels.map((hostel) => ({
-    coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
-    id: hostel._id.toString(),
-    isBranch: false,
-    name: hostel.name,
-    slug: hostel.slug,
-  }));
-}
-
 /**
- * The hostels the signed-in staff member may open a workspace for. Returns an
- * empty list when there is no valid session — callers redirect to login rather
- * than leaking whether a slug exists.
- *
- * Wrapped in React's `cache` because the admin layout asks twice per render —
- * once through `canAccessWorkspace`, once through `workspaceHostelName` — and
- * each ask was its own identical `Hostel.find`. Per-request only, so a session
- * change on the next request is still seen.
+ * `GET /api/v1/account/workspaces` with this request's session, once per
+ * request and slug. No session, or a dead one, reads as no hostels — callers
+ * 404 rather than leak whether a slug exists. A browser that still owes the
+ * app-lock PIN goes to `/unlock` first.
  */
-export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> => {
-  const store = await cookies();
-  const token = readAccessTokenCookie(store);
+const readWorkspaces = cache(async (slug?: string): Promise<{ held: boolean; hostels: WorkspaceHostel[] }> => {
+  if (!readAccessTokenCookie(await cookies())) return { held: false, hostels: [] };
 
-  let hostelIds: string[] = [];
-
-  if (token) {
-    try {
-      const payload = await verifyAccessToken(token);
-      hostelIds = payload.hostelIds ?? [];
-    } catch {
-      hostelIds = [];
-    }
+  try {
+    return await serverApi(`/api/v1/account/workspaces${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`, {
+      session: true,
+    });
+  } catch (error) {
+    if (error instanceof ServerApiError && error.code === "LOCK_PIN_REQUIRED") redirect("/unlock");
+    if (error instanceof ServerApiError && error.status < 500) return { held: false, hostels: [] };
+    throw error;
   }
-
-  // proxy.ts skips auth in development / UI-preview mode, so the portal has to
-  // stay browsable there without a session. Never in production.
-  if (hostelIds.length === 0) {
-    return isAuthBypassed() ? previewHostels() : [];
-  }
-
-  await connectToDatabase();
-
-  const hostels = await HostelModel.find({
-    _id: { $in: hostelIds },
-    isDeleted: { $ne: true },
-  })
-    .select("name parentHostelId photos.kind photos.url slug")
-    .lean<
-      Array<{
-        _id: { toString(): string };
-        name: string;
-        parentHostelId?: unknown;
-        photos?: HostelPhoto[];
-        slug: string;
-      }>
-    >();
-
-  // Main hostels lead, then the token's order. Not order alone: a claim-back
-  // re-grants branches before their main.
-  const order = new Map(hostelIds.map((id, index) => [id, index]));
-
-  return hostels
-    .map((hostel) => ({
-      coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
-      id: hostel._id.toString(),
-      isBranch: Boolean(hostel.parentHostelId),
-      name: hostel.name,
-      slug: hostel.slug,
-    }))
-    .sort((a, b) => Number(a.isBranch) - Number(b.isBranch) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 });
+
+/** The hostels the signed-in staff member may open a workspace for, main hostels first. */
+export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> => (await readWorkspaces()).hostels);
+
+/** Whether `slug` is this account's own held (left-the-platform) hostel. */
+export async function isHeldWorkspace(slug: string): Promise<boolean> {
+  return (await readWorkspaces(slug)).held;
+}
 
 /** The slug the portal should open by default for this staff member. */
 export async function defaultWorkspaceSlug(): Promise<string | null> {
@@ -128,24 +72,27 @@ export async function workspaceHostelName(slug: string): Promise<string | null> 
   return hostels.find((hostel) => hostel.slug === slug)?.name ?? null;
 }
 
+const sessionRole = cache(async (): Promise<string | null> => {
+  const token = readAccessTokenCookie(await cookies());
+
+  if (!token) return null;
+
+  try {
+    return (await verifyAccessToken(token)).role ?? null;
+  } catch {
+    return null;
+  }
+});
+
 /**
  * The Overall workspace (`OVERALL_SLUG`): the owner of more than one hostel.
  * A warden who works in two branches is a member of each, not their owner, so
  * never gets it — the all-branches figures are the owner's alone.
  */
-export const canOpenOverall = cache(async (): Promise<boolean> => {
-  const token = readAccessTokenCookie(await cookies());
-
-  if (!token) return isAuthBypassed() && (await listWorkspaceHostels()).length > 1;
-
-  try {
-    const payload = await verifyAccessToken(token);
-
-    return payload.role === Role.HOSTEL_ADMIN && (await listWorkspaceHostels()).length > 1;
-  } catch {
-    return false;
-  }
-});
+export const canOpenOverall = cache(
+  async (): Promise<boolean> =>
+    (await sessionRole()) === Role.HOSTEL_ADMIN && (await listWorkspaceHostels()).length > 1,
+);
 
 /**
  * Why Branches is closed in this workspace, or null when it is open. Branches
@@ -156,17 +103,7 @@ export const branchesLock = cache(async (slug: string): Promise<string | null> =
   const hostel = (await listWorkspaceHostels()).find((entry) => entry.slug === slug);
 
   if (!hostel) return null;
-  if ((await planBranchCap(hostel.id)) === 0) return "You need the Max plan to use branches.";
+  if (hostel.branchCap === 0) return "You need the Max plan to use branches.";
 
-  const token = readAccessTokenCookie(await cookies());
-
-  if (!token) return null; // dev preview, no session
-
-  try {
-    const payload = await verifyAccessToken(token);
-
-    return payload.role === Role.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
-  } catch {
-    return "Only the hostel owner can manage branches.";
-  }
+  return (await sessionRole()) === Role.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
 });

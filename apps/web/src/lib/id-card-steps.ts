@@ -2,7 +2,7 @@ import { isSignatureComplete } from "@/lib/signature";
 import {
   isResidentPhone,
   RESIDENT_PHONE_MESSAGE,
-} from "@/modules/users/resident-identity.validation";
+} from "@/lib/users/resident-identity.validation";
 
 export type IdentityStep =
   | "about"

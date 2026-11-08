@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2, Loader2 } from "@/components/icons";
 import { useMemo, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
-import type { CheckResult, ListRow } from "@/modules/residents/existing-residents-check";
+import type { CheckResult, ListRow } from "@/lib/residents/existing-residents.types";
 import {
   AUTO_COLUMNS,
   autoFill,
@@ -22,7 +22,7 @@ import {
   type SheetContext,
   type SheetOutRow,
   type SheetRow,
-} from "@/modules/residents/existing-residents-sheet-model";
+} from "@/lib/residents/existing-residents-sheet-model";
 
 import { RoleButton } from "./portal-dashboard-ui";
 import { focusCell, SheetGrid, type SheetGridColumn } from "./sheet-grid";

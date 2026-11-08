@@ -17,6 +17,8 @@ import {
 } from "@hostel/db/models/SubscriptionPayment";
 import { hostelDaysBetween } from "@hostel/shared/calendar/bs";
 import { monthsLabel } from "@hostel/shared/plans/catalog";
+import type { BillingInvoiceRow, BillingPaymentRow, BillingPlan, BillingHistory } from "@/lib/billing/billing.types";
+export type { BillingInvoiceRow, BillingPaymentRow, BillingPlan, BillingHistory } from "@/lib/billing/billing.types";
 
 /**
  * Everything a hostel's own billing screen shows: what was billed, what was
@@ -45,138 +47,9 @@ import { monthsLabel } from "@hostel/shared/plans/catalog";
  * guarantees the owner is holding the other.
  */
 
-export interface BillingInvoiceRow {
-  amount: number;
-  currency: string;
-  /**
-   * Our own authenticated download route.
-   *
-   * No longer nullable. It used to be, because a document existed only once
-   * Softmato had raised one — an invoice recorded here with no paper anywhere
-   * was a real state, and a download button for it would have produced nothing.
-   * That is no longer true: when they cannot be reached we issue the document
-   * ourselves, so every invoice has one, and the route resolves whichever
-   * exists.
-   */
-  documentUrl: string;
-  dueAt: string | null;
-  invoiceNumber: string;
-  issuedAt: string | null;
-  outstanding: number;
-  paid: number;
-  /** The catalogue id, for the plan's mark on the row. */
-  planId: string | null;
-  planName: string;
-  cycleLabel: string;
-  /** What is printed on the page the owner holds, whoever issued it. */
-  printedNumber: string;
-  /** `INV-2083/84-000010`, once raised. */
-  softmatoInvoiceNo: string | null;
-  /** Who produced the document. Shown plainly rather than hidden. */
-  issuedBy: "softmato" | "platform";
-  status: string;
-}
 
-export interface BillingPaymentRow {
-  amount: number;
-  documentUrl: string | null;
-  /** `CASH` rows are our own record and carry no Softmato document. */
-  method: string;
-  paidAt: string | null;
-  /** `eSewa`, `Khalti` — absent on cash. */
-  provider: string | null;
-  providerRef: string | null;
-  /** What is printed on the receipt the owner holds, whoever issued it. */
-  printedNumber: string | null;
-  receiptNumber: string | null;
-  softmatoTransactionNo: string | null;
-  status: string;
-}
 
-/**
- * The plan itself — what is running, and how long is left on it.
- *
- * `daysRemaining` is computed here rather than on each client for the reason
- * every derived figure in this codebase is: the website and the app would
- * otherwise each own a copy of "how many days is that", and the two would round
- * a part-day differently on the one screen where an owner is deciding whether
- * to renew today or tomorrow.
- *
- * ## Counted in Nepal days, so it moves once, at midnight
- *
- * Every figure here is a count of **calendar days in Kathmandu**, never of
- * elapsed milliseconds. The first cut floored milliseconds, so a count moved at
- * whatever minute the period happened to end — "3 days left" at breakfast,
- * "2" by lunch, on the same day. Counted between days, it changes at midnight
- * in Nepal and nowhere else, and a client that re-asks when the day turns is
- * right all day.
- *
- * `daysRemaining` counts **today in**: 31 on the first day of a 31-day month,
- * 1 on its last, 0 once it has run out — a real state, not an error.
- * `daysToDue` counts **to** the day: 3 on Bhadra 26 for a due on Bhadra 29, and
- * 0 on Bhadra 29 itself, which the screens word as the last day to pay.
- */
-export interface BillingPlan {
-  /**
-   * When the stretch now running began. For a team-filed hostel that is the
-   * day it was filed — it is live before it has paid — and for a public one
-   * the day it paid.
-   */
-  activatedAt: string | null;
-  /** Still owed on the invoice being paid. `0` when nothing is open. */
-  amountDue: number;
-  /** Settled so far against that same invoice. */
-  amountPaid: number;
-  /** `monthly` / `halfYearly` / `annual` — what "Pay for this plan" renews at. */
-  cycle: string | null;
-  cycleLabel: string | null;
-  cycleMonths: number | null;
-  /**
-   * The last instant the plan covers — the end of a Nepal day. Null until the
-   * plan starts, which is not the same as until it is paid: a team hostel's
-   * runs while its balance is still owed.
-   */
-  currentPeriodEnd: string | null;
-  /** Days left on the plan, today included. Null when no period is running, and on a lifetime plan. */
-  daysRemaining: number | null;
-  /** Days until the day in `dueBy`; 0 on that day. */
-  daysToDue: number | null;
-  /**
-   * The deadline on a shortfall. The subscription's own when a team
-   * registration carries one, otherwise the open invoice's — both are counted
-   * from the day the invoice was raised and neither moves on a part payment.
-   */
-  dueBy: string | null;
-  /** When the window to pay opened: the open invoice's issue. */
-  dueFrom: string | null;
-  /**
-   * How many days the running stretch spans, both ends included — what
-   * `daysRemaining` is a share of. Sent rather than left for the client to
-   * derive so the bar and the count under it move on the same midnight.
-   */
-  periodDays: number | null;
-  /**
-   * Paid for life (the lifetime deal). `currentPeriodEnd`, `daysRemaining` and
-   * `periodDays` are null on it: a screen says "Lifetime", never a date.
-   */
-  lifetime: boolean;
-  /** The catalogue id — what a client ranks the plan's mark by. */
-  planId: string | null;
-  planName: string | null;
-  price: number | null;
-  status: string;
-  /** On the free trial with no plan bought yet: its last instant. */
-  trialEndsAt: string | null;
-}
 
-export interface BillingHistory {
-  /** The integration guide Softmato hosts. Null when unconfigured. */
-  docsUrl: string | null;
-  invoices: BillingInvoiceRow[];
-  payments: BillingPaymentRow[];
-  /** Null for a hostel that predates plan billing and has no subscription. */
-  plan: BillingPlan | null;
-}
 
 /** Nepal days from today to the day `end` falls on: 0 on that day and after. */
 export function daysUntil(end: Date | null | undefined, now = new Date()) {

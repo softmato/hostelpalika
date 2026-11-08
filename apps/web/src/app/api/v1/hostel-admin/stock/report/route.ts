@@ -6,7 +6,7 @@ import { withEtag } from "@/lib/etag";
 import { cachedRead } from "@/lib/redis-cache";
 import { reportExportResponse } from "@/modules/reports/report-response";
 import { getStockReport, resolveStockActor, stockReportExport } from "@/modules/stock/stock.service";
-import { stockReportQuerySchema } from "@/modules/stock/stock.validation";
+import { stockReportQuerySchema } from "@/lib/stock/stock.validation";
 
 export const runtime = "nodejs";
 

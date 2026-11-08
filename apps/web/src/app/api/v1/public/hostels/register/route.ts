@@ -4,7 +4,7 @@ import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { registerPublicHostelApplication } from "@/modules/hostels/hostel.service";
-import { hostelRegistrationSchema } from "@/modules/hostels/hostel-registration.validation";
+import { hostelRegistrationSchema } from "@/lib/hostels/hostel-registration.validation";
 
 export const runtime = "nodejs";
 

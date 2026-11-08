@@ -7,7 +7,7 @@ import { Cursor } from "@/modules/billing/documents/layout";
 import { COLORS, CONTENT_WIDTH, MARGIN, PAGE, SIZE } from "@/modules/billing/documents/theme";
 import { hostelPeriodOf } from "@/lib/hostel-day";
 import type { HostelLedger } from "@/modules/finance/invoice-list.service";
-import { sanitize } from "@/modules/reports/report-pdf";
+import { sanitize } from "@/lib/reports/report-pdf";
 
 /**
  * The hostel statement as a bank-style PDF: money in (credits) and money out

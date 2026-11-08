@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PLANS } from "@/modules/platform-config/plans.defaults";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
 
 import { compareListingTier, listingTiersByPlan } from "./listing-tier";
 

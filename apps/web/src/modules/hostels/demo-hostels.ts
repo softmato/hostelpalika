@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import type { z } from "zod";
 
-import type { publicHostelListQuerySchema } from "@/modules/hostels/hostel.validation";
+import type { publicHostelListQuerySchema } from "@/lib/hostels/hostel.validation";
 
 import json from "./demo-hostels.json";
 

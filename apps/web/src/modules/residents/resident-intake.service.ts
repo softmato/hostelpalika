@@ -8,7 +8,7 @@ import {
   hostelPeriodOf,
   hostelToday,
 } from "@/lib/hostel-day";
-import { normalizeBedType } from "@/modules/finance/bed-type";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import {
   type BillingCycle,
   computeInvoiceAmount,

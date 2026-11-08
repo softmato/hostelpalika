@@ -11,7 +11,7 @@ import {
   summarizeConfigurations,
   writeConfigurations,
 } from "@/modules/hostels/hostel-capacity.service";
-import { normalizeBedType } from "@/modules/finance/bed-type";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import { outstandingByResident } from "@/modules/finance/ledger-read.service";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { residentPhotoPath } from "@/modules/residents/applicant-photo";

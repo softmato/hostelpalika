@@ -30,7 +30,7 @@ import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
 import { formatBsDate } from "@hostel/shared/calendar/bs";
-import type { JoinLinkView, JoinRequestView } from "@/modules/residents/resident-join.service";
+import type { JoinLinkView, JoinRequestView } from "@/lib/residents/resident.types";
 import { toast } from "@/stores/toast-store";
 
 import { InitialsAvatar, RoleButton, SectionCard, SoftBadge } from "./portal-dashboard-ui";

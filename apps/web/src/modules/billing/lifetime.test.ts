@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_LIFETIME } from "@/modules/platform-config/lifetime.defaults";
-import { lifetimeSchema } from "@/modules/platform-config/site-config.validation";
+import { DEFAULT_LIFETIME } from "@/lib/platform-config/lifetime.defaults";
+import { lifetimeSchema } from "@/lib/platform-config/site-config.validation";
 import {
   formatLifetimeDay,
   lifetimeEndsAt,

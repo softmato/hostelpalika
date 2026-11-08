@@ -8,6 +8,8 @@ import {
   lifetimeWindow,
   type LifetimeWindow,
 } from "@hostel/shared/plans/lifetime";
+import type { LifetimeAvailability } from "@/lib/billing/billing.types";
+export type { LifetimeAvailability } from "@/lib/billing/billing.types";
 
 /**
  * The lifetime deal, as the server sells it: what is on offer today and how
@@ -52,22 +54,6 @@ export async function soldLifetimeSeats(): Promise<Record<string, number>> {
   );
 }
 
-export type LifetimeAvailability = {
-  /** The last day it can be bought (`YYYY-MM-DD`), or blank for no end. */
-  endsOn: string;
-  offers: {
-    left: number;
-    /** The tier's ordinary monthly price, for the comparison on a card. */
-    monthly: number;
-    planId: string;
-    planName: string;
-    price: number;
-    seats: number;
-    sold: number;
-  }[];
-  startsOn: string;
-  window: LifetimeWindow;
-};
 
 /**
  * Every priced offer whose tier still exists, with its seats counted. Read by

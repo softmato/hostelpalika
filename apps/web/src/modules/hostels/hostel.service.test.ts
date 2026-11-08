@@ -65,7 +65,7 @@ vi.mock("@hostel/db/models/HostelSubscription", () => ({
 
 // The badges come from the plans catalogue; the shipped one is the fixture.
 vi.mock("@/modules/platform-config/site-config.service", async (importOriginal) => {
-  const { DEFAULT_SITE_CONFIG } = await import("@/modules/platform-config/site-config.defaults");
+  const { DEFAULT_SITE_CONFIG } = await import("@/lib/platform-config/site-config.defaults");
 
   return {
     ...(await importOriginal<object>()),

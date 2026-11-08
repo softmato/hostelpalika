@@ -27,8 +27,8 @@ import mongoose from "mongoose";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { DEFAULT_PLANS } from "../src/modules/platform-config/plans.defaults.ts";
-import { plansSchema } from "../src/modules/platform-config/site-config.validation.ts";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
+import { plansSchema } from "@/lib/platform-config/site-config.validation";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 

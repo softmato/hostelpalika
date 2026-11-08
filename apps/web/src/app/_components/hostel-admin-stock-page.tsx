@@ -62,8 +62,8 @@ import {
   type StockWasteReason,
 } from "@hostel/shared/expenses/stock";
 
-import type { StockEntryRow, StockHome, StockItemRow, StockReport, StockUsage, StockUsageRange } from "@/modules/stock/stock.service";
-import type { StockReportRange } from "@/modules/stock/stock.validation";
+import type { StockEntryRow, StockHome, StockItemRow, StockReport, StockUsage, StockUsageRange } from "@/lib/stock/stock.types";
+import type { StockReportRange } from "@/lib/stock/stock.validation";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
 import { MoreMenu } from "./hostel-admin-page-ui";

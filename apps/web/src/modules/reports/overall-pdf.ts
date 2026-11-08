@@ -5,7 +5,7 @@ import { formatBsPeriod } from "@hostel/shared/calendar/bs";
 import { documentBsDate, documentInstant, drawFooter, loadInk } from "@/modules/billing/documents/document-parts";
 import { Cursor } from "@/modules/billing/documents/layout";
 import { COLORS, CONTENT_WIDTH, MARGIN, PAGE, SIZE } from "@/modules/billing/documents/theme";
-import { sanitize } from "@/modules/reports/report-pdf";
+import { sanitize } from "@/lib/reports/report-pdf";
 
 /**
  * Every branch in one PDF: a cover page that puts the branches side by side —

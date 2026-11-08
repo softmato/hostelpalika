@@ -5,10 +5,9 @@ import { HOSTEL_TYPE_PAGES } from "@/lib/hostel-locations";
 import { loadCityIndex } from "@/lib/location-pages";
 import { loadNearPlaces } from "@/lib/near-pages";
 import { ROLE_PAGES } from "@/lib/role-pages";
-import { resolveSearchImageUrls } from "@/lib/search-image-urls";
 import { loadSeo, resolveModulePages } from "@/lib/seo-config";
+import { serverApi } from "@/lib/server-api";
 import { siteUrl } from "@/lib/site";
-import { listPublishedHostelSlugs } from "@/modules/hostels/hostel.service";
 
 export const runtime = "nodejs";
 // Regenerate at most hourly so newly-approved hostels appear without a redeploy.
@@ -50,21 +49,20 @@ const STATIC_ROUTES: Array<Pick<Entry, "changeFrequency" | "priority"> & { path:
 
 async function hostelEntries(base: string): Promise<Entry[]> {
   try {
-    const hostels = await listPublishedHostelSlugs();
-    // Stored photo paths are relative; <image:loc> must be absolute and crawlable.
-    const images = await resolveSearchImageUrls(hostels.flatMap((hostel) => hostel.images));
+    // Photos arrive absolute and crawlable, as <image:loc> needs.
+    const { hostels } = await serverApi<{
+      hostels: Array<{ images: string[]; slug: string; updatedAt: string | null }>;
+    }>("/api/v1/public/hostels/sitemap", { revalidate: 3600 });
 
     return hostels.map((hostel) => ({
       changeFrequency: "daily",
-      images: hostel.images
-        .map((url) => images.get(url))
-        .filter((url): url is string => Boolean(url)),
-      lastModified: hostel.updatedAt,
+      images: hostel.images,
+      lastModified: hostel.updatedAt ?? undefined,
       priority: 0.8,
       url: `${base}/hostels/${hostel.slug}`,
     }));
   } catch {
-    // If the DB is unreachable at generation time, still serve the rest.
+    // If the API is unreachable at generation time, still serve the rest.
     return [];
   }
 }

@@ -21,10 +21,19 @@ import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { haversineMeters } from "@/lib/maps/nearby";
 import { loadNearIndex, type NearIndexPlace } from "@/lib/near-pages";
 import { loadSiteConfig } from "@/lib/site-config-server";
-import {
-  listPublicHostelLocations,
-  listPublicHostels,
-} from "@/modules/hostels/hostel.service";
+import type { LocationCountRow } from "@/lib/hostel-locations";
+import { serverApi } from "@/lib/server-api";
+
+const listPublicHostelLocations = async () =>
+  (await serverApi<{ locations: LocationCountRow[] }>("/api/v1/public/hostels/locations")).locations;
+
+/** `GET /api/v1/public/hostels` filtered to one city, area or type. */
+const listPublicHostels = (query: { area?: string; city?: string; type?: string }) =>
+  serverApi<{ hostels: PublicHostel[] }>(
+    `/api/v1/public/hostels?${new URLSearchParams(
+      Object.entries(query).filter((entry): entry is [string, string] => Boolean(entry[1])),
+    )}`,
+  );
 
 /**
  * `/hostels/in/[city]` and `/hostels/in/[city]/[type-or-area]` — the pages that
@@ -36,7 +45,7 @@ import {
  * a page can never promise hostels that are not there — and a page with none
  * yet is `noindex` rather than a thin page Google would hold against the site.
  *
- * A database failure throws instead of rendering an empty page: a 5xx asks a
+ * An API failure throws instead of rendering an empty page: a 5xx asks a
  * crawler to come back, an empty 200 would teach it the city has no hostels.
  */
 

@@ -6,7 +6,7 @@ import {
   emailPreferenceLinks,
   emailTopicMuted,
 } from "@/modules/notifications/email-preference.service";
-import type { EmailTopic } from "@/modules/notifications/email-topics";
+import type { EmailTopic } from "@/lib/notifications/email-topics";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { ResidentModel } from "@hostel/db/models/Resident";

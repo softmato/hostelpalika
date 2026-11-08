@@ -1,7 +1,7 @@
 "use client";
 
 import { usePortalResource } from "@/lib/portal-query";
-import type { PayoutAccountForReview } from "@/modules/bookings/payout-account.service";
+import type { PayoutAccountForReview } from "@/lib/bookings/booking.types";
 
 const STATUS_LABEL: Record<PayoutAccountForReview["status"], string> = {
   PENDING_REVIEW: "Waiting for a check",

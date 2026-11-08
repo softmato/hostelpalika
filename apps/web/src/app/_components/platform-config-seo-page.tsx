@@ -3,14 +3,14 @@
 import { memo } from "react";
 
 import { CONTENT_ICON_SLUGS } from "@/lib/site-content";
-import { DEFAULT_SEO, SEO_PAGE_ROUTES } from "@/modules/platform-config/seo.defaults";
+import { DEFAULT_SEO, SEO_PAGE_ROUTES } from "@/lib/platform-config/seo.defaults";
 import {
   SEO_PAGE_KEYS,
   type ContentSection,
   type SeoComparison,
   type SeoConfig,
   type SeoModulePage,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 import {
   ConfigCard,

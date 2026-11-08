@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { resolveStockActor, updateStockItem } from "@/modules/stock/stock.service";
-import { updateStockItemSchema } from "@/modules/stock/stock.validation";
+import { updateStockItemSchema } from "@/lib/stock/stock.validation";
 
 export const runtime = "nodejs";
 

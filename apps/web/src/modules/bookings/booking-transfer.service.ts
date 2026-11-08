@@ -35,8 +35,12 @@ import { refundScope } from "@/modules/bookings/booking.service";
 import { markTransferSentSchema } from "@/modules/bookings/booking.validation";
 import { BookingError } from "@/modules/bookings/booking.errors";
 import { revealHostelPayoutAccount } from "@/modules/bookings/payout-account.service";
-import type { PayoutMethod } from "@/modules/bookings/payout-account.validation";
+import type { PayoutMethod } from "@/lib/bookings/payout-account.validation";
 import { openValue } from "@/modules/finance/gateway/secret-store";
+import type { TransferView } from "@/lib/bookings/booking.types";
+import type { TransferBlock } from "@/lib/bookings/booking.types";
+export type { TransferBlock } from "@/lib/bookings/booking.types";
+export type { TransferView } from "@/lib/bookings/booking.types";
 
 /**
  * Money leaving HostelPalika: refunds to people, shares to hostels.
@@ -58,32 +62,6 @@ type Destination = {
 };
 
 type PayoutAccountRow = Destination & { hostelId: Types.ObjectId; status: string };
-
-export type TransferBlock = "NO_PAYOUT_ACCOUNT" | "PAYOUT_ACCOUNT_NOT_VERIFIED";
-
-export type TransferView = {
-  amount: number;
-  blocked: TransferBlock | null;
-  bookingCode: string;
-  bookingId: string;
-  destination: {
-    bankName: string;
-    holderName: string;
-    maskedNumber: string;
-    method: PayoutMethod;
-    methodLabel: string;
-  } | null;
-  documentNumber: string | null;
-  dueSince: string | null;
-  guestName: string;
-  hostelName: string;
-  id: string;
-  kind: "PAYOUT" | "REFUND";
-  roomType: string;
-  sentAt: string | null;
-  status: "DUE" | "SENT";
-  transactionId: string | null;
-};
 
 function assertSuperadmin(principal: ApiPrincipal) {
   if (principal.role !== Role.SUPERADMIN) {

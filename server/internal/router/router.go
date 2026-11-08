@@ -161,6 +161,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	platformconfig.NewHandler(siteConfig).Register(v1)
 	pubHostels := hostels.NewPublic(d.DB, siteConfig)
 	pubHostels.Cache = cache.New(d.Redis, d.RedisCache)
+	pubHostels.MediaURL = cfg.R2.PublicURL
 	hostels.NewHandler(pubHostels).Register(v1)
 	hostels.NewWrites(hostels.WriteDeps{DB: d.DB, Guards: guards, Limiter: limiter, Secure: cfg.IsProduction(), Public: pubHostels,
 		Mail: sender, Notify: notify, RT: rt, Cache: cache.New(d.Redis, d.RedisCache), Outbound: cfg.OutboundURL()}).Register(v1)
@@ -224,7 +225,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&residentaccount.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
 	issuer := &users.Issuer{DB: d.DB, Mail: sender, Audit: log, AppURL: strings.TrimRight(cfg.AppURL, "/")}
 	appURL := func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }
-	(&hostelleave.Handler{DB: d.DB, Guards: guards, R2: storage.New(cfg.R2), BG: bg, Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
+	(&hostelleave.Handler{DB: d.DB, Config: siteConfig, Guards: guards, R2: storage.New(cfg.R2), BG: bg, Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
 	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache), R2: storage.New(cfg.R2),
 		Reader: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}}).Register(v1)
 	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis, d.RedisCache)}).Register(v1)

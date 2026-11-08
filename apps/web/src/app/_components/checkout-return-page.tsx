@@ -14,8 +14,8 @@ import {
   TransitionScreen,
 } from "@/app/_components/checkout-handoff";
 import { browserApi } from "@/lib/browser-api";
-import type { ReturnState } from "@/modules/billing/checkout-return.service";
-import type { BookingReturnState } from "@/modules/bookings/booking-softmato.service";
+import type { ReturnState } from "@/lib/billing/billing.types";
+import type { BookingReturnState } from "@/lib/bookings/booking.types";
 
 /**
  * Where every platform payment lands after Softmato checkout — or after not

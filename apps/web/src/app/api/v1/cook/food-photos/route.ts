@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { listCookFoodPhotos, uploadCookFoodPhoto } from "@/modules/food/cook.service";
-import { foodPhotoUploadSchema } from "@/modules/food/food.validation";
+import { foodPhotoUploadSchema } from "@/lib/food/food.validation";
 
 export const runtime = "nodejs";
 

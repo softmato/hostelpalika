@@ -14,7 +14,7 @@ import type {
   resolveSoftwarePage,
 } from "@/lib/seo-config";
 import { cn } from "@/lib/utils";
-import type { PlanTier } from "@/modules/platform-config/site-config.validation";
+import type { PlanTier } from "@/lib/platform-config/site-config.validation";
 
 import { OwnerCallout, SeoChip, SeoCrumbs, SeoFaq, SoftmatoCredit } from "./public-seo-blocks";
 import { PublicShell } from "./shared";

@@ -35,6 +35,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.POST("/resident/finance/invoices/:id/checkout", resident, h.checkout)
 	v1.GET("/resident/finance/checkout/:reference", resident, httpx.ETag(), h.status)
 	v1.POST("/webhooks/:provider", h.callback)
+	v1.GET("/public/payments/:reference/handoff", h.handoff)
 }
 
 func (h *Handler) checkout(c *gin.Context) {

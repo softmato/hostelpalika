@@ -5,7 +5,7 @@ import { withEtag } from "@/lib/etag";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { findScopedHostel } from "@/modules/hostels/hostel.service";
 import { listAvailableRoomTypes } from "@/modules/hostels/hostel-capacity.service";
-import { hostelScopedListQuerySchema } from "@/modules/hostels/hostel.validation";
+import { hostelScopedListQuerySchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

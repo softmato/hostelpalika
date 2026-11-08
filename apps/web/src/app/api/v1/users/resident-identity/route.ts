@@ -11,7 +11,7 @@ import {
 import {
   residentIdentitySaveSchema,
   residentIdentitySharingSchema,
-} from "@/modules/users/resident-identity.validation";
+} from "@/lib/users/resident-identity.validation";
 
 export const runtime = "nodejs";
 

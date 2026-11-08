@@ -4,7 +4,7 @@ import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { getStockSupplier, resolveStockActor, updateStockSupplier } from "@/modules/stock/stock.service";
-import { updateStockSupplierSchema } from "@/modules/stock/stock.validation";
+import { updateStockSupplierSchema } from "@/lib/stock/stock.validation";
 
 export const runtime = "nodejs";
 

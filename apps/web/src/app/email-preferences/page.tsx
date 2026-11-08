@@ -3,12 +3,8 @@ import { CircleCheck, MailX, TriangleAlert } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { PublicShell } from "@/app/_components/shared";
-import {
-  emailFromPreferenceToken,
-  getMutedTopics,
-} from "@/modules/notifications/email-preference.service";
-import { EMAIL_TOPICS, emailTopic, isEmailTopic } from "@/modules/notifications/email-topics";
-import { maskEmail } from "@/modules/platform-config/setting-change.service";
+import { EMAIL_TOPICS, emailTopic, isEmailTopic, type EmailTopic } from "@/lib/notifications/email-topics";
+import { serverApi } from "@/lib/server-api";
 
 /**
  * `/email-preferences` — where every optional email's unsubscribe line leads.
@@ -38,10 +34,15 @@ const AUDIENCE_HEADING = {
 
 export default async function EmailPreferencesPage({ searchParams }: PageProps) {
   const { error, saved, token = "", topic: topicParam } = await searchParams;
-  const email = emailFromPreferenceToken(token);
+  const prefs = token
+    ? await serverApi<{ email: string; muted: EmailTopic[] }>(
+        `/api/v1/email-preferences?token=${encodeURIComponent(token)}`,
+        { revalidate: 0 },
+      ).catch(() => null)
+    : null;
   const topic = isEmailTopic(topicParam) ? topicParam : null;
 
-  if (!email) {
+  if (!prefs) {
     return (
       <PublicShell>
         <div className="mx-auto max-w-xl px-4 py-12 sm:py-20">
@@ -59,7 +60,7 @@ export default async function EmailPreferencesPage({ searchParams }: PageProps) 
     );
   }
 
-  const muted = await getMutedTopics(email);
+  const { email, muted } = prefs;
   const audience = topic ? emailTopic(topic).audience : null;
   const groups = (["resident", "staff"] as const)
     .filter((group) => !audience || group === audience)
@@ -78,7 +79,7 @@ export default async function EmailPreferencesPage({ searchParams }: PageProps) 
     <PublicShell>
       <div className="mx-auto max-w-xl px-4 py-12 sm:py-20">
         <h1 className="font-heading text-2xl font-semibold text-foreground">Email preferences</h1>
-        <p className="mt-2 text-sm text-muted-foreground">For {maskEmail(email)}</p>
+        <p className="mt-2 text-sm text-muted-foreground">For {email}</p>
 
         {saved ? (
           <div className="mt-6 flex gap-3 rounded-lg border border-success/40 bg-success/5 p-4">

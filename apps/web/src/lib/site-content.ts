@@ -35,8 +35,8 @@ import {
 } from "@/components/icons";
 
 import { FAQ_LIMIT } from "@/lib/json-ld";
-import type { PublicSiteConfig } from "@/modules/platform-config/site-config.service";
-import type { ContentPage } from "@/modules/platform-config/site-config.validation";
+import type { PublicSiteConfig } from "@/lib/platform-config/platform-config.types";
+import type { ContentPage } from "@/lib/platform-config/site-config.validation";
 
 /**
  * Reading page copy that lives in the site config rather than in a component.

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
-import { trackSheetSaveSchema } from "@/modules/team/registration-track-sheet";
+import { trackSheetSaveSchema } from "@/lib/team/registration-track-sheet";
 import { getTrackSheet, saveTrackSheet } from "@/modules/team/registration-track-sheet.service";
 
 export const runtime = "nodejs";

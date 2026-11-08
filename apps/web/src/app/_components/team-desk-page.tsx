@@ -12,7 +12,7 @@ import { Glyph } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
-import type { UnpublishedPrepayment } from "@/modules/team/team-prepayment.service";
+import type { UnpublishedPrepayment } from "@/lib/team/team.types";
 import { formatBsAdDate, formatHostelDate } from "@hostel/shared/calendar/bs";
 import { FactChip, ShareBar, titleCase } from "./daily-portal-ui";
 

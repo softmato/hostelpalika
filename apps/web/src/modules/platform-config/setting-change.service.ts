@@ -20,6 +20,8 @@ import {
   type SettingChangeDefinition,
   type SettingChangeKey,
 } from "@/modules/platform-config/setting-change.registry";
+import type { PendingSettingChange } from "@/lib/platform-config/platform-config.types";
+export type { PendingSettingChange } from "@/lib/platform-config/platform-config.types";
 
 /**
  * Saving a money setting, in two halves: ask here, apply from the inbox.
@@ -55,15 +57,6 @@ type ChangeRecord = {
   requestedBy: Types.ObjectId;
   requestedEmail: string;
   status: string;
-};
-
-export type PendingSettingChange = {
-  expiresAt: string;
-  id: string;
-  key: SettingChangeKey;
-  label: string;
-  rows: ComparisonRow[];
-  sentTo: string;
 };
 
 function hashToken(token: string) {

@@ -56,7 +56,7 @@ import {
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { browserApi } from "@/lib/browser-api";
 import { ExportMenu } from "@/components/export-menu";
-import type { ResidentDetails } from "@/modules/residents/resident-details";
+import type { ResidentDetails } from "@/lib/residents/resident-details.validation";
 import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";

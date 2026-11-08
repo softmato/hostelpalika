@@ -48,7 +48,7 @@ import type {
   cookPortalUpdateSchema,
   foodReadySchema,
 } from "@/modules/food/cook.validation";
-import type { foodPhotoUploadSchema } from "@/modules/food/food.validation";
+import type { foodPhotoUploadSchema } from "@/lib/food/food.validation";
 
 type CookPortalUpdateInput = z.infer<typeof cookPortalUpdateSchema>;
 type FoodReadyInput = z.infer<typeof foodReadySchema>;

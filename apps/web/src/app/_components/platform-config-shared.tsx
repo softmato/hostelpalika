@@ -13,11 +13,11 @@ import {
 import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
-import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defaults";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
 import type {
   SiteConfig,
   SiteConfigSection,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 import { cn } from "@/lib/utils";
 
 type LoadState = "idle" | "loading" | "ready" | "error";

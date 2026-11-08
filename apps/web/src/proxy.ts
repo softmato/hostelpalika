@@ -7,7 +7,7 @@ import {
   readAccessTokenCookie,
   readRefreshTokenCookieValue,
 } from "@/lib/auth-cookies";
-import { applySessionCookies } from "@/lib/session-cookies";
+import { apiBase } from "@/lib/server-api";
 import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
 import {
@@ -93,7 +93,7 @@ export async function proxy(request: NextRequest) {
     rule.refuseTo === "home" ? redirectHome(request) : redirectToLogin(request, error);
 
   let claims = await claimsFromAccessToken(readAccessTokenCookie(request.cookies));
-  let refreshed: { accessToken: string; refreshToken: string | null } | null = null;
+  let refreshed: Refreshed | null = null;
 
   /*
    * The access cookie dies with its 15-minute token, and a page load never goes
@@ -117,7 +117,7 @@ export async function proxy(request: NextRequest) {
 
   const { role } = claims;
   const withSession = (response: NextResponse) =>
-    refreshed ? applySessionCookies(response, refreshed) : response;
+    refreshed ? withRotatedCookies(response, refreshed) : response;
 
   // `roles: null` means the route only asks that somebody is signed in, which
   // the valid token above has already established.
@@ -190,7 +190,7 @@ async function sendPortalAccountsHome(request: NextRequest) {
   }
 
   const withSession = (response: NextResponse) =>
-    refreshed ? applySessionCookies(response, refreshed) : response;
+    refreshed ? withRotatedCookies(response, refreshed) : response;
   const landingPath = claims && PORTAL_ONLY_ROLES.has(claims.role)
     ? landingPathForRole(claims.role)
     : null;
@@ -228,10 +228,7 @@ async function keepSessionAlive(request: NextRequest) {
 
   request.cookies.set(ACCESS_TOKEN_COOKIE, refreshed.accessToken);
 
-  return applySessionCookies(
-    NextResponse.next({ request: { headers: request.headers } }),
-    refreshed,
-  );
+  return withRotatedCookies(NextResponse.next({ request: { headers: request.headers } }), refreshed);
 }
 
 async function claimsFromAccessToken(token: string | undefined) {
@@ -257,24 +254,39 @@ async function claimsFromAccessToken(token: string | undefined) {
   }
 }
 
-async function refreshFromCookie(request: NextRequest) {
-  const refreshToken = readRefreshTokenCookieValue(request.cookies);
+type Refreshed = { accessToken: string; setCookies: string[] };
 
-  if (!refreshToken) {
+/**
+ * Renews the session through the API's `POST /api/v1/auth/refresh` with this
+ * browser's cookies, and hands back the new access token plus the rotated
+ * cookies the API set, for the response. `null` when the session is dead.
+ */
+async function refreshFromCookie(request: NextRequest): Promise<Refreshed | null> {
+  if (!readRefreshTokenCookieValue(request.cookies)) {
     return null;
   }
 
-  try {
-    // Loaded only when a refresh is actually needed, keeping the database out
-    // of every signed-in navigation.
-    const { refreshAccessToken } = await import("@/modules/auth/auth.service");
+  const response = await fetch(`${apiBase()}/api/v1/auth/refresh`, {
+    cache: "no-store",
+    headers: { accept: "application/json", cookie: request.headers.get("cookie") ?? "" },
+    method: "POST",
+  });
 
-    return await refreshAccessToken(refreshToken, { cookieSession: true });
-  } catch (error) {
-    if (error && typeof error === "object" && "status" in error &&
-        (error.status === 401 || error.status === 403)) return null;
-    throw error;
-  }
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) throw new Error(`Session refresh failed (${response.status})`);
+
+  const body = (await response.json()) as { data?: { accessToken?: string } };
+
+  return body.data?.accessToken
+    ? { accessToken: body.data.accessToken, setCookies: response.headers.getSetCookie() }
+    : null;
+}
+
+/** The rotated session cookies, exactly as the API set them. */
+function withRotatedCookies(response: NextResponse, refreshed: Refreshed) {
+  for (const cookie of refreshed.setCookies) response.headers.append("set-cookie", cookie);
+
+  return response;
 }
 
 /*

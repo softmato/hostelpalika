@@ -1,4 +1,4 @@
-import type { WardenPermissionKey } from "@/modules/wardens/warden.validation";
+import type { WardenPermissionKey } from "@/lib/wardens/warden.validation";
 
 /**
  * Which stored permission keys grant a capability (target §13.4, plan item 0.5,

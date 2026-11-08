@@ -8,7 +8,7 @@ import {
   readMonthsDue,
   readPhone,
   readRupees,
-} from "./existing-residents-cells";
+} from "@/lib/residents/existing-residents-cells";
 
 /**
  * The Excel file a hostel fills in with the people already living there
@@ -134,7 +134,7 @@ export {
   readPhone,
   readRupees,
   westernDigits,
-} from "./existing-residents-cells";
+} from "@/lib/residents/existing-residents-cells";
 
 /* ── Reading a file ─────────────────────────────────────────────────────── */
 

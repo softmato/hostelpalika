@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import { Select as FormSelect } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
-import { CLAIM_REJECTION_REASONS } from "@/modules/finance/claim.validation";
+import { CLAIM_REJECTION_REASONS } from "@/lib/finance/claim.validation";
 
 type Reason = keyof typeof CLAIM_REJECTION_REASONS;
 

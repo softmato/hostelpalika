@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { comparePublicHostels } from "@/modules/hostels/hostel.service";
-import { publicHostelCompareQuerySchema } from "@/modules/hostels/hostel.validation";
+import { publicHostelCompareQuerySchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

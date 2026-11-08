@@ -5,7 +5,7 @@ import { withEtag } from "@/lib/etag";
 import { cachedRead } from "@/lib/redis-cache";
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { listHostelAdminInquiries } from "@/modules/hostels/hostel-inquiry.service";
-import { hostelAdminInquiryListQuerySchema } from "@/modules/hostels/hostel.validation";
+import { hostelAdminInquiryListQuerySchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

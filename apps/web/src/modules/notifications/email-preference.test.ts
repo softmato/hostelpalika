@@ -16,7 +16,7 @@ import {
   emailPreferenceToken,
   mutedAfterForm,
 } from "@/modules/notifications/email-preference.service";
-import { EMAIL_TOPICS } from "@/modules/notifications/email-topics";
+import { EMAIL_TOPICS } from "@/lib/notifications/email-topics";
 import { sendNotificationEmail } from "@/modules/residents/resident-notify";
 import { UNSUBSCRIBE_SLOT } from "@hostel/shared/email/templates/layout";
 

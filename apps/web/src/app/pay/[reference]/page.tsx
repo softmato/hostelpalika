@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 
-import {
-  buildFormPostHandoff,
-  HandoffError,
-} from "@/modules/finance/gateway/handoff.service";
+import { serverApi, ServerApiError } from "@/lib/server-api";
+
+type FormPostHandoff = {
+  amount: number;
+  /** Emission order is the signature's order. Never re-sort this. */
+  fields: Record<string, string>;
+  reference: string;
+  sandbox: boolean;
+  url: string;
+};
 
 /**
  * The eSewa hand-off relay.
@@ -33,7 +39,7 @@ import {
  * ## No session, deliberately
  *
  * The browser this opens in has no app session; that is the problem being
- * solved. `buildFormPostHandoff` is what bounds the exposure — `CREATED` only,
+ * solved. The API (`buildFormPostHandoff`) is what bounds the exposure — `CREATED` only,
  * unexpired only, and nothing on the page but an amount and a merchant form.
  */
 
@@ -53,20 +59,25 @@ export default async function GatewayRelayPage({
 }) {
   const { reference } = await params;
 
-  let handoff;
+  let handoff: FormPostHandoff;
 
   try {
-    handoff = await buildFormPostHandoff(decodeURIComponent(reference));
+    handoff = (
+      await serverApi<{ handoff: FormPostHandoff }>(
+        `/api/v1/public/payments/${encodeURIComponent(decodeURIComponent(reference))}/handoff`,
+        { revalidate: 0 },
+      )
+    ).handoff;
   } catch (error) {
     return (
       <RelayShell>
         <h1 className="text-lg font-semibold text-stone-900">
-          {error instanceof HandoffError
+          {error instanceof ServerApiError && error.code?.startsWith("HANDOFF_")
             ? "This payment link cannot be used"
             : "Something went wrong"}
         </h1>
         <p className="mt-2 text-sm text-stone-600">
-          {error instanceof HandoffError
+          {error instanceof ServerApiError && error.code?.startsWith("HANDOFF_")
             ? error.message
             : "Please go back to the app and start the payment again."}
         </p>

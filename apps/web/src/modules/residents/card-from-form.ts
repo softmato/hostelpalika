@@ -4,7 +4,7 @@ import { connectToDatabase } from "@/lib/db";
 import { encryptPersonalData, personalLookupHash } from "@/lib/personal-data-crypto";
 import { cardFromDetails, openDetails } from "@/modules/residents/resident-details";
 import { saveResidentIdentity } from "@/modules/users/resident-identity.service";
-import { residentProfileDataSchema } from "@/modules/users/resident-identity.validation";
+import { residentProfileDataSchema } from "@/lib/users/resident-identity.validation";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";

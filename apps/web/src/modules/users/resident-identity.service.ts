@@ -27,7 +27,7 @@ import {
   type ResidentProfileData,
   type residentIdentitySaveSchema,
   residentPhoneKey,
-} from "@/modules/users/resident-identity.validation";
+} from "@/lib/users/resident-identity.validation";
 import type { z } from "zod";
 
 type ResidentIdentitySaveInput = z.infer<typeof residentIdentitySaveSchema>;

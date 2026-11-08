@@ -121,7 +121,7 @@ vi.mock("@hostel/db/models/PaymentEvent", () => ({
 }));
 
 const { submitClaim } = await import("./claim.service");
-const { claimSubmitSchema } = await import("./claim.validation");
+const { claimSubmitSchema } = await import("@/lib/finance/claim.validation");
 
 const hostelId = new Types.ObjectId();
 const residentId = new Types.ObjectId();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildPresentation } from "@/modules/billing/softmato/presentation";
-import type { PlansConfig } from "@/modules/platform-config/site-config.validation";
+import type { PlansConfig } from "@/lib/platform-config/site-config.validation";
 
 /**
  * The plan copy that reaches a customer on Softmato's checkout page and

@@ -6,7 +6,7 @@ import {
   liftPlatformHostelSuspension,
   startHostelSuspension,
 } from "@/modules/hostels/hostel-suspension.service";
-import { hostelSuspendSchema } from "@/modules/hostels/hostel.validation";
+import { hostelSuspendSchema } from "@/lib/hostels/hostel.validation";
 
 type RouteContext = {
   params: Promise<{

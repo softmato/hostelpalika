@@ -4,7 +4,7 @@ import { CalendarCheck } from "@/components/icons";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-import { bookingButton, type BookingAvailabilityView } from "@/modules/bookings/booking-button";
+import { bookingButton, type BookingAvailabilityView } from "@/lib/bookings/booking-button";
 
 const SIZE = {
   card: "h-9 rounded-md text-xs",

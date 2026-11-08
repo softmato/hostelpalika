@@ -1,6 +1,6 @@
 import { csvFilename, csvResponse, toCsv } from "@/lib/csv";
 import type { ReportExport } from "@/modules/reports/report-export.service";
-import { renderReportPdf } from "@/modules/reports/report-pdf";
+import { renderReportPdf } from "@/lib/reports/report-pdf";
 
 /**
  * Turns a built report into whichever file the caller asked for.

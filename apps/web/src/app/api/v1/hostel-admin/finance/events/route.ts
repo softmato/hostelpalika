@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
-import { reviewQueueQuerySchema } from "@/modules/finance/claim.validation";
+import { reviewQueueQuerySchema } from "@/lib/finance/claim.validation";
 import { listStaffQueue } from "@/modules/finance/review.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 

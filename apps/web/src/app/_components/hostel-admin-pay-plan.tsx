@@ -4,7 +4,7 @@ import { Clock } from "@/components/icons";
 
 import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { usePortalResource } from "@/lib/portal-query";
-import type { PlanPaymentInstructions } from "@/modules/billing/subscription-claim.service";
+import type { PlanPaymentInstructions } from "@/lib/billing/billing.types";
 
 /**
  * Paying the platform from the portal: `PayPlanButton` hands the owner to

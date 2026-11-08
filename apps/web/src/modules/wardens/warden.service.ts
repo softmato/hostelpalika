@@ -24,7 +24,7 @@ import {
   type wardenCreateSchema,
   type wardenListQuerySchema,
   type wardenUpdateSchema,
-} from "@/modules/wardens/warden.validation";
+} from "@/lib/wardens/warden.validation";
 
 type WardenCreateInput = z.infer<typeof wardenCreateSchema>;
 type WardenUpdateInput = z.infer<typeof wardenUpdateSchema>;

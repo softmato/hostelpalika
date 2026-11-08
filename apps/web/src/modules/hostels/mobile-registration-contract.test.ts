@@ -11,8 +11,8 @@ import {
   EMPTY_PROVIDER_FORM,
   type ProviderForm,
 } from "../../../../mobile/src/lib/provider-registration";
-import { hostelRegistrationSchema } from "./hostel-registration.validation";
-import { publicHostelApplicationCreateSchema } from "./hostel.validation";
+import { hostelRegistrationSchema } from "@/lib/hostels/hostel-registration.validation";
+import { publicHostelApplicationCreateSchema } from "@/lib/hostels/hostel.validation";
 import { serviceProviderRegisterSchema } from "../service-providers/service-provider.validation";
 
 /**

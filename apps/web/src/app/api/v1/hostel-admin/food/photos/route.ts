@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { uploadFoodPhoto } from "@/modules/food/food.service";
-import { foodPhotoUploadSchema } from "@/modules/food/food.validation";
+import { foodPhotoUploadSchema } from "@/lib/food/food.validation";
 
 export const runtime = "nodejs";
 

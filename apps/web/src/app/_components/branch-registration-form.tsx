@@ -25,7 +25,7 @@ import { browserApi } from "@/lib/browser-api";
 import { acceptAttribute } from "@/lib/uploads/accepts";
 import { uploadRegistrationDocument } from "@/lib/uploads/registration-document";
 import { uploadFile } from "@/lib/uploads/uploader";
-import { branchRequestSchema } from "@/modules/hostels/hostel-branch.validation";
+import { branchRequestSchema } from "@/lib/hostels/hostel-branch.validation";
 import { toast } from "@/stores/toast-store";
 
 import {

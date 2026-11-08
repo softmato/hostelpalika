@@ -118,7 +118,7 @@ import {
   reviewHostelPayoutAccount,
   setHostelPayoutAccount,
 } from "@/modules/bookings/payout-account.service";
-import { payoutAccountInputSchema } from "@/modules/bookings/payout-account.validation";
+import { payoutAccountInputSchema } from "@/lib/bookings/payout-account.validation";
 
 const hostelA = { _id: new Types.ObjectId(), name: "Everest Boys Hostel", slug: "everest-boys" };
 const hostelB = { _id: new Types.ObjectId(), name: "Lalitpur Girls Hostel", slug: "lalitpur-girls" };

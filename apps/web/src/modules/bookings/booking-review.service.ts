@@ -40,6 +40,8 @@ import {
 } from "@/modules/bookings/booking-views";
 import { stayDatesText } from "@/modules/bookings/short-stay";
 import { BookingError } from "@/modules/bookings/booking.errors";
+import type { BookingPaymentToCheck } from "@/lib/bookings/booking.types";
+export type { BookingPaymentToCheck } from "@/lib/bookings/booking.types";
 
 /**
  * The superadmin's check of a booking screenshot against money received.
@@ -59,22 +61,6 @@ type PaymentRecord = {
   reference?: string | null;
   status: "APPROVED" | "IN_REVIEW" | "REJECTED";
   submittedAt: Date;
-};
-
-export type BookingPaymentToCheck = {
-  amount: number;
-  bookingCode: string;
-  bookingId: string;
-  checkBy: string;
-  guest: { email: string; name: string; phone: string };
-  hostelName: string;
-  id: string;
-  note: string | null;
-  /** Read through `/api/v1/files/{id}/url`, which re-authorises every open. */
-  proofAssetId: string;
-  reference: string | null;
-  roomType: string;
-  submittedAt: string;
 };
 
 /** Screenshots waiting on a person, oldest first — the queue is a promise of hours. */

@@ -1,4 +1,3 @@
-import { z } from "zod";
 
 import {
   formatBsDayRange,
@@ -29,21 +28,7 @@ export function dailyFloor(monthlyRent: number, minMarkupPercent: number): numbe
   return Math.max(1, Math.ceil((monthlyRent * (100 + minMarkupPercent)) / 3000));
 }
 
-/** What the hostel's settings and both registration forms send. */
-export const shortStaysInputSchema = z.object({
-  enabled: z.boolean(),
-  minNights: z.coerce.number().int().min(1).max(29),
-  rates: z
-    .array(
-      z.object({
-        dailyRate: z.coerce.number().int("Use whole rupees.").min(1),
-        roomType: z.string().trim().min(1).max(80),
-      }),
-    )
-    .max(30),
-});
-
-export type ShortStaysInput = z.infer<typeof shortStaysInputSchema>;
+export { shortStaysInputSchema, type ShortStaysInput } from "@/lib/bookings/short-stay-input";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

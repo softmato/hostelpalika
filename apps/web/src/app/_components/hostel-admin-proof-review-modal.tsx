@@ -8,7 +8,7 @@ import { currency, Select as FormSelect } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { dayMonthYearTime, monthLabel } from "@/lib/format-month";
-import { CLAIM_REJECTION_REASONS } from "@/modules/finance/claim.validation";
+import { CLAIM_REJECTION_REASONS } from "@/lib/finance/claim.validation";
 
 import type { PaymentProof } from "./hostel-admin-shared";
 import { InitialsAvatar, SoftBadge } from "./portal-dashboard-ui";

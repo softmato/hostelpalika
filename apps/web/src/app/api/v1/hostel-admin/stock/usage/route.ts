@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { cachedRead } from "@/lib/redis-cache";
 import { getStockUsage, resolveStockActor } from "@/modules/stock/stock.service";
-import { stockUsageQuerySchema } from "@/modules/stock/stock.validation";
+import { stockUsageQuerySchema } from "@/lib/stock/stock.validation";
 
 export const runtime = "nodejs";
 

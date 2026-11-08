@@ -6,7 +6,7 @@ import { EmailPreferenceModel } from "@hostel/db/models/EmailPreference";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 
-import { type EmailTopic, isEmailTopic } from "./email-topics";
+import { type EmailTopic, isEmailTopic } from "@/lib/notifications/email-topics";
 
 /**
  * Per-address email opt-outs: the gate `sendNotificationEmail` asks, the signed

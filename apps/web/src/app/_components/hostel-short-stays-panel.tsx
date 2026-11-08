@@ -7,7 +7,7 @@ import { FIELD, useAction } from "@/app/_components/booking-admin-ui";
 import { RoleButton } from "@/app/_components/portal-dashboard-ui";
 import { Panel } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";
-import type { ShortStaySettingsView } from "@/modules/bookings/short-stay-settings.service";
+import type { ShortStaySettingsView } from "@/lib/bookings/booking.types";
 
 /**
  * Short stays on **Bookings → Settings**: on or off, the fewest nights, and a

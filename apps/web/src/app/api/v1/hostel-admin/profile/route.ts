@@ -11,7 +11,7 @@ import {
 import {
   hostelAdminProfileQuerySchema,
   hostelAdminProfileUpdateSchema,
-} from "@/modules/hostels/hostel.validation";
+} from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

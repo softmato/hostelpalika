@@ -1,23 +1,22 @@
 import { cache } from "react";
 
-import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defaults";
-import {
-  getPublicSiteConfig,
-  type PublicSiteConfig,
-} from "@/modules/platform-config/site-config.service";
+import type { PublicSiteConfig } from "@/lib/platform-config/platform-config.types";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
+import { serverApi } from "@/lib/server-api";
 
 /**
- * Server-side reader for the platform owner's website configuration, shared by
- * the root layout, its metadata, and the public layout. Wrapped in React's
- * `cache` so all of those resolve from a single database read per request.
+ * Server-side reader for the platform owner's website configuration
+ * (`GET /api/v1/public/site-config`), shared by the root layout, its metadata,
+ * and the public layout. Wrapped in React's `cache` so all of those resolve from
+ * a single API read per request.
  *
  * Nothing here may throw: the whole app — marketing site and portals alike —
- * renders its branding from this, so an unreachable settings collection must
- * degrade to the shipped defaults rather than 500 every route.
+ * renders its branding from this, so an unreachable API must degrade to the
+ * shipped defaults rather than 500 every route.
  */
 export const loadSiteConfig = cache(async (): Promise<PublicSiteConfig> => {
   try {
-    return await getPublicSiteConfig();
+    return (await serverApi<{ config: PublicSiteConfig }>("/api/v1/public/site-config")).config;
   } catch {
     return {
       ...DEFAULT_SITE_CONFIG,
@@ -25,6 +24,7 @@ export const loadSiteConfig = cache(async (): Promise<PublicSiteConfig> => {
       leaveHold: null,
       locations: DEFAULT_SITE_CONFIG.locations.filter((location) => location.enabled),
       platformStats: [],
+      trialDays: 15, // operationsConfigSchema default
     };
   }
 });

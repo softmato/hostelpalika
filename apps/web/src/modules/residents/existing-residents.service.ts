@@ -7,7 +7,7 @@ import { afterResponse } from "@/lib/after-response";
 import { logger } from "@/lib/logger";
 import { bsPeriodBounds, hostelPeriodOf } from "@/lib/hostel-day";
 import { runBillingCycle } from "@/modules/finance/billing.service";
-import { normalizeBedType } from "@/modules/finance/bed-type";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
 import {
   claimBedForRoomType,
@@ -27,7 +27,7 @@ import {
   splitFullName,
   unpaidMonths,
 } from "@/modules/residents/existing-residents-check";
-import { defaultJoinedDate } from "@/modules/residents/existing-residents-cells";
+import { defaultJoinedDate } from "@/lib/residents/existing-residents-cells";
 import {
   buildExistingResidentsTemplate,
   readExistingResidentsFile,
@@ -54,6 +54,8 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
+import type { AddResult, ExistingResidentsView } from "@/lib/residents/existing-residents.types";
+export type { AddResult, ExistingResidentsView } from "@/lib/residents/existing-residents.types";
 
 /**
  * Residents who were already living in a hostel when it joined
@@ -141,23 +143,7 @@ type StoredList = {
   updatedAt?: Date;
 };
 
-export type AddResult = {
-  added: number;
-  billsRaised: number;
-  problems: { message: string; name: string }[];
-};
 
-export type ExistingResidentsView = {
-  check: CheckResult | null;
-  currentMonth: { label: string; period: string };
-  hostel: { id: string; name: string };
-  /** What the last "Add all" did, for the screen to say so. */
-  lastAdded: (AddResult & { addedAt: string }) | null;
-  list: { id: string; rows: ListRow[]; updatedAt: string | null } | null;
-  /** The rooms a line can be put in — null when the hostel keeps room types only. */
-  numberedRooms: NumberedRoom[] | null;
-  roomTypes: { freeBeds: number; monthlyRent: number | null; roomType: string }[];
-};
 
 function toListRow(row: StoredRow): ListRow {
   return {

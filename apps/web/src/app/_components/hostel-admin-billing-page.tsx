@@ -38,7 +38,7 @@ import type {
   BillingInvoiceRow,
   BillingPaymentRow,
   BillingPlan,
-} from "@/modules/billing/billing-history.service";
+} from "@/lib/billing/billing.types";
 
 /**
  * The hostel's own plan paperwork: what was billed, what was paid, and the

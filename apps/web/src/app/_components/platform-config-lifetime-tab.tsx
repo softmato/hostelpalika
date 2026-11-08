@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { SoftBadge, ToggleSwitch } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
-import type { LifetimeConfig } from "@/modules/platform-config/site-config.validation";
+import type { LifetimeConfig } from "@/lib/platform-config/site-config.validation";
 import {
   formatLifetimeDay,
   lifetimeMonthsEquivalent,

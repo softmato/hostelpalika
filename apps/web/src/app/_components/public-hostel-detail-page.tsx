@@ -45,7 +45,7 @@ import { browserApi } from "@/lib/browser-api";
 import { photosOfKind } from "@/lib/hostel-photos";
 import type { NearbyPlaceType } from "@/lib/maps/types";
 import { cn } from "@/lib/utils";
-import type { BookingAvailabilityView } from "@/modules/bookings/booking-button";
+import type { BookingAvailabilityView } from "@/lib/bookings/booking-button";
 
 import { optimizedImage } from "@/lib/image-url";
 import { Breadcrumbs, PublicShell, StatusPill, formatMoney, humanize } from "./shared";

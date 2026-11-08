@@ -24,8 +24,8 @@ import { refreshSession } from "@/lib/auth-refresh";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource, useUpdateResource } from "@/lib/portal-query";
 import { addBsMonths, formatBsDate, formatBsPeriodMonth } from "@hostel/shared/calendar/bs";
-import { rentStatusOptions } from "@/modules/residents/existing-residents-sheet-model";
-import type { JoinPageView, JoinRequestView } from "@/modules/residents/resident-join.service";
+import { rentStatusOptions } from "@/lib/residents/existing-residents-sheet-model";
+import type { JoinPageView, JoinRequestView } from "@/lib/residents/resident.types";
 
 /**
  * `/join/{token}` — a resident adding themself to the hostel they already live

@@ -25,6 +25,7 @@ func NewHandler(db *mongo.Database) *Handler { return &Handler{db} }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/public/offer-perks", h.perks)
+	v1.GET("/public/receipts/verify", h.verify)
 }
 
 // QuarterOf is offerQuarterOf: the BS quarter an instant falls in, "2083-Q2".

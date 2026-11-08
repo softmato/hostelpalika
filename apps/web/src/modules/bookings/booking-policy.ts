@@ -1,6 +1,8 @@
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import type { BookingConfig } from "@/modules/bookings/booking-config";
+import type { PolicySection } from "@/lib/bookings/booking.types";
+export type { PolicySection } from "@/lib/bookings/booking.types";
 
 /**
  * The refund policy as words, from the live booking settings.
@@ -11,7 +13,6 @@ import type { BookingConfig } from "@/modules/bookings/booking-config";
  * checkout and the invoice print the same steps in rupees for the fee in hand.
  */
 
-export type PolicySection = { body: string[]; icon: string; title: string };
 
 type PolicyTerms = Pick<
   BookingConfig,

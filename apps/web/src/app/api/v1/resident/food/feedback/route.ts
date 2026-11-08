@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { submitFoodFeedback } from "@/modules/food/food.service";
-import { foodFeedbackSchema } from "@/modules/food/food.validation";
+import { foodFeedbackSchema } from "@/lib/food/food.validation";
 
 export const runtime = "nodejs";
 

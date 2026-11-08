@@ -6,7 +6,7 @@ import {
   getMutedTopics,
   setMutedTopics,
 } from "@/modules/notifications/email-preference.service";
-import { isEmailTopic } from "@/modules/notifications/email-topics";
+import { isEmailTopic } from "@/lib/notifications/email-topics";
 
 export const runtime = "nodejs";
 

@@ -21,7 +21,7 @@ import {
   DEFAULT_WARDEN_PERMISSIONS,
   WARDEN_PERMISSION_KEYS,
   type WardenPermissionKey,
-} from "@/modules/wardens/warden.validation";
+} from "@/lib/wardens/warden.validation";
 
 import { useConfirm } from "./confirm-dialog";
 import { field, optionalField } from "./hostel-admin-shared";

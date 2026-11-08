@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { at } from "@/app/_components/booking-ui";
 import { usePortalResource } from "@/lib/portal-query";
-import type { HostelBookingView } from "@/modules/bookings/booking-views";
+import type { HostelBookingView } from "@/lib/bookings/booking.types";
 
 /**
  * Bookings waiting for this hostel's answer, above every workspace screen.

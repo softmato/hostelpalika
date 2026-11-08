@@ -29,6 +29,8 @@ type Public struct {
 	cfg *platformconfig.Service
 	// Cache holds the public list per query for cache.TTL; nil = read every time.
 	Cache *cache.Cache
+	// MediaURL is R2_PUBLIC_URL: where a PUBLIC asset is served, for the sitemap's photos.
+	MediaURL string
 }
 
 func NewPublic(db *mongo.Database, cfg *platformconfig.Service) *Public {

@@ -4,7 +4,7 @@ import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { submitClaim } from "@/modules/finance/claim.service";
-import { claimSubmitSchema } from "@/modules/finance/claim.validation";
+import { claimSubmitSchema } from "@/lib/finance/claim.validation";
 
 export const runtime = "nodejs";
 

@@ -26,7 +26,7 @@ import {
 } from "@/modules/hostels/hostel-agreement-terms";
 import { HostelServiceError } from "@/modules/hostels/hostel.service";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
-import { agreementRef } from "@/modules/team/registration-track-sheet";
+import { agreementRef } from "@/lib/team/registration-track-sheet";
 
 /**
  * The service agreement an owner signs on the last KYC step, and the PDF of it

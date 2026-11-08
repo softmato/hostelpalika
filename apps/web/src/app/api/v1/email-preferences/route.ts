@@ -1,14 +1,36 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
+
 import {
   emailFromPreferenceToken,
   getMutedTopics,
   mutedAfterForm,
   setMutedTopics,
 } from "@/modules/notifications/email-preference.service";
-import { isEmailTopic } from "@/modules/notifications/email-topics";
+import { isEmailTopic } from "@/lib/notifications/email-topics";
+import { maskEmail } from "@/modules/platform-config/setting-change.service";
 
 export const runtime = "nodejs";
+
+/**
+ * What the `/email-preferences` page shows for a link (PARITY §9: the page reads
+ * the API): the address, masked, and the topics it has muted. Reading changes
+ * nothing — a link scanner that prefetches the page must not unsubscribe anyone.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const email = emailFromPreferenceToken(request.nextUrl.searchParams.get("token") ?? "");
+
+    if (!email) {
+      return errorResponse("This link is not valid.", "INVALID_TOKEN", 400);
+    }
+
+    return successResponse({ email: maskEmail(email), muted: await getMutedTopics(email) }, "Email preferences loaded");
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
 
 /**
  * The `/email-preferences` page's form. A plain HTML POST, so it works from any

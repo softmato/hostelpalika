@@ -6,7 +6,7 @@ import { FIELD, useAction } from "@/app/_components/booking-admin-ui";
 import { RoleButton, SoftBadge } from "@/app/_components/portal-dashboard-ui";
 import { Panel } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";
-import type { PayoutAccountView } from "@/modules/bookings/payout-account.service";
+import type { PayoutAccountView } from "@/lib/bookings/booking.types";
 
 /**
  * Where HostelPalika sends this hostel's share of booking fees. Owner only: a

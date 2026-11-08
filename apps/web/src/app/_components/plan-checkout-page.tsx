@@ -23,7 +23,7 @@ import type {
   BillingInvoiceRow,
   BillingPaymentRow,
   BillingPlan,
-} from "@/modules/billing/billing-history.service";
+} from "@/lib/billing/billing.types";
 
 import { CHECKOUT_TOKEN_KEY, CheckoutHandoffButton } from "./checkout-handoff";
 import { Badge } from "./hostel-admin-billing-page";

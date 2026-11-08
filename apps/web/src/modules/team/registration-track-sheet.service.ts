@@ -15,7 +15,7 @@ import {
   type AgreementStatus,
   type TrackSheetSave,
   type TrackSheetView,
-} from "./registration-track-sheet";
+} from "@/lib/team/registration-track-sheet";
 
 /** The agreement codes' one run — never reset by year (`PlatformDocumentSequence`). */
 const RUN = { fiscalYear: "LIFETIME", kind: "HOSTEL_AGREEMENT" } as const;

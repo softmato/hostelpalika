@@ -7,7 +7,7 @@ import { CONTENT_ICON_SLUGS } from "@/lib/site-content";
 import type {
   ContentPage,
   ContentSection,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 import {
   ConfigCard,

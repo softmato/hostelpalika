@@ -9,7 +9,7 @@ import { notifyKitchenOfRoutineChange } from "@/modules/food/kitchen-notify";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
 import { nepalWeekday } from "@hostel/shared/food/meal-window";
-import type { foodRoutineSaveSchema } from "@/modules/food/food.validation";
+import type { foodRoutineSaveSchema } from "@/lib/food/food.validation";
 
 type FoodRoutineSaveInput = z.infer<typeof foodRoutineSaveSchema>;
 

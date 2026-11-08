@@ -3,13 +3,8 @@ import "server-only";
 import { getBookingConfig } from "@/modules/bookings/booking-config";
 import { bookingGuideIntro, bookingGuideSections } from "@/modules/bookings/booking-guide";
 import type { PolicySection } from "@/modules/bookings/booking-policy";
-
-export type BookingGuide = {
-  /** False while bookings are switched off platform-wide: the page says so rather than pretending. */
-  enabled: boolean;
-  intro: string[];
-  sections: PolicySection[];
-};
+import type { BookingGuide } from "@/lib/bookings/booking.types";
+export type { BookingGuide } from "@/lib/bookings/booking.types";
 
 export async function getBookingGuide(): Promise<BookingGuide> {
   const config = await getBookingConfig();

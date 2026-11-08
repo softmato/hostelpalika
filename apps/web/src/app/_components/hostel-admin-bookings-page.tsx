@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { usePortalResource } from "@/lib/portal-query";
-import type { HostelBookingView } from "@/modules/bookings/booking-views";
+import type { HostelBookingView } from "@/lib/bookings/booking.types";
 
 /**
  * Hostel admin → Bookings: docs/BOOKINGS.md item 18.

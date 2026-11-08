@@ -25,7 +25,7 @@ import { requestResidentProfileForm, requestResidentQr } from "@/components/resi
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { cn } from "@/lib/utils";
-import type { GuestBookingDetail, GuestBookingSummary } from "@/modules/bookings/booking.service";
+import type { GuestBookingDetail, GuestBookingSummary } from "@/lib/bookings/booking.types";
 import { useSessionStore } from "@/stores/session-store";
 
 import { PublicShell } from "./shared";

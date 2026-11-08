@@ -5,7 +5,7 @@ import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { getHostelAgreement, hostelAgreementPdf, signHostelAgreement } from "@/modules/hostels/hostel-agreement.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
-import { signature } from "@/modules/users/resident-identity.validation";
+import { signature } from "@/lib/users/resident-identity.validation";
 
 export const runtime = "nodejs";
 

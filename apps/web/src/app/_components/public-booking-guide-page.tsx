@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { PublicShell } from "@/app/_components/shared";
 import { ContentHeader, ContentIntro, ContentNote, ContentSections } from "@/components/content-sections";
-import type { BookingGuide } from "@/modules/bookings/booking-guide.service";
+import type { BookingGuide } from "@/lib/bookings/booking.types";
 
 /**
  * How booking works — docs/BOOKINGS.md item 33.

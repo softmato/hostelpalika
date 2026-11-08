@@ -16,7 +16,7 @@ import {
   hostelCalendarDay,
   hostelMonthStart,
 } from "@/lib/hostel-day";
-import { normalizeBedType } from "@/modules/finance/bed-type";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import { projectScheduleOntoListing } from "@/modules/finance/listing-projection.service";
 import { notifyRateCardChanged } from "@/modules/finance/rate-card-notify";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";

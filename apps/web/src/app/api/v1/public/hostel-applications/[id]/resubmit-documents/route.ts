@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { resubmitOwnerHostelDocuments } from "@/modules/hostels/hostel.service";
-import { hostelResubmitDocumentsSchema } from "@/modules/hostels/hostel.validation";
+import { hostelResubmitDocumentsSchema } from "@/lib/hostels/hostel.validation";
 
 type RouteContext = {
   params: Promise<{

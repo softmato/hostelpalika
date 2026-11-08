@@ -10,7 +10,7 @@ import type {
   hostelAdminInquiryListQuerySchema,
   hostelAdminInquiryStatusSchema,
   inquiryNoteCreateSchema,
-} from "@/modules/hostels/hostel.validation";
+} from "@/lib/hostels/hostel.validation";
 import {
   HostelServiceError,
   normalizeObjectId,

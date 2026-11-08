@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
-import { claimRejectSchema } from "@/modules/finance/claim.validation";
+import { claimRejectSchema } from "@/lib/finance/claim.validation";
 import { rejectClaim } from "@/modules/finance/review.service";
 
 export const runtime = "nodejs";

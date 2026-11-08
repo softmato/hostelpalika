@@ -19,6 +19,8 @@ import { PaymentEventModel } from "@hostel/db/models/PaymentEvent";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { ReceiptCounterModel } from "@hostel/db/models/ReceiptCounter";
 import { ReceiptModel } from "@hostel/db/models/Receipt";
+import type { ReceiptVerification } from "@/lib/finance/receipt.types";
+export type { ReceiptVerification } from "@/lib/finance/receipt.types";
 
 /**
  * Receipts (target §4.4, plan item 2.6).
@@ -469,21 +471,6 @@ export async function voidReceipt(
 
   return { receipt, replacement };
 }
-
-export type ReceiptVerification =
-  | { found: false }
-  | {
-      amount: number;
-      certificationCode: string;
-      found: true;
-      hostelName: string;
-      issuedAt: string;
-      period: string | null;
-      receiptNumber: string;
-      /** First name and last initial — enough to match a printout, no more. */
-      residentName: string;
-      voidedAt: string | null;
-    };
 
 /**
  * The public side of a certified receipt: anyone holding one — a landlord, a

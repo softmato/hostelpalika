@@ -13,31 +13,13 @@ import {
   branchesLock,
   canAccessWorkspace,
   canOpenOverall,
+  isHeldWorkspace,
   listWorkspaceHostels,
   workspaceHostelName,
 } from "@/lib/hostel-workspace";
 import { hostelAdminNavForSlug, overallAdminNav, searchEntriesFromNav } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
 import { PORTAL_DELETED_HOME } from "@/lib/route-access";
-import { readAccessTokenCookie } from "@/lib/auth-cookies";
-import { verifyAccessToken } from "@/lib/auth";
-import { heldHostelForSlug } from "@/modules/hostels/hostel-leave.service";
-import { cookies } from "next/headers";
-
-/** The signed-in account's held hostel at this address, if it has one. */
-async function heldPortalFor(slug: string) {
-  const token = readAccessTokenCookie(await cookies());
-
-  if (!token) return null;
-
-  try {
-    const { sub } = await verifyAccessToken(token);
-
-    return sub ? await heldHostelForSlug(sub, slug) : null;
-  } catch {
-    return null;
-  }
-}
 
 type HostelAdminWorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
@@ -90,7 +72,7 @@ export default async function HostelAdminWorkspaceLayout({
   if (!(await canAccessWorkspace(hostelSlug))) {
     // Its own owner, after leaving the platform: home, where the header opens
     // the claim-back modal. Anyone else still gets the 404.
-    if (await heldPortalFor(hostelSlug)) redirect(PORTAL_DELETED_HOME);
+    if (await isHeldWorkspace(hostelSlug)) redirect(PORTAL_DELETED_HOME);
 
     notFound();
   }

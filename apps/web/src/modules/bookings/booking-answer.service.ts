@@ -58,7 +58,7 @@ import { BookingError } from "@/modules/bookings/booking.errors";
 import {
   PAYOUT_METHOD_LABELS,
   maskedPayoutNumber,
-} from "@/modules/bookings/payout-account.validation";
+} from "@/lib/bookings/payout-account.validation";
 import {
   claimBedForRoomType,
   releaseBedForRoomType,

@@ -2,8 +2,8 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defaults";
-import type { PublicSiteConfig } from "@/modules/platform-config/site-config.service";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
+import type { PublicSiteConfig } from "@/lib/platform-config/platform-config.types";
 
 export type { PublicSiteConfig };
 
@@ -20,6 +20,7 @@ const FALLBACK: PublicSiteConfig = {
   content: DEFAULT_SITE_CONFIG.content,
   facilities: DEFAULT_SITE_CONFIG.facilities,
   platformStats: [],
+  trialDays: 15, // operationsConfigSchema default
   features: DEFAULT_SITE_CONFIG.features,
   hero: DEFAULT_SITE_CONFIG.hero,
   identity: DEFAULT_SITE_CONFIG.identity,

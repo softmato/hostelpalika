@@ -14,17 +14,12 @@ import type {
   hostelAdminReportExportSchema,
   platformReportExportSchema,
 } from "@/modules/reports/report.validation";
+import type { ReportExport } from "@/lib/reports/report.types";
+export type { ReportExport } from "@/lib/reports/report.types";
 
 type PlatformReportExportInput = z.infer<typeof platformReportExportSchema>;
 type HostelAdminReportExportInput = z.infer<typeof hostelAdminReportExportSchema>;
 
-export type ReportExport = {
-  columns: Array<{ key: string; label: string }>;
-  filenamePrefix: string;
-  /** What the rows cover — "Last 6 months". Absent on a snapshot. */
-  period?: string;
-  rows: Array<Record<string, unknown>>;
-};
 
 /**
  * The window an export covers: `months` BS months counting this one, or

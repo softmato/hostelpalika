@@ -7,7 +7,7 @@ import type {
   PlanService,
   PlanTier,
   PlansConfig,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 /**
  * Reading the plans-and-pricing catalogue, on the website.
@@ -65,7 +65,7 @@ export type {
   PlanService,
   PlanTier,
   PlansConfig,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 /**
  * Names kept from before the move, so call sites read the same as they always

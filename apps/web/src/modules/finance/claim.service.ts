@@ -57,7 +57,7 @@ import { HostelPaymentProfileModel } from "@hostel/db/models/HostelPaymentProfil
 import { InvoiceBalanceModel } from "@hostel/db/models/InvoiceBalance";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { PaymentEventModel } from "@hostel/db/models/PaymentEvent";
-import type { ClaimSubmitInput } from "@/modules/finance/claim.validation";
+import type { ClaimSubmitInput } from "@/lib/finance/claim.validation";
 
 /**
  * A resident telling the hostel they have paid (target §11.2, plan item 2.8).

@@ -7,13 +7,13 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { formatNpr } from "@/lib/json-ld";
 import { pageMetadata, type PageSeo } from "@/lib/seo";
 import { loadSiteConfig } from "@/lib/site-config-server";
-import { DEFAULT_PLANS } from "@/modules/platform-config/plans.defaults";
-import { DEFAULT_SEO, SEO_PAGE_ROUTES } from "@/modules/platform-config/seo.defaults";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
+import { DEFAULT_SEO, SEO_PAGE_ROUTES } from "@/lib/platform-config/seo.defaults";
 import type {
   PlansConfig,
   SeoConfig,
   SeoPageKey,
-} from "@/modules/platform-config/site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 /**
  * The `seo` config section, ready to print: placeholders filled, and any title

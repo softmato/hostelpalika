@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { cardGap } from "@/modules/residents/admission-form.service";
 import { cardFromDetails, residentDetailsSchema } from "@/modules/residents/resident-details";
-import { residentProfileDataSchema } from "@/modules/users/resident-identity.validation";
+import { residentProfileDataSchema } from "@/lib/users/resident-identity.validation";
 
 const SIGNATURE = "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80";
 

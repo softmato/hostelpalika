@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { z } from "zod";
 
-import { payoutAccountInputSchema } from "@/modules/bookings/payout-account.validation";
+import { payoutAccountInputSchema } from "@/lib/bookings/payout-account.validation";
 
 const objectId = z
   .string()

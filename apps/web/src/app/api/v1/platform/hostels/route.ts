@@ -10,7 +10,7 @@ import {
 import {
   platformHostelCreateSchema,
   platformHostelListQuerySchema,
-} from "@/modules/hostels/hostel.validation";
+} from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

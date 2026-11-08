@@ -19,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
@@ -52,7 +53,9 @@ var (
 )
 
 type Handler struct {
-	DB     *mongo.Database
+	DB *mongo.Database
+	// Config reads the plan catalogue, for the workspace list's branch caps.
+	Config *platformconfig.Service
 	Guards *authz.Guards
 	R2     *storage.R2
 	BG     *background.Runner
@@ -68,6 +71,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	g.GET("/:requestId/files", h.files)
 	g.GET("/:requestId/files/zip", h.zip)
 	g.GET("/:requestId/files/:fileId", h.file)
+	v1.GET("/account/workspaces", h.workspaces)
 }
 
 func fail(status int, code, message string) error { return httpx.NewError(status, code, message, nil) }

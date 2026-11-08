@@ -4,7 +4,8 @@ import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
 import { ResidentModel } from "@hostel/db/models/Resident";
 
-export type PlatformStat = { label: string; value: number };
+export type { PlatformStat } from "@/lib/platform-config/platform-config.types";
+import type { PlatformStat } from "@/lib/platform-config/platform-config.types";
 
 /** Statuses a hostel is running on the platform in — not a draft or a refusal. */
 export const LIVE_HOSTEL_FILTER ={ isDeleted: false, status: { $in: ["APPROVED", "PUBLISHED"] } };

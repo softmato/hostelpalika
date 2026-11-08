@@ -8,9 +8,9 @@ import {
 } from "@/lib/json-ld";
 import { NOINDEX, ogImagePath, pageMetadata, snippet, verifiedOgText } from "@/lib/seo";
 import { resolveSeoPage, seoFiller } from "@/lib/seo-config";
-import { DEFAULT_PLANS } from "@/modules/platform-config/plans.defaults";
-import { DEFAULT_SEO } from "@/modules/platform-config/seo.defaults";
-import { SEO_PAGE_KEYS, seoSchema } from "@/modules/platform-config/site-config.validation";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
+import { DEFAULT_SEO } from "@/lib/platform-config/seo.defaults";
+import { SEO_PAGE_KEYS, seoSchema } from "@/lib/platform-config/site-config.validation";
 
 beforeEach(() => {
   vi.stubEnv("JWT_ACCESS_SECRET", "s".repeat(40));

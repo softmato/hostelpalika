@@ -10,7 +10,7 @@ import type { LlmsData } from "@/lib/llms-txt";
 import { loadNearPlaces } from "@/lib/near-pages";
 import { loadSeo, resolveModulePages, resolveSoftwarePage, resolveComparison } from "@/lib/seo-config";
 import { siteUrl } from "@/lib/site";
-import { listPublicHostels } from "@/modules/hostels/hostel.service";
+import { serverApi } from "@/lib/server-api";
 
 /**
  * Everything `/llms.txt` and `/llms-full.txt` print, read from the same loaders
@@ -22,7 +22,7 @@ export async function loadLlmsData(): Promise<LlmsData> {
     loadSeo(),
     loadCityIndex(),
     loadNearPlaces(),
-    listPublicHostels({}),
+    serverApi<{ hostels: PublicHostel[] }>("/api/v1/public/hostels", { revalidate: 3600 }),
   ]);
   const tiers = new Map(listingTiers(config.plans).map(({ plan, tier }) => [plan.id, tier.label]));
   const software = resolveSoftwarePage(seo, fill);

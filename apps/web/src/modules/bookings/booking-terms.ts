@@ -2,6 +2,8 @@ import type { BookingCancelStep, BookingConfig } from "@/modules/bookings/bookin
 import { BookingError } from "@/modules/bookings/booking.errors";
 import { assertWholeRupees, roundToRupee } from "@/modules/finance/money";
 import { stayRefund, type BookingStay } from "@/modules/bookings/short-stay";
+import type { PolicyRow } from "@/lib/bookings/booking.types";
+export type { PolicyRow } from "@/lib/bookings/booking.types";
 
 /**
  * The money of a booking: the fee, and who gets how much of it back.
@@ -222,12 +224,6 @@ function settleFee(input: {
   return settlementFor(fee, cancelRefundPercent(terms, input.confirmedAt, input.at), terms);
 }
 
-export type PolicyRow = {
-  fromDay: number;
-  refund: number;
-  refundPercent: number;
-  throughDay: number;
-};
 
 /**
  * The ladder in days, for a booking nobody has confirmed yet — the checkout and

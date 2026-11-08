@@ -7,7 +7,7 @@ import {
   readResidentIdentityPhoto,
   setResidentIdentityPhoto,
 } from "@/modules/users/resident-identity.service";
-import { residentIdentityPhotoSchema } from "@/modules/users/resident-identity.validation";
+import { residentIdentityPhotoSchema } from "@/lib/users/resident-identity.validation";
 
 export const runtime = "nodejs";
 

@@ -19,8 +19,10 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/push"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
 type Handler struct {
@@ -37,6 +39,7 @@ func NewHandler(db *mongo.Database, guards *authz.Guards, mail *email.Sender, p 
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
+	v1.GET("/email-preferences", h.prefs)
 	v1.POST("/email-preferences", h.form)
 	v1.POST("/email-preferences/unsubscribe", h.unsubscribe)
 	v1.GET("/push/public-key", httpx.ETag(), h.publicKey)
@@ -224,4 +227,27 @@ func (h *Handler) publicKey(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, pushKey{h.push.VAPID.VAPIDPublicKey}, "Push key loaded")
+}
+
+// prefs is what the web's `/email-preferences` page shows for a link (PARITY
+// §9): the address, masked, and the topics it has muted. Reading changes
+// nothing — a link scanner that prefetches the page must not unsubscribe anyone.
+func (h *Handler) prefs(c *gin.Context) {
+	addr := h.mail.AddressFromPreferenceToken(c.Query("token"))
+	if addr == "" {
+		httpx.Fail(c, httpx.NewError(http.StatusBadRequest, "INVALID_TOKEN", "This link is not valid.", nil))
+		return
+	}
+	muted, err := h.muted(c, addr)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	httpx.OK(c, ordered.Map{{Key: "email", Value: maskEmail(addr)}, {Key: "muted", Value: muted}}, "Email preferences loaded")
+}
+
+// maskEmail is setting-change.service maskEmail: "si•••@example.com".
+func maskEmail(addr string) string {
+	local, domain, _ := strings.Cut(addr, "@")
+	return valid.JSPrefix(local, 2) + "•••@" + domain
 }

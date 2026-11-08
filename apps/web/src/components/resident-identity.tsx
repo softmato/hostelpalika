@@ -72,7 +72,7 @@ import {
   type IdentityStep,
 } from "@/lib/id-card-steps";
 import { isSignatureComplete, SIGNATURE_HEIGHT, SIGNATURE_WIDTH } from "@/lib/signature";
-import { isResidentPhone } from "@/modules/users/resident-identity.validation";
+import { isResidentPhone } from "@/lib/users/resident-identity.validation";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 

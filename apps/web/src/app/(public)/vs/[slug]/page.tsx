@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd, faqJsonLd } from "@/lib/json-ld";
 import { NOINDEX, pageMetadata } from "@/lib/seo";
 import { loadSeo, resolveComparison } from "@/lib/seo-config";
-import { DEFAULT_SEO } from "@/modules/platform-config/seo.defaults";
+import { DEFAULT_SEO } from "@/lib/platform-config/seo.defaults";
 
 type PageParams = {
   params: Promise<{ slug: string }>;

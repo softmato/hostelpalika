@@ -15,11 +15,11 @@ import {
   Utensils,
 } from "@/components/icons";
 import type { ReactNode } from "react";
-import type { getBranchDetails } from "@/modules/hostels/hostel-branch.service";
+import type { BranchDetails } from "@/lib/hostels/hostel.types";
 import { usePortalResource } from "@/lib/portal-query";
 import { MetricCard, PortalPageHeader, SectionCard, SoftBadge } from "./portal-dashboard-ui";
 
-type Details = Awaited<ReturnType<typeof getBranchDetails>>;
+type Details = BranchDetails;
 const money = (value?: number) =>
   value == null ? "Not added" : `NPR ${value.toLocaleString("en-IN")}`;
 const statusLabel: Record<string, string> = {

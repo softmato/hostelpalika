@@ -42,6 +42,7 @@ type Handler struct {
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.GET("/public/service-providers", httpx.ETag(), h.list)
 	v1.POST("/public/service-providers/register", h.register)
+	v1.GET("/public/service-providers/stats", h.stats)
 	v1.GET("/public/service-providers/me", httpx.ETag(), h.me)
 	v1.GET("/public/service-providers/me/jobs", httpx.ETag(), h.jobs)
 	v1.PATCH("/public/service-providers/me/jobs/:id", h.updateJob)

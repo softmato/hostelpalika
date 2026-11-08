@@ -4,7 +4,7 @@ import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
-import { residentIdLookupSchema } from "@/modules/users/resident-identity.validation";
+import { residentIdLookupSchema } from "@/lib/users/resident-identity.validation";
 import { scanResidentForHostel } from "@/modules/users/resident-scan.service";
 
 export const runtime = "nodejs";

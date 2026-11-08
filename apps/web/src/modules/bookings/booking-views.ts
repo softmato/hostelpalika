@@ -17,7 +17,9 @@ import {
   PAYOUT_METHOD_LABELS,
   maskedPayoutNumber,
   type PayoutMethod,
-} from "@/modules/bookings/payout-account.validation";
+} from "@/lib/bookings/payout-account.validation";
+import type { StayView, CancelPreview, PolicySummary, GuestBookingView, HostelBookingView, PlatformBookingView } from "@/lib/bookings/booking.types";
+export type { StayView, CancelPreview, PolicySummary, GuestBookingView, HostelBookingView, PlatformBookingView } from "@/lib/bookings/booking.types";
 
 /**
  * What each side is shown of a booking.
@@ -171,16 +173,6 @@ export function noShowRefund(booking: BookingRecord) {
   return settleAs(booking, "NO_SHOW", booking.holdEndsAt ? new Date(booking.holdEndsAt) : new Date()).refund;
 }
 
-export type StayView = {
-  amount: number;
-  dailyRate: number;
-  /** `4 Oct 2026 – 7 Oct 2026 (Asoj 18–21)`. */
-  dates: string;
-  holdBlocks: number;
-  moveIn: string;
-  moveOut: string;
-  nights: number;
-};
 
 function stayView(stay: BookingStay | null | undefined): StayView | null {
   return stay
@@ -196,11 +188,6 @@ function stayView(stay: BookingStay | null | undefined): StayView | null {
     : null;
 }
 
-export type CancelPreview = {
-  allowed: boolean;
-  refund: number;
-  refundPercent: number;
-};
 
 /** What pressing Cancel now would hand back. Server-computed, shown before the tap. */
 export function cancelPreview(booking: BookingRecord, now = new Date()): CancelPreview {
@@ -228,13 +215,6 @@ export function cancelPreview(booking: BookingRecord, now = new Date()): CancelP
   return { allowed: true, refund: paid ? amountDue(booking) : 0, refundPercent: paid ? 100 : 0 };
 }
 
-export type PolicySummary = {
-  holdDays: number;
-  hostelAnswerHours: number;
-  noShowRefund: number;
-  noShowRefundPercent: number;
-  rows: PolicyRow[];
-};
 
 export function policySummary(terms: BookingTerms, fee: number): PolicySummary {
   return {
@@ -246,51 +226,6 @@ export function policySummary(terms: BookingTerms, fee: number): PolicySummary {
   };
 }
 
-export type GuestBookingView = {
-  cancel: CancelPreview;
-  checkedInAt: string | null;
-  code: string;
-  confirmedAt: string | null;
-  createdAt: string;
-  currency: string;
-  endReason: string | null;
-  endedAt: string | null;
-  fee: number;
-  holdEndsAt: string | null;
-  hostel: { address: string; id: string; name: string; phone: string; slug: string };
-  hostelAnswerBy: string | null;
-  id: string;
-  invoiceNumber: string;
-  kind: "MONTHLY" | "SHORT_STAY";
-  monthlyRent: number;
-  paymentDueBy: string;
-  paymentRejection: { at: string | null; reason: string | null } | null;
-  paymentSubmittedAt: string | null;
-  paymentVerifiedAt: string | null;
-  plannedMoveIn: string | null;
-  policy: PolicySummary;
-  receiptNumber: string | null;
-  refund: {
-    amount: number;
-    /** The refund note's number, once sent. */
-    documentNumber: string | null;
-    sentAt: string | null;
-    status: "DUE" | "SENT";
-    transactionId: string | null;
-  } | null;
-  refundAccount: { holderName: string; maskedNumber: string; method: PayoutMethod; methodLabel: string };
-  roomType: string;
-  schedule: {
-    noShow: { after: string; refund: number; refundPercent: number };
-    steps: Array<PolicyRow & { until: string }>;
-  } | null;
-  settlement: { refund: number; refundPercent: number } | null;
-  status: BookingStatus;
-  statusLabel: string;
-  stay: StayView | null;
-  /** What the guest pays: the fee, plus a short stay's nights. */
-  total: number;
-};
 
 export function toGuestView(
   booking: BookingRecord,
@@ -371,37 +306,6 @@ export function toGuestView(
   };
 }
 
-export type HostelBookingView = {
-  checkedInAt: string | null;
-  code: string;
-  confirmedAt: string | null;
-  createdAt: string;
-  endReason: string | null;
-  endedAt: string | null;
-  guest: { email: string; name: string; phone: string };
-  holdEndsAt: string | null;
-  hostelAnswerBy: string | null;
-  /** What the hostel gets if the booking runs to the end. */
-  hostelShareIfKept: number;
-  id: string;
-  kind: "MONTHLY" | "SHORT_STAY";
-  monthlyRent: number;
-  payout: {
-    amount: number;
-    /** The payout advice's number, once sent. */
-    documentNumber: string | null;
-    sentAt: string | null;
-    status: "DUE" | "SENT";
-    transactionId: string | null;
-  } | null;
-  plannedMoveIn: string | null;
-  roomType: string;
-  settlement: { hostelShare: number } | null;
-  status: BookingStatus;
-  statusLabel: string;
-  stay: StayView | null;
-  strike: boolean;
-};
 
 /**
  * The hostel's view. The guest's name and phone are shown only once the fee is
@@ -454,27 +358,6 @@ export function toHostelView(
   };
 }
 
-export type PlatformBookingView = GuestBookingView & {
-  guest: { email: string; name: string; phone: string };
-  hostelShareIfKept: number;
-  platformSettlement: {
-    hostelShare: number;
-    kept: number;
-    platformShare: number;
-    refund: number;
-  } | null;
-  strike: boolean;
-  transfers: Array<{
-    amount: number;
-    documentNumber: string | null;
-    id: string;
-    kind: "PAYOUT" | "REFUND";
-    sentAt: string | null;
-    status: "DUE" | "SENT";
-    transactionId: string | null;
-  }>;
-  userId: string;
-};
 
 export function toPlatformView(
   booking: BookingRecord,

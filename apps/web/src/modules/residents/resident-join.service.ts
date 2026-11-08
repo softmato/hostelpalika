@@ -18,7 +18,7 @@ import {
   type RowField,
   sameRoomType,
 } from "@/modules/residents/existing-residents-check";
-import { rentStatusLabel } from "@/modules/residents/existing-residents-sheet-model";
+import { rentStatusLabel } from "@/lib/residents/existing-residents-sheet-model";
 import {
   addScannedExistingResident,
   contextFor,
@@ -33,6 +33,8 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { ResidentApplicationModel } from "@hostel/db/models/ResidentApplication";
 import { ResidentJoinLinkModel } from "@hostel/db/models/ResidentJoinLink";
 import { joinRequestReturnedEmail } from "@hostel/shared/email/templates/resident/join-request-returned";
+import type { JoinLinkView, JoinRequestView, JoinPageView } from "@/lib/residents/resident.types";
+export type { JoinLinkView, JoinRequestView, JoinPageView } from "@/lib/residents/resident.types";
 
 /**
  * The join link (docs/EXISTING_RESIDENTS.md, "Join link").
@@ -88,64 +90,8 @@ type RequestDoc = {
   userId: Types.ObjectId;
 };
 
-export type JoinLinkView = {
-  cap: number;
-  enabled: boolean;
-  qrDataUrl: string | null;
-  url: string;
-  used: number;
-  /** Requests waiting for a staff answer. */
-  waiting: number;
-};
 
-export type JoinRequestView = {
-  bills: BillPreview | null;
-  cardId: string;
-  decidedAt: string | null;
-  depositPaid: number;
-  email: string;
-  fullName: string;
-  id: string;
-  joinedDate: string | null;
-  note: string;
-  paidTill: string;
-  partPaid: number;
-  phone: string;
-  /** What would stop Add right now, in the check's own words. */
-  problems: string[];
-  rejectReason: string;
-  rent: number | null;
-  rentLabel: string;
-  residentId: string | null;
-  roomType: string;
-  sends: number;
-  sentAt: string;
-  status: RequestDoc["status"];
-};
 
-export type JoinPageView = {
-  currentMonth: { label: string; period: string };
-  hostel: { city: string; name: string };
-  /** OPEN takes new requests; FULL and OFF only let an existing one be fixed. */
-  link: "FULL" | "OFF" | "OPEN";
-  /** Their own request here, when they are signed in and have one. */
-  request: JoinRequestView | null;
-  roomTypes: { monthlyRent: number | null; roomType: string }[];
-  token: string;
-  /** Null when signed out. */
-  viewer: {
-    /** READY can send; the rest say what to do first. */
-    card: "NONE" | "PRIVATE" | "READY";
-    cardId: string | null;
-    email: string;
-    fullName: string;
-    hasPhoto: boolean;
-    /** Where they live already, when that stops them sending. */
-    livesAt: { hostelName: string; sameHostel: boolean } | null;
-    phone: string;
-    photoUpdatedAt: string | null;
-  } | null;
-};
 
 function joinError(message: string, errorCode: string, status = 422, details?: unknown) {
   return new ExistingResidentsError(message, errorCode, status, details);

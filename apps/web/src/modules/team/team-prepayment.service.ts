@@ -27,6 +27,8 @@ import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
 import { TeamPrepaymentModel } from "@hostel/db/models/TeamPrepayment";
 import type { BillingCycle } from "@hostel/shared/plans/catalog";
+import type { TeamPrepaymentView, UnpublishedPrepayment } from "@/lib/team/team.types";
+export type { TeamPrepaymentView, UnpublishedPrepayment } from "@/lib/team/team.types";
 
 /**
  * The plan payment a field agent takes on the form's Plan & payment step,
@@ -90,26 +92,6 @@ type PrepaymentRow = {
   softmatoInvoiceNo?: string | null;
   status: "OPEN" | "PAID" | "CLAIMED" | "SUPERSEDED";
   transactionNo?: string | null;
-};
-
-/**
- * What the form shows. `amount` is the plan price the hostel is invoiced for;
- * `chargeAmount` is what this payment takes. `reference` is Softmato's
- * transaction, else its invoice.
- */
-export type TeamPrepaymentView = {
-  amount: number;
-  chargeAmount: number;
-  cycle: BillingCycle;
-  id: string;
-  /** `PLAN` only on a row taken before setup fees; `LIFETIME` is the lifetime deal. See the model. */
-  kind: "PLAN" | "SETUP_FEE" | "LIFETIME";
-  paidAt: string | null;
-  planId: string;
-  planName: string;
-  provider: string | null;
-  reference: string | null;
-  status: PrepaymentRow["status"];
 };
 
 const CYCLE_WORDS: Record<BillingCycle, string> = {
@@ -416,8 +398,6 @@ export async function saveTeamPrepaymentDraft(
 
   await TeamPrepaymentModel.updateOne({ _id: row._id }, { $set: { draft } });
 }
-
-export type UnpublishedPrepayment = TeamPrepaymentView & { hostelName: string; ownerName: string };
 
 /**
  * The agent's desk list: money taken, hostel not published yet. Each one

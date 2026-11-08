@@ -11,6 +11,8 @@ import { reconcileInvoiceFromSoftmato } from "@/modules/billing/subscription-rec
 import { assertAgentFiledHostel } from "@/modules/team/team.service";
 import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
+import type { ReturnState } from "@/lib/billing/billing.types";
+export type { ReturnState } from "@/lib/billing/billing.types";
 
 /**
  * What actually happened, asked of Softmato, for the page the owner lands on
@@ -50,26 +52,6 @@ import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice"
  * second finds nothing owing.
  */
 
-export type ReturnState =
-  | {
-      /** `null` while the activation is still landing — the page says so. */
-      activeUntil: string | null;
-      kind: "paid";
-      invoiceNumber: string;
-      planName: string;
-      total: number;
-    }
-  | {
-      kind: "partial";
-      balance: number;
-      invoiceNumber: string;
-      planName: string;
-    }
-  | { kind: "unpaid"; invoiceNumber: string; planName: string; total: number }
-  | { kind: "void"; invoiceNumber: string }
-  /** Raised locally, no document yet — or Softmato was unreachable just now. */
-  | { kind: "pending_document"; invoiceNumber: string }
-  | { kind: "unknown" };
 
 /** The stages the return page shows, announced as each one starts. */
 export type ReturnStep = "confirm" | "record" | "activate";

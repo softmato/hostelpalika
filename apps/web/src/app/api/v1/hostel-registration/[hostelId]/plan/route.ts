@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
 import { startFreeMonths } from "@/modules/billing/subscription-payment.service";
 import { getSubscriptionState, selectPlan } from "@/modules/billing/subscription.service";
-import { registrationPlanChoiceSchema } from "@/modules/hostels/hostel-registration.validation";
+import { registrationPlanChoiceSchema } from "@/lib/hostels/hostel-registration.validation";
 
 type RouteContext = { params: Promise<{ hostelId: string }> };
 

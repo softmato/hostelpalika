@@ -13,11 +13,35 @@ import { hostelTypeLabel, locationSlug } from "@/lib/hostel-locations";
 import { breadcrumbJsonLd, faqJsonLd, formatNpr, itemListJsonLd } from "@/lib/json-ld";
 import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { formatDistance, NEAR_RADIUS_METERS, type NearPlace } from "@/lib/near-places";
-import {
-  listPublicHostelsNear,
-  listPublicHostelsNearAll,
-  listPublicNearbyPlaces,
-} from "@/modules/hostels/hostel.service";
+import { serverApi } from "@/lib/server-api";
+
+type NearEntry = {
+  hostels: Array<PublicHostel & { distanceMeters: number }>;
+  place: Omit<NearPlace, "distances">;
+};
+
+/** `GET /api/v1/public/hostels/near`: every campus, or one with `place`. */
+async function readNear(place?: string): Promise<NearEntry[]> {
+  const query = place ? `?place=${encodeURIComponent(place)}` : "";
+
+  return (await serverApi<{ places: NearEntry[] }>(`/api/v1/public/hostels/near${query}`)).places;
+}
+
+/** The API sends the hostels with their distances; the page code reads them as a map too. */
+function withDistances({ hostels, place }: NearEntry) {
+  return {
+    hostels,
+    place: { ...place, distances: new Map(hostels.map((hostel) => [hostel.id, hostel.distanceMeters])) } as NearPlace,
+  };
+}
+
+const listPublicHostelsNearAll = cache(async () => (await readNear()).map(withDistances));
+
+async function listPublicHostelsNear(slug: string) {
+  const [entry] = await readNear(slug);
+
+  return entry ? withDistances(entry) : null;
+}
 
 /**
  * `/hostels/near` and `/hostels/near/[place]` — the pages for "hostels near
@@ -29,11 +53,13 @@ import {
  * campus with no published hostel nearby has no page at all — a 404, never a
  * thin page — so the set of pages grows only as real hostels arrive.
  *
- * A database failure throws: a 5xx asks a crawler to come back, an empty 200
+ * An API failure throws: a 5xx asks a crawler to come back, an empty 200
  * would teach it the campus has no hostels.
  */
 
-export const loadNearPlaces = cache(async (): Promise<NearPlace[]> => listPublicNearbyPlaces());
+export const loadNearPlaces = cache(async (): Promise<NearPlace[]> =>
+  (await listPublicHostelsNearAll()).map(({ place }) => place),
+);
 
 export type NearPageHostel = HostelSummary & { distance: string; distanceMeters: number };
 

@@ -103,7 +103,7 @@ import {
 import type {
   HostelRegistrationInput,
   TeamHostelRegistrationInput,
-} from "@/modules/hostels/hostel-registration.validation";
+} from "@/lib/hostels/hostel-registration.validation";
 import type {
   hostelArchiveSchema,
   hostelRejectSchema,
@@ -116,12 +116,14 @@ import type {
   publicHostelApplicationCreateSchema,
   publicInquiryCreateSchema,
   publicHostelListQuerySchema,
-} from "@/modules/hostels/hostel.validation";
+} from "@/lib/hostels/hostel.validation";
 import type { z } from "zod";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import { hostelNameKey } from "@/modules/hostels/hostel-name-key";
 import { revalidatePublicPages } from "@/lib/revalidate-public";
+import type { TeamOwnerEmailStatus } from "@/lib/hostels/hostel.types";
+export type { TeamOwnerEmailStatus } from "@/lib/hostels/hostel.types";
 
 export { hostelNameKey };
 
@@ -1437,7 +1439,6 @@ export async function findHostelUsingEmail(email: string): Promise<string | null
   return hostel ? (hostel.name ?? "another hostel") : null;
 }
 
-export type TeamOwnerEmailStatus = "AVAILABLE" | "EXISTING_ACCOUNT" | "HOSTEL" | "OTHER_ROLE";
 
 /**
  * Everything Publish would say about an owner email, asked up front.
@@ -3781,6 +3782,8 @@ export async function listPublicHostelLocations() {
         updatedAt: { $max: "$updatedAt" },
       },
     },
+    // $group's order is not defined; the index is read in a stable one.
+    { $sort: { "_id.city": 1, "_id.area": 1, "_id.type": 1 } },
   ]);
 
   return rows.map((row) => ({
@@ -3888,10 +3891,11 @@ async function hostelsForPlaces(places: NearPlace[]) {
  * Slugs of every publicly-visible hostel, for sitemap.xml generation.
  * Same visibility gate as {@link getPublicHostelBySlug} (published + verified).
  */
-export async function listPublishedHostelSlugs() {
+export async function listPublishedHostelSlugs(slug?: string) {
   await connectToDatabase();
 
   const hostels = await HostelModel.find({
+    ...(slug ? { slug } : {}),
     isDeleted: false,
     status: "PUBLISHED",
     verificationStatus: "VERIFIED",

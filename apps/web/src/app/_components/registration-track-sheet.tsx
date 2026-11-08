@@ -24,7 +24,7 @@ import {
   type Place,
   type SheetLine,
   type TrackSheetView,
-} from "@/modules/team/registration-track-sheet";
+} from "@/lib/team/registration-track-sheet";
 
 import { InitialsAvatar, RoleButton, SearchField } from "./portal-dashboard-ui";
 import { focusCell, SheetGrid, type SheetGridColumn } from "./sheet-grid";

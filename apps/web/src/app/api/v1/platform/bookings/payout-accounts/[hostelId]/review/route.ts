@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { reviewHostelPayoutAccount } from "@/modules/bookings/payout-account.service";
-import { payoutAccountReviewSchema } from "@/modules/bookings/payout-account.validation";
+import { payoutAccountReviewSchema } from "@/lib/bookings/payout-account.validation";
 
 type RouteContext = { params: Promise<{ hostelId: string }> };
 

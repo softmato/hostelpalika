@@ -63,8 +63,8 @@ import {
   shortStaysPayload,
   type ShortStayDraft,
 } from "@/app/_components/registration-short-stays";
-import type { TeamOwnerEmailStatus } from "@/modules/hostels/hostel.service";
-import type { TeamPrepaymentView } from "@/modules/team/team-prepayment.service";
+import type { TeamOwnerEmailStatus } from "@/lib/hostels/hostel.types";
+import type { TeamPrepaymentView } from "@/lib/team/team.types";
 import { DescriptionSuggestions } from "./description-suggestions";
 import { PortalPageHeader } from "./portal-dashboard-ui";
 import { Button } from "@/components/ui/button";

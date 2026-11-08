@@ -11,6 +11,8 @@ import {
 
 import { connectToDatabase } from "@/lib/db";
 import { siteUrl } from "@/lib/site";
+import type { PlatformInvoiceRow, PlatformPaymentRow, PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
+export type { PlatformInvoiceRow, PlatformPaymentRow, PlatformSubscriptionLedger } from "@/lib/billing/billing.types";
 
 /**
  * Every plan invoice and every plan payment on the platform, in one ledger.
@@ -40,60 +42,8 @@ import { siteUrl } from "@/lib/site";
  * their copy, and showing one of the two guarantees they are holding the other.
  */
 
-export type PlatformInvoiceRow = {
-  amount: number;
-  currency: string;
-  cycle: string;
-  /** Our authenticated download route. Always present — a document always exists. */
-  documentUrl: string;
-  dueAt: string | null;
-  hostelId: string;
-  hostelName: string;
-  /** Our internal reference. `SUB-0001-4F2A`. */
-  invoiceNumber: string;
-  issuedAt: string | null;
-  outstanding: number;
-  paid: number;
-  planName: string;
-  /** What is printed on the page the hostel holds. */
-  printedNumber: string;
-  /** Who printed it. The platform's own honest view of the outage. */
-  issuedBy: "softmato" | "platform";
-  source: string;
-  status: string;
-};
 
-export type PlatformPaymentRow = {
-  amount: number;
-  currency: string;
-  documentUrl: string | null;
-  hostelId: string;
-  hostelName: string;
-  invoiceNumber: string;
-  method: string;
-  paidAt: string | null;
-  printedNumber: string | null;
-  provider: string | null;
-  receiptNumber: string | null;
-  status: string;
-};
 
-export type PlatformSubscriptionLedger = {
-  invoices: PlatformInvoiceRow[];
-  payments: PlatformPaymentRow[];
-  totals: {
-    /** Hostels whose paid period has not yet run out. */
-    activePlans: number;
-    /** Raised, ever. */
-    billed: number;
-    /** Received, ever. Only `SETTLED` rows. */
-    collected: number;
-    /** Invoices we issued ourselves because Softmato could not be reached. */
-    issuedByPlatform: number;
-    /** Still owed on invoices that are neither paid nor void. */
-    outstanding: number;
-  };
-};
 
 type InvoiceLean = {
   _id: Types.ObjectId;

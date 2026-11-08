@@ -12,7 +12,7 @@ import {
   ResidentIdentityError,
   resolvePlatformIdCard,
 } from "@/modules/users/resident-identity.service";
-import type { ResidentProfileData } from "@/modules/users/resident-identity.validation";
+import type { ResidentProfileData } from "@/lib/users/resident-identity.validation";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";

@@ -17,6 +17,8 @@ import {
   sameRoomType,
 } from "@/modules/finance/fee-schedule.service";
 import { suspensionStage } from "@/modules/hostels/hostel-suspension";
+import type { BookingUnavailableReason, RoomAvailability } from "@/lib/bookings/booking.types";
+export type { BookingUnavailableReason, RoomAvailability } from "@/lib/bookings/booking.types";
 
 /**
  * Whether a room type can be booked right now, and if not, why.
@@ -27,23 +29,6 @@ import { suspensionStage } from "@/modules/hostels/hostel-suspension";
  * word it.
  */
 
-export type BookingUnavailableReason =
-  /** Bookings are switched off platform-wide. */
-  | "BOOKINGS_OFF"
-  /** The hostel is not a live, verified listing. */
-  | "HOSTEL_NOT_LIVE"
-  /** The hostel's plan suspension has started. */
-  | "HOSTEL_SUSPENDED"
-  /** Strikes, or a superadmin, paused bookings on this hostel. */
-  | "BOOKINGS_PAUSED"
-  /** The platform has nowhere verified to pay the hostel its share. */
-  | "NO_PAYOUT_ACCOUNT"
-  /** The rate card has no current rent for this room type. */
-  | "NOT_PRICED"
-  /** No vacant bed of this room type. */
-  | "FULL"
-  /** The hostel does not list this room type. */
-  | "ROOM_NOT_FOUND";
 
 export type BookableHostel = {
   _id: Types.ObjectId;
@@ -71,27 +56,6 @@ export type BookableHostel = {
   verificationStatus?: string;
 };
 
-export type RoomAvailability = {
-  bedsPerRoom: number | null;
-  bookable: boolean;
-  /**
-   * A night's price for a short stay: the hostel's rate, never below today's
-   * floor (a rent rise since the rate was set lifts it). Null when this room
-   * type takes no short stays.
-   */
-  dailyRate: number | null;
-  fee: number | null;
-  mealInclusion: string | null;
-  monthlyRent: number | null;
-  /**
-   * Only this room type's own ROOM photos, never the hostel's exterior or
-   * another room's: the checkout shows them as the room being booked.
-   */
-  photos: string[];
-  reason: BookingUnavailableReason | null;
-  roomType: string;
-  vacantBeds: number;
-};
 
 export type HostelAvailability = {
   /** Set when nothing on the hostel can be booked, whatever the room. */

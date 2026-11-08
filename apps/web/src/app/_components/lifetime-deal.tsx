@@ -9,8 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { browserApi } from "@/lib/browser-api";
 import { fillPlaceholders } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
-import type { LifetimeAvailability } from "@/modules/billing/lifetime";
-import type { LifetimeConfig } from "@/modules/platform-config/site-config.validation";
+import type { LifetimeAvailability } from "@/lib/billing/billing.types";
+import type { LifetimeConfig } from "@/lib/platform-config/site-config.validation";
 import {
   formatLifetimeDay,
   lifetimeEndsAt,

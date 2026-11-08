@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { deleteHostelAdminProfilePhoto } from "@/modules/hostels/hostel-profile.service";
-import { hostelPhotoDeleteQuerySchema } from "@/modules/hostels/hostel.validation";
+import { hostelPhotoDeleteQuerySchema } from "@/lib/hostels/hostel.validation";
 
 type RouteContext = {
   params: Promise<{

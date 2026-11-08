@@ -65,6 +65,8 @@ import { raiseBookingInvoiceSoon } from "@/modules/bookings/booking-softmato.ser
 import { sealValue } from "@/modules/finance/gateway/secret-store";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
+import type { PayInstructions, GuestBookingDetail, BookingQuote, GuestBookingSummary } from "@/lib/bookings/booking.types";
+export type { PayInstructions, GuestBookingDetail, BookingQuote, GuestBookingSummary } from "@/lib/bookings/booking.types";
 
 /**
  * A person booking a room: the quote, the booking, the screenshot.
@@ -107,14 +109,6 @@ export function unavailableMessage(reason: BookingUnavailableReason) {
 
 /* ── The payment step ─────────────────────────────────────────────────── */
 
-export type PayInstructions = {
-  amount: number;
-  checkHours: number;
-  payBy: string;
-  qr: { label: string; url: string } | null;
-  /** What goes in the remarks box: the booking code. */
-  reference: string;
-};
 
 async function payInstructions(booking: BookingRecord): Promise<PayInstructions | null> {
   if (booking.status !== "AWAITING_PAYMENT") {
@@ -134,10 +128,6 @@ async function payInstructions(booking: BookingRecord): Promise<PayInstructions 
   };
 }
 
-export type GuestBookingDetail = GuestBookingView & {
-  coverPhotoUrl: string | null;
-  pay: PayInstructions | null;
-};
 
 async function detailFor(booking: BookingRecord, now = new Date()): Promise<GuestBookingDetail> {
   const [refundTransfer, hostel, pay] = await Promise.all([
@@ -155,47 +145,6 @@ async function detailFor(booking: BookingRecord, now = new Date()): Promise<Gues
 
 /* ── The quote ────────────────────────────────────────────────────────── */
 
-export type BookingQuote = {
-  available: boolean;
-  fee: number | null;
-  hostel: {
-    address: string;
-    coverPhotoUrl: string | null;
-    hostelType: string | null;
-    id: string;
-    name: string;
-    phone: string;
-    slug: string;
-  };
-  /** The person's open booking elsewhere, which would block a new one. */
-  openBooking: { code: string; hostelName: string; id: string } | null;
-  payment: { checkHours: number; qrReady: boolean; unpaidWindowHours: number };
-  policy: PolicySummary | null;
-  policyVersion: string;
-  reason: BookingUnavailableReason | null;
-  reasonMessage: string | null;
-  room: RoomAvailability;
-  /**
-   * The short-stay side of the same room. `quote` is priced once both dates are
-   * given and valid; `error` says why dates were refused.
-   */
-  shortStay: {
-    available: boolean;
-    dailyRate: number | null;
-    error: { code: string; message: string } | null;
-    limits: { maxAdvanceDays: number; maxNights: number; minNights: number } | null;
-    quote: {
-      fee: number;
-      holdBlocks: number;
-      moveIn: string;
-      moveOut: string;
-      nights: number;
-      stayAmount: number;
-      total: number;
-    } | null;
-  };
-  terms: { feePercent: number; holdDays: number; hostelAnswerHours: number };
-};
 
 /**
  * Prices a short stay on this room, or throws why it cannot be had. The one
@@ -762,19 +711,6 @@ export async function submitBookingPayment(
 
 /* ── Reading one's own bookings ───────────────────────────────────────── */
 
-export type GuestBookingSummary = {
-  code: string;
-  /** The hostel's cover, so the list is recognisable at a glance. */
-  coverPhotoUrl: string | null;
-  createdAt: string;
-  fee: number;
-  holdEndsAt: string | null;
-  hostelName: string;
-  id: string;
-  roomType: string;
-  status: GuestBookingView["status"];
-  statusLabel: string;
-};
 
 export async function listMyBookings(principal: ApiPrincipal): Promise<GuestBookingSummary[]> {
   await connectToDatabase();

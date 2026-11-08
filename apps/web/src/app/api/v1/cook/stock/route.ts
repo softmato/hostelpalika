@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { createStockEntry, getCookStock, resolveStockActor } from "@/modules/stock/stock.service";
-import { cookStockEntrySchema } from "@/modules/stock/stock.validation";
+import { cookStockEntrySchema } from "@/lib/stock/stock.validation";
 
 export const runtime = "nodejs";
 

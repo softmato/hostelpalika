@@ -102,7 +102,7 @@ export async function downloadTable(
   }
 
   try {
-    const { renderReportPdf } = await import("@/modules/reports/report-pdf");
+    const { renderReportPdf } = await import("@/lib/reports/report-pdf");
     const bytes = await renderReportPdf({
       columns,
       generatedAt: new Date(),

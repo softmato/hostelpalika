@@ -14,6 +14,8 @@ import { recordSoftmatoPayment } from "@/modules/billing/subscription-webhook.se
 import { ensureInvoiceRaised, type InvoiceRecord } from "@/modules/billing/subscription.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { UserModel } from "@hostel/db/models/User";
+import type { FieldCashRow } from "@/lib/billing/billing.types";
+export type { FieldCashRow } from "@/lib/billing/billing.types";
 
 /**
  * Cash an agent took, filed with Softmato as a claim: it books — and the
@@ -116,19 +118,6 @@ export async function submitFieldCash(paymentId: string, collectedBy: string | n
  * pretending to book it.
  */
 export const SOFTMATO_CASH_QUEUE_URL = "https://admin.softmato.com/cash";
-
-export type FieldCashRow = {
-  amount: number;
-  collectedAt: string;
-  collectedBy: string;
-  hostelName: string;
-  id: string;
-  invoiceNumber: string;
-  planName: string;
-  reference: string | null;
-  /** Null until Softmato has it — it was unreachable when the agent filed it. */
-  transactionNo: string | null;
-};
 
 /** Cash agents collected that nobody has confirmed yet, oldest first. */
 export async function listFieldCashToConfirm(): Promise<FieldCashRow[]> {

@@ -21,6 +21,8 @@ import { expireUnpaidBooking, loadOwnBooking } from "@/modules/bookings/booking.
 import type { BookingRecord } from "@/modules/bookings/booking-views";
 import { amountDue, stayDatesText } from "@/modules/bookings/short-stay";
 import { BookingError } from "@/modules/bookings/booking.errors";
+import type { BookingReturnState } from "@/lib/bookings/booking.types";
+export type { BookingReturnState } from "@/lib/bookings/booking.types";
 
 /**
  * The booking fee on Softmato's rail — the guest pays the platform, never the
@@ -242,12 +244,6 @@ export async function settleBookingFromSoftmato(
   return "refund_due";
 }
 
-export type BookingReturnState =
-  | { kind: "booking_paid"; code: string; hostelAnswerBy: string | null; hostelName: string }
-  | { kind: "booking_refund"; code: string }
-  | { kind: "unpaid" }
-  | { kind: "pending_document" }
-  | { kind: "unknown" };
 
 /** What the guest who just came back from checkout should be told. */
 export async function readBookingReturn(

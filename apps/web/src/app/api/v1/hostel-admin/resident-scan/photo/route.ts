@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError } from "@/lib/api-response";
-import { residentIdLookupSchema } from "@/modules/users/resident-identity.validation";
+import { residentIdLookupSchema } from "@/lib/users/resident-identity.validation";
 import { readScannedResidentPhoto } from "@/modules/users/resident-scan.service";
 
 export const runtime = "nodejs";

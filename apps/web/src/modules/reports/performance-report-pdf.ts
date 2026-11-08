@@ -13,7 +13,7 @@ import {
   SPACE,
 } from "@/modules/billing/documents/theme";
 import type { PerformanceReport } from "@/modules/reports/performance-report.service";
-import { sanitize } from "@/modules/reports/report-pdf";
+import { sanitize } from "@/lib/reports/report-pdf";
 
 /**
  * The monthly performance report, as two pages of A4.

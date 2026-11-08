@@ -23,6 +23,8 @@ import {
 } from "@/modules/billing/subscription.service";
 import { formatEmailDate } from "@/modules/hostels/hostel-registration.events";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
+import type { PlanPaymentInstructions, PlanPaymentClaim } from "@/lib/billing/billing.types";
+export type { PlanPaymentInstructions, PlanPaymentClaim } from "@/lib/billing/billing.types";
 
 /**
  * The manual lane: an owner pays us by QR and sends back the proof.
@@ -188,34 +190,6 @@ async function deliver(
 
 /* ── What the owner's pay screen needs ─────────────────────────────────── */
 
-export type PlanPaymentInstructions = {
-  /** What is still owed on the open invoice. The claim is for exactly this. */
-  amountDue: number;
-  /** The claim already in flight, when there is one. */
-  claim: {
-    amount: number;
-    claimedAt: string | null;
-    reference: string | null;
-  } | null;
-  dueBy: string | null;
-  invoice: { id: string; invoiceNumber: string; planName: string } | null;
-  /**
-   * Whether the deadline has passed, decided **here**.
-   *
-   * The same rule the billing screen's days follow: a client that reads its own
-   * clock to answer this gives an answer that goes stale on a screen somebody
-   * left open, and two clients each flooring their own part-day disagree about
-   * the same afternoon. One authority, printed.
-   */
-  overdue: boolean;
-  /** Our own collection QR, out of the operations config. */
-  qr: { label: string; url: string } | null;
-  /**
-   * What the owner should put in the remarks so a reviewer can match it without
-   * asking. Our invoice number — it is on the document they already hold.
-   */
-  reference: string | null;
-};
 
 /**
  * Everything the owner's "pay your plan" screen draws, in one read.
@@ -412,23 +386,6 @@ export async function submitPlanPaymentClaim(
 
 /* ── The platform's review queue ───────────────────────────────────────── */
 
-export type PlanPaymentClaim = {
-  amount: number;
-  claimedAt: string | null;
-  hostelId: string;
-  hostelName: string;
-  id: string;
-  invoiceNumber: string;
-  note: string | null;
-  planName: string;
-  /**
-   * The screenshot, by id. The reader builds `/api/v1/files/{id}/url` from it
-   * rather than being handed a link: that route re-authorises on every open and
-   * a URL minted here would outlive the session that asked for it.
-   */
-  proofAssetId: string | null;
-  reference: string | null;
-};
 
 /**
  * Every claim waiting on a person, oldest first.

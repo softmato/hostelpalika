@@ -4,7 +4,7 @@ import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { createPublicHostelInquiry } from "@/modules/hostels/hostel.service";
-import { publicInquiryCreateSchema } from "@/modules/hostels/hostel.validation";
+import { publicInquiryCreateSchema } from "@/lib/hostels/hostel.validation";
 import { shouldPromptAfterInquiry } from "@/modules/users/resident-identity.service";
 
 type RouteContext = {

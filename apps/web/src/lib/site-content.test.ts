@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { CONTENT_ICON_SLUGS, contentIcon, resolveContentPage } from "@/lib/site-content";
-import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defaults";
-import { contentSchema } from "@/modules/platform-config/site-config.validation";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
+import { contentSchema } from "@/lib/platform-config/site-config.validation";
 
 /**
  * The page copy is now configuration, served to the website *and* to the mobile

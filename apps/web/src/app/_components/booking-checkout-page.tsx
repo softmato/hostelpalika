@@ -22,8 +22,8 @@ import {
 import { MediaLightbox, type LightboxItem } from "@/components/media-lightbox";
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
-import type { BookingAvailabilityView } from "@/modules/bookings/booking-button";
-import type { BookingQuote, GuestBookingDetail } from "@/modules/bookings/booking.service";
+import type { BookingAvailabilityView } from "@/lib/bookings/booking-button";
+import type { BookingQuote, GuestBookingDetail } from "@/lib/bookings/booking.types";
 import { useSessionStore, type SessionUser } from "@/stores/session-store";
 
 import { CheckoutHandoffButton } from "./checkout-handoff";

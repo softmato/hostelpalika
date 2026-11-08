@@ -4,7 +4,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { lookupLocation } from "@/modules/hostels/hostel-geocode.service";
-import { hostelAdminGeocodeQuerySchema } from "@/modules/hostels/hostel.validation";
+import { hostelAdminGeocodeQuerySchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

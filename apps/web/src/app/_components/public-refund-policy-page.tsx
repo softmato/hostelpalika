@@ -3,7 +3,7 @@
 import { PublicShell } from "@/app/_components/shared";
 import { ContentHeader, ContentIntro, ContentSections } from "@/components/content-sections";
 import { LegalBody } from "@/components/legal-body";
-import type { RefundPolicy } from "@/modules/bookings/booking-policy.service";
+import type { RefundPolicy } from "@/lib/bookings/booking.types";
 
 /**
  * Refund policy for room bookings. Same arrangement as Terms and Privacy, with

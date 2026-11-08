@@ -23,11 +23,15 @@ import {
   maskedPayoutNumber,
   payoutAccountInputSchema,
   type PayoutMethod,
-} from "@/modules/bookings/payout-account.validation";
+} from "@/lib/bookings/payout-account.validation";
 import type { SecretEnvelope } from "@/modules/finance/gateway/envelope-crypto";
 import { openValue, sealValue } from "@/modules/finance/gateway/secret-store";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { appUrl, resolveHostelAdminContacts } from "@/modules/residents/resident-notify";
+import type { PayoutAccountView, PayoutAccountForReview } from "@/lib/bookings/booking.types";
+import type { PayoutAccountStatus } from "@/lib/bookings/booking.types";
+export type { PayoutAccountStatus } from "@/lib/bookings/booking.types";
+export type { PayoutAccountView, PayoutAccountForReview } from "@/lib/bookings/booking.types";
 
 /**
  * A hostel's payout account: where its share of booking fees is sent.
@@ -44,8 +48,6 @@ import { appUrl, resolveHostelAdminContacts } from "@/modules/residents/resident
 
 const PURPOSE = "PAYOUT_ACCOUNT_NUMBER";
 
-export type PayoutAccountStatus = "PENDING_REVIEW" | "VERIFIED" | "REJECTED";
-
 type PayoutRecord = {
   _id: Types.ObjectId;
   bankName?: string;
@@ -60,19 +62,6 @@ type PayoutRecord = {
   reviewedAt?: Date | null;
   status: PayoutAccountStatus;
   submittedAt: Date;
-};
-
-export type PayoutAccountView = {
-  bankName: string;
-  branch: string;
-  holderName: string;
-  maskedNumber: string;
-  method: PayoutMethod;
-  methodLabel: string;
-  reviewNote: string | null;
-  reviewedAt: string | null;
-  status: PayoutAccountStatus;
-  submittedAt: string;
 };
 
 export type PayoutActor = {
@@ -305,13 +294,6 @@ async function notifyPlatformOfPayoutReview(hostel: { _id: Types.ObjectId; name:
     // The queue on the Bookings screen is the guarantee; the bell is a courtesy.
   }
 }
-
-export type PayoutAccountForReview = PayoutAccountView & {
-  hostelId: string;
-  hostelName: string;
-  /** Other hostels whose payout account has the same number. A fraud signal. */
-  sharedWith: string[];
-};
 
 /** Accounts waiting for a superadmin, oldest first. */
 export async function listPayoutAccounts(

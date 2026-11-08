@@ -33,7 +33,7 @@ import { currency } from "@/app/_components/shared-ui";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { TrendPoint } from "@/components/monthly-trend-chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { BillingHistory } from "@/modules/billing/billing-history.service";
+import type { BillingHistory } from "@/lib/billing/billing.types";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";

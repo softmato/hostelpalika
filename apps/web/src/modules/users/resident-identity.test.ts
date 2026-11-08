@@ -5,7 +5,7 @@ import {
   residentIdentitySaveSchema,
   residentPhoneKey,
   residentProfileDataSchema,
-} from "@/modules/users/resident-identity.validation";
+} from "@/lib/users/resident-identity.validation";
 
 const validProfile = {
   dateOfBirth: "2004-03-02",

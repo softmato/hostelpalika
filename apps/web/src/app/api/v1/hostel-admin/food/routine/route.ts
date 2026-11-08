@@ -6,7 +6,7 @@ import { withEtag } from "@/lib/etag";
 import { cachedRead } from "@/lib/redis-cache";
 import { getFoodRoutine, saveFoodRoutine } from "@/modules/food/food-routine.service";
 import { resolveAdminHostelId } from "@/modules/food/food.service";
-import { foodRoutineSaveSchema } from "@/modules/food/food.validation";
+import { foodRoutineSaveSchema } from "@/lib/food/food.validation";
 
 export const runtime = "nodejs";
 

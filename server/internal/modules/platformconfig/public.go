@@ -140,6 +140,7 @@ func (s *Service) Public(ctx context.Context) (ordered.Map, error) {
 	}
 	minDays, _ := ops.Get("leaveHoldMinDays")
 	maxDays, _ := ops.Get("leaveHoldMaxDays")
+	trialDays, _ := ops.Get("trialDays")
 	period, err := bs.CurrentPeriod(time.Now())
 	if err != nil {
 		return nil, err
@@ -164,5 +165,7 @@ func (s *Service) Public(ctx context.Context) (ordered.Map, error) {
 		{Key: "social", Value: get("social")},
 		{Key: "stats", Value: get("stats")},
 		{Key: "trustPoints", Value: get("trustPoints")},
+		// Plans & Pricing says how long the free trial is (PARITY §9: the page reads it here).
+		{Key: "trialDays", Value: num(trialDays)},
 	}, nil
 }

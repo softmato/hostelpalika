@@ -4,7 +4,7 @@ import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { registerTeamHostelApplication } from "@/modules/hostels/hostel.service";
-import { teamHostelRegistrationSchema } from "@/modules/hostels/hostel-registration.validation";
+import { teamHostelRegistrationSchema } from "@/lib/hostels/hostel-registration.validation";
 import { listAgentRegistrations } from "@/modules/team/team.service";
 import { UserModel } from "@hostel/db/models/User";
 

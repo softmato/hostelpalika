@@ -2,8 +2,10 @@ import { BadgeCheck, SearchX, ShieldAlert } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { PublicShell } from "@/app/_components/shared";
-import { formatNPR } from "@/modules/finance/money";
-import { verifyReceiptByCode } from "@/modules/finance/receipt.service";
+import type { ReceiptVerification } from "@/lib/finance/receipt.types";
+import { serverApi } from "@/lib/server-api";
+
+const formatNPR = (amount: number) => `NPR ${amount.toLocaleString("en-US")}`;
 
 /**
  * `/verify-receipt` — where a certified receipt's QR and printed code lead.
@@ -26,7 +28,14 @@ type PageProps = { searchParams: Promise<{ code?: string }> };
 
 export default async function VerifyReceiptPage({ searchParams }: PageProps) {
   const { code } = await searchParams;
-  const result = code ? await verifyReceiptByCode(code) : null;
+  const result = code
+    ? (
+        await serverApi<{ verification: ReceiptVerification }>(
+          `/api/v1/public/receipts/verify?code=${encodeURIComponent(code)}`,
+          { revalidate: 0 },
+        )
+      ).verification
+    : null;
 
   return (
     <PublicShell>

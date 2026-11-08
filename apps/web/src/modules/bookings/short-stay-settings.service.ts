@@ -17,6 +17,10 @@ import {
   sameRoomType,
 } from "@/modules/finance/fee-schedule.service";
 import { revalidatePublicPages } from "@/lib/revalidate-public";
+import type { ShortStaySettingsView } from "@/lib/bookings/booking.types";
+import type { ShortStayRoom } from "@/lib/bookings/booking.types";
+export type { ShortStayRoom } from "@/lib/bookings/booking.types";
+export type { ShortStaySettingsView } from "@/lib/bookings/booking.types";
 
 /**
  * Whether a hostel takes short stays, its minimum nights and a daily rate per
@@ -30,20 +34,7 @@ export type HostelShortStays = {
   rates: Array<{ dailyRate: number; roomType: string }>;
 };
 
-export type ShortStayRoom = {
-  dailyRate: number | null;
-  /** The lowest daily rate this room type may be sold at. Null until it has a monthly rent. */
-  floor: number | null;
-  monthlyRent: number | null;
-  roomType: string;
-};
 
-export type ShortStaySettingsView = {
-  enabled: boolean;
-  limits: { hostelSharePercent: number; maxNights: number; minMarkupPercent: number };
-  minNights: number;
-  rooms: ShortStayRoom[];
-};
 
 type HostelRooms = {
   roomConfigurations?: Array<{ roomType: string }>;

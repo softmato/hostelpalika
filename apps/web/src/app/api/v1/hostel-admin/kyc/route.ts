@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { addHostelKycDocuments, getHostelKyc, removeHostelKycDocument } from "@/modules/hostels/hostel-kyc.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
-import { hostelResubmitDocumentsSchema } from "@/modules/hostels/hostel.validation";
+import { hostelResubmitDocumentsSchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

@@ -7,7 +7,7 @@ import {
 } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { listPublicHostels } from "@/modules/hostels/hostel.service";
-import { publicHostelListQuerySchema } from "@/modules/hostels/hostel.validation";
+import { publicHostelListQuerySchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

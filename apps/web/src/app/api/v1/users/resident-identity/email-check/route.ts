@@ -5,7 +5,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { checkResidentEmail } from "@/modules/users/resident-identity.service";
-import { residentEmailCheckSchema } from "@/modules/users/resident-identity.validation";
+import { residentEmailCheckSchema } from "@/lib/users/resident-identity.validation";
 
 export const runtime = "nodejs";
 

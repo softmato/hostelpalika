@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { recordListingAppearances } from "@/modules/hostels/hostel-impression.service";
-import { publicListingImpressionSchema } from "@/modules/hostels/hostel.validation";
+import { publicListingImpressionSchema } from "@/lib/hostels/hostel.validation";
 
 export const runtime = "nodejs";
 

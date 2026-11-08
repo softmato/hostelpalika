@@ -1,3 +1,4 @@
+import type { PublicSiteConfig } from "@/lib/platform-config/platform-config.types";
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
@@ -7,14 +8,14 @@ import { currentBsPeriod } from "@hostel/shared/calendar/bs";
 import { sellingCatalog } from "@hostel/shared/plans/catalog";
 import { PlatformSettingModel } from "@hostel/db/models/PlatformSetting";
 
-import { DEFAULT_SITE_CONFIG } from "./site-config.defaults";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
 import {
   isSiteConfigSection,
   siteConfigSectionSchemas,
   SITE_CONFIG_SECTIONS,
   type SiteConfig,
   type SiteConfigSection,
-} from "./site-config.validation";
+} from "@/lib/platform-config/site-config.validation";
 
 type PlatformSettingRecord = {
   key: string;
@@ -180,7 +181,7 @@ export async function updateSiteConfigSection(
  * site, and nothing public renders them. Server code that needs it reads it
  * through `loadEmailIdentity()` instead.
  */
-export async function getPublicSiteConfig() {
+export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const [config, operations] = await Promise.all([getSiteConfig(), getOperationsConfig()]);
 
   return {
@@ -225,7 +226,9 @@ export async function getPublicSiteConfig() {
     social: config.social,
     stats: config.stats,
     trustPoints: config.trustPoints,
+    // Plans & Pricing says how long the free trial is.
+    trialDays: operations.trialDays,
   };
 }
 
-export type PublicSiteConfig = Awaited<ReturnType<typeof getPublicSiteConfig>>;
+export type { PublicSiteConfig } from "@/lib/platform-config/platform-config.types";

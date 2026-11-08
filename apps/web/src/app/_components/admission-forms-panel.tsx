@@ -18,7 +18,7 @@ import {
 import { WhatsAppMark } from "@/components/whatsapp-mark";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
-import type { ResidentDetails } from "@/modules/residents/resident-details";
+import type { ResidentDetails } from "@/lib/residents/resident-details.validation";
 import { toast } from "@/stores/toast-store";
 
 /**

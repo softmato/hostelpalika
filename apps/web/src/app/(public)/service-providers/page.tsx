@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 
 import { ServiceProviderRegistrationPage } from "@/app/_components/service-provider-registration-page";
 import { staticPageMetadata } from "@/lib/seo-config";
-import { getPublicServiceProviderStats } from "@/modules/service-providers/service-provider.service";
+import { serverApi } from "@/lib/server-api";
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata("serviceProviders");
 }
+
+type Stats = { areaCount: number; medianApprovalDays: number | null; totalProviders: number };
 
 /**
  * The public provider surface is the registration funnel, not a browsable
@@ -18,13 +20,9 @@ export function generateMetadata(): Promise<Metadata> {
  * marketing page: the hero drops whichever stat it has no number for.
  */
 export default async function ServiceProvidersPage() {
-  let stats: Awaited<ReturnType<typeof getPublicServiceProviderStats>> | undefined;
-
-  try {
-    stats = await getPublicServiceProviderStats();
-  } catch {
-    stats = undefined;
-  }
+  const stats = await serverApi<{ stats: Stats }>("/api/v1/public/service-providers/stats")
+    .then((data) => data.stats)
+    .catch(() => undefined);
 
   return <ServiceProviderRegistrationPage stats={stats} />;
 }

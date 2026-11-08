@@ -7,7 +7,7 @@ import { createHostelWarden, listHostelWardens } from "@/modules/wardens/warden.
 import {
   wardenCreateSchema,
   wardenListQuerySchema,
-} from "@/modules/wardens/warden.validation";
+} from "@/lib/wardens/warden.validation";
 
 export const runtime = "nodejs";
 

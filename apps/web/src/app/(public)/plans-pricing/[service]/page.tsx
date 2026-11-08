@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd, formatNpr } from "@/lib/json-ld";
 import { NOINDEX, pageMetadata, snippet } from "@/lib/seo";
 import { loadSeo } from "@/lib/seo-config";
-import { DEFAULT_PLANS } from "@/modules/platform-config/plans.defaults";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
 
 type PageParams = {
   params: Promise<{ service: string }>;

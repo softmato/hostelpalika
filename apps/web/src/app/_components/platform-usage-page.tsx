@@ -7,7 +7,7 @@ import { MetricCard, PortalPageHeader, SoftBadge, TabBar } from "@/app/_componen
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { usePortalResource } from "@/lib/portal-query";
-import type { UsageAnalytics } from "@/modules/usage/usage.service";
+import type { UsageAnalytics } from "@/lib/usage/usage.types";
 
 import { Message } from "./core-portal-shared";
 

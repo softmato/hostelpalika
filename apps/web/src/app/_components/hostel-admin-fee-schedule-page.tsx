@@ -35,7 +35,7 @@ import { dayMonthYearBoth, periodKey } from "@/lib/format-month";
 import { addBsMonths, bsPeriodBounds } from "@/lib/hostel-day";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
-import { normalizeBedType } from "@/modules/finance/bed-type";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import { BED_TYPE_LABELS, type BedType } from "@hostel/shared/types/bed-type";
 import { MonthField } from "./hostel-admin-month-picker";
 import { LateFinePanel } from "./khata-pages";

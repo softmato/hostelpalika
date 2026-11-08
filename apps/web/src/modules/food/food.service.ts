@@ -19,7 +19,7 @@ import { notifyKitchenOfFoodFeedback } from "@/modules/food/kitchen-notify";
 import type {
   foodFeedbackSchema,
   foodPhotoUploadSchema,
-} from "@/modules/food/food.validation";
+} from "@/lib/food/food.validation";
 
 type FoodPhotoUploadInput = z.infer<typeof foodPhotoUploadSchema>;
 type FoodFeedbackInput = z.infer<typeof foodFeedbackSchema>;

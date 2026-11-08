@@ -21,7 +21,7 @@ import type {
   hostelChangeRequestSchema,
   hostelPhotoCreateSchema,
   hostelPhotoDeleteQuerySchema,
-} from "@/modules/hostels/hostel.validation";
+} from "@/lib/hostels/hostel.validation";
 import {
   findScopedHostel,
   HostelServiceError,

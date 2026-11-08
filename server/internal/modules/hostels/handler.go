@@ -25,6 +25,9 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	p := v1.Group("/public/hostels")
 	p.GET("", h.list) // cache.Respond sets the ETag
 	p.GET("/compare", httpx.ETag(), h.compare)
+	p.GET("/sitemap", h.sitemap)
+	p.GET("/locations", h.locations)
+	p.GET("/near", h.near)
 	p.GET("/:slug", h.bySlug)
 }
 

@@ -4,7 +4,7 @@ import { SiteAnnouncementBanner } from "@/components/site-announcement-banner";
 import { SiteConfigProvider } from "@/components/site-config-provider";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/json-ld";
 import { loadSiteConfig } from "@/lib/site-config-server";
-import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defaults";
+import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
 
 /**
  * The owner's website configuration already comes from the root layout; this

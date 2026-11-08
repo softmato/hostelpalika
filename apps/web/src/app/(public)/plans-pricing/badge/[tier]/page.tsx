@@ -5,7 +5,7 @@ import { getListingTier, listingTiers } from "@/app/_components/plans-catalog";
 import { PublicListingBadgePage } from "@/app/_components/public-listing-badge-page";
 import { NOINDEX, pageMetadata } from "@/lib/seo";
 import { loadSiteConfig } from "@/lib/site-config-server";
-import { DEFAULT_PLANS } from "@/modules/platform-config/plans.defaults";
+import { DEFAULT_PLANS } from "@/lib/platform-config/plans.defaults";
 
 type PageParams = {
   params: Promise<{ tier: string }>;

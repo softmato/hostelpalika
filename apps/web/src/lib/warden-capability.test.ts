@@ -33,7 +33,7 @@ import { grantingPermissionKeys } from "@/lib/warden-capability";
 import {
   DEFAULT_WARDEN_PERMISSIONS,
   WARDEN_PERMISSION_KEYS,
-} from "@/modules/wardens/warden.validation";
+} from "@/lib/wardens/warden.validation";
 
 const HOSTEL_A = "64f0f0f0f0f0f0f0f0f0f0a1";
 const HOSTEL_B = "64f0f0f0f0f0f0f0f0f0f0a2";

@@ -1,3 +1,4 @@
+import type { UsageAnalytics } from "@/lib/usage/usage.types";
 import { type PipelineStage, Types } from "mongoose";
 
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -176,7 +177,7 @@ async function namesOf(model: typeof UserModel | typeof HostelModel, ids: unknow
  * The superadmin Analytics tab: who opens the app, which screens hold people,
  * which features get used, by role and hostel — or all of it for one person.
  */
-export async function getUsageAnalytics({ days, userId }: { days: number; userId?: string }) {
+export async function getUsageAnalytics({ days, userId }: { days: number; userId?: string }): Promise<UsageAnalytics> {
   await connectToDatabase();
 
   const from = hostelCalendarDay(new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000))
@@ -269,4 +270,4 @@ export async function getUsageAnalytics({ days, userId }: { days: number; userId
   };
 }
 
-export type UsageAnalytics = Awaited<ReturnType<typeof getUsageAnalytics>>;
+export type { UsageAnalytics } from "@/lib/usage/usage.types";

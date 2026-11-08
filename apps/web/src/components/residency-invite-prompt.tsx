@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
-import type { ResidencyInvite } from "@/modules/residents/residency-invite.service";
+import type { ResidencyInvite } from "@/lib/residents/resident.types";
 import { type SessionUser, useSessionStore } from "@/stores/session-store";
 import { toast } from "@/stores/toast-store";
 
