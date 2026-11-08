@@ -46,10 +46,12 @@ Thumbs.db
 # Keep portable Graphify context tracked for agents.
 !graphify-out/
 !graphify-out/GRAPH_REPORT.md
-!graphify-out/graph.json
-!graphify-out/graph.html
 
-# Ignore local/cache Graphify data.
+# Ignore local/cache Graphify data. graph.json is local too: at 60+ MB it neared
+# GitHub's 100 MB file limit and every refresh added a full copy to history.
+# Rebuild it with `graphify update .`.
+graphify-out/graph.json
+graphify-out/graph.html
 graphify-out/cache/
 graphify-out/.graphify_root
 graphify-out/manifest.json

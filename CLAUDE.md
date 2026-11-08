@@ -101,4 +101,4 @@ This project uses a Graphify knowledge graph at `graphify-out/`. Treat that fold
 - Run `graphify update .` after uncommitted code changes when the user asks about current structure but dont run auto only when user ask for this..
 - Prefer git hooks with `graphify hook install` for normal commit/checkout updates.
 - This repo also has a pre-push hook that runs `graphify update .` before code is pushed.
-- Keep `graphify-out/` committed with the code after the first graph is generated; do not add it to `.gitignore`.
+- Keep `graphify-out/GRAPH_REPORT.md` committed with the code. `graphify-out/graph.json` is local only (gitignored since 2026-11-08: 60+ MB, near GitHub's 100 MB limit); if it is missing, `graphify update .` rebuilds it.
