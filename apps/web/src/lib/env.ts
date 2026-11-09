@@ -114,13 +114,10 @@ export const serverEnvSchema = z.object({
    */
   APPLE_APP_ID_PREFIX: z.string().optional(),
   /**
-   * `COOKIE_DOMAIN` and `COOKIE_SECURE` were declared here and read by nothing —
-   * setting either had no effect at all, which is worse than not offering them.
-   * `session-cookies.ts` derives `secure` from `NODE_ENV === "production"` and
-   * sets no domain, so the cookies stay host-only. That is the right default:
-   * a domain-wide cookie would be sent to every subdomain, including any the
-   * platform does not control. Removed rather than wired up, because nothing
-   * here needs cross-subdomain sessions.
+   * `COOKIE_DOMAIN` is read by `session-cookies.ts`, not declared here:
+   * production sets `.hostelpalika.com` so the session reaches the Go API host
+   * (same value as the API's). Unset = host-only cookies, right for local runs.
+   * `secure` follows `NODE_ENV === "production"`.
    */
   LOG_LEVEL: z.string().default("info"),
   PUBLIC_FORM_RATE_LIMIT_MAX: z.string().default("10"),
