@@ -102,6 +102,12 @@ type otpChallenge struct {
 	DevCode     string      `json:"devCode,omitempty"`
 }
 
+// otpGates holds one short-lived document per address while a code is being sent
+// (OTPRequest); its TTL index on `until` is declared in cmd/indexes.
+const otpGates = "otpgates"
+
+const otpGateHold = 5 * time.Second
+
 func (s *Service) OTPRequest(ctx context.Context, channel, identifier, purpose string, rc reqCtx) (*otpChallenge, error) {
 	identifier = strings.ToLower(strings.TrimSpace(identifier))
 	if purpose == "registration" && channel == "email" {
@@ -168,12 +174,30 @@ func (s *Service) OTPRequest(ctx context.Context, channel, identifier, purpose s
 	if earlier {
 		return refuse(fail(http.StatusTooManyRequests, "OTP_RESEND_COOLDOWN", "Please wait before requesting another OTP."))
 	}
+	// The row check alone loses a burst: each request picks its _id before its insert
+	// lands, and _ids from two replicas in one second do not sort by time, so two can
+	// each check before the other's row exists and both send. The gate is one document
+	// per address keyed by _id: of concurrent upserts one finds it free and the rest hit
+	// the duplicate _id. Held past _id's one-second granularity, after which the row
+	// check above sees every earlier send.
+	gates := s.db.Collection(otpGates)
+	gateKey := channel + ":" + purpose + ":" + identifier
+	gateUntil := now.Add(min(s.cfg.OTP.ResendCooldown, otpGateHold))
+	if _, err := gates.UpdateOne(ctx, bson.D{{Key: "_id", Value: gateKey}, {Key: "until", Value: bson.D{{Key: "$lte", Value: now}}}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "until", Value: gateUntil}}}}, options.UpdateOne().SetUpsert(true)); err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return refuse(fail(http.StatusTooManyRequests, "OTP_RESEND_COOLDOWN", "Please wait before requesting another OTP."))
+		}
+		return refuse(err)
+	}
 	instruction := ""
 	if purpose == "biometric" {
 		instruction = "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
 	}
 	delivery, err := s.dispatchOTP(ctx, channel, code, identifier, instruction)
 	if err != nil {
+		// Nothing was sent: the next request must not wait on this one.
+		_, _ = gates.DeleteOne(context.WithoutCancel(ctx), bson.D{{Key: "_id", Value: gateKey}, {Key: "until", Value: gateUntil}})
 		return refuse(err)
 	}
 	out := &otpChallenge{ChallengeID: id.Hex(), Delivery: delivery, ExpiresAt: httpx.ISO(expiresAt)}

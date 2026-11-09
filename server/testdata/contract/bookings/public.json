@@ -250,13 +250,14 @@
         "message": "Booking availability",
         "data": {
           "availability": {
-            "hostelReason": "BOOKINGS_PAUSED",
+            "hostelReason": "HOSTEL_NOT_LIVE",
             "rooms": []
           }
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100",
+    "corrected": "P11-30: demo hostels emptied on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "availability missing",

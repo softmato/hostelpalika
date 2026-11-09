@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
 )
 
@@ -119,7 +120,15 @@ func rollStatus(now time.Time) map[string][]any {
 		d = append(d, extra...)
 		return append(d, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
 	}
+	// Admitting raises a first-month invoice only when the move-in falls in the current BS
+	// month. Hari's must (his recording has one: amount and period masked), Indu's and
+	// Jay's must not. Fixed dates and "20 days ago" both crossed a month boundary and
+	// turned CI red on 2026-11-09 (P11-28).
+	today := bs.Today(now)
 	old := now.Add(-20 * 24 * time.Hour)
+	if start, err := bs.MonthStart(now); err == nil && !old.Before(start) {
+		old = start.Add(-24 * time.Hour)
+	}
 	return map[string][]any{
 		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now), cardUser(gid(1, 62), "newbie@contract.test", "Newbie Public", "", now),
 			cardUser(gid(1, 64), "scan1@contract.test", "Scan One", "HH-SCAN-0001", now), cardUser(gid(1, 65), "scan2@contract.test", "Scan Two", "HH-SCAN-0002", now),
@@ -129,7 +138,7 @@ func rollStatus(now time.Time) map[string][]any {
 		"referralcodes": {bson.D{{Key: "_id", Value: gid(1, 63)}, {Key: "hostelId", Value: HostelKyc}, {Key: "residentId", Value: gid(1, 40)}, {Key: "code", Value: "REFASHA1"}, {Key: "status", Value: "ACTIVE"}, {Key: "joinedCount", Value: 0},
 			{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}},
 		"residents": {
-			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC)),
+			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", today),
 			row(49, "Indu", "PENDING", "9800000090", "", old),
 			row(51, "Jay", "MOVED_OUT", "9800099991", "jay@contract.test", old, bson.E{Key: "userId", Value: gid(1, 61)}),
 			row(57, "Clash", "ACTIVE", "9800000070", "", old),

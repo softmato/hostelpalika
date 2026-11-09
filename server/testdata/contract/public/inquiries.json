@@ -180,15 +180,16 @@
       }
     },
     "response": {
-      "status": 409,
+      "status": 404,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "This hostel is not taking enquiries right now.",
-        "errorCode": "HOSTEL_NOT_TAKING_INQUIRIES"
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "P11-30: demo hostels emptied on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "minimal",

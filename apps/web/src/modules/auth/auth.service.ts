@@ -448,6 +448,9 @@ export async function requestOtpChallenge(
     await OtpChallengeModel.deleteOne({ _id: challenge._id }).catch(() => undefined);
     throw error;
   };
+  const gates = OtpChallengeModel.db.collection<{ _id: string; until: Date }>("otpgates");
+  const gateKey = `${input.channel}:${input.purpose}:${identifier}`;
+  const gateUntil = new Date(now.getTime() + Math.min(otpResendCooldownMs(), 5_000));
 
   try {
     const recentRequestCount = await OtpChallengeModel.countDocuments({
@@ -479,6 +482,28 @@ export async function requestOtpChallenge(
         429,
       );
     }
+
+    /*
+     * The row check alone loses a burst: _ids from two servers in one second do
+     * not sort by time, so two requests can each check before the other's row
+     * exists and both send. The gate is one document per address keyed by _id:
+     * of concurrent upserts one finds it free, the rest hit the duplicate _id.
+     * Held past _id's one-second granularity; the Go server uses the same gate.
+     */
+    try {
+      await gates.updateOne(
+        { _id: gateKey, until: { $lte: now } },
+        { $set: { until: gateUntil } },
+        { upsert: true },
+      );
+    } catch (error) {
+      if ((error as { code?: number }).code !== 11000) throw error;
+      throw new AuthServiceError(
+        "Please wait before requesting another OTP.",
+        "OTP_RESEND_COOLDOWN",
+        429,
+      );
+    }
   } catch (error) {
     return refuse(error);
   }
@@ -491,7 +516,11 @@ export async function requestOtpChallenge(
       input.purpose === "biometric"
         ? "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
         : undefined,
-  }).catch(refuse);
+  }).catch(async (error: unknown) => {
+    // Nothing was sent: the next request must not wait on this one.
+    await gates.deleteOne({ _id: gateKey, until: gateUntil }).catch(() => undefined);
+    return refuse(error);
+  });
 
   return {
     challengeId: String(challenge._id),

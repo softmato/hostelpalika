@@ -103,6 +103,9 @@
       "method": "GET",
       "path": "/api/v1/public/hostels/locations"
     },
+    "masks": [
+      "data.locations.*.updatedAt"
+    ],
     "response": {
       "status": 200,
       "contentType": "application/json",
@@ -116,21 +119,21 @@
               "city": "Kathmandu",
               "count": 1,
               "hostelType": "GIRLS",
-              "updatedAt": "2026-11-07T05:42:40.711Z"
+              "updatedAt": "2026-11-08T02:01:03.614Z"
             },
             {
               "area": "Koteshwor",
               "city": "Kathmandu",
               "count": 1,
               "hostelType": "BOYS",
-              "updatedAt": "2026-11-07T05:42:40.711Z"
+              "updatedAt": "2026-11-08T02:01:03.614Z"
             },
             {
               "area": "New Baneshwor",
               "city": "Kathmandu",
               "count": 1,
               "hostelType": "BOYS",
-              "updatedAt": "2026-11-07T05:42:40.711Z"
+              "updatedAt": "2026-11-08T02:01:03.614Z"
             }
           ]
         }

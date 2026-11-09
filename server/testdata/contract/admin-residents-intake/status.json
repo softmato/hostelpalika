@@ -564,7 +564,9 @@
       }
     },
     "masks": [
-      "**dates"
+      "**dates",
+      "data.firstMonth.amount",
+      "data.firstMonth.period"
     ],
     "response": {
       "status": 200,
@@ -990,6 +992,8 @@
       "**dates",
       "data.rows.1.payment.dueAmount",
       "data.rows.1.payment.lines",
+      "data.rows.5.payment.dueAmount",
+      "data.rows.5.payment.lines.0.amount",
       "data.totals.due"
     ],
     "response": {

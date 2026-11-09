@@ -16,6 +16,8 @@ import (
 	"os"
 	"time"
 
+	"go.mongodb.org/mongo-driver/v2/bson"
+
 	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	"github.com/softmato/hostelpalika/server/internal/platform/indexes"
@@ -43,6 +45,8 @@ func run(dry bool) error {
 	}
 	specs = append(specs, jobs.IndexSpecs...)
 	specs = append(specs, applog.IndexSpecs...)
+	// OTP send gates (modules/auth/signin.go otpGates) expire on their own.
+	specs = append(specs, indexes.Spec{Collection: "otpgates", Keys: bson.D{{Key: "until", Value: 1}}, TTLSeconds: new(int32)})
 
 	// A unique index over a big collection can take a while; the cap stops a hung cluster holding the deploy.
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
