@@ -120,7 +120,8 @@ done
 prev=$(head -n1 "$ROOT/deployed.txt" 2>/dev/null || true)
 [ "$prev" = "$TAG" ] || printf '%s\n%s\n' "$TAG" "$prev" | grep . >"$ROOT/deployed.txt"
 repo=${API_IMAGE:-ghcr.io/softmato/hostelpalika-api}
-docker images "$repo" --format '{{.Tag}}' | grep -vxF -e "$TAG" -e "${prev:-none}" -e latest \
+# grep finding nothing to remove (the first release) exits 1; that is not a failure.
+docker images "$repo" --format '{{.Tag}}' | { grep -vxF -e "$TAG" -e "${prev:-none}" -e latest || true; } \
   | while read -r t; do docker rmi "$repo:$t" >/dev/null 2>&1 || true; done
 docker image prune -f >/dev/null
 log "done (previous: ${prev:-none})"
