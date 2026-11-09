@@ -122,7 +122,10 @@ the outside work. No repo item waits for the owner. In the order to do them:
    without `-dry-run` (or `npm --prefix apps/web run db:indexes`, same result while TS
    lives). It creates PLAN-1's `subscriptionpayments.invoiceId_1_inReview`, P10-2's
    `receipts.invoiceId_1`, P10-4's three and P10-6's one. Only creates.
-2. **Turn on continuous deploy.** Once the Kathmandu VPS exists: the one-time setup in
+2. **Turn on continuous deploy.** ☑ Done 2026-11-09: LD Cloud VPS set up (`deploy/vps-setup.sh`),
+   secrets + `DEPLOY_ENABLED` in GitHub, `api.hostelpalika.com` live on `web-on-go`'s server
+   (Run workflow until web-on-go merges); a redeploy swapped replicas with 681 probes, 0 failed.
+   Originally: once the Kathmandu VPS exists: the one-time setup in
    `RUNBOOK.md` §1 (Docker, deploy user, `~/hostelpalika/.env`, the `VPS_*` secrets and
    `DEPLOY_ENABLED=true` in GitHub). From then on every green push to `main` that touches
    `server/` rolls the VPS with no gap; rollback is "Run workflow" with an older sha.
