@@ -298,6 +298,9 @@ function listHeadingFor(catalog: PlansConfig, plan: Plan) {
  * removed the service that explained it — and it renders as plain text rather
  * than as a link into a 404.
  */
+// ponytail: service and badge pages are off for now; set true to bring back the links and "open" buttons.
+const LINE_LINKS = false;
+
 function PlanLine({
   action,
   after,
@@ -321,6 +324,10 @@ function PlanLine({
   href: string | null;
   muted?: boolean;
 }) {
+  if (!LINE_LINKS) {
+    action = undefined;
+    href = null;
+  }
   const tone = muted ? "font-medium text-foreground/80" : "font-semibold text-foreground";
   const body = (
     <>
