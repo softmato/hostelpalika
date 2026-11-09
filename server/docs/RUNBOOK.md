@@ -57,7 +57,11 @@ own certificate and is the one proxy `TRUSTED_PROXIES` trusts.
 3. `~deploy/hostelpalika/.env` (mode 600, owner `deploy`): production values from
    `ENVIRONMENT.md`, `REDIS_PASSWORD` (`openssl rand -hex 32`), `GO_PATHS` (paths Caddy
    sends to Go; `/api/*` once the web reads Go) and `SCHEDULER_ENABLED=false` while TS
-   jobs still run from cron-job.org — with both on, every job runs twice.
+   jobs still run from cron-job.org — with both on, every job runs twice. Shared values
+   come from the root `.env`, whose secrets equal the Vercel project's
+   (`.env.vercel.import`), so sessions move between Go and the TS standby.
+   `CORS_ORIGINS` carries `http://localhost:3000` only while the web is tested locally
+   against production; drop it at the web cut-over. Written 2026-11-09.
 4. GitHub → Settings → Secrets and variables → Actions: secrets `VPS_HOST`,
    `VPS_USER=deploy`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS` (`ssh-keyscan <host>`), optional
    `VPS_PORT`; variable `DEPLOY_ENABLED=true`. Optionally add required reviewers to the
