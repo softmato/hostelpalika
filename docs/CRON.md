@@ -1,5 +1,11 @@
 # CRON.md — Scheduled jobs (cron-job.org)
 
+> **Retired 2026-11-09.** The Go API runs all 18 jobs in-process (`SCHEDULER_ENABLED=true`
+> on the VPS, `server/internal/router/jobs.go`, same crontabs) and alerts superadmins
+> (bell + push) when one fails, times out or is missed. The cron-job.org jobs below are
+> **disabled, not deleted**: they are the rollback if Go's scheduler must be switched off.
+> Turn them back on only after setting `SCHEDULER_ENABLED=false`, or every job runs twice.
+
 17 jobs. Each block below gives you exactly what to paste into the cron-job.org form.
 
 ## Same on every job

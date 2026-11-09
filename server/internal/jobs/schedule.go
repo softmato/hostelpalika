@@ -148,6 +148,7 @@ func (r *Runner) reportMissed(ctx context.Context, now time.Time) {
 		}
 		if last.StartedAt.Before(due.Add(-time.Minute)) {
 			slog.ErrorContext(ctx, "Scheduled job missed its run", "category", "jobs", "job", j.Name, "due", due, "lastRun", last.StartedAt)
+			r.raise(ctx, j.Name, "missed its run due "+due.UTC().Format(time.RFC3339))
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -76,5 +77,17 @@ func TestMissedAndNext(t *testing.T) {
 	}
 	if (&Job{}).Next(now) != nil {
 		t.Error("on-demand job has a next run")
+	}
+}
+
+func TestRaiseThrottlesPerJob(t *testing.T) {
+	r := &Runner{alerted: map[string]time.Time{}}
+	var got []string
+	r.OnFailure(func(_ context.Context, job, _ string) { got = append(got, job) })
+	r.raise(context.Background(), "billing-cycle", "failed: x")
+	r.raise(context.Background(), "billing-cycle", "failed: y") // inside alertEvery: dropped
+	r.raise(context.Background(), "platform-push", "timeout: z")
+	if len(got) != 2 || got[0] != "billing-cycle" || got[1] != "platform-push" {
+		t.Fatalf("alerts = %v, want one per job", got)
 	}
 }

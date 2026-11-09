@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/softmato/hostelpalika/server/internal/jobs"
 	"github.com/softmato/hostelpalika/server/internal/modules/attendance"
@@ -22,6 +24,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/kitchen"
 	"github.com/softmato/hostelpalika/server/internal/modules/ledger"
 	"github.com/softmato/hostelpalika/server/internal/modules/noticepushes"
+	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformdesk"
 	"github.com/softmato/hostelpalika/server/internal/modules/residentportal"
 	"github.com/softmato/hostelpalika/server/internal/modules/safety"
@@ -154,6 +157,7 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 	}
 
 	r := s.D.Jobs
+	r.OnFailure(func(ctx context.Context, job, problem string) { alertSuperadmins(ctx, db, s.Notify, job, problem) })
 	r.Add(
 		&jobs.Job{Name: "platform-push", Schedule: "* * * * *", Deadline: minute, Message: "Scheduled pushes dispatched",
 			Run: func(ctx context.Context) (any, error) {
@@ -303,6 +307,31 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 		_, err := s.Guards.RequireSuperadmin(c)
 		return err
 	}}).Register(v1)
+}
+
+// alertSuperadmins tells every active superadmin (bell + push) that a scheduled
+// job failed, timed out or was missed: an in-process scheduler has nobody to
+// switch it off, but someone must still hear when a run goes wrong.
+func alertSuperadmins(ctx context.Context, db *mongo.Database, notify *notifications.Service, job, problem string) {
+	cur, err := db.Collection("users").Find(ctx, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "role", Value: "SUPERADMIN"}, {Key: "status", Value: "ACTIVE"}},
+		options.Find().SetProjection(bson.D{{Key: "_id", Value: 1}}).SetLimit(100))
+	if err != nil {
+		slog.ErrorContext(ctx, "Job alert: superadmins not read", "category", "jobs", "job", job, "error", err)
+		return
+	}
+	var staff []struct {
+		ID bson.ObjectID `bson:"_id"`
+	}
+	if err := cur.All(ctx, &staff); err != nil {
+		slog.ErrorContext(ctx, "Job alert: superadmins not read", "category", "jobs", "job", job, "error", err)
+		return
+	}
+	for _, m := range staff {
+		if _, err := notify.CreateInApp(ctx, notifications.Input{ActionURL: "/platform/system/cron?job=" + job, Body: job + " " + problem, Category: "GENERAL",
+			Data: ordered.Map{{Key: "job", Value: job}}, Kind: "ACTION", Priority: "HIGH", Title: "Scheduled job needs a look", UserID: m.ID.Hex()}); err != nil {
+			slog.ErrorContext(ctx, "Job alert not delivered", "category", "jobs", "job", job, "error", err)
+		}
+	}
 }
 
 // errNoReport: platform-backup only runs from its door, with the report it posts.

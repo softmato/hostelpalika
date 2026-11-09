@@ -77,13 +77,49 @@ type Runner struct {
 
 	mu      sync.Mutex
 	running map[string]bool
+	alerted map[string]time.Time // throttle when Redis is absent
+
+	alert func(ctx context.Context, job, problem string)
+}
+
+// alertEvery is how often one job may alert: a broken every-minute job must
+// not page anyone sixty times an hour.
+const alertEvery = 6 * time.Hour
+
+// OnFailure sets who hears about a scheduled run that failed, timed out or was
+// missed. Set before Schedule starts.
+func (r *Runner) OnFailure(f func(ctx context.Context, job, problem string)) { r.alert = f }
+
+// raise calls the OnFailure hook at most once per job per alertEvery, across
+// replicas (Redis SET NX), with its own short deadline.
+func (r *Runner) raise(ctx context.Context, job, problem string) {
+	if r.alert == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+	if r.redis != nil {
+		if first, err := r.redis.SetNX(ctx, "jobs:alert:"+job, problem, alertEvery).Result(); err == nil && !first {
+			return
+		}
+	} else {
+		r.mu.Lock()
+		last, seen := r.alerted[job]
+		if seen && time.Since(last) < alertEvery {
+			r.mu.Unlock()
+			return
+		}
+		r.alerted[job] = time.Now()
+		r.mu.Unlock()
+	}
+	r.alert(ctx, job, problem)
 }
 
 // New builds a runner bound to stop, the API's shutdown context.
 func New(stop context.Context, db *mongo.Database, rdb *goredis.Client) *Runner {
 	host, _ := os.Hostname()
 	return &Runner{coll: db.Collection(Collection), redis: rdb, instance: fmt.Sprintf("%s:%d", host, os.Getpid()), stop: stop,
-		jobs: map[string]*Job{}, heavy: make(chan struct{}, 1), running: map[string]bool{}}
+		jobs: map[string]*Job{}, heavy: make(chan struct{}, 1), running: map[string]bool{}, alerted: map[string]time.Time{}}
 }
 
 // Add registers jobs; a bad crontab is a programming error.
@@ -191,6 +227,9 @@ func (r *Runner) Run(parent context.Context, j *Job, trigger string) (any, error
 	}
 	r.update(ctx, id, set)
 	obs.JobRun(j.Name, status)
+	if status != StatusOK && trigger == TriggerSchedule && r.stop.Err() == nil {
+		r.raise(ctx, j.Name, status+": "+err.Error())
+	}
 	return out, err
 }
 

@@ -56,8 +56,9 @@ own certificate and is the one proxy `TRUSTED_PROXIES` trusts.
    root, ufw 22/80/443, overcommit for Redis, unattended security upgrades.
 3. `~deploy/hostelpalika/.env` (mode 600, owner `deploy`): production values from
    `ENVIRONMENT.md`, `REDIS_PASSWORD` (`openssl rand -hex 32`), `GO_PATHS` (paths Caddy
-   sends to Go; `/api/*` once the web reads Go) and `SCHEDULER_ENABLED=false` while TS
-   jobs still run from cron-job.org — with both on, every job runs twice. Shared values
+   sends to Go; `/api/*` once the web reads Go) and `SCHEDULER_ENABLED` (`true` since
+   2026-11-09, when the cron-job.org jobs were disabled — with both on, every job runs
+   twice). Shared values
    come from the root `.env`, whose secrets equal the Vercel project's
    (`.env.vercel.import`), so sessions move between Go and the TS standby.
    `CORS_ORIGINS` carries `http://localhost:3000` only while the web is tested locally
@@ -109,6 +110,11 @@ shows its real tail.
 | Goroutines | `go_goroutines > 2000` for 10 min | Idle is ~20; a steady climb is a leak |
 | Rate limiting | `sum by (namespace) (rate(hostelpalika_rate_limited_total[5m])) > 1` | Abuse or a client in a loop |
 | Down | `up == 0` or `/api/v1/health` failing from outside for 2 min | — |
+
+**Without Prometheus, job trouble still reaches people:** a scheduled run that fails,
+times out or was missed (found at start-up) sends every active superadmin a HIGH bell
+notification and a push linking to System → Cron, at most once per job per 6 h
+(`jobs:alert:<job>` in Redis). Nothing outside the API can switch a job off.
 
 The superadmin portal shows the same picture without Prometheus: System → Logs (by
 level, category, request id) and System → Cron (every run, failures in red).
