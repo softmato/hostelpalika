@@ -5,12 +5,16 @@ const mocks = vi.hoisted(() => ({
   notify: vi.fn(),
   planId: "pro" as string | null,
   residents: 0,
+  trialEndsAt: null as Date | null,
 }));
 
 const lean = <T>(value: () => T) => ({ select: () => ({ lean: async () => value() }) });
 
 vi.mock("@hostel/db/models/HostelSubscription", () => ({
-  HostelSubscriptionModel: { findOne: () => lean(() => (mocks.planId ? { planId: mocks.planId } : null)) },
+  HostelSubscriptionModel: {
+    findOne: () =>
+      lean(() => (mocks.planId || mocks.trialEndsAt ? { planId: mocks.planId, trialEndsAt: mocks.trialEndsAt } : null)),
+  },
 }));
 vi.mock("@hostel/db/models/Resident", () => ({
   ResidentModel: { countDocuments: async () => mocks.residents },
@@ -20,6 +24,7 @@ vi.mock("@hostel/db/models/HostelMember", () => ({ HostelMemberModel: {} }));
 vi.mock("@hostel/db/models/CookAccount", () => ({ CookAccountModel: {} }));
 vi.mock("@/modules/platform-config/site-config.service", () => ({
   getSiteConfigSection: async () => ({
+    free: { maxResidents: 10, name: "Free", portalAccess: { cooks: 1, wardens: 1 } },
     plans: [{ id: "pro", maxResidents: 100, name: "Pro", portalAccess: { cooks: 3, wardens: 2 } }],
   }),
 }));
@@ -36,6 +41,7 @@ describe("assertPlanRoom", () => {
   beforeEach(() => {
     mocks.notify.mockReset().mockResolvedValue(undefined);
     mocks.planId = "pro";
+    mocks.trialEndsAt = null;
   });
 
   it("lets the 100th resident in and stops the 101st, telling the admins", async () => {
@@ -60,6 +66,26 @@ describe("assertPlanRoom", () => {
 
   it("never blocks a hostel with no plan chosen", async () => {
     mocks.planId = null;
+    mocks.residents = 10_000;
+    await expect(assertPlanRoom(hostelId, "residents")).resolves.toBeUndefined();
+  });
+
+  it("holds an unpaid, finished trial to the free tier's caps", async () => {
+    mocks.planId = null;
+    mocks.trialEndsAt = new Date(Date.now() - 86_400_000);
+    mocks.residents = 9;
+    await expect(assertPlanRoom(hostelId, "residents")).resolves.toBeUndefined();
+
+    mocks.residents = 10;
+    await expect(assertPlanRoom(hostelId, "residents")).rejects.toMatchObject({
+      message: expect.stringContaining("Free plan allows 10 residents"),
+      status: 409,
+    });
+  });
+
+  it("leaves a trial that is still running uncapped", async () => {
+    mocks.planId = null;
+    mocks.trialEndsAt = new Date(Date.now() + 86_400_000);
     mocks.residents = 10_000;
     await expect(assertPlanRoom(hostelId, "residents")).resolves.toBeUndefined();
   });

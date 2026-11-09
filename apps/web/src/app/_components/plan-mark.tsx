@@ -29,11 +29,22 @@ const ROWS: { cx: number[]; cy: number }[] = [
 
 const ROOF = "M4.5 15.5 L20 5.5 L35.5 15.5";
 
+/**
+ * The free tier's mark: the same roof over two linked rings — ∞, free for as
+ * long as the hostel runs — instead of residents, so it never reads as a
+ * smaller Go. Rings, not a drawn ∞, so the app can build the same shape.
+ */
+const FREE_RINGS = [14.5, 25.5];
+const RING_R = 5.5;
+
 export function PlanMark({
   className,
+  free = false,
   rank,
 }: {
   className?: string;
+  /** Draw the free tier's rings instead of resident rows. */
+  free?: boolean;
   /** Cheapest-first position of the plan. Doubles as the fill depth. */
   rank: number;
 }) {
@@ -57,7 +68,19 @@ export function PlanMark({
         strokeLinejoin="round"
         strokeWidth={1.8}
       />
-      {ROWS.map((row, index) =>
+      {free
+        ? FREE_RINGS.map((cx) => (
+            <circle
+              cx={cx}
+              cy={27}
+              fill="none"
+              key={cx}
+              r={RING_R - 0.9}
+              stroke="currentColor"
+              strokeWidth={1.8}
+            />
+          ))
+        : ROWS.map((row, index) =>
         row.cx.map((cx) => (
           <circle
             cx={cx}

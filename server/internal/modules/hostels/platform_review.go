@@ -17,7 +17,6 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/modules/users"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
-	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	appmongo "github.com/softmato/hostelpalika/server/internal/platform/mongo"
@@ -338,20 +337,7 @@ func (p *Platform) completeKyc(ctx context.Context, id, actor bson.ObjectID) err
 		return err
 	}
 	trialEnded := sub.TrialEndsAt != nil && sub.TrialEndsAt.Before(now)
-	if sub.TrialEndsAt != nil && (sub.PlanID == nil || *sub.PlanID == "") {
-		grace := bs.DayEnd(now, suspensionGraceDays)
-		if sub.TrialEndsAt.After(grace) {
-			grace = *sub.TrialEndsAt
-		}
-		start := now
-		if s := sub.TrialEndsAt.Add(-suspensionGraceDays * 24 * time.Hour); s.After(now) {
-			start = s
-		}
-		if _, err := p.DB.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: id}, {Key: "suspension.startedAt", Value: nil}},
-			bson.D{{Key: "$set", Value: bson.D{{Key: "suspension", Value: bson.D{{Key: "graceEndsAt", Value: grace}, {Key: "reason", Value: "TRIAL_ENDED"}, {Key: "startedAt", Value: start}, {Key: "startedBy", Value: nil}}}}}}); err != nil {
-			return err
-		}
-	}
+	// An unpaid trial ends on the free tier's caps (billing.capsFor), never a suspension.
 	if p.Settler.GoLive != nil {
 		if err := p.Settler.GoLive(ctx, id); err != nil {
 			slog.ErrorContext(ctx, "hostel_referral_settle_failed", "hostelId", id.Hex(), "message", err.Error())

@@ -20,6 +20,7 @@ import { InlineText } from "./inline-text";
 import { LifetimeTab } from "./platform-config-lifetime-tab";
 import {
   BillingToggle,
+  FreePlanCard,
   PlanCards,
   PlansClosingCta,
   PlansFootnote,
@@ -29,6 +30,7 @@ import {
 import {
   cycleTotal,
   eventRuns,
+  freeTierOf,
   monthlyRateFor,
   orphanedServices,
   savingFor,
@@ -134,12 +136,13 @@ export const PlatformConfigPlansPageContent = memo(
       () => ({
         onPatchCycleLabels: (changes) =>
           patch({ cycleLabels: { ...catalog.cycleLabels, ...changes } }),
+        onPatchFree: (changes) => patch({ free: { ...freeTierOf(catalog), ...changes } }),
         onPatchPage: (changes) => patch({ page: { ...catalog.page, ...changes } }),
         onPatchPlan: patchPlan,
         onPatchService: patchService,
         serviceHrefFor: (slug) => `/platform/config/plans/${slug}`,
       }),
-      [catalog.cycleLabels, catalog.page, patch, patchPlan, patchService],
+      [catalog, patch, patchPlan, patchService],
     );
 
     const dirty = isDirty("plans");
@@ -193,6 +196,7 @@ export const PlatformConfigPlansPageContent = memo(
             </div>
 
             <PlanCards animate={false} catalog={sold} cycle={cycle} editor={editor} />
+            <FreePlanCard catalog={sold} editor={editor} />
 
             <PlansFootnote catalog={catalog} editor={editor} identity={identity} />
 
@@ -721,6 +725,8 @@ function PricingTab({
   onPatch: (changes: Partial<PlansConfig>) => void;
   onPatchPlan: (planId: string, changes: Partial<PlanTier>) => void;
 }) {
+  const free = freeTierOf(catalog);
+
   function addPlan() {
     const taken = new Set(catalog.plans.map((plan) => plan.id));
     const id = uniqueSlug("plan", taken);
@@ -785,6 +791,36 @@ function PricingTab({
             Order matters: plans read cheapest first, and a card lists what it adds over
             the one before it.
           </p>
+        </div>
+      </ConfigPanel>
+
+      <ConfigPanel
+        description="Free forever. A hostel whose trial ends without a paid plan lands here and is held to these caps."
+        title="Free plan"
+      >
+        <div className="grid gap-2.5 sm:grid-cols-3">
+          <NumberField
+            label="Residents"
+            max={1000}
+            onChange={(maxResidents) => onPatch({ free: { ...free, maxResidents: maxResidents ?? 0 } })}
+            value={free.maxResidents}
+          />
+          <NumberField
+            label="Warden accounts"
+            max={100}
+            onChange={(wardens) =>
+              onPatch({ free: { ...free, portalAccess: { ...free.portalAccess, wardens: wardens ?? 0 } } })
+            }
+            value={free.portalAccess.wardens}
+          />
+          <NumberField
+            label="Cook accounts"
+            max={100}
+            onChange={(cooks) =>
+              onPatch({ free: { ...free, portalAccess: { ...free.portalAccess, cooks: cooks ?? 0 } } })
+            }
+            value={free.portalAccess.cooks}
+          />
         </div>
       </ConfigPanel>
     </div>

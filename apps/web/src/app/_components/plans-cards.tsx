@@ -21,6 +21,8 @@ import {
   billingCycles,
   cardServicesForPlan,
   cycleTotal,
+  freeTierLines,
+  freeTierOf,
   listingTierHref,
   monthlyRateFor,
   planBelow,
@@ -87,6 +89,7 @@ const RISE = 18;
  */
 export type PlansEditor = {
   onPatchCycleLabels: (patch: Partial<PlansConfig["cycleLabels"]>) => void;
+  onPatchFree: (patch: Partial<PlansConfig["free"]>) => void;
   onPatchPage: (patch: Partial<PlansConfig["page"]>) => void;
   onPatchPlan: (planId: string, patch: Partial<PlanTier>) => void;
   onPatchService: (slug: string, patch: Partial<PlanService>) => void;
@@ -739,6 +742,74 @@ export function PlanCards({
         </motion.div>
       ))}
     </motion.div>
+  );
+}
+
+/**
+ * The free-forever tier, one full-width row under the paid cards. Its own
+ * component, not a fourth `catalog.plans` entry: the paid grid stays exactly as
+ * it is, and nothing here has a cycle, a discount or a struck price.
+ */
+export function FreePlanCard({ catalog, editor }: { catalog: PlansConfig; editor?: PlansEditor }) {
+  const free = freeTierOf(catalog);
+  const patch = (changes: Partial<PlansConfig["free"]>) => editor?.onPatchFree(changes);
+  const ctaClass =
+    "inline-flex items-center justify-center rounded-xl border border-brand-teal/40 px-4 py-3 text-sm font-semibold text-brand-teal transition hover:bg-brand-teal/10 lg:w-48 lg:shrink-0";
+
+  return (
+    <article
+      id="plan-free"
+      className="mt-5 flex w-full scroll-mt-32 flex-col gap-6 rounded-2xl border border-border bg-surface p-6 shadow-sm transition-colors hover:border-brand-teal/40 lg:flex-row lg:items-center lg:gap-10"
+    >
+      <div className="flex items-center gap-3 lg:w-60 lg:shrink-0">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal">
+          <PlanMark free rank={0} />
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-heading text-2xl font-bold leading-none text-foreground">
+            <Label editor={editor} onChange={(name) => patch({ name })} placeholder="Plan" value={free.name} />
+          </h2>
+          {free.label || editor ? (
+            <span className="mt-1.5 inline-flex rounded-full bg-brand-teal/10 px-2 py-0.5 text-[11px] font-semibold text-brand-teal">
+              <Label editor={editor} onChange={(label) => patch({ label })} placeholder="Badge" value={free.label} />
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="lg:w-60 lg:shrink-0">
+        <span className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          <Money rupees={0} />
+        </span>
+        <p className="mt-2 text-sm text-muted-foreground">
+          <Label
+            editor={editor}
+            multiline
+            onChange={(description) => patch({ description })}
+            placeholder="Who this plan is for"
+            value={free.description}
+          />
+        </p>
+      </div>
+
+      <ul className="grid flex-1 gap-2.5 sm:grid-cols-3 lg:grid-cols-1">
+        {freeTierLines(free).map((line) => (
+          <li key={line}>
+            <PlanLine href={null}>{line}</PlanLine>
+          </li>
+        ))}
+      </ul>
+
+      {editor ? (
+        <span className={ctaClass}>
+          <Label editor={editor} onChange={(ctaLabel) => patch({ ctaLabel })} placeholder="Button" value={free.ctaLabel} />
+        </span>
+      ) : (
+        <Link className={ctaClass} href={free.ctaHref || "/register-hostel"}>
+          {free.ctaLabel}
+        </Link>
+      )}
+    </article>
   );
 }
 

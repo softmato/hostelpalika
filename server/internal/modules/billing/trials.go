@@ -91,7 +91,7 @@ func (s *Service) TrialEndingReminders(ctx context.Context, n *notifications.Ser
 				owner.Name, s.supportPhone(ctx), email.EmailDate(t.TrialEndsAt))
 			s.Mail.Send(ctx, email.Message{Category: m.Category, To: []string{owner.Email}, Subject: m.Subject, HTML: m.HTML})
 		}
-		action, body, kind := "/hostel-admin/billing", "Please check your email to choose a monthly or lifetime plan.", "HOSTEL_TRIAL"
+		action, body, kind := "/hostel-admin/billing", "After the trial your hostel moves to the Free plan. Get a monthly or lifetime plan to keep every seat.", "HOSTEL_TRIAL"
 		if kycPending {
 			action, body, kind = "/hostel-admin/kyc", "Complete your KYC to keep your hostel portal open after the trial.", "HOSTEL_KYC"
 		}

@@ -3,6 +3,19 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Free plan] — 2026-11-09
+
+Owner decision: a free-forever tier, like ChatGPT/Claude. `plans.free` in the site config
+(name, badge, copy, button, caps; default 10 residents / 1 warden / 1 cook), edited in
+Website Config → Plans & Pricing and drawn as a full-width row under the paid cards (web + app).
+
+### Changed (Go and TS)
+- A trial that ends without a paid plan drops to the free caps (`capsFor` / `planForCaps`)
+  instead of a `TRIAL_ENDED` suspension. KYC approval no longer writes one; the renewal
+  sweep clears any left from before. `TRIAL_ENDED_KYC` (KYC not approved) is unchanged.
+- Trial-ending email and bell say the hostel moves to Free.
+- `testdata/vectors/*.ts` import paths fixed (platform-config defaults moved to `lib/`).
+
 ## [Pre-cut-over check — server side through Phase 11] — 2026-11-05
 
 Every tracker tick re-checked against the code (`READINESS.md`, re-check section).

@@ -44,11 +44,18 @@ const RISE = EAVE_Y - RIDGE.y;
 const RAFTER = Math.hypot(RUN, RISE);
 const PITCH = (Math.atan2(RISE, RUN) * 180) / Math.PI;
 
+/** The free tier: two linked rings (∞) under the roof, as on the website. */
+const FREE_RINGS = [14.5, 25.5];
+const RING_R = 5.5;
+
 export function PlanMark({
   color,
+  free = false,
   rank,
   size = 28,
 }: {
+  /** Draw the free tier's rings instead of resident rows. */
+  free?: boolean;
   /** A resolved colour — the tile's ink, usually `colors.primary`. */
   color: string;
   /** Cheapest-first position of the plan. Doubles as the fill depth. */
@@ -84,7 +91,23 @@ export function PlanMark({
         );
       })}
 
-      {ROWS.map((row, index) =>
+      {free
+        ? FREE_RINGS.map((cx) => (
+            <View
+              key={cx}
+              style={{
+                borderColor: color,
+                borderRadius: RING_R * unit,
+                borderWidth: stroke,
+                height: RING_R * 2 * unit,
+                left: (cx - RING_R) * unit,
+                position: "absolute",
+                top: (27 - RING_R) * unit,
+                width: RING_R * 2 * unit,
+              }}
+            />
+          ))
+        : ROWS.map((row, index) =>
         row.cx.map((cx) => (
           <View
             key={`${cx}-${row.cy}`}

@@ -82,7 +82,7 @@ func HostelTrialEnding(billingURL string, daysLeft int, hostelName string, kycPe
 		}
 		when = "ends in " + strconv.Itoa(daysLeft) + " " + unit
 	}
-	lead := "The free trial for <strong>" + EscapeHTML(hostelName) + "</strong> ends on " + EscapeHTML(trialEndsOn) + ". To keep using your hostel portal after that, get your plan — monthly or lifetime."
+	lead := "The free trial for <strong>" + EscapeHTML(hostelName) + "</strong> ends on " + EscapeHTML(trialEndsOn) + ". After that it moves to the Free plan and its smaller limits. To keep every seat you have now, get your plan — monthly or lifetime."
 	if kycPending {
 		lead = "The free trial for <strong>" + EscapeHTML(hostelName) + "</strong> ends on " + EscapeHTML(trialEndsOn) + ", and your KYC is not approved yet. After the trial, your portal stays closed until it is. Please complete your KYC first — once our team approves it, you can get your plan."
 	}

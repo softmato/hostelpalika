@@ -59,7 +59,6 @@ import {
   hostelKycApprovedEmail,
   hostelKycSentBackEmail,
 } from "@hostel/shared/email/templates/hostel/hostel-kyc";
-import { trialEndSuspension } from "@/modules/hostels/hostel-suspension";
 import {
   getOrCreateSubscription,
   getSubscriptionState,
@@ -2600,12 +2599,8 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
 /**
  * A quick sign-up's KYC, approved: listed and Verified, every feature open,
  * the cook login and the owner ID card it did not get at sign-up, referral
- * time, and the trial's end scheduled now that the plan can be bought.
- *
- * The trial-end block (`TRIAL_ENDED`) counts down for the trial's last
- * `SUSPENSION_GRACE_DAYS` and bites when it ends. A hostel approved with the
- * trial already over, or nearly, gets those days from today instead: the
- * plan could not be bought before it was verified.
+ * time. A trial that ends unpaid drops the hostel to the free tier's caps
+ * (`planForCaps`), never a suspension.
  */
 async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
   const now = new Date();
@@ -2630,13 +2625,6 @@ async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
     .lean<{ planId?: string | null; trialEndsAt?: Date | null } | null>();
 
   const trialEnded = Boolean(subscription?.trialEndsAt && subscription.trialEndsAt.getTime() < now.getTime());
-
-  if (subscription?.trialEndsAt && !subscription.planId) {
-    await HostelModel.updateOne(
-      { _id: hostelId, "suspension.startedAt": null },
-      { $set: { suspension: trialEndSuspension(subscription.trialEndsAt, now) } },
-    );
-  }
 
   await settleHostelReferrals(hostelId).catch((error: unknown) =>
     console.error(

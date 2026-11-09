@@ -11,7 +11,7 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { ResidentModel } from "@hostel/db/models/Resident";
-import { getPlan } from "@hostel/shared/plans/catalog";
+import { getPlan, type PlansCatalog, type PlanTierLike } from "@hostel/shared/plans/catalog";
 
 /**
  * The plan's ceilings — residents, wardens, cooks — held on the server.
@@ -47,16 +47,32 @@ function countLive(hostelId: Types.ObjectId, seat: PlanSeat) {
   return CookAccountModel.countDocuments({ hostelId, status: { $in: ["ACTIVE", "INVITED"] } });
 }
 
+/**
+ * The plan whose caps hold: the paid plan chosen, else — once a trial has run
+ * out with nothing bought — the free tier. No plan and no trial (hostels from
+ * before trials), or a trial still running, is no ceiling. **Pure.**
+ */
+export function planForCaps(
+  catalog: PlansCatalog,
+  subscription: { planId?: string | null; trialEndsAt?: Date | null } | null,
+  now = new Date(),
+): Pick<PlanTierLike, "maxResidents" | "name" | "portalAccess"> | null {
+  if (!subscription) return null;
+  if (subscription.planId) return getPlan(catalog, subscription.planId) ?? null;
+  if (!subscription.trialEndsAt || subscription.trialEndsAt.getTime() > now.getTime()) return null;
+
+  return catalog.free ?? null;
+}
+
 /** Throws `PLAN_LIMIT_REACHED` (and tells the admins) when `adding` more would pass the plan's cap. */
 export async function assertPlanRoom(hostelId: Types.ObjectId, seat: PlanSeat, adding = 1) {
   // A branch is on its main hostel's plan; its own seats are counted against it.
   const subscription = await HostelSubscriptionModel.findOne({ hostelId: await billingHostelId(hostelId) })
-    .select("planId")
-    .lean<{ planId?: string | null } | null>();
+    .select("planId trialEndsAt")
+    .lean<{ planId?: string | null; trialEndsAt?: Date | null } | null>();
 
-  if (!subscription?.planId) return;
-
-  const plan = getPlan(await getSiteConfigSection("plans"), subscription.planId);
+  const catalog = await getSiteConfigSection("plans");
+  const plan = planForCaps(catalog, subscription);
   const cap = !plan ? null : seat === "residents" ? plan.maxResidents : plan.portalAccess[seat];
 
   if (cap === null || cap === undefined) return;

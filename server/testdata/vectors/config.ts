@@ -45,11 +45,11 @@ function mutations(value: unknown): unknown[] {
 }
 
 export async function configVectors(web: Web, here: string) {
-  const validation = await web.import<typeof import("../../../apps/web/src/modules/platform-config/site-config.validation")>(
-    "../../../apps/web/src/modules/platform-config/site-config.validation",
+  const validation = await web.import<typeof import("../../../apps/web/src/lib/platform-config/site-config.validation")>(
+    "../../../apps/web/src/lib/platform-config/site-config.validation",
   );
-  const { DEFAULT_SITE_CONFIG } = await web.import<typeof import("../../../apps/web/src/modules/platform-config/site-config.defaults")>(
-    "../../../apps/web/src/modules/platform-config/site-config.defaults",
+  const { DEFAULT_SITE_CONFIG } = await web.import<typeof import("../../../apps/web/src/lib/platform-config/site-config.defaults")>(
+    "../../../apps/web/src/lib/platform-config/site-config.defaults",
   );
   const ops = await web.import<typeof import("../../../apps/web/src/modules/platform-config/operations-config")>(
     "../../../apps/web/src/modules/platform-config/operations-config",

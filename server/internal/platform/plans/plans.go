@@ -80,6 +80,21 @@ type Event struct {
 	Note   string `json:"note"`
 }
 
+// Free is the free-forever tier: no price or cycle, just the caps a hostel whose
+// trial ended unpaid is held to.
+type Free struct {
+	CtaHref      string `json:"ctaHref"`
+	CtaLabel     string `json:"ctaLabel"`
+	Description  string `json:"description"`
+	Label        string `json:"label"`
+	MaxResidents int    `json:"maxResidents"`
+	Name         string `json:"name"`
+	PortalAccess struct {
+		Cooks   int `json:"cooks"`
+		Wardens int `json:"wardens"`
+	} `json:"portalAccess"`
+}
+
 // Catalog is the parts of the `plans` section the arithmetic reads (`page` is not one).
 type Catalog struct {
 	CycleLabels struct {
@@ -88,6 +103,7 @@ type Catalog struct {
 		Monthly    string `json:"monthly"`
 	} `json:"cycleLabels"`
 	Event    Event     `json:"event"`
+	Free     Free      `json:"free"`
 	Modules  []Module  `json:"modules"`
 	Plans    []Plan    `json:"plans"`
 	Services []Service `json:"services"`

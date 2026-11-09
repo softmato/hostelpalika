@@ -151,7 +151,7 @@ export function hostelTrialEndingEmail(input: {
         paragraph(
           input.kycPending
             ? `The free trial for <strong>${escapeHtml(input.hostelName)}</strong> ends on ${escapeHtml(input.trialEndsOn)}, and your KYC is not approved yet. After the trial, your portal stays closed until it is. Please complete your KYC first — once our team approves it, you can get your plan.`
-            : `The free trial for <strong>${escapeHtml(input.hostelName)}</strong> ends on ${escapeHtml(input.trialEndsOn)}. To keep using your hostel portal after that, get your plan — monthly or lifetime.`,
+            : `The free trial for <strong>${escapeHtml(input.hostelName)}</strong> ends on ${escapeHtml(input.trialEndsOn)}. After that it moves to the Free plan and its smaller limits. To keep every seat you have now, get your plan — monthly or lifetime.`,
         ),
         input.supportPhone
           ? paragraph(`You can also call us on ${escapeHtml(input.supportPhone)} and we will activate your plan for you.`)

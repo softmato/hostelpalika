@@ -31,6 +31,11 @@ func overdueSuspension(dueAt time.Time) bson.D {
 // live plan ending within a week gets its renewal bill; one already past its
 // end turns PAST_DUE and the hostel and its branches start the suspension path.
 func (s *Service) RaiseDueRenewals(ctx context.Context, now time.Time) (ordered.Map, error) {
+	// An unpaid trial ends on the free tier now; lift any trial-end block left from before.
+	if _, err := s.DB.Collection("hostels").UpdateMany(ctx, bson.D{{Key: "suspension.reason", Value: "TRIAL_ENDED"}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "suspension.graceEndsAt", Value: nil}, {Key: "suspension.reason", Value: nil}, {Key: "suspension.startedAt", Value: nil}, {Key: "suspension.startedBy", Value: nil}}}}); err != nil {
+		return nil, err
+	}
 	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, bson.D{{Key: "currentPeriodEnd", Value: bson.D{{Key: "$lte", Value: bs.DayEnd(now, renewAheadDays)}, {Key: "$ne", Value: nil}}},
 		{Key: "lifetimeSince", Value: nil}, {Key: "planId", Value: bson.D{{Key: "$ne", Value: nil}}}, {Key: "status", Value: "ACTIVE"}})
 	if err != nil {

@@ -5,6 +5,7 @@ import {
   billingCycles,
   cardServicesForPlan,
   cycleTotal,
+  freeTierLines,
   monthlyRateFor,
   planBelow,
   planRank,
@@ -12,6 +13,7 @@ import {
   residentRangeLabel,
   savingFor,
   type BillingCycle,
+  type PlanFreeLike,
   type PlanTierLike,
 } from "@hostel/plans/catalog";
 import { router } from "expo-router";
@@ -168,6 +170,8 @@ export default function PricingScreen() {
             plan={plan}
           />
         ))}
+
+        {catalog.free && !empty ? <FreePlanCard free={catalog.free} onPress={openRegistration} /> : null}
 
         {catalog.page.footnote ? (
           <Text className="text-center" variant="caption">
@@ -358,6 +362,48 @@ function PlanCard({
         </View>
       ) : null}
     </View>
+  );
+}
+
+/** The free-forever tier, under the paid cards: no cycle, no saving, just its caps. */
+function FreePlanCard({ free, onPress }: { free: PlanFreeLike; onPress: () => void }) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Card className="gap-5">
+      <View className="gap-3">
+        <View className="flex-row items-center gap-3">
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+            <PlanMark color={colors.primary} free rank={0} />
+          </View>
+          <View className="min-w-0 flex-1 items-start gap-1.5">
+            <Text className="text-2xl font-bold text-foreground" variant={null}>
+              {free.name}
+            </Text>
+            {free.label ? <Badge label={free.label} tone="success" /> : null}
+          </View>
+        </View>
+        {free.description ? (
+          <Text className="text-sm text-foreground" variant={null}>
+            {free.description}
+          </Text>
+        ) : null}
+      </View>
+
+      <Text className="text-3xl font-bold text-foreground" variant={null}>
+        <Money className="" currencyClassName="text-lg text-foreground" rupees={0} />
+      </Text>
+
+      <Button label={free.ctaLabel} onPress={onPress} variant="outline" />
+
+      <View className="gap-2 border-t border-border pt-5">
+        {freeTierLines(free).map((line) => (
+          <PlanLine color={colors.primary} key={line}>
+            {line}
+          </PlanLine>
+        ))}
+      </View>
+    </Card>
   );
 }
 

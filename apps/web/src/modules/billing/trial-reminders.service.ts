@@ -100,7 +100,7 @@ export async function sendTrialEndingReminders(now = new Date()) {
       actionUrl: kycPending ? "/hostel-admin/kyc" : "/hostel-admin/billing",
       body: kycPending
         ? "Complete your KYC to keep your hostel portal open after the trial."
-        : "Please check your email to choose a monthly or lifetime plan.",
+        : "After the trial your hostel moves to the Free plan. Get a monthly or lifetime plan to keep every seat.",
       title: daysLeft <= 0 ? "Your free trial ends today" : `Your free trial ends in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`,
       type: kycPending ? "HOSTEL_KYC" : "HOSTEL_TRIAL",
     });

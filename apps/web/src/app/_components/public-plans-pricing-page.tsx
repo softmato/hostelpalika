@@ -15,6 +15,7 @@ import { LeavePromise } from "./leave-promise";
 import { PlansFaq } from "./plans-faq";
 import {
   BillingToggle,
+  FreePlanCard,
   PlanCards,
   PlansClosingCta,
   PlansFootnote,
@@ -142,6 +143,7 @@ export function PublicPlansPricingPage({ trialDays }: { trialDays: number }) {
                   </span>
                 </div>
                 <PlanCards catalog={catalog} cycle={cycle} />
+                <FreePlanCard catalog={catalog} />
                 <PlansFootnote catalog={catalog} identity={identity} />
               </>
             ) : (

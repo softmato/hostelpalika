@@ -479,6 +479,20 @@ const planServiceSchema = z.object({
   why: prose,
 });
 
+/**
+ * The free tier a catalogue gets when it has none saved. Exported so a client
+ * reading an API that predates the section still draws the card.
+ */
+export const DEFAULT_FREE_PLAN = {
+  ctaHref: "/register-hostel",
+  ctaLabel: "Start free",
+  description: "A small hostel, free for as long as you run it.",
+  label: "Free forever",
+  maxResidents: 10,
+  name: "Free",
+  portalAccess: { cooks: 1, wardens: 1 },
+};
+
 export const plansSchema = z.object({
   /** What the billing toggle calls each cycle. */
   cycleLabels: z
@@ -507,6 +521,28 @@ export const plansSchema = z.object({
       note: trimmed.max(200).default(""),
     })
     .default({ endsOn: "", label: "Festival offer", mode: "standard", note: "" }),
+  /**
+   * The free-forever tier: a full-width row under the paid cards, not a
+   * `plans` entry — it has no price, cycle or badge. A hostel whose trial ends
+   * without a paid plan lands on it instead of being suspended, and these caps
+   * are what `assertPlanRoom` holds it to.
+   */
+  free: z
+    .object({
+      ctaHref: trimmed.max(200).default("/register-hostel"),
+      ctaLabel: trimmed.min(1).max(40).default("Start free"),
+      description: trimmed.max(240).default("A small hostel, free for as long as you run it."),
+      label: trimmed.max(30).default("Free forever"),
+      maxResidents: z.number().int().min(0).max(1000).default(10),
+      name: trimmed.min(1).max(40).default("Free"),
+      portalAccess: z
+        .object({
+          cooks: z.number().int().min(0).max(100).default(1),
+          wardens: z.number().int().min(0).max(100).default(1),
+        })
+        .default({ cooks: 1, wardens: 1 }),
+    })
+    .default(() => ({ ...DEFAULT_FREE_PLAN, portalAccess: { ...DEFAULT_FREE_PLAN.portalAccess } })),
   modules: z.array(planModuleSchema).max(24).default([]),
   /** The page's own headings and closing call to action. */
   page: z

@@ -535,6 +535,15 @@ export const DEFAULT_PLANS: PlansConfig = {
   // Standard out of the box. An event is switched on in Platform → Website
   // Config → Plans & Pricing when there is one to run.
   event: { endsOn: "", label: "Festival offer", mode: "standard", note: "" },
+  free: {
+    ctaHref: "/register-hostel",
+    ctaLabel: "Start free",
+    description: "A small hostel, free for as long as you run it.",
+    label: "Free forever",
+    maxResidents: 10,
+    name: "Free",
+    portalAccess: { cooks: 1, wardens: 1 },
+  },
   modules: PLAN_MODULES,
   page: {
     ctaBody:

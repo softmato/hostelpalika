@@ -1,5 +1,6 @@
 import { portalAccessLines as sharedPortalAccessLines } from "@hostel/shared/plans/catalog";
 import { serviceHref } from "@hostel/shared/plans/catalog";
+import { DEFAULT_FREE_PLAN } from "@/lib/platform-config/site-config.validation";
 
 import type {
   PlanListingTier,
@@ -37,6 +38,7 @@ export {
   discountPercent,
   eventRuns,
   formatPlanRate,
+  freeTierLines,
   getListingTier,
   getPlan,
   getService,
@@ -93,4 +95,9 @@ export function portalAccessLines(catalog: PlansConfig, plan: PlanTier) {
     id: line.id,
     label: line.label,
   }));
+}
+
+/** The free tier, or its defaults when the API serving the catalogue predates it. */
+export function freeTierOf(catalog: PlansConfig): PlansConfig["free"] {
+  return (catalog.free as PlansConfig["free"] | undefined) ?? DEFAULT_FREE_PLAN;
 }

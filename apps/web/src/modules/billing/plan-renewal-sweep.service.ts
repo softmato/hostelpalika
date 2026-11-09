@@ -54,6 +54,19 @@ type Row = {
 export async function raiseDueRenewals(now = new Date()) {
   await connectToDatabase();
 
+  // An unpaid trial ends on the free tier now; lift any trial-end block left from before.
+  await HostelModel.updateMany(
+    { "suspension.reason": "TRIAL_ENDED" },
+    {
+      $set: {
+        "suspension.graceEndsAt": null,
+        "suspension.reason": null,
+        "suspension.startedAt": null,
+        "suspension.startedBy": null,
+      },
+    },
+  );
+
   // ponytail: one unpaged read, like the plan reminders next door; page by `_id` at thousands.
   const subscriptions = await HostelSubscriptionModel.find({
     currentPeriodEnd: { $lte: hostelDayEnd(now, RENEW_AHEAD_DAYS), $ne: null },

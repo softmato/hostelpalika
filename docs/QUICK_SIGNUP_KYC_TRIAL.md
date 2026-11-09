@@ -149,3 +149,7 @@ _C1–C3: typechecked + linted; the browser check is yours (no Browser-pane driv
   `public-hostel-registration-page.tsx` is unrouted but still on disk.
 - 2026-10-12 (later) — E1–E4 from the owner's review. Web 276 files / 3368 tests, mobile 104 /
   1540, both typechecks clean.
+
+> **2026-11-09 — Free plan replaces the trial-end block.** A trial that ends without a paid
+> plan now lands on the free tier (`plans.free` caps, default 10 residents / 1 warden / 1 cook)
+> instead of a `TRIAL_ENDED` suspension. The KYC rule (`TRIAL_ENDED_KYC`) is unchanged.

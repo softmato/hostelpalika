@@ -106,6 +106,32 @@ export type PlanEventLike = {
 };
 
 /**
+ * The free-forever tier: no price, no cycle, just caps. A hostel whose trial
+ * ends without a paid plan is held to these instead of being suspended.
+ */
+export type PlanFreeLike = {
+  ctaHref: string;
+  ctaLabel: string;
+  description: string;
+  label: string;
+  maxResidents: number;
+  name: string;
+  portalAccess: { cooks: number; wardens: number };
+};
+
+/** The free tier's card lines, worded the way the paid cards word their caps. */
+export function freeTierLines(free: PlanFreeLike) {
+  const seat = (count: number, noun: string) =>
+    count === 0 ? `No ${noun} accounts` : count === 1 ? `1 ${noun} account` : `Up to ${count} ${noun} accounts`;
+
+  return [
+    `Up to ${free.maxResidents} residents`,
+    seat(free.portalAccess.wardens, "warden portal"),
+    seat(free.portalAccess.cooks, "cook portal"),
+  ];
+}
+
+/**
  * Only the parts the arithmetic reads. The stored section carries a `page`
  * block as well — headings and the closing pitch — which nothing here needs, so
  * asking for it would be asking a caller for something to be ignored.
@@ -113,6 +139,8 @@ export type PlanEventLike = {
 export type PlansCatalog = {
   cycleLabels: { annual: string; halfYearly: string; monthly: string };
   event: PlanEventLike;
+  /** The free-forever tier. Absent only on the app's offline fallback. */
+  free?: PlanFreeLike;
   modules: PlanModuleLike[];
   plans: PlanTierLike[];
   services: PlanServiceLike[];

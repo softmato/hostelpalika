@@ -34,11 +34,9 @@ import { revalidatePublicPages } from "@/lib/revalidate-public";
 export const SUSPENSION_GRACE_DAYS = 3;
 
 /**
- * `PLAN_PAYMENT` is a platform admin's, from Listings. `TRIAL_ENDED` is written
- * when a quick sign-up's KYC is approved (docs/QUICK_SIGNUP_KYC_TRIAL.md):
- * dated to start {@link SUSPENSION_GRACE_DAYS} before its trial ends, so it is
- * nothing until then, a countdown for those days, and a block once the trial is
- * over. Paying lifts either.
+ * `PLAN_PAYMENT` is a platform admin's, from Listings. `TRIAL_ENDED` is no
+ * longer written — an unpaid trial now ends on the free tier — and the renewal
+ * sweep clears any left from before. Paying lifts either.
  */
 export const SUSPENSION_REASONS = ["PLAN_PAYMENT", "PLAN_OVERDUE", "TRIAL_ENDED"] as const;
 export type SuspensionReason = (typeof SUSPENSION_REASONS)[number];
@@ -80,22 +78,6 @@ export function suspensionStage(
   return now.getTime() < new Date(suspension.graceEndsAt).getTime()
     ? "PRE_SUSPENSION"
     : "SUSPENDED";
-}
-
-/**
- * When a trial's end bites, set at KYC approval: a countdown for the trial's
- * last {@link SUSPENSION_GRACE_DAYS}, blocked when it ends — or, approved with
- * the trial already over or nearly, those days from today. **Pure.**
- */
-export function trialEndSuspension(trialEndsAt: Date, now = new Date()) {
-  const graceEndsAt = new Date(
-    Math.max(trialEndsAt.getTime(), hostelDayEnd(now, SUSPENSION_GRACE_DAYS).getTime()),
-  );
-  const startedAt = new Date(
-    Math.max(now.getTime(), trialEndsAt.getTime() - SUSPENSION_GRACE_DAYS * 86_400_000),
-  );
-
-  return { graceEndsAt, reason: "TRIAL_ENDED" as const, startedAt, startedBy: null };
 }
 
 /**

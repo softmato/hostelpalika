@@ -251,11 +251,11 @@ if (process.env.HP_ONLY === "config") {
   const store = await web.import<typeof import("../../../packages/shared/src/email/templates/store/items-table")>(
     "../../../packages/shared/src/email/templates/store/items-table",
   );
-  const { DEFAULT_PLANS } = await web.import<typeof import("../../../apps/web/src/modules/platform-config/plans.defaults")>(
-    "../../../apps/web/src/modules/platform-config/plans.defaults",
+  const { DEFAULT_PLANS } = await web.import<typeof import("../../../apps/web/src/lib/platform-config/plans.defaults")>(
+    "../../../apps/web/src/lib/platform-config/plans.defaults",
   );
-  const { DEFAULT_LIFETIME } = await web.import<typeof import("../../../apps/web/src/modules/platform-config/lifetime.defaults")>(
-    "../../../apps/web/src/modules/platform-config/lifetime.defaults",
+  const { DEFAULT_LIFETIME } = await web.import<typeof import("../../../apps/web/src/lib/platform-config/lifetime.defaults")>(
+    "../../../apps/web/src/lib/platform-config/lifetime.defaults",
   );
 
   const amounts = [0, 1, 7, -50, -1_234_567_890, 99, 100, 999, 1_000, 1_499, 12_000, 123_456, 1_234_567, 10_000_000, -1_500, -123_456];
@@ -479,8 +479,8 @@ if (process.env.HP_ONLY === "config") {
     "../../../apps/web/src/modules/notifications/email-preference.service",
   );
   const sender = await import("../../../packages/shared/src/email/sender");
-  const { EMAIL_TOPICS } = await web.import<typeof import("../../../apps/web/src/modules/notifications/email-topics")>(
-    "../../../apps/web/src/modules/notifications/email-topics",
+  const { EMAIL_TOPICS } = await web.import<typeof import("../../../apps/web/src/lib/notifications/email-topics")>(
+    "../../../apps/web/src/lib/notifications/email-topics",
   );
   const { UNSUBSCRIBE_SLOT } = await import("../../../packages/shared/src/email/templates/layout");
   const addresses = ["  Sita@Example.com ", "ram+hostel@gmail.com", "नेपाल@example.np"];

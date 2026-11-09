@@ -364,7 +364,14 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
   const { config } = useSiteConfig();
   const rank = rankOf(config.plans, plan);
   // A trial is ACTIVE on the server; on screen it is the trial, not a paid plan.
-  const status = plan.trialEndsAt ? { label: "Trial", tone: "warning" as const } : statusOf(plan.status);
+  // One that ran out unpaid is the free tier (its caps hold, nothing is locked).
+  const [now] = useState(() => Date.now());
+  const onFree = !plan.planName && Boolean(plan.trialEndsAt) && Date.parse(plan.trialEndsAt!) < now;
+  const status = onFree
+    ? { label: "Free", tone: "success" as const }
+    : plan.trialEndsAt
+      ? { label: "Trial", tone: "warning" as const }
+      : statusOf(plan.status);
   const detail = [plan.cycleLabel, plan.price ? formatMoney(plan.price) : null]
     .filter(Boolean)
     .join(" · ");
@@ -376,7 +383,9 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
         style={LIFT}
       >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft">
-          {rank === null ? (
+          {onFree ? (
+            <PlanMark color={colors.primary} free rank={0} size={30} />
+          ) : rank === null ? (
             <Glyph
               color={colors.primary}
               name="pricetag"
@@ -389,7 +398,7 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
 
         <View className="flex-1">
           <Text numberOfLines={1} variant="subtitle">
-            {plan.planName ?? (plan.trialEndsAt ? "Free trial" : "No plan chosen")}
+            {plan.planName ?? (onFree ? config.plans.free?.name ?? "Free" : plan.trialEndsAt ? "Free trial" : "No plan chosen")}
           </Text>
           {detail ? (
             <Text numberOfLines={1} variant="caption">
