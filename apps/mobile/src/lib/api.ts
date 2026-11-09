@@ -19,14 +19,17 @@ import { invalidateAllQueries } from "@/lib/query-cache";
  * has the reasoning and the failure mode that follows from getting it wrong.
  */
 
+import { ApiBreaker } from "@hostel/constants/api-failover";
 import {
   create,
+  isCancel,
   type AxiosError,
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from "axios";
 
 import { getRequestHostelId, loadActiveHostel } from "@/lib/active-hostel";
+import { SITE_URL } from "@/lib/site-url";
 import { AUTH_CLIENT_HEADER, MOBILE_AUTH_CLIENT } from "@/lib/api-contract";
 import {
   accessTokenNeedsRefresh,
@@ -36,10 +39,11 @@ import {
 import { clearTokens, readTokens, writeAccessToken, writeTokens } from "@/lib/session";
 
 /**
- * The deployed web app. It serves the API under `/api/v1`, and it is where every
- * build of this app talks unless `EXPO_PUBLIC_API_URL` says otherwise.
+ * The Go API (`server/`), where every build of this app talks unless
+ * `EXPO_PUBLIC_API_URL` says otherwise. Moved off the web's own TS routes on
+ * 2026-11-09; those stay as the standby (`lib/site-url.ts`).
  */
-const PRODUCTION_API_URL = "https://hostelpalika.com";
+const PRODUCTION_API_URL = "https://api.hostelpalika.com";
 
 function trimTrailingSlash(value?: string | null) {
   const trimmed = value?.trim();
@@ -76,8 +80,20 @@ export function resolveApiBaseUrl() {
 
 export const API_BASE_URL = resolveApiBaseUrl();
 
+/**
+ * Go first; the website's TS routes ({@link SITE_URL}) while Go is unreachable — the web's own
+ * breaker (`@hostel/constants/api-failover`), fed by the axios clients below.
+ * URLs built by hand from `API_BASE_URL` (downloads, `<Image>` sources, the
+ * native modules) stay on Go. ponytail: those have no failover; route them
+ * through `apiBreaker.origin()` if a Go outage ever lasts long enough to matter.
+ */
+export const apiBreaker = new ApiBreaker(API_BASE_URL, SITE_URL);
+
+/** A request already resent to the standby keeps that origin. */
+type FailoverConfig = InternalAxiosRequestConfig & { onStandby?: boolean };
+
 function createClient(): AxiosInstance {
-  return create({
+  const client = create({
     baseURL: `${API_BASE_URL}/api/v1`,
     headers: {
       "Content-Type": "application/json",
@@ -85,6 +101,38 @@ function createClient(): AxiosInstance {
     },
     timeout: 20000,
   });
+
+  client.interceptors.request.use((config) => {
+    if (!(config as FailoverConfig).onStandby) config.baseURL = `${apiBreaker.origin()}/api/v1`;
+    return config;
+  });
+
+  // Registered first, so it runs before the ETag and 401 handlers see the answer.
+  client.interceptors.response.use(
+    (response) => {
+      if (response.config.baseURL?.startsWith(API_BASE_URL)) apiBreaker.reportSuccess();
+      return response;
+    },
+    (error: AxiosError) => {
+      const config = error.config as FailoverConfig | undefined;
+      const status = error.response?.status;
+      const unreachable = !error.response || status === 502 || status === 504;
+
+      if (!config || isCancel(error) || !unreachable || !config.baseURL?.startsWith(API_BASE_URL) || API_BASE_URL === SITE_URL) {
+        return Promise.reject(error);
+      }
+
+      void apiBreaker.reportFailure();
+      const method = (config.method ?? "get").toLowerCase();
+
+      // A GET is safe to resend; a write only when Caddy answered for Go (it never saw it).
+      if (method !== "get" && method !== "head" && !status) return Promise.reject(error);
+
+      return client.request({ ...config, baseURL: `${SITE_URL}/api/v1`, onStandby: true } as FailoverConfig);
+    },
+  );
+
+  return client;
 }
 
 /** Authenticated client. Use for everything except login/refresh. */

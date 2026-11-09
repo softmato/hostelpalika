@@ -1,3 +1,5 @@
+import { SITE_URL } from "@/lib/site-url";
+
 /**
  * Making a stored image URL loadable on a phone.
  *
@@ -63,8 +65,9 @@ export function absoluteMediaUrl(
     return trimmed;
   }
 
-  const base = baseUrl.replace(/\/+$/, "");
   const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  // `/api/…` is the API (Go); anything else relative is one of the website's own files.
+  const base = (path.startsWith("/api/") ? baseUrl : SITE_URL).replace(/\/+$/, "");
 
   return `${base}${path}`;
 }

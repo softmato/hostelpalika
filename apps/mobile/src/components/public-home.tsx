@@ -26,6 +26,7 @@ import { useResource } from "@/hooks/use-resource";
 import { useSavedHostels } from "@/hooks/use-saved";
 import { useSiteConfig } from "@/hooks/use-site-config";
 import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 import { cityImageUrl } from "@/lib/city-images";
 import { sortByDistance } from "@/lib/geo";
 import {
@@ -458,7 +459,7 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
       onPress: () => {
         // Dismissing the sheet rejects on iOS; that is a choice, not an error.
         Share.share({
-          message: `${APP_NAME} — find verified hostels across Nepal.\n${API_BASE_URL.replace(/\/+$/, "")}`,
+          message: `${APP_NAME} — find verified hostels across Nepal.\n${SITE_URL}`,
           title: APP_NAME,
         }).catch(() => undefined);
       },

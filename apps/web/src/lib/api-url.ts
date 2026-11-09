@@ -1,4 +1,4 @@
-import { ApiBreaker } from "@/lib/api-failover";
+import { ApiBreaker } from "@hostel/constants/api-failover";
 
 /**
  * The one setting that says where the browser reaches the API. Empty means this

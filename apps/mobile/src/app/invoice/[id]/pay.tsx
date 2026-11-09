@@ -28,7 +28,7 @@ import {
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
-import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 import { readApiError } from "@/lib/api-contract";
 import { planHandoff } from "@/lib/checkout";
 import {
@@ -521,7 +521,7 @@ function GatewayPanel({
        * intent, so nothing secret travels through a URL.
        */
       const plan = planHandoff(intent.handoff, {
-        baseUrl: API_BASE_URL,
+        baseUrl: SITE_URL,
         reference: intent.reference,
       });
 

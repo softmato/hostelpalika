@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * Device mockups of the product, the same files the website shows.
@@ -15,7 +15,7 @@ import { API_BASE_URL } from "@/lib/api";
 export type Mockup = { alt: string; aspect: number; uri: string };
 
 function mockup(name: string, alt: string, aspect = 1536 / 1024): Mockup {
-  return { alt, aspect, uri: `${API_BASE_URL.replace(/\/+$/, "")}/mockups/${name}.webp` };
+  return { alt, aspect, uri: `${SITE_URL}/mockups/${name}.webp` };
 }
 
 export const MOCKUPS = {

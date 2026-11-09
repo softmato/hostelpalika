@@ -21,7 +21,7 @@ import { SkeletonText } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useSiteConfig } from "@/hooks/use-site-config";
-import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 import type { SiteContent } from "@/lib/site-config-api";
 import { fillPlaceholders, resolveContentPage } from "@/lib/site-content";
 
@@ -131,7 +131,7 @@ export function DocumentScreen({
    */
   const isEmpty =
     !override && resolved.sections.length === 0 && resolved.intro.length === 0;
-  const webUrl = `${API_BASE_URL.replace(/\/+$/, "")}/${webPath}`;
+  const webUrl = `${SITE_URL}/${webPath}`;
 
   return (
     <Screen

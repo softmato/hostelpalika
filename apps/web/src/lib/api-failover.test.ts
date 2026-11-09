@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiBreaker, PROBE_EVERY_MS } from "./api-failover";
+import { ApiBreaker, PROBE_EVERY_MS } from "@hostel/constants/api-failover";
 
 const GO = "https://api.test";
 const TS = "https://web.test";

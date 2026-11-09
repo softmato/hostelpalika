@@ -11,6 +11,10 @@ describe("absoluteMediaUrl", () => {
     );
   });
 
+  it("puts the website's own files on the site, not the API", () => {
+    expect(absoluteMediaUrl("/mockups/admin.webp", BASE)).toBe("https://hostelpalika.com/mockups/admin.webp");
+  });
+
   it("keeps the query string that selects a variant", () => {
     expect(absoluteMediaUrl("/api/v1/files/abc123/url?variant=MEDIUM", BASE)).toBe(
       "http://192.168.1.14:3000/api/v1/files/abc123/url?variant=MEDIUM",

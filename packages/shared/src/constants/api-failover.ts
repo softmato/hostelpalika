@@ -1,7 +1,10 @@
 /**
- * Go (`api.hostelpalika.com`) is the API; the TS routes deployed with this web
- * are its standby, and cost nothing until a request is sent to them. One
- * breaker per process (a browser tab, a server instance) picks the origin.
+ * Go (`api.hostelpalika.com`) is the API; the TS routes deployed with the web
+ * (`hostelpalika.com`) are its standby, and cost nothing until a request is sent
+ * to them. One breaker per process (a browser tab, a server instance, the app)
+ * picks the origin. Shared by the web (`fetch`) and the app (axios feeds it
+ * through `reportFailure` / `reportSuccess`); it lives under `constants/` only
+ * because that alias already resolves in both bundlers. No imports.
  *
  * - Down means unreachable: a network error, a timeout, or 502/504 from Caddy
  *   (no Go behind it). Any other answer, 500 included, is Go answering.
@@ -19,6 +22,13 @@ export const PROBE_EVERY_MS = 15_000;
 const REQUEST_TIMEOUT_MS = 8_000;
 const PROBE_TIMEOUT_MS = 3_000;
 const HEALTHY_PROBES_TO_RETURN = 2;
+
+/** `AbortSignal.timeout`, which Hermes (the app's engine) may not have. */
+function timeoutSignal(ms: number) {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
 
 type Fetch = typeof fetch;
 
@@ -57,18 +67,18 @@ export class ApiBreaker {
     const method = (init.method ?? "GET").toUpperCase();
     const retryable = method === "GET" || method === "HEAD";
     try {
-      const signal = init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+      const signal = init.signal ?? timeoutSignal(REQUEST_TIMEOUT_MS);
       const response = await this.fetcher(this.primary + path, { ...init, signal });
       if (response.status !== 502 && response.status !== 504) {
-        this.lastFailure = 0;
+        this.reportSuccess();
         return response;
       }
-      void this.failed();
+      void this.reportFailure();
       // Caddy answered for Go: the request never reached it, so even a write is safe to resend.
       return this.fetcher(this.standby + path, init);
     } catch (error) {
       if (init.signal?.aborted) throw error; // the caller cancelled it
-      void this.failed();
+      void this.reportFailure();
       if (retryable) return this.fetcher(this.standby + path, init);
       throw error;
     }
@@ -78,8 +88,16 @@ export class ApiBreaker {
     return this.primary !== this.standby;
   }
 
-  /** A second failure in the window, or a failed probe, trips the breaker. */
-  private async failed() {
+  /** Go answered: a lone earlier failure was a blip. */
+  reportSuccess() {
+    this.lastFailure = 0;
+  }
+
+  /**
+   * Go was unreachable (network error, timeout, 502/504). A second failure in
+   * the window, or a failed probe, trips the breaker.
+   */
+  async reportFailure() {
     const now = this.now();
     const second = this.lastFailure > 0 && now - this.lastFailure < FAIL_WINDOW_MS;
     this.lastFailure = now;
@@ -108,7 +126,7 @@ export class ApiBreaker {
     this.probing ??= this.fetcher(`${this.primary}/api/v1/health`, {
       cache: "no-store",
       credentials: "omit",
-      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+      signal: timeoutSignal(PROBE_TIMEOUT_MS),
     })
       .then((response) => response.ok, () => false)
       .finally(() => {

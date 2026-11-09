@@ -29,6 +29,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 import { type BookingAvailability, getBookingAvailability } from "@/lib/booking-api";
 import { bookState } from "@/lib/booking-button";
 import { formatMoney } from "@/lib/format";
@@ -107,7 +108,7 @@ export default function HostelDetailScreen() {
           name: data.name,
           place: locationLabel(data.location),
           price: priceRange(data.pricing),
-          url: hostelPublicUrl(API_BASE_URL, data.slug),
+          url: hostelPublicUrl(SITE_URL, data.slug),
         }),
         title: data.name,
       });

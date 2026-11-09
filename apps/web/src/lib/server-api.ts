@@ -2,7 +2,7 @@ import "server-only";
 
 import { headers } from "next/headers";
 
-import { ApiBreaker } from "@/lib/api-failover";
+import { ApiBreaker } from "@hostel/constants/api-failover";
 import { siteUrl } from "@/lib/site";
 
 /**

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { API_BASE_URL } from "@/lib/api";
+import { SITE_URL } from "@/lib/site-url";
 import { openAssetViewer } from "@/lib/asset-viewer";
 import { readApiError } from "@/lib/api-contract";
 import {
@@ -493,7 +493,7 @@ export function CommunityPostCard({
  * `app/community/[postId].tsx`; anywhere else it opens the web page.
  */
 function communityPostLink(postId: string) {
-  return `${API_BASE_URL}/community/${postId}`;
+  return `${SITE_URL}/community/${postId}`;
 }
 
 /**
