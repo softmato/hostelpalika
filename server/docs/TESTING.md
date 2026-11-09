@@ -108,6 +108,10 @@ k6 run testdata/k6/reads.js
 Everything the browser and the web's server components ask of `/api/v1` goes to Go;
 pages are still rendered by `next dev`.
 
+**One command:** `npm run dev:local` (`scripts/dev.ps1`) starts Docker Desktop if it is
+off, brings up the API stack below (`-NoBuild` reuses the last image), waits for deep
+health, then runs `next dev` with the env described below. The steps by hand:
+
 ```bash
 docker compose -f deploy/compose.yaml -f deploy/compose.local.yaml up -d --build api
 ```
