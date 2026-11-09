@@ -309,6 +309,19 @@ const nextConfig: NextConfig = {
         ["/pricings", "/plans-pricing"],
         ["/faq", "/plans-pricing"],
       ].map(([source, destination]) => ({ destination, permanent: true, source })),
+      // Stored photo paths (`/api/v1/files/<id>/url`) are rendered as-is in many
+      // places; send them to Go at the routing layer instead of a TS function per
+      // image. ponytail: bypasses the breaker, so photos break while Go is down;
+      // route each render site through apiUrl() if that outage matters.
+      ...(process.env.NEXT_PUBLIC_API_URL?.startsWith("https://")
+        ? [
+            {
+              destination: `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "")}/api/v1/files/:id/url`,
+              permanent: false,
+              source: "/api/v1/files/:id/url",
+            },
+          ]
+        : []),
     ];
   },
   async rewrites() {

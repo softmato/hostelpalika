@@ -7,13 +7,15 @@
  * `width` must be one of Next's image sizes (384, 640, 1200 used here); hosts
  * outside `NEXT_PUBLIC_IMAGE_HOSTS` (next.config) are returned untouched.
  * Relative `/api/v1/files/…/url` photos are 302s to R2: the optimizer follows
- * them once made absolute against the deployed origin. Locally that origin is
- * localhost, which the optimizer refuses, so they pass through as they are.
+ * them once made absolute against the API (Go, `NEXT_PUBLIC_API_URL`), else the
+ * deployed origin. A localhost origin is refused by the optimizer, so they pass
+ * through as they are.
  */
 const HOSTS = (process.env.NEXT_PUBLIC_IMAGE_HOSTS ?? "").split(",").filter(Boolean);
-const ORIGIN = process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://")
-  ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, "")
-  : null;
+const ORIGIN =
+  [process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_APP_URL]
+    .find((url) => url?.startsWith("https://"))
+    ?.replace(/\/+$/, "") ?? null;
 
 export function optimizedImage(url: string | undefined, width: 384 | 640 | 1200) {
   if (!url) return "";
