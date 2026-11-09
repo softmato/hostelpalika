@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/safety"
 	"github.com/softmato/hostelpalika/server/internal/modules/users"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/maps"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -157,7 +159,10 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 	}
 
 	r := s.D.Jobs
-	r.OnFailure(func(ctx context.Context, job, problem string) { alertSuperadmins(ctx, db, s.Notify, job, problem) })
+	site := strings.TrimRight(s.Cfg.AppURL, "/")
+	r.OnFailure(func(ctx context.Context, job, problem string) {
+		alertSuperadmins(ctx, db, s.Notify, s.Mail, site, job, problem)
+	})
 	r.Add(
 		&jobs.Job{Name: "platform-push", Schedule: "* * * * *", Deadline: minute, Message: "Scheduled pushes dispatched",
 			Run: func(ctx context.Context) (any, error) {
@@ -309,26 +314,32 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 	}}).Register(v1)
 }
 
-// alertSuperadmins tells every active superadmin (bell + push) that a scheduled
-// job failed, timed out or was missed: an in-process scheduler has nobody to
-// switch it off, but someone must still hear when a run goes wrong.
-func alertSuperadmins(ctx context.Context, db *mongo.Database, notify *notifications.Service, job, problem string) {
+// alertSuperadmins tells every active superadmin (bell, push and email) that a
+// scheduled job failed, timed out or was missed: an in-process scheduler has
+// nobody to switch it off, but someone must still hear when a run goes wrong.
+func alertSuperadmins(ctx context.Context, db *mongo.Database, notify *notifications.Service, mail *email.Sender, site, job, problem string) {
 	cur, err := db.Collection("users").Find(ctx, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "role", Value: "SUPERADMIN"}, {Key: "status", Value: "ACTIVE"}},
-		options.Find().SetProjection(bson.D{{Key: "_id", Value: 1}}).SetLimit(100))
+		options.Find().SetProjection(bson.D{{Key: "email", Value: 1}}).SetLimit(100))
 	if err != nil {
 		slog.ErrorContext(ctx, "Job alert: superadmins not read", "category", "jobs", "job", job, "error", err)
 		return
 	}
 	var staff []struct {
-		ID bson.ObjectID `bson:"_id"`
+		ID    bson.ObjectID `bson:"_id"`
+		Email string        `bson:"email"`
 	}
 	if err := cur.All(ctx, &staff); err != nil {
 		slog.ErrorContext(ctx, "Job alert: superadmins not read", "category", "jobs", "job", job, "error", err)
 		return
 	}
-	for _, m := range staff {
-		if _, err := notify.CreateInApp(ctx, notifications.Input{ActionURL: "/platform/system/cron?job=" + job, Body: job + " " + problem, Category: "GENERAL",
-			Data: ordered.Map{{Key: "job", Value: job}}, Kind: "ACTION", Priority: "HIGH", Title: "Scheduled job needs a look", UserID: m.ID.Hex()}); err != nil {
+	path := "/platform/system/cron?job=" + job
+	m := email.JobAlert(site+path, job, problem)
+	for _, member := range staff {
+		if member.Email != "" {
+			mail.Notify(ctx, email.Notification{Action: "platform_job_alert", To: member.Email, Subject: m.Subject, HTML: m.HTML, Category: m.Category})
+		}
+		if _, err := notify.CreateInApp(ctx, notifications.Input{ActionURL: path, Body: job + " " + problem, Category: "GENERAL",
+			Data: ordered.Map{{Key: "job", Value: job}}, Kind: "ACTION", Priority: "HIGH", Title: "Scheduled job needs a look", UserID: member.ID.Hex()}); err != nil {
 			slog.ErrorContext(ctx, "Job alert not delivered", "category", "jobs", "job", job, "error", err)
 		}
 	}

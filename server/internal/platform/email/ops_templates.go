@@ -66,3 +66,12 @@ func ComplaintResolved(complaintsURL, hostelName, response, title string) Conten
 	return Content{Category: Support, Subject: "Your complaint is fixed: " + title + " — " + hostelName,
 		HTML: EmailLayout(Layout{Heading: "Your complaint is fixed", BodyHTML: strings.Join(parts, "\n")})}
 }
+
+// JobAlert tells a superadmin a scheduled job failed, timed out or was missed.
+// Go only: TS jobs ran from cron-job.org and alerted nobody.
+func JobAlert(cronURL, job, problem string) Content {
+	return Content{Category: Alert, Subject: "Scheduled job needs a look: " + job, HTML: EmailLayout(Layout{
+		Heading: "A scheduled job needs a look", Urgent: true,
+		BodyHTML: strings.Join([]string{Paragraph("<strong>" + EscapeHTML(job) + "</strong> " + EscapeHTML(problem) + "."),
+			Paragraph("You get this once per job every 6 hours while it keeps failing."), CTAButton(cronURL, "Open Cron")}, "\n")})}
+}
