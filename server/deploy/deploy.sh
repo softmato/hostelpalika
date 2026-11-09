@@ -101,11 +101,14 @@ if [ "$caddy_changed" = 1 ]; then
   dc exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 fi
 
-# 8. Deep health through Caddy (Mongo + Redis pinged).
+# 8. Deep health through Caddy (Mongo + Redis pinged). On a first deploy Caddy is
+#    still getting its certificate, which outlasted a 30 s loop on 2026-11-09, so the
+#    wait is HEALTH_WAIT like the replicas'.
 host=$(dc exec -T caddy printenv API_HOST 2>/dev/null | tr -d '\r' || true)
 host=${host:-api.hostelpalika.com}
 ok=0
-for _ in $(seq 1 15); do
+deadline=$((SECONDS + HEALTH_WAIT))
+while [ $SECONDS -lt "$deadline" ]; do
   if curl -fsS --max-time 5 --resolve "$host:443:127.0.0.1" "https://$host/api/v1/health?deep=1" >/dev/null; then
     ok=1; break
   fi
