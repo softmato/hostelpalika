@@ -51,7 +51,7 @@ with the cron secret, and the restore drill posts its result there too. The supe
 dashboard shows **Last backup … · N collections**, a red badge when none came in 30 hours,
 and **Not verified** until a drill has passed. The server never gets a key to the backups
 bucket. Set up (owner): GitHub secret `BACKUP_CRON_SECRET` = the app's `CRON_SECRET`, and
-variable `BACKUP_REPORT_URL` = `https://hostelpalika.com/api/v1/cron/platform-backup`.
+variable `BACKUP_REPORT_URL` = `https://api.hostelpalika.com/api/v1/cron/platform-backup` (Go; the TS standby takes the same POST if Go is down).
 
 ## Restore drill (I2)
 
