@@ -15,11 +15,19 @@ ADMIN=${SUDO_USER:?run through sudo from the admin account}
 [ -s "/home/$ADMIN/.ssh/authorized_keys" ] || {
   echo "no key in /home/$ADMIN/.ssh/authorized_keys; nothing changed" >&2; exit 1; }
 
-export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
 apt-get update -q
 apt-get upgrade -y -q
-apt-get install -y -q docker.io docker-compose-v2 curl ufw unattended-upgrades
+apt-get install -y -q docker.io docker-compose-v2 curl ufw unattended-upgrades cloud-guest-utils
 systemctl enable --now docker
+
+# Root fills the disk: the provider's image leaves most of it unallocated (18 of 55 GB).
+pv=$(pvs --noheadings -o pv_name | tr -d ' ' | head -n1)
+if [ -n "$pv" ]; then
+  growpart "/dev/$(lsblk -dno pkname "$pv")" "${pv##*[!0-9]}" || true # exit 1 = already full
+  pvresize "$pv"
+  lvextend -r -l +100%FREE "$(findmnt -no SOURCE /)" || true # fails when nothing is free
+fi
 
 # deploy runs compose for CI. The docker group is root-equivalent, so its key lives
 # only in the GitHub secret VPS_SSH_KEY.
@@ -34,6 +42,10 @@ chmod 600 /home/deploy/.ssh/authorized_keys
 echo "$ADMIN ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/90-hostelpalika-admin
 chmod 440 /etc/sudoers.d/90-hostelpalika-admin
 visudo -cqf /etc/sudoers.d/90-hostelpalika-admin
+# The provider's cloud-init file has a malformed line sudo warns about on every call;
+# the file above grants the same, so a broken one goes.
+f=/etc/sudoers.d/90-cloud-init-users
+[ ! -f $f ] || visudo -cqf $f || rm -f $f
 
 # SSH: keys only, no root. sshd keeps the first value it reads, and 10- sorts before
 # cloud-init's 50- drop-in that turns passwords on.
