@@ -751,6 +751,10 @@
               "vatRegistered": false
             },
             "legal": {
+              "guide": {
+                "updatedAt": "10 November 2026",
+                "version": "1.0"
+              },
               "privacy": {
                 "body": "",
                 "updatedAt": ""
@@ -3583,6 +3587,10 @@
               "vatRegistered": false
             },
             "legal": {
+              "guide": {
+                "updatedAt": "10 November 2026",
+                "version": "1.0"
+              },
               "privacy": {
                 "body": "",
                 "updatedAt": ""
@@ -6193,6 +6201,10 @@
               "tagline": "A Hostel Management Eco-Software"
             },
             "legal": {
+              "guide": {
+                "updatedAt": "10 November 2026",
+                "version": "1.0"
+              },
               "privacy": {
                 "body": "",
                 "updatedAt": ""
