@@ -8,7 +8,8 @@ import (
 )
 
 var roomTypeNames = map[string]string{"double sharing": "Double Sharing Room", "four sharing": "Four Sharing Room", "single": "Single Sitter Room",
-	"single room": "Single Sitter Room", "triple sharing": "Triple Sharing Room"}
+	"single room": "Single Sitter Room", "triple sharing": "Triple Sharing Room",
+	"three sharing": "Three Sharing Room", "two sharing": "Two Sharing Room"}
 
 // RoomTypeLabel is roomTypeLabel (packages/shared constants/room-types.ts).
 func RoomTypeLabel(roomType string) string {

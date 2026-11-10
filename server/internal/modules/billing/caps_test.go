@@ -1,36 +1,42 @@
 package billing
 
 import (
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/plans"
 )
 
-func TestCapsFor(t *testing.T) {
+func TestPlanState(t *testing.T) {
 	catalog, _ := plans.Defaults()
 	now := time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)
 	past, future := now.AddDate(0, 0, -3), now.AddDate(0, 0, 3)
 	paid := catalog.Plans[0].ID
 	for _, tc := range []struct {
 		name string
-		sub  capsSubscription
-		want string // plan name, "" for no ceiling
+		sub  *capsSubscription
+		kind string
 	}{
-		{"paid plan", capsSubscription{PlanID: &paid, TrialEndsAt: &past}, catalog.Plans[0].Name},
-		{"unpaid trial over", capsSubscription{TrialEndsAt: &past}, "Free"},
-		{"trial running", capsSubscription{TrialEndsAt: &future}, ""},
-		{"no trial, no plan", capsSubscription{}, ""},
+		{"live paid plan", &capsSubscription{PlanID: &paid, CurrentPeriodEnd: &future}, "paid"},
+		{"lifetime plan", &capsSubscription{PlanID: &paid, LifetimeSince: &past}, "paid"},
+		{"trial running, plan chosen", &capsSubscription{PlanID: &paid, TrialEndsAt: &future}, "trial"},
+		{"paid period lapsed", &capsSubscription{PlanID: &paid, CurrentPeriodEnd: &past}, "free"},
+		{"plan chosen, never paid", &capsSubscription{PlanID: &paid, TrialEndsAt: &past}, "free"},
+		{"unpaid trial over", &capsSubscription{TrialEndsAt: &past}, "free"},
+		{"no trial, no plan", &capsSubscription{}, "none"},
+		{"no subscription", nil, "none"},
 	} {
-		name, caps, ok := capsFor(catalog, tc.sub, now)
-		if !ok {
-			name = ""
+		if got := planState(catalog, tc.sub, now).kind; got != tc.kind {
+			t.Errorf("%s: got %q, want %q", tc.name, got, tc.kind)
 		}
-		if name != tc.want {
-			t.Errorf("%s: got %q, want %q", tc.name, name, tc.want)
-		}
-		if tc.want == "Free" && (*caps["residents"] != 10 || *caps["wardens"] != 1 || *caps["cooks"] != 1) {
-			t.Errorf("free caps: %d/%d/%d", *caps["residents"], *caps["wardens"], *caps["cooks"])
-		}
+	}
+
+	free := planState(catalog, &capsSubscription{TrialEndsAt: &past}, now)
+	if *free.caps["residents"] != 10 || *free.caps["wardens"] != 1 || *free.caps["cooks"] != 1 || free.name != "Free" {
+		t.Errorf("free caps: %+v", free)
+	}
+	if got := seatsOver(free, map[string]int64{"residents": 34, "wardens": 2, "cooks": 1}); !slices.Equal(got, []string{"residents", "wardens"}) {
+		t.Errorf("seatsOver: %v", got)
 	}
 }

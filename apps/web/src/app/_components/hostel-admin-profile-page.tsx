@@ -2,14 +2,17 @@
 
 import {
   Building2,
+  Check,
   Home,
   ImagePlus,
   LayoutDashboard,
   Loader2,
   MapPin,
   Phone,
+  Plus,
   ShieldAlert,
   Trash2,
+  X,
   type IconComponent,
 } from "@/components/icons";
 import {
@@ -28,6 +31,7 @@ import {
   LocationPicker,
   type LocationPickerValue,
 } from "@/components/maps/location-picker";
+import { facilityOptions } from "@/app/_components/registration-fields";
 import { useMediaViewer } from "@/components/media-viewer";
 import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
@@ -251,6 +255,93 @@ function SettingsBlock({
         <p className="mt-0.5 text-xs font-normal text-muted-foreground">{description}</p>
       ) : null}
       <div className="mt-3">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * A list of short items shown as boxes, the way the KYC steps show them.
+ * Suggestions are toggle pills; anything else is a removable chip. The value
+ * rides in a hidden input so the page's one FormData save (csvField) is
+ * unchanged — which is why a comma in the typed text splits it into two items.
+ */
+function ChipsField({
+  addLabel,
+  initial,
+  name,
+  placeholder,
+  suggestions = [],
+}: {
+  addLabel: string;
+  initial: string[];
+  name: string;
+  placeholder: string;
+  suggestions?: string[];
+}) {
+  const [picked, setPicked] = useState(initial);
+  const [draft, setDraft] = useState("");
+  const options = [...new Set([...suggestions, ...picked])];
+  const toggle = (item: string) =>
+    setPicked((cur) => (cur.includes(item) ? cur.filter((i) => i !== item) : [...cur, item]));
+  const add = () => {
+    const items = draft.split(",").map((i) => i.trim()).filter(Boolean);
+    if (!items.length) return;
+    setPicked((cur) => {
+      const next = [...cur];
+      for (const item of items) {
+        const known = options.find((o) => o.toLowerCase() === item.toLowerCase()) ?? item;
+        if (!next.includes(known)) next.push(known);
+      }
+      return next;
+    });
+    setDraft("");
+  };
+
+  return (
+    <div className="space-y-3">
+      <input name={name} type="hidden" value={picked.join(", ")} />
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const on = picked.includes(option);
+
+          return (
+            <button
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${on ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted"}`}
+              key={option}
+              onClick={() => toggle(option)}
+              type="button"
+            >
+              {on ? <Check className="size-3.5" /> : null}
+              {option}
+              {on && !suggestions.includes(option) ? <X className="size-3.5 opacity-80" /> : null}
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex gap-2">
+        <input
+          aria-label={addLabel}
+          className="h-10 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand-teal"
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+          value={draft}
+        />
+        <button
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold transition hover:bg-muted disabled:opacity-40"
+          disabled={!draft.trim()}
+          onClick={add}
+          type="button"
+        >
+          <Plus className="size-4" />
+          Add
+        </button>
+      </div>
     </div>
   );
 }
@@ -932,28 +1023,29 @@ export const HostelAdminProfilePageContent = memo(
                     kyc="facilities rules"
                     title="What you offer"
                   >
-                    <SettingsRow
-                      description="e.g. WiFi, Hot water, Study table"
+                    <SettingsBlock
+                      description="Tap to switch on or off, or add your own."
                       label="Facilities"
                     >
-                      <Input
-                        defaultValue={hostel.facilities.join(", ")}
-                        label={null}
+                      <ChipsField
+                        addLabel="Add custom facility"
+                        initial={hostel.facilities}
                         name="facilities"
-                        placeholder="WiFi, Hot water, Study table"
+                        placeholder="Rooftop garden"
+                        suggestions={facilityOptions}
                       />
-                    </SettingsRow>
-                    <SettingsRow
-                      description="e.g. No smoking, Gate closes 9pm"
+                    </SettingsBlock>
+                    <SettingsBlock
+                      description="One box per rule. Add as many as you need."
                       label="House rules"
                     >
-                      <Input
-                        defaultValue={hostel.rules.join(", ")}
-                        label={null}
+                      <ChipsField
+                        addLabel="Add house rule"
+                        initial={hostel.rules}
                         name="rules"
-                        placeholder="No smoking, Gate closes 9pm"
+                        placeholder="Gate closes at 10 PM"
                       />
-                    </SettingsRow>
+                    </SettingsBlock>
                   </FieldGroup>
                 </SectionBody>
 

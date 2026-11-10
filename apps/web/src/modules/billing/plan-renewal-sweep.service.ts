@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
 import { raiseRenewalInvoice } from "@/modules/billing/subscription.service";
-import { overdueSuspension } from "@/modules/hostels/hostel-suspension";
+import { refreshPlanLimit } from "@/modules/billing/plan-limits";
 import { onInvoiceIssued } from "@/modules/hostels/hostel-registration.events";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -28,8 +28,8 @@ import type { BillingCycle } from "@hostel/shared/plans/catalog";
  *
  * A plan whose period has ended with that bill still open becomes `PAST_DUE`,
  * which is what the due banners, the after-due reminders and a superadmin's
- * Suspend already read. It also schedules the suspension: 7 days to pay, then
- * 3 of pre-suspension, then the portal stops (`overdueSuspension`).
+ * Suspend already read. Nothing is suspended: past its period the hostel is on
+ * the free tier (`planState`), and over its caps it gets the over-limit grace.
  *
  * Runs on the 07:45 `payment-reminders` cron, ahead of the 08:00 plan
  * reminders that then pick the bill up (7 and 5 days out, then daily).
@@ -51,12 +51,35 @@ type Row = {
   planName?: string | null;
 };
 
+/** Every hostel's over-limit clock, started or cleared (`refreshPlanLimit`). Branches count on their own. */
+async function refreshAllPlanLimits(now: Date) {
+  // ponytail: unpaged, one hostel at a time; page by `_id` at thousands.
+  const subs = await HostelSubscriptionModel.find({}).select("hostelId").lean<{ hostelId: Types.ObjectId }[]>();
+  const branches = await HostelModel.find({ isDeleted: { $ne: true }, parentHostelId: { $ne: null } })
+    .select("_id")
+    .lean<{ _id: Types.ObjectId }[]>();
+
+  for (const id of [...subs.map((sub) => sub.hostelId), ...branches.map((branch) => branch._id)]) {
+    await refreshPlanLimit(id, now).catch((error: unknown) =>
+      console.error(
+        JSON.stringify({
+          action: "plan_limit_refresh_failed",
+          hostelId: id.toString(),
+          level: "error",
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      ),
+    );
+  }
+}
+
 export async function raiseDueRenewals(now = new Date()) {
   await connectToDatabase();
 
-  // An unpaid trial ends on the free tier now; lift any trial-end block left from before.
+  // An unpaid trial or a lapsed plan ends on the free tier now; lift any
+  // automatic block left from before. A platform admin's PLAN_PAYMENT stays.
   await HostelModel.updateMany(
-    { "suspension.reason": "TRIAL_ENDED" },
+    { "suspension.reason": { $in: ["TRIAL_ENDED", "PLAN_OVERDUE"] } },
     {
       $set: {
         "suspension.graceEndsAt": null,
@@ -66,6 +89,8 @@ export async function raiseDueRenewals(now = new Date()) {
       },
     },
   );
+
+  await refreshAllPlanLimits(now);
 
   // ponytail: one unpaged read, like the plan reminders next door; page by `_id` at thousands.
   const subscriptions = await HostelSubscriptionModel.find({
@@ -164,18 +189,8 @@ export async function raiseDueRenewals(now = new Date()) {
           { _id: subscription._id, status: "ACTIVE" },
           { $set: { dueBy: open.dueAt ?? subscription.currentPeriodEnd, status: "PAST_DUE" } },
         );
-        // The automatic path: 7 days to pay, then 3 of pre-suspension, then the
-        // portal stops. Only where nothing is scheduled or running already.
-        const schedule = overdueSuspension(open.dueAt ?? subscription.currentPeriodEnd);
-
-        await HostelModel.updateOne(
-          { _id: subscription.hostelId, "suspension.startedAt": null },
-          { $set: { suspension: schedule } },
-        );
-        await HostelModel.updateMany(
-          { parentHostelId: subscription.hostelId, "suspension.startedAt": null },
-          { $set: { suspension: schedule } },
-        );
+        // No suspension: a lapsed plan is on the free tier now, and its caps
+        // (with their own grace) are what bite.
         totals.lapsed += 1;
       }
     } catch (error) {

@@ -3217,6 +3217,27 @@ export type PlanBilling = {
   subscriptionState?: AdminSubscription | null;
 };
 
+/** `GET /hostel-admin/billing/usage`: the plan, its caps, what is used, any over-limit clock. */
+export type PlanUsage = {
+  state: "none" | "trial" | "paid" | "free";
+  planName: string | null;
+  caps: Record<PlanSeat, number | null>;
+  used: Record<PlanSeat, number>;
+  overLimit: boolean;
+  overSince: string | null;
+  readOnlyFrom: string | null;
+  readOnly: boolean;
+  trialEndsAt: string | null;
+};
+
+export type PlanSeat = "residents" | "wardens" | "cooks";
+
+export async function getPlanUsage() {
+  const response = await api.get<ApiEnvelope<{ usage: PlanUsage | null }>>("/hostel-admin/billing/usage");
+
+  return unwrap(response).usage;
+}
+
 export async function getPlanBilling() {
   const response = await api.get<
     ApiEnvelope<{ history: PlanBilling; state: AdminSubscription | null }>

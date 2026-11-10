@@ -795,10 +795,10 @@ function PricingTab({
       </ConfigPanel>
 
       <ConfigPanel
-        description="Free forever. A hostel whose trial ends without a paid plan lands here and is held to these caps."
+        description="Free forever. Every hostel without a live paid plan is here and held to these caps; over them, it gets the grace days, then goes read-only."
         title="Free plan"
       >
-        <div className="grid gap-2.5 sm:grid-cols-3">
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           <NumberField
             label="Residents"
             max={1000}
@@ -820,6 +820,13 @@ function PricingTab({
               onPatch({ free: { ...free, portalAccess: { ...free.portalAccess, cooks: cooks ?? 0 } } })
             }
             value={free.portalAccess.cooks}
+          />
+          <NumberField
+            hint="Over these caps, the portal turns read-only after this many days."
+            label="Grace days"
+            max={90}
+            onChange={(overLimitGraceDays) => onPatch({ free: { ...free, overLimitGraceDays: overLimitGraceDays ?? 0 } })}
+            value={free.overLimitGraceDays}
           />
         </div>
       </ConfigPanel>

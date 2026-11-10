@@ -55,6 +55,7 @@ var (
 	errSuspended     = authErr(http.StatusLocked, "HOSTEL_SUSPENDED", HostelSuspendedMessage)
 	errKycRequired   = authErr(http.StatusLocked, "KYC_REQUIRED", KycRequiredMessage)
 	errTrialEnded    = authErr(http.StatusLocked, "TRIAL_ENDED_KYC", TrialEndedKycMessage)
+	errOverLimit     = authErr(http.StatusLocked, "PLAN_OVER_LIMIT", PlanOverLimitMessage)
 	errNotFound      = authErr(http.StatusNotFound, "NOT_FOUND", "Not found.")
 	errCapability    = authErr(http.StatusForbidden, "CAPABILITY_DENIED", "Your warden account does not have permission for this action.")
 	errTempForbidden = authErr(http.StatusForbidden, "TEMPORARY_CREDENTIAL_FORBIDDEN", "Sign in with your own password to manage account access.")
@@ -76,6 +77,10 @@ type Guards struct {
 	// 0 = read every time.
 	GateTTL time.Duration
 	gates   gateMemo
+	// PlanLimitRecheck re-reads a hostel past its over-limit grace before a write is
+	// refused (billing.Limits.ReadOnly), so paying or a move-out lifts it at once.
+	// nil = trust the stored clock.
+	PlanLimitRecheck func(ctx context.Context, hostel bson.ObjectID) (bool, error)
 }
 
 type gateMemo struct {
@@ -295,7 +300,7 @@ func (g *Guards) gateRows(c *gin.Context, ids []bson.ObjectID, isStaff bool, fil
 		}
 	}
 	cur, err := g.DB.Collection("hostels").Find(c, filter, options.Find().SetProjection(
-		bson.D{{Key: "_id", Value: 1}, {Key: "kyc", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "slug", Value: 1}, {Key: "suspension", Value: 1}}))
+		bson.D{{Key: "_id", Value: 1}, {Key: "kyc", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "planLimit", Value: 1}, {Key: "slug", Value: 1}, {Key: "suspension", Value: 1}}))
 	if err != nil {
 		return nil, err
 	}
@@ -319,8 +324,11 @@ type hostelGateRow struct {
 	ID             bson.ObjectID  `bson:"_id"`
 	Kyc            *Kyc           `bson:"kyc"`
 	ParentHostelID *bson.ObjectID `bson:"parentHostelId"`
-	Slug           string         `bson:"slug"`
-	Suspension     *Suspension    `bson:"suspension"`
+	PlanLimit      *struct {
+		ReadOnlyFrom *time.Time `bson:"readOnlyFrom"`
+	} `bson:"planLimit"`
+	Slug       string      `bson:"slug"`
+	Suspension *Suspension `bson:"suspension"`
 }
 
 // narrowToLiveHostels takes out hostels whose suspension has landed and, for
@@ -386,6 +394,24 @@ func (g *Guards) narrowToLiveHostels(c *gin.Context, p *Principal) (*Principal, 
 		}
 		if IsBlockedAfterTrial(c.Request.Method, path) && gate(func(r *hostelGateRow) bool { return r.Kyc.TrialOverWithoutKyc(now) }) {
 			return nil, errTrialEnded
+		}
+		// Free tier, over its caps, grace run out: read-only, re-checked before refusing.
+		if IsBlockedWhileOverLimit(c.Request.Method, path) {
+			for _, r := range rows {
+				if !slices.Contains(hostelIDs, r.ID.Hex()) || r.PlanLimit == nil || r.PlanLimit.ReadOnlyFrom == nil || now.Before(*r.PlanLimit.ReadOnlyFrom) {
+					continue
+				}
+				still := true
+				if g.PlanLimitRecheck != nil {
+					if still, err = g.PlanLimitRecheck(c, r.ID); err != nil {
+						return nil, err
+					}
+				}
+				if still {
+					return nil, errOverLimit
+				}
+				g.forgetGates()
+			}
 		}
 	}
 

@@ -39,7 +39,7 @@ function ShortStaysForm({ settings }: { settings: ShortStaySettingsView }) {
   return (
     <div className="space-y-4 text-sm">
       <label className="flex items-center gap-3 font-semibold text-foreground">
-        <input checked={enabled} onChange={(event) => setEnabled(event.target.checked)} type="checkbox" />
+        <input checked={enabled} className="size-4 accent-primary" onChange={(event) => setEnabled(event.target.checked)} type="checkbox" />
         Take short stays
       </label>
 

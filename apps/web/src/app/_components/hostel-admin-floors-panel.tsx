@@ -290,6 +290,135 @@ function useSettled<K extends string | number>(
   return [targets, set] as const;
 }
 
+/**
+ * Removing a floor that people live on: each of them is given a free bed of the
+ * same room type on another floor (pre-filled, changeable) before the floor goes.
+ */
+function RemoveFloorDialog({
+  busy,
+  floor,
+  onClose,
+  onConfirm,
+  rooms,
+}: {
+  busy: boolean;
+  floor: number;
+  onClose: () => void;
+  onConfirm: (moves: { residentId: string; roomId: string }[]) => void;
+  rooms: Room[];
+}) {
+  const floorRooms = rooms.filter((room) => room.floor === floor);
+  const leaving = floorRooms.flatMap((room) => room.residents.map((person) => ({ person, room })));
+  const targets = rooms.filter((room) => room.floor !== floor);
+  const [picks, setPicks] = useState<Record<string, string>>(() => {
+    const left = new Map(targets.map((room) => [room.id, room.free]));
+    const first: Record<string, string> = {};
+
+    for (const { person, room } of leaving) {
+      const target = targets.find((item) => item.roomType === room.roomType && (left.get(item.id) ?? 0) > 0);
+      if (!target) continue;
+      first[person.id] = target.id;
+      left.set(target.id, (left.get(target.id) ?? 0) - 1);
+    }
+
+    return first;
+  });
+  const claimed = (roomId: string, except: string) => Object.entries(picks).filter(([id, picked]) => picked === roomId && id !== except).length;
+  const ready = leaving.every(({ person }) => picks[person.id]);
+
+  return (
+    <Dialog onOpenChange={(open) => (open || busy ? null : onClose())} open>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Move residents off {floorName(floor)}</DialogTitle>
+          <DialogDescription>
+            {leaving.length} {leaving.length === 1 ? "person lives" : "people live"} in the {floorRooms.length} {floorRooms.length === 1 ? "room" : "rooms"} here. Each needs a bed of the same room type on another floor. Once they are moved, the floor and its rooms are removed.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid max-h-[58vh] gap-3 overflow-y-auto pr-1">
+          {leaving.map(({ person, room }) => {
+            const options = targets
+              .filter((item) => item.roomType === room.roomType && item.free - claimed(item.id, person.id) > 0)
+              .sort((a, b) => a.floor - b.floor || byNumber(a, b));
+
+            return (
+              <div className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-3.5" key={person.id}>
+                <div className="flex items-center gap-3">
+                  <Initial name={person.name} photo={person.photo} size="size-11" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[14.5px] font-semibold text-foreground">{person.name}</p>
+                    <p className="truncate text-[12px] text-muted-foreground">
+                      Leaving Room {room.number} · {roomTypeLabel(room.roomType)}
+                      {person.since ? ` · since ${new Date(person.since).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                    </p>
+                  </div>
+                  {person.due ? <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">{formatMoney(person.due)} due</span> : null}
+                </div>
+                {options.length ? (
+                  <div className="grid gap-1.5">
+                    <p className="text-[11px] font-semibold text-muted-foreground">Move to · {options.length} {options.length === 1 ? "room has" : "rooms have"} a free bed</p>
+                    <div className="grid max-h-44 grid-cols-2 gap-2 overflow-y-auto p-0.5" role="radiogroup">
+                      {options.map((item) => {
+                        const on = picks[person.id] === item.id;
+                        const left = item.free - claimed(item.id, person.id);
+
+                        return (
+                          <button
+                            aria-checked={on}
+                            className={cn(
+                              "relative grid gap-1 rounded-xl border-2 bg-card px-3 py-2 text-left transition hover:border-brand-teal",
+                              on ? "border-brand-teal bg-brand-teal/10" : "border-border",
+                            )}
+                            key={item.id}
+                            onClick={() => setPicks((current) => ({ ...current, [person.id]: item.id }))}
+                            role="radio"
+                            type="button"
+                          >
+                            <span className="font-heading text-[15px] font-bold leading-tight text-foreground">Room {item.number}</span>
+                            <span className="text-[11.5px] text-muted-foreground">{floorName(item.floor)}</span>
+                            <span className="flex items-center gap-1">
+                              {Array.from({ length: item.beds }, (_, at) => (
+                                <Glyph className={cn("size-3.5", at < item.beds - left ? "text-muted-foreground/50" : "text-brand-teal")} key={at} name="bed" variant={at < item.beds - left ? "solid" : "line"} />
+                              ))}
+                              <span className="ml-1 text-[11px] font-semibold text-brand-teal">{left} free</span>
+                            </span>
+                            {on ? <Glyph className="absolute right-2 top-2 size-4 text-brand-teal" name="checkmark-circle" variant="solid" /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[12.5px] font-semibold text-destructive">
+                    No free {roomTypeLabel(room.roomType)} bed on another floor. Free one up first, or add a room of this type on another floor.
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <DialogFooter className="items-center sm:justify-between">
+          <p className="text-[12.5px] text-muted-foreground">
+            {leaving.filter(({ person }) => picks[person.id]).length} of {leaving.length} placed
+          </p>
+          <div className="flex gap-2">
+          <Button disabled={busy} onClick={onClose} type="button" variant="outline">Cancel</Button>
+          <Button
+            disabled={busy || !ready}
+            onClick={() => onConfirm(leaving.map(({ person }) => ({ residentId: person.id, roomId: picks[person.id] })))}
+            type="button"
+            variant="destructive"
+          >
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            Move and remove floor
+          </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function FloorsPanel() {
   const layout = usePortalResource<Layout>(BASE);
   const requests = usePortalResource<{ requests: Request[] }>(`${BASE}/requests`);
@@ -306,6 +435,7 @@ export function FloorsPanel() {
   const [bulkFirst, setBulkFirst] = useState("");
   const [tip, setTip] = useState<{ open: boolean; rect: DOMRect; roomId: string } | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [leavingFloor, setLeavingFloor] = useState<number | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [pendingOrder, setPendingOrder] = useState<{ floor: number; ids: string[] } | null>(null);
@@ -455,6 +585,37 @@ export function FloorsPanel() {
         });
       }
     }, `${floorName(floor)} added.`);
+  };
+
+  /** An empty floor goes after one confirm; a lived-in one opens the move dialog first. */
+  const removeFloor = async (floor: number) => {
+    const onFloor = rooms.filter((room) => room.floor === floor);
+
+    if (onFloor.some((room) => room.residents.length > 0)) {
+      setLeavingFloor(floor);
+      return;
+    }
+
+    const ok = await confirm({
+      actionLabel: "Remove floor",
+      description: `Its ${onFloor.length} empty ${onFloor.length === 1 ? "room is" : "rooms are"} removed with it.`,
+      title: `Remove ${floorName(floor)}?`,
+      tone: "destructive",
+    });
+
+    if (ok) await run(() => Promise.all(onFloor.map((room) => browserApi(`${BASE}/${room.id}`, { method: "DELETE" }))), `${floorName(floor)} removed.`);
+  };
+
+  const moveAndRemoveFloor = async (floor: number, moves: { residentId: string; roomId: string }[]) => {
+    const done = await run(async () => {
+      // One at a time: each move reads the room's free beds as the one before left them.
+      for (const move of moves) {
+        await browserApi(`/api/v1/hostel-admin/residents/${move.residentId}/room`, { body: JSON.stringify({ roomId: move.roomId }), method: "PUT" });
+      }
+      await Promise.all(rooms.filter((room) => room.floor === floor).map((room) => browserApi(`${BASE}/${room.id}`, { method: "DELETE" })));
+    }, `${floorName(floor)} removed.`);
+
+    if (done) setLeavingFloor(null);
   };
 
   const retype = (list: Room[], roomType: string) =>
@@ -764,6 +925,18 @@ export function FloorsPanel() {
                       }}
                       value={goal ?? onFloor.length}
                     />
+                    <Button
+                      aria-label={`Remove ${floorName(floor)}`}
+                      className="size-9 rounded-xl text-destructive"
+                      disabled={busy}
+                      onClick={() => void removeFloor(floor)}
+                      size="icon"
+                      title={`Remove ${floorName(floor)}`}
+                      type="button"
+                      variant="outline"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                   {/* 0fr → 1fr animates the height without measuring it; `inert` keeps hidden tiles out of the tab order. */}
                   <div
@@ -871,6 +1044,16 @@ export function FloorsPanel() {
       )}
 
       {tip && rooms.find((room) => room.id === tip.roomId) ? <RoomTip open={tip.open} rect={tip.rect} room={rooms.find((room) => room.id === tip.roomId) as Room} /> : null}
+
+      {leavingFloor !== null ? (
+        <RemoveFloorDialog
+          busy={busy}
+          floor={leavingFloor}
+          onClose={() => setLeavingFloor(null)}
+          onConfirm={(moves) => void moveAndRemoveFloor(leavingFloor, moves)}
+          rooms={rooms}
+        />
+      ) : null}
 
       <Dialog onOpenChange={(open) => (open ? null : setEditing(null))} open={editing !== null}>
         <DialogContent className="sm:max-w-md">

@@ -81,6 +81,7 @@ import {
   type FoodAnalytics,
   type GatewayConfig,
   type PlanBilling,
+  type PlanUsage,
   getAttendanceAnalytics,
   getAttendanceSettings,
   getCommunitySettings,
@@ -89,6 +90,7 @@ import {
   getFoodAnalytics,
   getMaintenanceSettings,
   getPlanBilling,
+  getPlanUsage,
   getManagedHostel,
   getReconciliation,
   getMoveInChecklist,
@@ -643,6 +645,10 @@ export const adminQuery = {
     define("admin:plan-billing", [REALTIME_TOPIC.PAYMENTS], () =>
       getPlanBilling(),
     ),
+
+  /** Seats against the plan's caps; residents and staff move it, a payment changes the plan. */
+  planUsage: (): AdminQuery<PlanUsage | null> =>
+    define("admin:plan-usage", [REALTIME_TOPIC.PAYMENTS, REALTIME_TOPIC.RESIDENTS], () => getPlanUsage()),
 
   finance: (): AdminQuery<AdminFinanceData> =>
     define("admin:finance", [REALTIME_TOPIC.PAYMENTS], loadFinance),

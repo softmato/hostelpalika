@@ -1031,3 +1031,11 @@ html.dark {
     animation-duration: 0.01s;
   }
 }
+
+/* Money. Manrope for every amount, with digits of equal width so columns line up.
+   `tabular-nums` is already how the portals mark a figure, so it carries the font too. */
+.font-amount,
+.tabular-nums {
+  font-family: var(--font-manrope), var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+}

@@ -3,6 +3,37 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Block an account; blocked accounts get no session] — 2026-11-09
+
+- `PATCH/DELETE /api/v1/platform/users/:id/block` (superadmin, both servers): status SUSPENDED,
+  `tokenVersion` bump, sessions deleted, `USER_BLOCKED`/`USER_UNBLOCKED` audit. Platform admins
+  are refused (Admins' revoke owns them). Used by the web Users panel and the app's Users sheet.
+- `issueSession` refuses SUSPENDED/ARCHIVED with 401 `USER_INACTIVE` on both servers, so a
+  temporary login, activation or residency invite can no longer open a blocked account (P11-31).
+
+## [Free plan: one rule, over-limit grace, read-only] — 2026-11-09
+
+Owner decision: every hostel without a live paid plan is on Free, and Free's caps always hold.
+
+### Changed (Go and TS)
+- `planState` / `planState()`: live paid plan (period not over, or lifetime) → its caps; running
+  trial → none; no plan and no trial (pre-trial hostels) → none; everything else → Free.
+- A lapsed paid plan no longer schedules `PLAN_OVERDUE`; it falls to Free. The sweep clears
+  `TRIAL_ENDED` and `PLAN_OVERDUE` blocks left from before. `PLAN_PAYMENT` (platform admin) stays.
+- `Hostel.planLimit { overSince, readOnlyFrom }`: stamped when a Free hostel is over its caps,
+  read-only after `plans.free.overLimitGraceDays` (default 7), cleared once back within them.
+  Refreshed by the daily renewal sweep, by `GET /hostel-admin/billing/usage`, and by the gate.
+- Gate: 423 `PLAN_OVER_LIMIT` on hostel-admin writes past the grace, except billing/KYC/settings
+  (as after a trial) and what reduces usage (move-out, status, deleting a resident/warden/cook).
+  Re-checked before refusing, so paying or a move-out lifts it on the next request.
+- New route `GET /api/v1/hostel-admin/billing/usage`; contract case hand-checked (the TS recorder
+  could not start beside a running `next dev`).
+
+### UI
+- Web + app: usage meters and a "which plan fits" chooser on Billing, an over-limit banner
+  (web: every hostel-admin screen; app: Home + Billing), and one dialog/sheet for
+  `PLAN_LIMIT_REACHED` / `PLAN_OVER_LIMIT` with Compare plans.
+
 ## [Free plan] — 2026-11-09
 
 Owner decision: a free-forever tier, like ChatGPT/Claude. `plans.free` in the site config

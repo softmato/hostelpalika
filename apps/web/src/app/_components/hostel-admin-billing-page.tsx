@@ -19,6 +19,7 @@ import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanButton, PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
 import { PlanMark } from "@/app/_components/plan-mark";
+import { PlanUsageCard } from "@/app/_components/plan-usage";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -161,6 +162,8 @@ export function HostelAdminBillingPageContent() {
         description="Plan invoices and receipts, all downloadable."
         title="Plan billing"
       />
+
+      <PlanUsageCard />
 
 
       {error ? (

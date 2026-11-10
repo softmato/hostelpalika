@@ -5,7 +5,9 @@ import { useState } from "react";
 import { FIELD, useAction } from "@/app/_components/booking-admin-ui";
 import { RoleButton, SoftBadge } from "@/app/_components/portal-dashboard-ui";
 import { Panel } from "@/app/_components/shared-ui";
+import { walletLabel, WalletMark } from "@/components/wallet-mark";
 import { usePortalResource } from "@/lib/portal-query";
+import { cn } from "@/lib/utils";
 import type { PayoutAccountView } from "@/lib/bookings/booking.types";
 
 /**
@@ -28,6 +30,45 @@ const STATUS: Record<PayoutAccountView["status"], { label: string; tone: "amber"
   VERIFIED: { label: "Verified", tone: "green" },
 };
 
+/** The name the logo is looked up by: the wallet, or the bank as typed. */
+const markName = (account: PayoutAccountView) => (account.method === "BANK" ? account.bankName || "BANK" : account.method);
+
+/**
+ * The payout account in a few words, for the Bookings header: its mark, the
+ * wallet or bank with its last digits, and a dot for whether the Book button is
+ * live. Draws nothing for a warden.
+ */
+export function PayoutAccountChip() {
+  const resource = usePortalResource<{ account: PayoutAccountView | null }>(URL);
+
+  if (resource.state !== "ready" || !resource.data) {
+    return null;
+  }
+
+  const account = resource.data.account;
+  const status = account ? STATUS[account.status] : null;
+
+  return (
+    <div
+      className="flex h-9 items-center gap-2 rounded-xl border border-border bg-background/60 pl-1.5 pr-3 text-sm"
+      title={account ? `${status?.label} · ${account.holderName}` : "No payout account yet"}
+    >
+      <WalletMark name={account ? markName(account) : "BANK"} size={26} />
+      {account ? (
+        <>
+          <span className="font-semibold">{account.bankName || account.methodLabel} {account.maskedNumber}</span>
+          <span
+            aria-label={status?.label}
+            className={cn("size-2 rounded-full", status?.tone === "green" ? "bg-success" : status?.tone === "rose" ? "bg-destructive" : "bg-warning")}
+          />
+        </>
+      ) : (
+        <span className="font-semibold text-warning">No payout account</span>
+      )}
+    </div>
+  );
+}
+
 function PayoutForm({ account, onDone }: { account: PayoutAccountView | null; onDone: () => void }) {
   const [method, setMethod] = useState<Method>(account?.method ?? "BANK");
   const [holderName, setHolderName] = useState(account?.holderName ?? "");
@@ -38,11 +79,22 @@ function PayoutForm({ account, onDone }: { account: PayoutAccountView | null; on
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2" role="radiogroup">
         {(["BANK", "ESEWA", "KHALTI"] as const).map((value) => (
-          <RoleButton key={value} onClick={() => setMethod(value)} tone="admin" variant={method === value ? "solid" : "outline"}>
-            {value === "BANK" ? "Bank" : value === "ESEWA" ? "eSewa" : "Khalti"}
-          </RoleButton>
+          <button
+            aria-checked={method === value}
+            className={cn(
+              "flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-[12.5px] font-semibold transition hover:border-primary",
+              method === value ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground",
+            )}
+            key={value}
+            onClick={() => setMethod(value)}
+            role="radio"
+            type="button"
+          >
+            <WalletMark name={value} size={36} />
+            {walletLabel(value)}
+          </button>
         ))}
       </div>
       <input className={FIELD} onChange={(event) => setHolderName(event.target.value)} placeholder="Name on the account" value={holderName} />
@@ -96,12 +148,17 @@ export function HostelPayoutAccountPanel() {
     <Panel title="Booking payouts">
       <p className="mb-3 text-[12.5px] text-muted-foreground">Your Book button shows once this account is verified.</p>
       {account && !editing ? (
-        <div className="space-y-2 text-sm">
-          {status ? <SoftBadge tone={status.tone}>{status.label}</SoftBadge> : null}
-          <p className="font-semibold text-foreground">
-            {account.methodLabel} {account.bankName} {account.maskedNumber}
-          </p>
-          <p className="text-muted-foreground">{account.holderName}</p>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center gap-3">
+            <WalletMark name={markName(account)} size={44} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-foreground">
+                {account.methodLabel} {account.bankName} {account.maskedNumber}
+              </p>
+              <p className="truncate text-muted-foreground">{account.holderName}</p>
+            </div>
+            {status ? <SoftBadge tone={status.tone}>{status.label}</SoftBadge> : null}
+          </div>
           {account.status === "REJECTED" && account.reviewNote ? (
             <p className="text-rose-600 dark:text-rose-400">{account.reviewNote}</p>
           ) : null}

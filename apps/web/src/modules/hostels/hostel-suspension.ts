@@ -2,8 +2,6 @@ import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
 import { Role } from "@/lib/roles";
-import { hostelDayEnd } from "@hostel/shared/calendar/bs";
-import { PLAN_OVERDUE_DAYS } from "@hostel/shared/constants/plan-grace";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { revalidatePublicPages } from "@/lib/revalidate-public";
@@ -78,23 +76,6 @@ export function suspensionStage(
   return now.getTime() < new Date(suspension.graceEndsAt).getTime()
     ? "PRE_SUSPENSION"
     : "SUSPENDED";
-}
-
-/**
- * An unpaid plan's automatic path, set the day it lapses: {@link PLAN_OVERDUE_DAYS}
- * to pay after the due date, then {@link SUSPENSION_GRACE_DAYS} of pre-suspension,
- * then the portal stops. Dated ahead like a trial's end, so it is nothing until
- * the overdue days run out. **Pure.**
- */
-export function overdueSuspension(dueAt: Date) {
-  const startedAt = hostelDayEnd(dueAt, PLAN_OVERDUE_DAYS);
-
-  return {
-    graceEndsAt: hostelDayEnd(startedAt, SUSPENSION_GRACE_DAYS),
-    reason: "PLAN_OVERDUE" as const,
-    startedAt,
-    startedBy: null,
-  };
 }
 
 /** The suspension as the portals read it. `null` when there is none. */

@@ -100,6 +100,31 @@ const OPEN_AFTER_TRIAL = [
   "/api/v1/hostel-admin/subscription",
 ];
 
+export const PLAN_OVER_LIMIT_MESSAGE =
+  "Your hostel is over its free plan's limits, so the portal is read-only. Upgrade your plan, or move residents out or remove staff to get back within them.";
+
+/** What brings a hostel back within its caps: a move-out, a status change, removing a resident, warden or cook. */
+const REDUCES_USAGE = [
+  /^\/api\/v1\/hostel-admin\/residents\/[^/]+\/(move-out|status)$/,
+  /^\/api\/v1\/hostel-admin\/(residents|wardens|cooks)\/[^/]+$/,
+];
+
+/**
+ * Writes a free-tier hostel past its over-limit grace may not make: everything
+ * under hostel-admin except its plan, KYC and settings (as after a trial) and
+ * whatever brings it back within its caps.
+ */
+export function isBlockedWhileOverLimit(method: string, pathname: string) {
+  if (!isBlockedAfterTrial(method, pathname)) return false;
+
+  return !REDUCES_USAGE.some((pattern, index) => pattern.test(pathname) && (index === 0 || method === "DELETE"));
+}
+
+/** The over-limit clock has run out. **Pure.** */
+export function isPlanReadOnly(planLimit: { readOnlyFrom?: Date | string | null } | null | undefined, now = new Date()) {
+  return Boolean(planLimit?.readOnlyFrom) && new Date(planLimit!.readOnlyFrom!).getTime() <= now.getTime();
+}
+
 export function isBlockedAfterTrial(method: string, pathname: string) {
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") return false;
   if (!under(pathname, "/api/v1/hostel-admin")) return false;

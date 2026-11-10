@@ -94,7 +94,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
           {/* What a resident opens this page to learn, in order: what they owe,
               whether tonight's check-in is answered, and who to call. The hostel
               is context here, so it is a strip, not a photo hero. */}
-          <div className="grid items-start gap-4 xl:grid-cols-[1.7fr_1fr]">
+          <div className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
             <HostelBillCard
               action={
                 <RoleButton asChild className="h-10 shrink-0 px-5" tone="team">
@@ -141,7 +141,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
               }
               photoUrl={dashboard.hostel?.photoUrl}
             />
-            <div className="grid gap-3">
+            <div className="grid auto-rows-fr gap-3 [&>*]:h-full">
               <MetricCard
                 icon={Moon}
                 label="Tonight"

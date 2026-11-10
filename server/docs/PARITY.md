@@ -726,6 +726,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | POST | `/api/v1/platform/team/wallets/:agentId` | requireSuperadminPrincipal |  | team |
 | ☑ | GET | `/api/v1/platform/usage` | requireSuperadminPrincipal |  | usage |
 | ☑ | GET | `/api/v1/platform/users` | requirePlatformPrincipal | etag | reports |
+| ☑ | DELETE PATCH | `/api/v1/platform/users/:id/block` | requireSuperadminPrincipal |  | users (P11-31) |
 
 ### `platform-admin` (2)
 

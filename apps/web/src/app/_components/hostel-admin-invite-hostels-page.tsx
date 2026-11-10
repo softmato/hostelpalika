@@ -183,10 +183,12 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
             </div>
           </Panel>
 
-          <div className="space-y-5">
-            <Panel title="Hostels you invited">
+          <div className="flex">
+            <Panel className="flex w-full flex-col" title="Hostels you invited">
               {data.referrals.length === 0 ? (
-                <EmptyState label="No hostel has registered with your code yet." />
+                <div className="flex flex-1 flex-col justify-center">
+                  <EmptyState label="No hostel has registered with your code yet." />
+                </div>
               ) : null}
               <div className="divide-y divide-border/60">
                 {data.referrals.map((referral) => (

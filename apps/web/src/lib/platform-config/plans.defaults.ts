@@ -542,6 +542,7 @@ export const DEFAULT_PLANS: PlansConfig = {
     label: "Free forever",
     maxResidents: 10,
     name: "Free",
+    overLimitGraceDays: 7,
     portalAccess: { cooks: 1, wardens: 1 },
   },
   modules: PLAN_MODULES,

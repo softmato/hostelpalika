@@ -314,3 +314,77 @@ export async function revokePlatformAdmin(adminId: string, principal: ApiPrincip
 
   return { revoked: true };
 }
+
+/**
+ * Blocks or unblocks any account that is not a platform admin (owner,
+ * 2026-11-09: a superadmin must be able to act on users, not only read them).
+ *
+ * Blocking is `status: "SUSPENDED"` — the status every sign-in path already
+ * refuses — plus a `tokenVersion` bump and the sessions deleted, so the person
+ * is out now rather than when their access token runs out. Platform admins are
+ * left to Admins' own revoke, which also takes the role away.
+ */
+export async function setUserBlocked(
+  userId: string,
+  blocked: boolean,
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new PlatformAdminServiceError("Invalid user id.", "INVALID_OBJECT_ID", 422);
+  }
+
+  if (userId === principal.userId) {
+    throw new PlatformAdminServiceError(
+      "You cannot block your own account.",
+      "CANNOT_BLOCK_SELF",
+      409,
+    );
+  }
+
+  const user = await UserModel.findOne({ _id: userId, isDeleted: { $ne: true } })
+    .select("role status")
+    .lean<{ role: string; status: string } | null>();
+
+  if (!user) {
+    throw new PlatformAdminServiceError("User not found.", "NOT_FOUND", 404);
+  }
+
+  if ((PLATFORM_ADMIN_ROLES as readonly string[]).includes(user.role)) {
+    throw new PlatformAdminServiceError(
+      "Platform admins are removed from Admins, not blocked.",
+      "PLATFORM_ADMIN",
+      409,
+    );
+  }
+
+  const changes = blocked
+    ? user.status === "ACTIVE" || user.status === "INVITED"
+    : user.status === "SUSPENDED";
+
+  if (changes) {
+    const status = blocked ? "SUSPENDED" : "ACTIVE";
+
+    await UserModel.updateOne(
+      { _id: userId },
+      blocked ? { $inc: { tokenVersion: 1 }, $set: { status } } : { $set: { status } },
+    );
+
+    if (blocked) {
+      await SessionModel.deleteMany({ userId: new Types.ObjectId(userId) });
+    }
+
+    await AuditLogModel.create({
+      action: blocked ? "USER_BLOCKED" : "USER_UNBLOCKED",
+      actorId: principal.userId,
+      entityId: userId,
+      entityType: "User",
+      metadata: { previousStatus: user.status },
+    });
+
+    return { user: { id: userId, status } };
+  }
+
+  return { user: { id: userId, status: user.status } };
+}

@@ -89,7 +89,9 @@ type Free struct {
 	Label        string `json:"label"`
 	MaxResidents int    `json:"maxResidents"`
 	Name         string `json:"name"`
-	PortalAccess struct {
+	// OverLimitGraceDays a hostel over these caps keeps working before it turns read-only.
+	OverLimitGraceDays int `json:"overLimitGraceDays"`
+	PortalAccess       struct {
 		Cooks   int `json:"cooks"`
 		Wardens int `json:"wardens"`
 	} `json:"portalAccess"`

@@ -1,4 +1,5 @@
 import { planRank } from "@hostel/plans/catalog";
+import { PlanUsageSection, usePlanUsage } from "@/components/plan-usage-section";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -156,6 +157,7 @@ export default function ManageBillingScreen() {
     topics: query.topics,
   });
 
+  const planUsage = usePlanUsage();
   const data = billing.data;
   const plan = data?.plan ?? null;
   const invoices = useMemo(() => data?.invoices ?? [], [data]);
@@ -252,6 +254,7 @@ export default function ManageBillingScreen() {
           placement="billing"
           state={data?.subscriptionState ?? null}
         />
+        <PlanUsageSection usage={planUsage} />
         {plan ? (
           <Standing dates={dates} plan={plan} />
         ) : (

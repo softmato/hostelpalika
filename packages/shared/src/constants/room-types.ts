@@ -37,7 +37,9 @@ const ROOM_TYPE_NAMES: Record<string, string> = {
   "four sharing": "Four Sharing Room",
   single: "Single Sitter Room",
   "single room": "Single Sitter Room",
+  "three sharing": "Three Sharing Room",
   "triple sharing": "Triple Sharing Room",
+  "two sharing": "Two Sharing Room",
 };
 
 export function roomTypeLabel(roomType: string | null | undefined) {

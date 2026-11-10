@@ -1,4 +1,5 @@
 import { OverallTabScreen } from "@/components/overall-views";
+import { PlanLimitBanner, usePlanUsage } from "@/components/plan-usage-section";
 import { router } from "expo-router";
 
 import { CardRow } from "@/components/ui/list-row";
@@ -230,6 +231,7 @@ function BranchAdminHomeScreen() {
     topics: dueQuery.topics,
   });
 
+  const planUsage = usePlanUsage();
   const overview = useResource<AdminOverview>(query.load, {
     cacheKey: query.key,
     topics: query.topics,
@@ -351,6 +353,10 @@ function BranchAdminHomeScreen() {
         refreshing={overview.refreshing || alerts.refreshing}
         scroll
       >
+        <View className="px-5 pt-3 empty:hidden">
+          <PlanLimitBanner usage={planUsage} />
+        </View>
+
         <HostelHero
           balance={balance}
           delta={delta}

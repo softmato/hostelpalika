@@ -211,6 +211,13 @@ async function parseResponse<T>(
       window.location.assign(`/unlock?next=${next}`);
     }
 
+    // A plan cap or the over-limit read-only: one dialog with the way out, wherever it was hit.
+    if ((errorCode === "PLAN_LIMIT_REACHED" || errorCode === "PLAN_OVER_LIMIT") && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(PLAN_LIMIT_EVENT, { detail: { code: errorCode, message: payload.message || "" } }),
+      );
+    }
+
     throw new ApiRequestError(
       payload.message || "Request failed",
       "details" in payload ? payload.details : undefined,
@@ -267,6 +274,9 @@ async function readProgress<T>(response: Response, onStep: (step: string) => voi
 
 /** Fired on `window` after any write (non-GET) succeeds — `kyc-focus.tsx` re-checks its step on it. */
 export const API_WRITE_EVENT = "portal:api-write";
+
+/** Raised with `{ code, message }` when the server refuses a write for the plan's caps. */
+export const PLAN_LIMIT_EVENT = "portal:plan-limit";
 
 export async function browserApi<T>(
   input: RequestInfo | URL,

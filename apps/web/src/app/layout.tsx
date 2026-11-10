@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Open_Sans, Roboto_Slab } from "next/font/google";
+import { Geist, Geist_Mono, Manrope, Open_Sans, Roboto_Slab } from "next/font/google";
 
 import {
   PLATFORM_NAME,
@@ -41,6 +41,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// The amount font: every money figure (and every `tabular-nums` number) is set in it, see globals.css.
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 /**
  * Site-wide defaults every page starts from. Pages replace the title,
@@ -121,7 +124,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${openSans.variable} ${robotoSlab.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${openSans.variable} ${robotoSlab.variable} ${geistMono.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {/* Arms the homepage entrance (globals.css) before first paint, and only

@@ -10,7 +10,7 @@ import { List, ReasonAction, Row, timeLeft, useAction, useNow } from "@/app/_com
 import { at, rupees } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Chip } from "@/app/_components/hostel-admin-page-ui";
-import { HostelPayoutAccountPanel } from "@/app/_components/hostel-payout-account-panel";
+import { HostelPayoutAccountPanel, PayoutAccountChip } from "@/app/_components/hostel-payout-account-panel";
 import { HostelShortStaysPanel } from "@/app/_components/hostel-short-stays-panel";
 import {
   MetricCard,
@@ -200,10 +200,13 @@ export function HostelAdminBookingsPage() {
       {confirmDialog}
       <PortalPageHeader
         actions={
-          <Button className="h-9 gap-2 rounded-xl" onClick={() => setSettingsOpen(true)} type="button" variant="outline">
-            <Settings className="size-4" />
-            Settings
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <PayoutAccountChip />
+            <Button className="h-9 gap-2 rounded-xl" onClick={() => setSettingsOpen(true)} type="button" variant="outline">
+              <Settings className="size-4" />
+              Settings
+            </Button>
+          </div>
         }
         description="Answer each bed booking before its countdown ends."
         title="Bookings"
@@ -248,7 +251,7 @@ export function HostelAdminBookingsPage() {
       </Panel>
 
       <Dialog onOpenChange={setSettingsOpen} open={settingsOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Booking settings</DialogTitle>
             <DialogDescription>
@@ -258,8 +261,10 @@ export function HostelAdminBookingsPage() {
               </Link>
             </DialogDescription>
           </DialogHeader>
-          <HostelPayoutAccountPanel />
-          <HostelShortStaysPanel />
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            <HostelPayoutAccountPanel />
+            <HostelShortStaysPanel />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

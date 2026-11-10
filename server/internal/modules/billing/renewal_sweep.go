@@ -16,24 +16,20 @@ import (
 )
 
 const (
-	renewAheadDays      = 7
-	planOverdueDays     = 7 // PLAN_OVERDUE_DAYS
-	suspensionGraceDays = 3 // SUSPENSION_GRACE_DAYS
+	renewAheadDays = 7
 )
-
-// overdueSuspension is overdueSuspension: the automatic path of an unpaid plan.
-func overdueSuspension(dueAt time.Time) bson.D {
-	started := bs.DayEnd(dueAt, planOverdueDays)
-	return bson.D{{Key: "graceEndsAt", Value: bs.DayEnd(started, suspensionGraceDays)}, {Key: "reason", Value: "PLAN_OVERDUE"}, {Key: "startedAt", Value: started}, {Key: "startedBy", Value: nil}}
-}
 
 // RaiseDueRenewals is raiseDueRenewals (inside the payment-reminders job): a
 // live plan ending within a week gets its renewal bill; one already past its
-// end turns PAST_DUE and the hostel and its branches start the suspension path.
+// end turns PAST_DUE and the hostel falls to the free tier (planState).
 func (s *Service) RaiseDueRenewals(ctx context.Context, now time.Time) (ordered.Map, error) {
-	// An unpaid trial ends on the free tier now; lift any trial-end block left from before.
-	if _, err := s.DB.Collection("hostels").UpdateMany(ctx, bson.D{{Key: "suspension.reason", Value: "TRIAL_ENDED"}},
+	// An unpaid trial or a lapsed plan ends on the free tier now; lift any automatic
+	// block left from before. A platform admin's PLAN_PAYMENT stays.
+	if _, err := s.DB.Collection("hostels").UpdateMany(ctx, bson.D{{Key: "suspension.reason", Value: bson.D{{Key: "$in", Value: bson.A{"TRIAL_ENDED", "PLAN_OVERDUE"}}}}},
 		bson.D{{Key: "$set", Value: bson.D{{Key: "suspension.graceEndsAt", Value: nil}, {Key: "suspension.reason", Value: nil}, {Key: "suspension.startedAt", Value: nil}, {Key: "suspension.startedBy", Value: nil}}}}); err != nil {
+		return nil, err
+	}
+	if err := (&Limits{DB: s.DB, Config: s.Config}).RefreshAll(ctx, now); err != nil {
 		return nil, err
 	}
 	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, bson.D{{Key: "currentPeriodEnd", Value: bson.D{{Key: "$lte", Value: bs.DayEnd(now, renewAheadDays)}, {Key: "$ne", Value: nil}}},
@@ -105,13 +101,8 @@ func (s *Service) RaiseDueRenewals(ctx context.Context, now time.Time) (ordered.
 					bson.D{{Key: "$set", Value: bson.D{{Key: "dueBy", Value: due}, {Key: "status", Value: "PAST_DUE"}, {Key: "updatedAt", Value: at}}}}); err != nil {
 					return err
 				}
-				set := bson.D{{Key: "$set", Value: bson.D{{Key: "suspension", Value: overdueSuspension(due)}, {Key: "updatedAt", Value: at}}}}
-				if _, err := s.DB.Collection("hostels").UpdateOne(ctx, bson.D{{Key: "_id", Value: sub.HostelID}, {Key: "suspension.startedAt", Value: nil}}, set); err != nil {
-					return err
-				}
-				if _, err := s.DB.Collection("hostels").UpdateMany(ctx, bson.D{{Key: "parentHostelId", Value: sub.HostelID}, {Key: "suspension.startedAt", Value: nil}}, set); err != nil {
-					return err
-				}
+				// No suspension: past its period the hostel is on the free tier, and its
+				// caps (with their own grace) are what bite.
 				lapsed++
 			}
 			return nil

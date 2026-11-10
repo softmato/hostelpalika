@@ -20,16 +20,3 @@ describe("suspensionStage", () => {
     expect(suspensionStage(null)).toBeNull();
   });
 });
-
-describe("overdueSuspension", () => {
-  it("gives 7 days to pay, then 3 of pre-suspension, then suspends", async () => {
-    const { overdueSuspension, suspensionStage } = await import("@/modules/hostels/hostel-suspension");
-    const due = new Date("2026-10-17T18:14:59.999Z");
-    const record = overdueSuspension(due);
-    const day = 86_400_000;
-
-    expect(suspensionStage(record, new Date(due.getTime() + 3 * day))).toBeNull();
-    expect(suspensionStage(record, new Date(due.getTime() + 8 * day))).toBe("PRE_SUSPENSION");
-    expect(suspensionStage(record, new Date(due.getTime() + 11 * day))).toBe("SUSPENDED");
-  });
-});

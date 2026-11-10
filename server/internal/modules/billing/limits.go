@@ -2,7 +2,6 @@ package billing
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,7 +15,6 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
-	"github.com/softmato/hostelpalika/server/internal/platform/plans"
 )
 
 // Limits is plan-limits.ts: how many residents, wardens and cooks a plan pays for.
@@ -36,56 +34,19 @@ func (l *Limits) countLive(ctx context.Context, hostel bson.ObjectID, seat strin
 	return l.DB.Collection("cookaccounts").CountDocuments(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"ACTIVE", "INVITED"}}}}})
 }
 
-type capsSubscription struct {
-	PlanID      *string    `bson:"planId"`
-	TrialEndsAt *time.Time `bson:"trialEndsAt"`
-}
-
-// capsFor is planForCaps: the paid plan chosen, else the free tier once a trial
-// has run out unpaid. A running trial, or no trial and no plan, is no ceiling.
-func capsFor(c plans.Catalog, sub capsSubscription, now time.Time) (string, map[string]*int, bool) {
-	if sub.PlanID != nil && *sub.PlanID != "" {
-		p := plans.GetPlan(c, *sub.PlanID)
-		if p == nil {
-			return "", nil, false
-		}
-		return p.Name, map[string]*int{"residents": p.MaxResidents, "wardens": p.PortalAccess.Wardens, "cooks": p.PortalAccess.Cooks}, true
-	}
-	if sub.TrialEndsAt == nil || sub.TrialEndsAt.After(now) {
-		return "", nil, false
-	}
-	f := c.Free
-	return f.Name, map[string]*int{"residents": &f.MaxResidents, "wardens": &f.PortalAccess.Wardens, "cooks": &f.PortalAccess.Cooks}, true
-}
-
 // AssertRoom is assertPlanRoom. seat is residents, wardens or cooks. A branch counts
 // its own seats against its main hostel's plan; no plan means no cap.
 func (l *Limits) AssertRoom(ctx context.Context, hostel bson.ObjectID, seat string, adding int64) error {
-	billed, err := BillingHostelID(ctx, l.DB, hostel)
+	sub, err := l.subscription(ctx, hostel)
+	if err != nil || sub == nil {
+		return err
+	}
+	catalog, err := l.catalog(ctx)
 	if err != nil {
 		return err
 	}
-	var sub capsSubscription
-	err = l.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "hostelId", Value: billed}}, options.FindOne().SetProjection(bson.D{{Key: "planId", Value: 1}, {Key: "trialEndsAt", Value: 1}})).Decode(&sub)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	raw, err := l.Config.Section(ctx, "plans")
-	if err != nil {
-		return err
-	}
-	var catalog plans.Catalog
-	if err := platformconfig.Decode(raw, &catalog); err != nil {
-		return err
-	}
-	name, caps, ok := capsFor(catalog, sub, time.Now())
-	if !ok {
-		return nil
-	}
-	cap := caps[seat]
+	on := planState(catalog, sub, time.Now())
+	cap := on.caps[seat]
 	if cap == nil {
 		return nil
 	}
@@ -96,7 +57,7 @@ func (l *Limits) AssertRoom(ctx context.Context, hostel bson.ObjectID, seat stri
 	if live+adding <= int64(*cap) {
 		return nil
 	}
-	message := "Your " + name + " plan allows " + strconv.Itoa(*cap) + " " + seat + " and you have reached that limit. Please upgrade your plan to add more."
+	message := "Your " + on.name + " plan allows " + strconv.Itoa(*cap) + " " + seat + " and you have reached that limit. Please upgrade your plan to add more."
 	l.notifyLimit(ctx, hostel, message)
 	return httpx.NewError(http.StatusConflict, "PLAN_LIMIT_REACHED", message, nil)
 }

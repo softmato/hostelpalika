@@ -20,6 +20,7 @@ import {
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { photosOfKind, resolveHostelPhotoUrls, type HostelPhoto } from "@/lib/hostel-photos";
+import { normalizeBedType } from "@/lib/finance/bed-type";
 import { usePortalResource } from "@/lib/portal-query";
 import { acceptAttribute } from "@/lib/uploads/accepts";
 import { uploadFiles } from "@/lib/uploads/uploader";
@@ -290,11 +291,26 @@ function AddRoomTypeDialog({
   onClose: () => void;
   tracking: boolean;
 }) {
-  const choices = ROOM_TYPE_OPTIONS.filter((option) => !existing.includes(option));
+  // "Two Sharing" and "Double Sharing" are one room type spelled twice, so a
+  // hostel that has either is not offered the other.
+  const isTaken = (value: string) => {
+    const [base, ...variant] = value.split(" — ");
+    const kind = normalizeBedType(base);
+
+    return existing.some((item) => {
+      const [itemBase, ...itemVariant] = item.split(" — ");
+
+      return (
+        item.toLowerCase() === value.toLowerCase() ||
+        (kind !== null && kind === normalizeBedType(itemBase) && variant.join() === itemVariant.join())
+      );
+    });
+  };
+  const choices = ROOM_TYPE_OPTIONS.filter((option) => !isTaken(option));
   const [roomType, setRoomType] = useState(choices[0] ?? "");
   const [custom, setCustom] = useState("");
   const name = custom.trim() || roomType;
-  const taken = existing.some((item) => item.toLowerCase() === name.toLowerCase());
+  const taken = isTaken(name);
 
   return (
     <Dialog onOpenChange={(open) => (open ? null : onClose())} open>

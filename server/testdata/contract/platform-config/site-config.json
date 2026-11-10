@@ -881,6 +881,7 @@
                 "label": "Free forever",
                 "maxResidents": 10,
                 "name": "Free",
+                "overLimitGraceDays": 7,
                 "portalAccess": {
                   "cooks": 1,
                   "wardens": 1
@@ -3712,6 +3713,7 @@
                 "label": "Free forever",
                 "maxResidents": 10,
                 "name": "Free",
+                "overLimitGraceDays": 7,
                 "portalAccess": {
                   "cooks": 1,
                   "wardens": 1
@@ -6309,6 +6311,7 @@
                 "label": "Free forever",
                 "maxResidents": 10,
                 "name": "Free",
+                "overLimitGraceDays": 7,
                 "portalAccess": {
                   "cooks": 1,
                   "wardens": 1

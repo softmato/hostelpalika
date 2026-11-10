@@ -1,0 +1,249 @@
+[
+  {
+    "name": "block signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block as moderator",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000002:PLATFORM_MODERATOR}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/nope/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid user id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block self",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6d0a00000000000000000001/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot block your own account.",
+        "errorCode": "CANNOT_BLOCK_SELF"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block a platform admin",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6d0a00000000000000000002/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Platform admins are removed from Admins, not blocked.",
+        "errorCode": "PLATFORM_ADMIN"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block missing user",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6c00000000000000000000ee/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "User not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block warden",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "User blocked",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000006",
+            "status": "SUSPENDED"
+          }
+        }
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "block warden again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "User blocked",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000006",
+            "status": "SUSPENDED"
+          }
+        }
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "unblock warden",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "User unblocked",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000006",
+            "status": "ACTIVE"
+          }
+        }
+      }
+    },
+    "corrected": "P11-31"
+  },
+  {
+    "name": "unblock active warden",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/platform/users/6c0000000000000000000006/block",
+      "headers": {
+        "authorization": "Bearer {{access:6d0a00000000000000000001:SUPERADMIN}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "User unblocked",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000006",
+            "status": "ACTIVE"
+          }
+        }
+      }
+    },
+    "corrected": "P11-31"
+  }
+]

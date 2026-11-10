@@ -1,0 +1,99 @@
+[
+  {
+    "name": "usage anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/usage"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "corrected": "hand-checked against plan-limits.ts getPlanUsage; TS recorder blocked by a running next dev (2026-11-09)"
+  },
+  {
+    "name": "usage",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/usage",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Plan usage loaded",
+        "data": {
+          "usage": {
+            "state": "paid",
+            "planName": "Pro",
+            "caps": {
+              "residents": 100,
+              "wardens": 2,
+              "cooks": 3
+            },
+            "used": {
+              "residents": 0,
+              "wardens": 1,
+              "cooks": 0
+            },
+            "overLimit": false,
+            "overSince": null,
+            "readOnlyFrom": null,
+            "readOnly": false,
+            "trialEndsAt": null
+          }
+        }
+      }
+    },
+    "corrected": "hand-checked against plan-limits.ts getPlanUsage; TS recorder blocked by a running next dev (2026-11-09)"
+  },
+  {
+    "name": "usage other",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/usage",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000005:HOSTEL_ADMIN:6d0400000000000000000006}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Plan usage loaded",
+        "data": {
+          "usage": {
+            "state": "none",
+            "planName": null,
+            "caps": {
+              "residents": null,
+              "wardens": null,
+              "cooks": null
+            },
+            "used": {
+              "residents": 0,
+              "wardens": 0,
+              "cooks": 0
+            },
+            "overLimit": false,
+            "overSince": null,
+            "readOnlyFrom": null,
+            "readOnly": false,
+            "trialEndsAt": null
+          }
+        }
+      }
+    },
+    "corrected": "hand-checked against plan-limits.ts getPlanUsage; TS recorder blocked by a running next dev (2026-11-09)"
+  }
+]

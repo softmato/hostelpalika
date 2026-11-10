@@ -232,6 +232,18 @@ const hostelSchema = new Schema(
       startedBy: { default: null, ref: "User", type: Schema.Types.ObjectId },
     },
     /**
+     * A hostel on the free tier holding more residents, wardens or cooks than
+     * it allows: when that was first seen, and when its portal turns read-only.
+     * Absent while it is within its caps (`refreshPlanLimit` writes and clears it).
+     */
+    planLimit: {
+      default: undefined,
+      type: new Schema(
+        { overSince: { default: null, type: Date }, readOnlyFrom: { default: null, type: Date } },
+        { _id: false },
+      ),
+    },
+    /**
      * Room bookings on this hostel stopped by the platform (docs/BOOKINGS.md).
      *
      * Set automatically when missed answers and hostel cancellations reach the

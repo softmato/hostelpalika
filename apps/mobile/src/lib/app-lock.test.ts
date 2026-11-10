@@ -74,6 +74,7 @@ describe("app lock", () => {
     expect(hasMailbox(cook)).toBe(false);
     expect(canOfferLock({ ...cook!, email: "owner@gmail.com", role: "HOSTEL_ADMIN" })).toBe(true);
     expect(canOfferLock({ ...cook!, email: null, role: "RESIDENT" })).toBe(false);
+    expect(canOfferLock({ ...cook!, email: "owner@softmato.com", role: "SUPERADMIN" })).toBe(true);
   });
 
   it("masks the recovery address", async () => {

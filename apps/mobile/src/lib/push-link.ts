@@ -152,6 +152,23 @@ const REWRITES: { prefix: string; to: string }[] = [
    * bell would, instead of only expanding.
    */
   { prefix: "/hostel-admin/inquiries", to: "/manage/inquiries" },
+  /*
+   * The superadmin's bells (`/platform/*` links), each to the app's own screen
+   * since the platform shell went native (owner, 2026-11-09). Pages with no
+   * native screen yet (hostel leaves, bookings, providers) still expand.
+   */
+  { prefix: "/platform/hostels", to: "/(platform)/approvals" },
+  { prefix: "/platform/listings", to: "/(platform)/approvals" },
+  { prefix: "/platform/store/orders", to: "/manage/platform/store-orders" },
+  { prefix: "/platform/subscriptions", to: "/(platform)/money" },
+  { prefix: "/platform/listing-flags", to: "/manage/platform/listing-flags" },
+  { prefix: "/platform/abuse-flags", to: "/manage/platform/listing-flags" },
+  { prefix: "/platform/community", to: "/manage/platform/community-reports" },
+  { prefix: "/platform/users", to: "/manage/platform/users" },
+  { prefix: "/platform/push", to: "/manage/platform/push" },
+  { prefix: "/platform/logs", to: "/manage/system/logs" },
+  { prefix: "/platform/system/cron", to: "/manage/system/cron" },
+  { prefix: "/platform/dashboard", to: "/(platform)" },
   // A request to leave the platform that our team did not approve (docs/HOSTEL_LEAVE_PLATFORM.md).
   { prefix: "/hostel-admin/leave", to: "/manage/leave" },
   { prefix: "/hostel-admin/complaints", to: "/manage/complaints" },

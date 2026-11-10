@@ -132,9 +132,11 @@ export function lockAfterAway() {
 }
 
 /**
- * Owner, warden and resident portals with an email; a cook only where the
- * owner switched it on (`cookFingerprintLock`, which turning off also lifts an
- * already-enabled cook's lock).
+ * Owner, warden, resident and platform (superadmin / moderator) portals with an
+ * email; a cook only where the owner switched it on (`cookFingerprintLock`,
+ * which turning off also lifts an already-enabled cook's lock). The platform
+ * portal holds every hostel's data, so it gets the same PIN + biometric lock
+ * (owner, 2026-11-09); the server already carries `lockPin` for any role.
  */
 export function canOfferLock(account: ApiUser | null) {
   // A temporary login was handed out on purpose; the owner's lock is not its to keep.
@@ -143,7 +145,9 @@ export function canOfferLock(account: ApiUser | null) {
   return (
     account.role === ROLE.HOSTEL_ADMIN ||
     account.role === ROLE.WARDEN ||
-    account.role === ROLE.RESIDENT
+    account.role === ROLE.RESIDENT ||
+    account.role === ROLE.SUPERADMIN ||
+    account.role === ROLE.PLATFORM_MODERATOR
   );
 }
 

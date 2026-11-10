@@ -38,6 +38,7 @@ import {
 } from "@/components/brand-splash";
 import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
 import { TrialEndedHost } from "@/components/trial-ended-host";
+import { PlanLimitHost } from "@/components/plan-limit-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 import { UpdateSheet } from "@/components/update-sheet";
 import { AppNoticeSheet } from "@/components/app-notice-sheet";
@@ -761,6 +762,13 @@ export default function RootLayout() {
                 <BottomChromeProvider>
                   <RootShell />
                 </BottomChromeProvider>
+                {/*
+                  Inside the provider, not in `OverlayHosts`: it is a bottom
+                  `Sheet` (a gorhom modal), which throws on mount outside
+                  `BottomSheetModalProvider` — mounted out there, every launch
+                  crashed (2026-11-10 OTA).
+                */}
+                <PlanLimitHost />
               </BottomSheetModalProvider>
               <OverlayHosts />
               <ToastHost />

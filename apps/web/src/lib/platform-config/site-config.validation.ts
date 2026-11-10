@@ -490,6 +490,7 @@ export const DEFAULT_FREE_PLAN = {
   label: "Free forever",
   maxResidents: 10,
   name: "Free",
+  overLimitGraceDays: 7,
   portalAccess: { cooks: 1, wardens: 1 },
 };
 
@@ -535,6 +536,8 @@ export const plansSchema = z.object({
       label: trimmed.max(30).default("Free forever"),
       maxResidents: z.number().int().min(0).max(1000).default(10),
       name: trimmed.min(1).max(40).default("Free"),
+      /** Days a hostel over these caps keeps working before its portal turns read-only. */
+      overLimitGraceDays: z.number().int().min(0).max(90).default(7),
       portalAccess: z
         .object({
           cooks: z.number().int().min(0).max(100).default(1),

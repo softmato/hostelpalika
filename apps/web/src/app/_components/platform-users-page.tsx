@@ -29,8 +29,11 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { useConfirm } from "@/app/_components/confirm-dialog";
+import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
-import { usePortalResource } from "@/lib/portal-query";
+import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
+import { useSessionStore } from "@/stores/session-store";
 import { cn } from "@/lib/utils";
 import { DemoDataBadge, Message } from "./core-portal-shared";
 
@@ -505,6 +508,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           </SoftBadge>
                         }
                       />
+                      <UserBlockButton person={selected} />
                     </DetailSection>
 
                     <DetailSection title="Guardian Information">
@@ -644,3 +648,62 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
     </div>
   );
 });
+
+/**
+ * Block / Unblock (superadmin only; `PATCH|DELETE /platform/users/:id/block`).
+ * Blocking signs the person out everywhere and refuses every sign-in until it is
+ * lifted. Resident records without an account (`resident:` ids) and platform
+ * admins have no button: the server refuses both.
+ */
+function UserBlockButton({ person }: { person: DirectoryPerson }) {
+  const role = useSessionStore((state) => state.user?.role);
+  const invalidate = useInvalidateResources();
+  const { confirm, confirmDialog } = useConfirm();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  if (
+    role !== "SUPERADMIN" ||
+    person.id.startsWith("resident:") ||
+    person.role === "SUPERADMIN" ||
+    person.role === "PLATFORM_MODERATOR" ||
+    person.status === "ARCHIVED"
+  ) {
+    return null;
+  }
+
+  const blocked = person.status === "SUSPENDED";
+
+  async function toggle() {
+    const ok = await confirm({
+      actionLabel: blocked ? "Unblock" : "Block",
+      description: blocked
+        ? `${person.name} can sign in again.`
+        : `${person.name} is signed out on every device and cannot sign in until you unblock them.`,
+      pin: true,
+      title: blocked ? `Unblock ${person.name}?` : `Block ${person.name}?`,
+      tone: blocked ? "default" : "destructive",
+    });
+    if (!ok) return;
+    setBusy(true);
+    setError("");
+    try {
+      await browserApi(`/api/v1/platform/users/${person.id}/block`, { method: blocked ? "DELETE" : "PATCH" });
+      invalidate(platformEndpoints.users);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "That did not go through.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="pt-2">
+      <RoleButton disabled={busy} onClick={() => void toggle()} tone="team" variant={blocked ? "solid" : "outline"}>
+        {busy ? "Saving…" : blocked ? "Unblock account" : "Block account"}
+      </RoleButton>
+      {error ? <p className="pt-1.5 text-[12px] text-destructive">{error}</p> : null}
+      {confirmDialog}
+    </div>
+  );
+}

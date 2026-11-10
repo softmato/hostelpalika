@@ -176,6 +176,9 @@ export function PortalAccount({
   const menuRef = useRef<HTMLDivElement>(null);
 
   usePinIdleLock(Boolean(user?.hasLockPin && !user.viaTemporaryCredential));
+  // The platform header is not a "clean" one, but it holds every hostel's data:
+  // its PIN lock is offered and set from here too (owner, 2026-11-09).
+  const pinActions = showPortalActions || tone === "platform";
 
   const loadCurrentUser = useCallback(async () => {
     try {
@@ -197,7 +200,7 @@ export function PortalAccount({
       setUser(payload.data.user);
       // The app's cold-open "Lock the app" sheet, once per browser session here.
       if (
-        showPortalActions &&
+        pinActions &&
         !payload.data.user.hasLockPin &&
         !payload.data.user.viaTemporaryCredential &&
         !readSessionFlag(PIN_OFFER_KEY)
@@ -217,7 +220,7 @@ export function PortalAccount({
     } finally {
       setIsLoading(false);
     }
-  }, [showPortalActions]);
+  }, [pinActions]);
 
   useEffect(() => {
     // Deferred so the first paint is not blocked by a cascading setState —
@@ -407,7 +410,7 @@ export function PortalAccount({
               Create resident ID
             </button>
           )}
-          {showPortalActions && user && !user.hasLockPin && !user.viaTemporaryCredential ? (
+          {pinActions && user && !user.hasLockPin && !user.viaTemporaryCredential ? (
             <button
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
               onClick={() => {
@@ -441,7 +444,7 @@ export function PortalAccount({
       {showPortalActions ? (
         <GetAppDialog open={getAppOpen} onOpenChange={setGetAppOpen} />
       ) : null}
-      {showPortalActions ? (
+      {pinActions ? (
         <PinSetupDialog
           intro={pinSetup === "offer"}
           onOpenChange={(open) => {

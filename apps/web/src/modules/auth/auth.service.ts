@@ -321,6 +321,12 @@ export async function issueSessionForUser(
    */
   options?: { temporaryCredentialId?: string },
 ) {
+  // One door for every sign-in (password, Google, temporary login, activation,
+  // invite): a blocked or closed account gets no session from any of them.
+  if (user.status === "SUSPENDED" || user.status === "ARCHIVED") {
+    throw new AuthServiceError("This account is blocked. Contact support.", "USER_INACTIVE", 401);
+  }
+
   let account = await releaseStrandedResident(user);
 
   // Registered at the desk with this email before they had an account: their

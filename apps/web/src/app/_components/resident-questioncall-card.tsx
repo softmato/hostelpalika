@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, GraduationCap } from "@/components/icons";
+import { ExternalLink } from "@/components/icons";
 
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
@@ -25,7 +25,7 @@ export function ResidentQuestionCallCard() {
 
   return (
     <a
-      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="flex h-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       href={questionCall.url}
       onClick={(event) => {
         // A modified click (new window, background tab) stays a plain link.
@@ -66,8 +66,9 @@ export function ResidentQuestionCallCard() {
       rel="noopener noreferrer"
       target="_blank"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-        <GraduationCap aria-hidden="true" className="size-5" />
+      <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-black/[0.08]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- QuestionCall's own mark, a 96px local file */}
+        <img alt="" className="size-9 object-contain" height={36} src="/brand/questioncall-logo.png" width={36} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-foreground">

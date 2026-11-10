@@ -75,7 +75,9 @@ func mountPlatform(v1 *gin.RouterGroup, s *shared, settler *billing.Settler) {
 	(&reports.Admin{DB: s.D.DB, Guards: s.Guards, Cache: s.Cache}).RegisterPlatform(v1)
 	(&questioncall.Analytics{DB: s.D.DB, Guards: s.Guards}).Register(v1)
 	(&billing.Platform{Settler: settler, Guards: s.Guards, Audit: s.Audit}).Register(v1)
-	(&users.Admins{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Mail: s.Mail, AppURL: s.AppURL, Now: time.Now}).Register(v1)
+	admins := &users.Admins{DB: s.D.DB, Guards: s.Guards, Audit: s.Audit, Mail: s.Mail, AppURL: s.AppURL, Now: time.Now}
+	admins.Register(v1)
+	admins.RegisterBlock(v1)
 	financeKeys := func() ([]crypto.MasterKey, error) {
 		return crypto.MasterKeys(s.Cfg.Crypto.FinanceMasterKey, s.Cfg.Crypto.FinanceMasterKeyPrev)
 	}

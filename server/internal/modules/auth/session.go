@@ -107,6 +107,11 @@ func (s *Service) IssueFor(ctx context.Context, userID bson.ObjectID, ip, userAg
 
 // issueSession is issueSessionForUser.
 func (s *Service) issueSession(ctx context.Context, u *userRow, rc reqCtx, tempID string) (*Issued, error) {
+	// One door for every sign-in (password, Google, temporary login, activation,
+	// invite): a blocked or closed account gets no session from any of them.
+	if u.Status == "SUSPENDED" || u.Status == "ARCHIVED" {
+		return nil, fail(http.StatusUnauthorized, "USER_INACTIVE", "This account is blocked. Contact support.")
+	}
 	if err := s.releaseStrandedResident(ctx, u); err != nil {
 		return nil, err
 	}

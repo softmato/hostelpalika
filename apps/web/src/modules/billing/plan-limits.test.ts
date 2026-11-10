@@ -13,7 +13,11 @@ const lean = <T>(value: () => T) => ({ select: () => ({ lean: async () => value(
 vi.mock("@hostel/db/models/HostelSubscription", () => ({
   HostelSubscriptionModel: {
     findOne: () =>
-      lean(() => (mocks.planId || mocks.trialEndsAt ? { planId: mocks.planId, trialEndsAt: mocks.trialEndsAt } : null)),
+      lean(() =>
+        mocks.planId || mocks.trialEndsAt
+          ? { currentPeriodEnd: new Date(Date.now() + 86_400_000), planId: mocks.planId, trialEndsAt: mocks.trialEndsAt }
+          : null,
+      ),
   },
 }));
 vi.mock("@hostel/db/models/Resident", () => ({
@@ -33,7 +37,7 @@ vi.mock("@/modules/residents/resident-notify", () => ({
 }));
 vi.mock("@/modules/notifications/notification.service", () => ({ createInAppNotification: mocks.notify }));
 
-import { assertPlanRoom } from "@/modules/billing/plan-limits";
+import { assertPlanRoom, planState, seatsOver } from "@/modules/billing/plan-limits";
 
 const hostelId = new Types.ObjectId();
 
@@ -90,3 +94,35 @@ describe("assertPlanRoom", () => {
     await expect(assertPlanRoom(hostelId, "residents")).resolves.toBeUndefined();
   });
 });
+
+describe("planState", () => {
+  const catalog = {
+    free: { maxResidents: 10, name: "Free", portalAccess: { cooks: 1, wardens: 1 } },
+    plans: [{ id: "pro", maxResidents: 100, name: "Pro", portalAccess: { cooks: 3, wardens: 2 } }],
+  } as unknown as Parameters<typeof planState>[0];
+  const now = new Date("2026-11-09T00:00:00Z");
+  const past = new Date("2026-11-01T00:00:00Z");
+  const future = new Date("2026-12-01T00:00:00Z");
+
+  it("puts a live paid plan, a lifetime plan and a running trial where they belong", () => {
+    expect(planState(catalog, { currentPeriodEnd: future, planId: "pro" }, now).kind).toBe("paid");
+    expect(planState(catalog, { lifetimeSince: past, planId: "pro" }, now).kind).toBe("paid");
+    expect(planState(catalog, { planId: "pro", trialEndsAt: future }, now).kind).toBe("trial");
+  });
+
+  it("drops a lapsed plan, an unpaid choice and an ended trial to Free", () => {
+    expect(planState(catalog, { currentPeriodEnd: past, planId: "pro" }, now).kind).toBe("free");
+    expect(planState(catalog, { planId: "pro", trialEndsAt: past }, now).kind).toBe("free");
+    expect(planState(catalog, { trialEndsAt: past }, now).plan?.name).toBe("Free");
+  });
+
+  it("leaves a hostel from before trials uncapped", () => {
+    expect(planState(catalog, {}, now)).toEqual({ kind: "none", plan: null });
+  });
+
+  it("names the seats past their cap", () => {
+    const free = planState(catalog, { trialEndsAt: past }, now).plan!;
+    expect(seatsOver(free, { cooks: 1, residents: 34, wardens: 2 })).toEqual(["residents", "wardens"]);
+  });
+});
+

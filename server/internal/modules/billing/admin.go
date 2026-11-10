@@ -1,6 +1,8 @@
 package billing
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 )
 
 // Admin is the hostel's own plan billing under /hostel-admin: subscription,
@@ -19,6 +22,7 @@ type Admin struct {
 	Cache   *cache.Cache
 	Audit   *audit.Log
 	Mail    *email.Sender
+	Limits  *Limits
 }
 
 func (a *Admin) Register(v1 *gin.RouterGroup) {
@@ -26,12 +30,32 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	staff := authz.Use(a.Guards.RequireHostelStaff)
 	g.GET("/subscription", staff, a.subscription)
 	g.GET("/billing", staff, httpx.ETag(), a.history)
+	g.GET("/billing/usage", staff, a.usage)
 	admin := authz.Use(a.Guards.RequireHostelAdmin)
 	g.POST("/billing/checkout", admin, a.checkout)
 	g.POST("/billing/claim", admin, a.claim)
 	g.POST("/billing/renew", admin, a.renew)
 	g.GET("/billing/pay-instructions", admin, httpx.ETag(), a.payInstructions)
 	g.GET("/billing/documents/:kind/:number", staff, a.document)
+}
+
+// usage is GET /billing/usage: the plan, its caps, what is used, any over-limit clock.
+func (a *Admin) usage(c *gin.Context) {
+	id, ok, err := firstHostel(authz.From(c))
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	if !ok {
+		httpx.OK(c, ordered.Map{{Key: "usage", Value: nil}}, "No hostel in scope")
+		return
+	}
+	u, err := a.Limits.Usage(c, id, time.Now())
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	httpx.OK(c, ordered.Map{{Key: "usage", Value: u}}, "Plan usage loaded")
 }
 
 // firstHostel is `principal.hostelIds?.[0]`.

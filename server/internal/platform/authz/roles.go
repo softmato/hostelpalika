@@ -4,6 +4,8 @@
 package authz
 
 import (
+	"net/http"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -98,6 +100,7 @@ func IsOpenWhileSuspended(path string) bool { return underAny(path, openWhileSus
 
 const (
 	KycRequiredMessage   = "Please complete your hostel KYC. This opens once our team has approved it."
+	PlanOverLimitMessage = "Your hostel is over its free plan's limits, so the portal is read-only. Upgrade your plan, or move residents out or remove staff to get back within them."
 	TrialEndedKycMessage = "Your free trial has ended. Please complete your KYC — once our team approves it, you can get your plan."
 )
 
@@ -152,6 +155,23 @@ var openAfterTrial = []string{
 
 func IsKycFrozenRequest(method, path string) bool {
 	return !isRead(method) && !underAny(path, kycOwn) && underAny(path, kycFrozen)
+}
+
+// What brings a hostel back within its caps: a move-out or status change, and
+// removing a resident, warden or cook.
+var (
+	reducesByAction = regexp.MustCompile(`^/api/v1/hostel-admin/residents/[^/]+/(move-out|status)$`)
+	reducesByDelete = regexp.MustCompile(`^/api/v1/hostel-admin/(residents|wardens|cooks)/[^/]+$`)
+)
+
+// IsBlockedWhileOverLimit is isBlockedWhileOverLimit: what a free-tier hostel past
+// its over-limit grace may not write — everything blocked after a trial, except
+// what brings it back within its caps.
+func IsBlockedWhileOverLimit(method, path string) bool {
+	if !IsBlockedAfterTrial(method, path) || reducesByAction.MatchString(path) {
+		return false
+	}
+	return method != http.MethodDelete || !reducesByDelete.MatchString(path)
 }
 
 func IsBlockedAfterTrial(method, path string) bool {

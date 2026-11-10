@@ -136,7 +136,7 @@ export function PortalPageHeader({
       actions={actions}
       breadcrumb={
         breadcrumb && breadcrumb.length > 0 ? (
-          <p className="truncate text-[11px] font-medium text-muted-foreground">
+          <p className="truncate text-[11px] font-semibold text-white/80">
             {breadcrumb.map((item, index) => {
               const href = breadcrumbHref(item);
               const isLast = index === breadcrumb.length - 1;
@@ -144,14 +144,14 @@ export function PortalPageHeader({
               return (
                 <span key={`${breadcrumbLabel(item)}-${index}`}>
                   {index > 0 ? (
-                    <span className="mx-1 text-muted-foreground/50">›</span>
+                    <span className="mx-1 text-white/60">›</span>
                   ) : null}
                   {href && !isLast ? (
-                    <Link className="hover:text-foreground hover:underline" href={href}>
+                    <Link className="hover:text-white hover:underline" href={href}>
                       {breadcrumbLabel(item)}
                     </Link>
                   ) : (
-                    <span className={isLast ? "text-foreground" : ""}>
+                    <span className={isLast ? "text-white" : ""}>
                       {breadcrumbLabel(item)}
                     </span>
                   )}
@@ -203,6 +203,27 @@ const iconToneClasses: Record<SoftTone, string> = {
  * the card becomes a real button: focusable, keyboard-operable, and visibly
  * interactive on hover.
  */
+/**
+ * A big figure with its currency as a small prefix — "NPR" at a little over half
+ * the amount's size — so the number is what the eye lands on. Anything that is
+ * not a plain "NPR 4,993" / "Rs 4,993" string passes through unchanged.
+ */
+export function MoneyFigure({ value }: { value: ReactNode }) {
+  const match = typeof value === "string" ? /^(-?)(NPR|Rs)\s*(-?[\d,.]+)$/.exec(value.trim()) : null;
+
+  if (!match) return <>{value}</>;
+
+  return (
+    <span className="font-amount">
+      <span className="mr-1 text-[0.7em] font-semibold uppercase tracking-wide text-muted-foreground">
+        {match[1]}
+        {match[2]}
+      </span>
+      {match[3]}
+    </span>
+  );
+}
+
 export function MetricCard({
   active = false,
   icon: Icon,
@@ -263,7 +284,7 @@ export function MetricCard({
           ) : null}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[20px] font-bold leading-tight tracking-tight text-foreground">
-              {value}
+              <MoneyFigure value={value} />
             </p>
             <p className="truncate text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               {label}

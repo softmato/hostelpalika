@@ -243,6 +243,7 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
    * total that changes underneath a part-filled claim is its own bug.
    */
   const [claimInvoice, setClaimInvoice] = useState<Payment | null>(null);
+  /** The "how to share your receipt" box: closed it sits under the offer card; open it fills the row. */
   const [guideOpen, setGuideOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const invalidate = useInvalidateResources();
@@ -415,17 +416,21 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
       {/* ── The one thing this page is for ─────────────────────────────── */}
       {state === "ready" && stats.nextDue ? (
         <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-          <FocusCard
-            credit={credit}
-            payment={stats.nextDue}
-            pendingClaim={pendingProofByPaymentId.get(stats.nextDue.id)}
-            rejectedClaim={
-              pendingProofByPaymentId.has(stats.nextDue.id)
-                ? undefined
-                : rejectedProofByPaymentId.get(stats.nextDue.id)
-            }
-          />
-          <div className="grid content-start gap-3">
+          {/* Closed, the amount card spans both rows so the guide's one-line box
+              can sit right under the offer card; open, it lets go of row two. */}
+          <div className={cn("min-w-0 lg:col-start-1 lg:row-start-1 [&>*]:h-full", !guideOpen && "lg:row-span-2")}>
+            <FocusCard
+              credit={credit}
+              payment={stats.nextDue}
+              pendingClaim={pendingProofByPaymentId.get(stats.nextDue.id)}
+              rejectedClaim={
+                pendingProofByPaymentId.has(stats.nextDue.id)
+                  ? undefined
+                  : rejectedProofByPaymentId.get(stats.nextDue.id)
+              }
+            />
+          </div>
+          <div className="grid content-start gap-3 lg:col-start-2 lg:row-start-1">
             {/* Above the fold, because the commonest way to fail the programme
                 is to pay from a banking app having never seen the code. Hidden
                 when nothing is owed: a code with no invoice is an instruction
@@ -439,16 +444,18 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
             />
             <OfferProgramBanner code={stats.nextDue.referenceCode} />
           </div>
-          {/* Sits under the right column and, when opened, grows to the whole
-              row: the first column eases down to 0fr, so it is one motion. */}
+          {/* Row two, both columns wide. Its first column eases from 1.3fr down
+              to 0fr, so the box under the offer card grows leftwards to the full
+              row: one motion, the same box. The spacer lets clicks through to
+              the amount card above it. */}
           <div
             className={cn(
-              "grid transition-[grid-template-columns,column-gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:col-span-2",
+              "pointer-events-none grid transition-[grid-template-columns,column-gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:col-span-2 lg:col-start-1 lg:row-start-2",
               guideOpen ? "lg:grid-cols-[0fr_1fr] lg:gap-x-0" : "lg:grid-cols-[1.3fr_1fr] lg:gap-x-4",
             )}
           >
             <div className="min-w-0" />
-            <ShareReceiptSteps onOpenChange={setGuideOpen} open={guideOpen} />
+            <ShareReceiptSteps className="pointer-events-auto" onOpenChange={setGuideOpen} open={guideOpen} />
           </div>
         </div>
       ) : null}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { HostelPaymentCredentialsReminder } from "@/app/_components/hostel-payment-credentials-reminder";
 import { HostelSubscriptionDueBanner } from "@/app/_components/hostel-subscription-due-banner";
+import { PlanLimitBanner, PlanLimitDialog } from "@/app/_components/plan-usage";
 import { PortalShell } from "@/components/portal-shell";
 import { HOSTEL_ADMIN_NAV, HOSTEL_ADMIN_SEARCH_ENTRIES } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
@@ -23,6 +24,8 @@ export default function HostelAdminLayout({
       tone="admin"
       workspaceName="Hostel Workspace"
     >
+      <PlanLimitBanner />
+      <PlanLimitDialog />
       <HostelSubscriptionDueBanner />
       <div className="sticky -top-4 z-20 -mt-4 mb-4 flex flex-col gap-2 bg-background pt-4 empty:hidden">
         <HostelPaymentCredentialsReminder paymentProfileHref="/hostel-admin/payment-setup" />

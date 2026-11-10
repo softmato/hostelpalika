@@ -18,7 +18,10 @@ import {
   isKycFrozenRequest,
   isKycLocked,
   isTrialOverWithoutKyc,
+  isBlockedWhileOverLimit,
+  isPlanReadOnly,
   KYC_REQUIRED_MESSAGE,
+  PLAN_OVER_LIMIT_MESSAGE,
   type KycRecord,
   TRIAL_ENDED_KYC_MESSAGE,
 } from "@/modules/hostels/hostel-kyc-lock";
@@ -229,9 +232,16 @@ async function narrowToLiveHostels(
     _id: { $in: validIds.map((id) => new Types.ObjectId(id)) },
     ...(isStaff ? { isDeleted: { $ne: true } } : {}),
   })
-    .select("_id kyc parentHostelId slug suspension")
+    .select("_id kyc parentHostelId planLimit slug suspension")
     .lean<
-      { _id: Types.ObjectId; kyc?: KycRecord; parentHostelId?: Types.ObjectId | null; slug?: string; suspension?: SuspensionRecord | null }[]
+      {
+        _id: Types.ObjectId;
+        kyc?: KycRecord;
+        parentHostelId?: Types.ObjectId | null;
+        planLimit?: { readOnlyFrom?: Date | null } | null;
+        slug?: string;
+        suspension?: SuspensionRecord | null;
+      }[]
     >();
 
   const live = new Set(rows.map((row) => row._id.toString()));
@@ -262,6 +272,19 @@ async function narrowToLiveHostels(
     rows.some((row) => hostelIds.includes(row._id.toString()) && isTrialOverWithoutKyc(row.kyc, now))
   ) {
     throw new ApiAuthError(TRIAL_ENDED_KYC_MESSAGE, "TRIAL_ENDED_KYC", 423);
+  }
+
+  // Free tier, over its caps, grace run out: read-only. Re-checked before refusing,
+  // so paying or moving residents out lifts it on the very next request.
+  const readOnly = isStaff && isBlockedWhileOverLimit(request.method, requestPath(request))
+    ? rows.find((row) => hostelIds.includes(row._id.toString()) && isPlanReadOnly(row.planLimit, now))
+    : undefined;
+
+  if (readOnly) {
+    const { refreshPlanLimit } = await import("@/modules/billing/plan-limits");
+    const { planLimit } = await refreshPlanLimit(readOnly._id, now);
+
+    if (isPlanReadOnly(planLimit, now)) throw new ApiAuthError(PLAN_OVER_LIMIT_MESSAGE, "PLAN_OVER_LIMIT", 423);
   }
 
   return {

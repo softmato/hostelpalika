@@ -18,6 +18,7 @@ function fake(exportName: string) {
 }
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+vi.mock("@/modules/billing/plan-limits", () => ({ refreshPlanLimit: vi.fn(async () => ({})) }));
 vi.mock("@hostel/db/models/Hostel", fake("HostelModel"));
 vi.mock("@hostel/db/models/HostelSubscription", fake("HostelSubscriptionModel"));
 vi.mock("@hostel/db/models/SubscriptionInvoice", fake("SubscriptionInvoiceModel"));

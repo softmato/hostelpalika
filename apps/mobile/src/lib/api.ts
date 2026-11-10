@@ -369,6 +369,14 @@ api.interceptors.response.use(
       void import("@/lib/kyc-lock").then(({ promptKyc }) => promptKyc());
     }
 
+    // A plan cap or the over-limit read-only: one sheet with the way out, wherever it was hit.
+    const refusal = error.response?.data as { errorCode?: string; message?: string } | undefined;
+    if (refusal?.errorCode === "PLAN_LIMIT_REACHED" || refusal?.errorCode === "PLAN_OVER_LIMIT") {
+      void import("@/lib/plan-limit").then(({ promptPlanLimit }) =>
+        promptPlanLimit({ code: refusal.errorCode!, message: refusal.message ?? "" }),
+      );
+    }
+
     if (!request || error.response?.status !== 401 || request._retried) {
       return Promise.reject(error);
     }

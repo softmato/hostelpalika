@@ -25,7 +25,6 @@ import Link from "next/link";
 import { memo, useState } from "react";
 
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
-import { PLAN_OVERDUE_DAYS } from "@hostel/shared/constants/plan-grace";
 import { HostelBranchesCard } from "@/app/_components/hostel-branches-card";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { HostelKycBanner } from "@/app/_components/hostel-admin-kyc-page";
@@ -40,6 +39,7 @@ import { usePortalResource } from "@/lib/portal-query";
 import { Hostel, Message, ReportRecord } from "./core-portal-shared";
 import {
   InitialsAvatar,
+  MoneyFigure,
   PortalPageHeader,
   SectionCard,
   SoftBadge,
@@ -114,12 +114,6 @@ function PlanStatusStrip({
         ? `${Math.floor(graceMs / DAY_MS)}d ${Math.floor((graceMs % DAY_MS) / 3_600_000)}h`
         : `${Math.floor(graceMs / 3_600_000)}h ${Math.floor((graceMs % 3_600_000) / 60_000)}m`;
   const noun = onTrial ? "trial" : "plan";
-  // The days to pay after the due date, before the suspension clock starts.
-  const payLeft =
-    ended && owed && plan.dueBy
-      ? Math.ceil((Date.parse(plan.dueBy) + PLAN_OVERDUE_DAYS * DAY_MS - now) / DAY_MS)
-      : null;
-
   let text: string;
   let tone: "bad" | "ok" | "warn";
 
@@ -129,12 +123,10 @@ function PlanStatusStrip({
   } else if (ended && graceLeft !== null) {
     text = `Final notice: ${graceLeft} left before access stops. Pay now to keep your portal.`;
     tone = "bad";
-  } else if (ended && payLeft !== null && payLeft > 0) {
-    text = `Your ${noun} has ended. Grace period: ${payLeft} ${payLeft === 1 ? "day" : "days"} left to pay before suspension.`;
-    tone = "warn";
   } else if (ended) {
-    text = `Your ${noun} has ended${owed ? ", and the renewal is waiting to be paid" : ""}.`;
-    tone = "bad";
+    // Nothing locks: an ended trial or plan is on the free tier until it is renewed.
+    text = `Your ${noun} has ended — you're on the Free plan${owed ? " until the renewal is paid" : ""}.`;
+    tone = "warn";
   } else {
     text = days === 1 ? `Your ${noun} ends today.` : `Your ${noun} ends in ${days} days.`;
     tone = days <= 7 ? "warn" : "ok";
@@ -242,7 +234,7 @@ function StatTile({ icon: Icon, label, meta, tone = "brand", value }: StatTilePr
         <Icon className="size-[18px]" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[22px] font-bold leading-tight tabular-nums text-foreground">{value}</p>
+        <p className="truncate text-[22px] font-bold leading-tight tabular-nums text-foreground"><MoneyFigure value={value} /></p>
         <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
       </div>
       <p className="mt-auto text-[12px] leading-snug text-muted-foreground">{meta}</p>

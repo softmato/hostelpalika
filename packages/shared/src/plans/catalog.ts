@@ -116,6 +116,8 @@ export type PlanFreeLike = {
   label: string;
   maxResidents: number;
   name: string;
+  /** Days a hostel over these caps keeps working before its portal turns read-only. */
+  overLimitGraceDays: number;
   portalAccess: { cooks: number; wardens: number };
 };
 

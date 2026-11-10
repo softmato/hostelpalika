@@ -258,9 +258,17 @@ describe("notificationRoute", () => {
   });
 
   it("expands a row nothing in the app can open", () => {
-    expect(notificationRoute({ actionUrl: "/platform/hostels" })).toBeNull();
+    expect(notificationRoute({ actionUrl: "/platform/hostel-leaves?request=1" })).toBeNull();
     expect(notificationRoute({ actionUrl: "https://evil.example" })).toBeNull();
     expect(notificationRoute({})).toBeNull();
+  });
+});
+
+describe("platform bells open the native platform screens", () => {
+  it("routes /platform links", () => {
+    expect(resolvePushPath("/platform/hostels")).toBe("/(platform)/approvals");
+    expect(resolvePushPath("/platform/store/orders")).toBe("/manage/platform/store-orders");
+    expect(notificationRoute({ actionUrl: "/platform/listing-flags" })).toBe("/manage/platform/listing-flags");
   });
 });
 

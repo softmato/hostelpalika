@@ -36,6 +36,8 @@ import {
   LoadingRows,
   Select as FormSelect,
 } from "@/app/_components/shared-ui";
+import { ResidentRoomDialog } from "@/app/_components/resident-room-dialog";
+import { Glyph } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -607,6 +609,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
     unassigned: { id: string }[];
   }>("/api/v1/hostel-admin/rooms");
   const [roomBusy, setRoomBusy] = useState(false);
+  const [roomDialog, setRoomDialog] = useState(false);
   /** Puts a resident in a numbered room — residents from before Floor & room was on (§3). */
   const placeResident = useCallback(
     async (residentId: string, roomId: string) => {
@@ -617,6 +620,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
           method: "PUT",
         });
         await Promise.all([roomLayout.refreshAsync(), residentsQuery.refreshAsync()]);
+        setRoomDialog(false);
       } catch (error) {
         toast.error({ title: error instanceof Error ? error.message : "Could not change the room." });
       } finally {
@@ -1139,6 +1143,19 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   return (
     <div className="mx-auto max-w-[1448px] space-y-6">
       {confirmDialog}
+      {roomDialog && selectedResident && roomLayout.data ? (
+        <ResidentRoomDialog
+          busy={roomBusy}
+          onClose={() => setRoomDialog(false)}
+          onMove={(roomId) => void placeResident(selectedResident.id, roomId)}
+          resident={{
+            name: `${selectedResident.firstName} ${selectedResident.lastName}`.trim(),
+            roomId: selectedResident.roomId,
+            roomType: selectedResident.roomType,
+          }}
+          rooms={roomLayout.data.rooms}
+        />
+      ) : null}
       <ResidentMoveOutDialog
         onClose={() => setMoveOutResident(null)}
         onMovedOut={(note) => {
@@ -1890,36 +1907,27 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                       </dd>
                     </div>
                     {roomLayout.data?.tracking && selectedResident.status !== "MOVED_OUT" ? (
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="grid gap-1.5">
                         <dt className="text-muted-foreground">Floor & room</dt>
                         <dd>
-                          <select
-                            aria-label="Floor and room"
-                            className={cn(
-                              "h-8 max-w-56 rounded-md border bg-background px-2 text-sm font-medium outline-none focus:border-primary",
-                              selectedResident.roomId ? "border-border" : "border-warning text-warning",
-                            )}
-                            disabled={roomBusy}
-                            onChange={(event) =>
-                              event.target.value && void placeResident(selectedResident.id, event.target.value)
-                            }
-                            value={selectedResident.roomId ?? ""}
-                          >
-                            <option value="">No room yet</option>
-                            {[...roomLayout.data.rooms]
-                              .sort((left, right) => left.floor - right.floor || left.number.localeCompare(right.number))
-                              .map((room) => (
-                                <option
-                                  disabled={room.free <= 0 && room.id !== selectedResident.roomId}
-                                  key={room.id}
-                                  value={room.id}
-                                >
-                                  {`Room ${room.number} · ${floorName(room.floor)}${
-                                    room.roomType === selectedResident.roomType ? "" : ` · ${roomTypeLabel(room.roomType)}`
-                                  }${room.id === selectedResident.roomId ? "" : room.free > 0 ? ` (${room.free} free)` : " (full)"}`}
-                                </option>
-                              ))}
-                          </select>
+                          {(() => {
+                            const room = roomLayout.data.rooms.find((item) => item.id === selectedResident.roomId);
+
+                            return (
+                              <div className={cn("flex items-center gap-3 rounded-xl border bg-background px-3 py-2.5", room ? "border-border" : "border-warning/50")}>
+                                <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", room ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning")}>
+                                  <Glyph className="size-[18px]" name="bed" />
+                                </span>
+                                <div className="min-w-0 flex-1 leading-tight">
+                                  <p className={cn("truncate text-sm font-semibold", room ? "text-foreground" : "text-warning")}>{room ? `Room ${room.number}` : "No room yet"}</p>
+                                  <p className="truncate text-xs text-muted-foreground">{room ? floorName(room.floor) : "Give them a bed"}</p>
+                                </div>
+                                <Button disabled={roomBusy} onClick={() => setRoomDialog(true)} size="sm" type="button" variant="outline">
+                                  {room ? "Change" : "Pick room"}
+                                </Button>
+                              </div>
+                            );
+                          })()}
                         </dd>
                       </div>
                     ) : null}

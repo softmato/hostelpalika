@@ -349,10 +349,9 @@ export function HostelCard({
 }
 
 /**
- * The hostel and what is owed to it, as one card: photo and full details on top,
- * the bill (amount, how late, a Pay button) as a panel under them. A resident
- * opening the dashboard is asking "where do I live and what do I owe", and those
- * were two cards a screen apart.
+ * What a resident opens the dashboard to learn: what they owe, and to whom. One
+ * plain card — the hostel on top, the bill under it with how late it is and a
+ * Pay button.
  */
 export function HostelBillCard({
   action,
@@ -378,57 +377,60 @@ export function HostelBillCard({
   const clear = amount <= 0;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="grid md:grid-cols-[280px_1fr]">
-        <div className="relative h-44 bg-muted md:h-full md:min-h-[300px]">
+    <section className="flex h-full flex-col rounded-2xl border border-border bg-card">
+      <div className="flex min-w-0 items-center gap-4 p-5">
+        <span className="size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
           {photoUrl ? (
-            <div
+            <span
               aria-label={`${name} exterior`}
-              className="size-full bg-cover bg-center"
+              className="block size-full bg-cover bg-center"
               role="img"
               style={{ backgroundImage: `url("${photoUrl}")` }}
             />
           ) : (
             <span className="flex size-full items-center justify-center text-muted-foreground">
-              <Glyph className="size-12" name="hostel" />
+              <Glyph className="size-6" name="hostel" />
             </span>
           )}
-        </div>
-        <div className="flex min-w-0 flex-col gap-4 p-5">
-          <div className="min-w-0 space-y-2.5">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate font-heading text-[22px] font-bold tracking-tight text-foreground">{name}</h2>
-              <Glyph className="size-5 shrink-0 text-role-team" name="shield-checkmark" variant="solid" />
-            </div>
-            <p className="flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
-              <Glyph className="size-4 shrink-0" name="location" />
-              <span className="truncate">{address}</span>
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {chips}
-              {slug ? (
-                <FactChip glyph="open" href={`/hostels/${slug}`} tone="brand">
-                  Hostel page
-                </FactChip>
-              ) : null}
-            </div>
+        </span>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <h2 className="truncate font-heading text-[18px] font-bold tracking-tight text-foreground">{name}</h2>
+            <Glyph className="size-[18px] shrink-0 text-role-team" name="shield-checkmark" variant="solid" />
           </div>
-          <div className="mt-auto space-y-3 rounded-xl bg-muted/60 p-4">
-            <div className="flex items-end justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                  {clear ? "All paid" : "You owe"}
-                </p>
-                <p className="mt-0.5 font-heading text-[30px] font-bold leading-none tracking-tight text-foreground tabular-nums">
-                  {currency(amount)}
-                </p>
-                {note ? <div className="mt-1.5 text-[12.5px] text-muted-foreground">{note}</div> : null}
-              </div>
-              {clear ? null : action}
-            </div>
-            {!clear && dueDate ? <DueBar dueDate={dueDate} /> : null}
-          </div>
+          <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <Glyph className="size-4 shrink-0" name="location" />
+            <span className="truncate">{address}</span>
+          </p>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 px-5 pb-5">
+        {chips}
+        {slug ? (
+          <FactChip glyph="open" href={`/hostels/${slug}`} tone="brand">
+            Hostel page
+          </FactChip>
+        ) : null}
+      </div>
+
+      <div className="mt-auto space-y-3 border-t border-border p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{clear ? "All paid" : "You owe"}</p>
+            {clear ? (
+              <p className="mt-1 font-heading text-[26px] font-bold leading-none text-foreground">Nothing due</p>
+            ) : (
+              <p className="font-amount mt-1 font-heading text-[34px] font-bold leading-none tracking-tight text-foreground">
+                <span className="mr-1.5 text-[0.45em] font-semibold tracking-wide text-muted-foreground">NPR</span>
+                {amount.toLocaleString("en-NP", { maximumFractionDigits: 0 })}
+              </p>
+            )}
+            {note ? <div className="mt-1.5 text-[12.5px] text-muted-foreground">{note}</div> : null}
+          </div>
+          {clear ? null : action}
+        </div>
+        {!clear && dueDate ? <DueBar dueDate={dueDate} /> : null}
       </div>
     </section>
   );

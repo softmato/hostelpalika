@@ -153,3 +153,8 @@ _C1–C3: typechecked + linted; the browser check is yours (no Browser-pane driv
 > **2026-11-09 — Free plan replaces the trial-end block.** A trial that ends without a paid
 > plan now lands on the free tier (`plans.free` caps, default 10 residents / 1 warden / 1 cook)
 > instead of a `TRIAL_ENDED` suspension. The KYC rule (`TRIAL_ENDED_KYC`) is unchanged.
+
+> **2026-11-09 — one rule for plans.** Every hostel without a live paid plan is on Free (trial over,
+> paid period lapsed, plan chosen but unpaid). Over Free's caps: a grace of
+> `plans.free.overLimitGraceDays`, then the portal is read-only (`PLAN_OVER_LIMIT`) until it
+> upgrades or gets back within them. Lapsed plans no longer get `PLAN_OVERDUE` suspensions.
