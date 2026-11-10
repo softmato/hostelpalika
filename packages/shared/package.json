@@ -18,6 +18,7 @@
     "./food/*": "./src/food/*.ts",
     "./night/*": "./src/night/*.ts",
     "./brand/*": "./src/brand/*.ts",
+    "./guide/*": "./src/guide/*.ts",
     "./expenses/*": "./src/expenses/*.ts"
   },
   "scripts": {

@@ -29,7 +29,7 @@ export const PlatformConfigLegalPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Legal Pages"]}
-        description="Text for /terms and /privacy; an empty body keeps the built-in copy."
+        description="Text for /terms and /privacy, and the user guide's version."
         error={error}
         message={message}
         state={state}
@@ -86,6 +86,30 @@ export const PlatformConfigLegalPageContent = memo(
                 value={legal.privacy.body}
               />
             </div>
+          </div>
+        </ConfigCard>
+
+        <ConfigCard
+          description="Shown at the top of /guide and the app's Guide screen. Bump it when the guide changes."
+          dirty={isDirty("legal")}
+          onReset={() => reset("legal")}
+          onSave={() => save("legal")}
+          saving={savingSection === "legal"}
+          title="User Guide"
+        >
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <TextField
+              label="Version"
+              onChange={(version) => setValue("legal", { ...legal, guide: { ...legal.guide, version } })}
+              placeholder="1.0"
+              value={legal.guide.version}
+            />
+            <TextField
+              label="Last updated"
+              onChange={(updatedAt) => setValue("legal", { ...legal, guide: { ...legal.guide, updatedAt } })}
+              placeholder="10 November 2026"
+              value={legal.guide.updatedAt}
+            />
           </div>
         </ConfigCard>
       </ConfigPage>

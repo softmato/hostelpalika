@@ -60,6 +60,7 @@ export function PublicFooter() {
         ["Hostel management system", "/hostel-management-software"],
         ["Features", "/features"],
         ["Plans & pricing", "/plans-pricing"],
+        ["User guide", "/guide"],
         ["Recharge your hostel", "/plans-pricing/checkout"],
         ...(features.publicRegistration
           ? [["List your hostel", "/register-hostel"] as [string, string]]

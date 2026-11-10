@@ -36,6 +36,7 @@ func NewHandler(db *mongo.Database, guards *authz.Guards, limiter *ratelimit.Lim
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.POST("/feedback", h.create)
+	v1.POST("/guide/feedback", h.createGuide)
 }
 
 type input struct {

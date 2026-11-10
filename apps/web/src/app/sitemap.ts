@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { GUIDE_PAGES } from "@hostel/shared/guide/guide";
+
 import { listingTiers } from "@/app/_components/plans-catalog";
 import { HOSTEL_TYPE_PAGES } from "@/lib/hostel-locations";
 import { loadCityIndex } from "@/lib/location-pages";
@@ -39,6 +41,7 @@ const STATIC_ROUTES: Array<Pick<Entry, "changeFrequency" | "priority"> & { path:
   { changeFrequency: "weekly", path: "/compare", priority: 0.5 },
   { changeFrequency: "monthly", path: "/service-providers", priority: 0.5 },
   { changeFrequency: "monthly", path: "/about", priority: 0.5 },
+  { changeFrequency: "monthly", path: "/guide", priority: 0.5 },
   { changeFrequency: "monthly", path: "/contact", priority: 0.5 },
   { changeFrequency: "monthly", path: "/resident-offer-program", priority: 0.3 },
   { changeFrequency: "yearly", path: "/privacy", priority: 0.2 },
@@ -138,6 +141,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = config.plans;
 
   const marketingEntries: Entry[] = [
+    // Every guide chapter is its own page, so search can show them as sitelinks.
+    ...GUIDE_PAGES.map((page) => ({
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+      url: `${base}${page.href}`,
+    })),
     ...resolveModulePages(seo, catalog, fill).map((page) => ({
       changeFrequency: "monthly" as const,
       priority: 0.7,

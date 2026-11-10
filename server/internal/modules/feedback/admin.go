@@ -25,6 +25,7 @@ func (h *Handler) RegisterPlatform(v1 *gin.RouterGroup) {
 	staff := authz.Use(h.guards.RequirePlatform)
 	v1.GET("/platform/feedback", staff, httpx.ETag(), h.inbox)
 	v1.PATCH("/platform/feedback/:id", staff, h.setStatus)
+	v1.GET("/platform/guide-feedback", staff, httpx.ETag(), h.guideInbox)
 }
 
 // countsOf groups by field; keys sorted so the answer is stable (Mongo's group

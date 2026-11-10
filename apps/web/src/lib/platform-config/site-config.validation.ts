@@ -302,6 +302,17 @@ export const legalSchema = z.object({
       updatedAt: trimmed.max(40).default(""),
     })
     .default({ body: "", updatedAt: "" }),
+  /**
+   * The user guide's label (`/guide` and the app's Guide screen). The chapters
+   * live in `packages/shared/src/guide/guide.ts`; this is only the version and
+   * date a reader sees, bumped here whenever the text changes.
+   */
+  guide: z
+    .object({
+      updatedAt: trimmed.max(40).default("10 November 2026"),
+      version: trimmed.max(20).default("1.0"),
+    })
+    .default({ updatedAt: "10 November 2026", version: "1.0" }),
 });
 
 /**

@@ -378,6 +378,25 @@ html.dark {
     width: 0;
   }
 
+  /* A hairline scrollbar that only darkens on hover — the guide's sidebar. */
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .thin-scrollbar:hover {
+    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+  }
+  .thin-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 22%, transparent);
+  }
+
   .app-card {
     @apply rounded-lg border border-border bg-surface shadow-sm;
   }

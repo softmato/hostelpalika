@@ -709,6 +709,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     vatRegistered: false,
   },
   legal: {
+    guide: { updatedAt: "10 November 2026", version: "1.0" },
     privacy: { body: "", updatedAt: "" },
     refund: { body: "", updatedAt: "" },
     terms: { body: "", updatedAt: "" },

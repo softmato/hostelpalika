@@ -107,6 +107,8 @@ export type SiteLegalDocument = {
 };
 
 export type SiteLegal = {
+  /** The user guide's version label; absent from a server older than the field. */
+  guide?: { updatedAt: string; version: string };
   privacy: SiteLegalDocument;
   terms: SiteLegalDocument;
 };

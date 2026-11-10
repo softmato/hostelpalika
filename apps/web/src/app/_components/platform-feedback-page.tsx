@@ -45,8 +45,110 @@ const ROLE_LABEL: Record<string, string> = {
 };
 const roleLabel = (role: string) => ROLE_LABEL[role] ?? role.replaceAll("_", " ").toLowerCase();
 
-/** Platform → Feedback: what people sent from Help & support, newest first. */
+/** Platform → Feedback: Help & support messages, and the guide's "Is this page useful?" votes. */
 export function PlatformFeedbackPageContent() {
+  const [view, setView] = useState<"support" | "guide">("support");
+
+  return (
+    <div className="mx-auto max-w-[1100px] space-y-4">
+      <PortalPageHeader description="Feedback, bugs and ideas sent from Help & support, and votes on guide pages." title="Feedback" />
+      <div className="inline-flex rounded-full border border-border p-1">
+        {(
+          [
+            ["support", "Help & support"],
+            ["guide", "Guide pages"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            aria-pressed={view === key}
+            className={cn(
+              "h-8 rounded-full px-4 text-xs font-semibold transition",
+              view === key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+            key={key}
+            onClick={() => setView(key)}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {view === "support" ? <SupportInbox /> : <GuideVotes />}
+    </div>
+  );
+}
+
+type GuideVotesData = {
+  pages: Array<{ helpful: number; notHelpful: number; page: string }>;
+  reasons: Array<{ createdAt: string; id: string; page: string; reason: string; role: string | null }>;
+};
+
+/** Votes per guide page, worst first, then the reasons behind each "No". */
+function GuideVotes() {
+  const resource = usePortalResource<GuideVotesData>("/api/v1/platform/guide-feedback", {
+    errorMessage: "Could not load guide votes.",
+  });
+
+  if (resource.state === "loading" && !resource.data) return <LoadingRows />;
+  if (!resource.data?.pages.length) return <EmptyState label={resource.message || "No votes yet."} />;
+
+  return (
+    <div className="space-y-6">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+        <table className="w-full min-w-[520px] text-left text-sm">
+          <thead className="bg-muted/40 text-xs text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Page</th>
+              <th className="px-4 py-3 text-right font-semibold">Yes</th>
+              <th className="px-4 py-3 text-right font-semibold">No</th>
+              <th className="px-4 py-3 text-right font-semibold">Useful</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {resource.data.pages.map((row) => {
+              const total = row.helpful + row.notHelpful;
+              return (
+                <tr key={row.page}>
+                  <td className="px-4 py-3">
+                    <a className="font-medium text-foreground hover:text-primary" href={row.page} rel="noopener" target="_blank">
+                      {row.page}
+                    </a>
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">{row.helpful}</td>
+                  <td className={cn("px-4 py-3 text-right tabular-nums", row.notHelpful ? "font-semibold text-destructive" : "")}>
+                    {row.notHelpful}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                    {total ? Math.round((row.helpful / total) * 100) : 0}%
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {resource.data.reasons.length ? (
+        <div>
+          <p className="mb-2 text-sm font-semibold text-foreground">{"Why it wasn't useful"}</p>
+          <ul className="space-y-3">
+            {resource.data.reasons.map((item) => (
+              <li className="rounded-2xl border border-border bg-card p-4" key={item.id}>
+                <p className="whitespace-pre-wrap text-sm text-foreground/90">{item.reason}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {[item.page, item.role ? roleLabel(item.role).replace(/s$/, "") : "Visitor", formatHostelDateTime(item.createdAt)].join(" · ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** What people sent from Help & support, newest first. */
+function SupportInbox() {
   const [status, setStatus] = useState("NEW");
   const [role, setRole] = useState("");
   const resource = usePortalResource<{
@@ -76,9 +178,7 @@ export function PlatformFeedbackPageContent() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] space-y-4">
-      <PortalPageHeader description="Feedback, bugs and ideas sent from Help & support." title="Feedback" />
-
+    <div className="space-y-4">
       <TabBar
         onChange={setStatus}
         tabs={[

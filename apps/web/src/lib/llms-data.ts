@@ -29,6 +29,7 @@ export async function loadLlmsData(): Promise<LlmsData> {
 
   return {
     base: siteUrl(),
+    guide: config.legal?.guide,
     cities,
     comparisons: seo.comparisons.flatMap((comparison) => {
       const resolved = resolveComparison(seo, comparison.slug, fill);
