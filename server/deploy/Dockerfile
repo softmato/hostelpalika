@@ -6,7 +6,7 @@
 # the VPS only pulls (deploy/deploy.sh). Building Go + libvips on the VPS would
 # compete with the running API for its 1 GB.
 
-FROM golang:1.27.3-trixie AS build
+FROM golang:1.27.4-trixie AS build
 # apt cache mounts: a rebuild that changes only Go code skips the download.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \

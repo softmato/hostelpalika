@@ -7,7 +7,7 @@ Kathmandu VPS, and that is the one gate of Phase 10 this report cannot close.
 
 | §21 criterion | State | Evidence / what is left |
 |---|---|---|
-| The Go + Gin backend builds reproducibly | Met | `deploy/Dockerfile` (pinned Go 1.27.3, Debian trixie, `-trimpath`), built for the Phase 10 multi-instance check; CI builds the image |
+| The Go + Gin backend builds reproducibly | Met | `deploy/Dockerfile` (pinned Go 1.27.4, Debian trixie, `-trimpath`), built for the Phase 10 multi-instance check; CI builds the image |
 | Existing required functionality migrated and verified | Met, with one note | Every route on Go (`TestRoutesMatchWeb`), contract suite recorded from TS and green; 19 jobs shadow-run with zero drift (Phase 9). Note: correctness beyond parity was read per phase for Phases 6–9 and by sweep for 1–5 (`PHASES.md` R27 scope) |
 | Web and mobile consume the API through stable contracts | Met for the contract; switch is Phase 11 | Same paths, methods, envelope and field order as TS. Clients still call TS until cut-over |
 | Clear, maintainable module boundaries | Met | `internal/modules/*` per domain, `internal/platform/*` for infrastructure, small `cmd/*` |
