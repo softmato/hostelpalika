@@ -52,7 +52,7 @@ const SAMPLE = {
   amount: 12_000,
   dueDate: "31 Aug 2026",
   period: "August 2026",
-  referenceCode: "RUP-4821-K",
+  referenceCode: "RUP-482K-BHA83",
 };
 
 const PROVIDER_LABEL: Record<string, string> = {

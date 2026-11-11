@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 
+import { pointsEarnedBy } from "@/modules/finance/credit-score.service";
 import {
   appUrl,
   getHostelName,
@@ -457,6 +458,8 @@ export async function notifyClaimReviewed(input: {
   outcome:
     | {
         kind: "verified";
+        /** The settling event, so the push can say what it earned (todo C3). */
+        eventId?: string;
         /** Set when the receipt went into the Resident Offer Program. */
         certificationCode?: string | null;
         /** How the money arrived, for the owner's confirmation. */
@@ -498,6 +501,10 @@ export async function notifyClaimReviewed(input: {
   ]);
 
   const period = input.period ?? "your account";
+  const points =
+    input.outcome.kind === "verified" && input.outcome.eventId && input.invoiceId
+      ? await pointsEarnedBy(resident._id, input.invoiceId, input.outcome.eventId).catch(() => 0)
+      : 0;
 
   if (resident.userId) {
     await createInAppNotification({
@@ -514,14 +521,18 @@ export async function notifyClaimReviewed(input: {
                 : input.outcome.receiptNumber
                   ? ` Receipt ${input.outcome.receiptNumber}.`
                   : ""
-            }`
+            }${points > 0 ? ` +${points} points.` : ""}`
           : `Your payment proof for ${period} was not accepted: ${input.outcome.rejectionReason}`,
       category: "PAYMENT",
       data: { invoiceId: input.invoiceId ?? undefined },
       hostelId: input.hostelId.toString(),
       kind: "NORMAL",
       title:
-        input.outcome.kind === "verified" ? "Payment verified" : "Payment proof rejected",
+        input.outcome.kind === "verified"
+          ? input.outcome.method === "CASH"
+            ? "Cash collected"
+            : "Payment verified"
+          : "Payment proof rejected",
       userId: resident.userId.toString(),
     });
   }

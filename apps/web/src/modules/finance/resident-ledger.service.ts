@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 
+import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { connectToDatabase } from "@/lib/db";
 import { bsPeriodsBetween, hostelPeriodOf } from "@/lib/hostel-day";
 import { listResidentInvoices } from "@/modules/finance/ledger-read.service";
@@ -49,6 +50,8 @@ export type ResidentLedgerMonth = {
   paidAmount: number;
   /** Every settled payment against this month, oldest first. */
   payments: ResidentLedgerPayment[];
+  /** The bill's month code (`RUP-482K-BHA83`), for the collect sheet (todo E1). */
+  referenceCode: string | null;
   status: string;
 };
 
@@ -191,6 +194,14 @@ export async function getResidentLedger(
   }
 
   const invoiceByPeriod = new Map(invoices.map((invoice) => [invoice.period, invoice]));
+  const codes = new Map(
+    (invoices.length
+      ? await InvoiceModel.find({ _id: { $in: invoices.map((invoice) => invoice.id) } })
+          .select("referenceCode")
+          .lean<{ _id: Types.ObjectId; referenceCode?: string | null }[]>()
+      : []
+    ).map((row) => [row._id.toString(), row.referenceCode ?? null]),
+  );
 
   // Newest first: the owner opened this because of *this* month, and scrolling
   // down is how you go back in time everywhere else in the product.
@@ -210,6 +221,7 @@ export async function getResidentLedger(
       paidAmount: invoice?.paidAmount ?? 0,
       payments: invoice ? (paymentsByInvoice.get(invoice.id) ?? []) : [],
       period,
+      referenceCode: invoice ? (codes.get(invoice.id) ?? null) : null,
       status: invoice?.status ?? "NOT_BILLED",
     };
   });

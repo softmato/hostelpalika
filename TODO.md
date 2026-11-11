@@ -1,404 +1,395 @@
-# TODO.md — Remediation Plan (opened 2026-08-02)
+# todo.md — owner's notebook pages, 2026-11-11
 
-Source: full `docs/` conformance audit run 2026-08-02. Every item below is a gap
-between what a file in `docs/` requires and what the code actually does, or a
-doc that describes something the code no longer does.
+Work order for the 5 handwritten pages. Work top to bottom. Tick ☐ → ☑ in this file
+after each item is coded **and** verified.
 
-Baseline at audit time: `typecheck` clean, `lint` clean, `build` green,
-**338/338** tests passing across 50 files. Nothing here is a broken build.
+## Rules for whoever does this
 
-**Working rule:** one item at a time, top to bottom. Tick it here the moment it
-lands, with a one-line note of what was done. Do not batch-tick.
+- Read first: `CLAUDE.md`, `docs/DESIGN.md`, `ui_inspiration_folder/app_recordings/NOTES.md`,
+  `server/docs/MISSION.md` (for any backend item).
+- Backend changes go in **Go (`server/`) and TS (`apps/web/src/modules`)**, same routes.
+- Mobile: reuse `apps/mobile/src/components/ui/` first. Black, white, green only.
+  Skeletons, not spinners. Row overflow = bottom sheet.
+- Every screen: one clear main action, data before prose, no confusing text.
+- Money paths (codes, score, settle) each leave one small test behind.
+- Mobile UI is proved on the device (dev build), not by lint.
+- Do not start `eas build`. The owner runs the Android dev build.
+- No UI change on web without asking the owner first.
 
-Legend: `[ ]` not started · `[~]` in progress · `[x]` done
+## Open decisions (defaults are used unless the owner says otherwise)
 
----
-
-## Track A — Docs & config hygiene
-
-Low risk, high confusion-cost if left. The deploy runbook is currently wrong.
-
-- [x] **A1. ENVIRONMENT.md rewritten end to end.** Was: pnpm, `DATABASE_URL`,
-  `GOOGLE_CLIENT_SECRET` + redirect URI, and a `vercel.json` with four
-  `/api/cron/*` paths that do not exist. Now: npm, `MONGODB_URI`, the
-  ID-token flow with no secret, and the six real `/api/v1/cron/*` jobs on
-  cron-job.org with their schedules and the `x-cron-secret` header. Also
-  documented every variable actually read by the code that the old file
-  omitted — `PERSONAL_DATA_ENCRYPTION_KEY`, the OTP group, the LLM key lists,
-  `SEARCH_QUOTA_SECRET`, `QUESTIONCALL_*`, upload limits — plus the R2
-  local-disk fallback that silently breaks on Vercel, and a note that push uses
-  the Expo service so no `FIREBASE_PRIVATE_KEY` is needed.
-- [x] **A2. npm everywhere.** ARCHITECTURE.md §1 tooling row, FOLDER_STRUCTURE.md
-  header + tree (`pnpm-workspace.yaml` → `package-lock.json`), TESTING.md §4
-  commands (rewritten to the real `npm run web:test` etc.) and §10.1 CI YAML
-  (`pnpm/action-setup` → `actions/setup-node` with npm cache). Remaining `pnpm`
-  hits in docs/ are deliberate negations or historical CHANGELOG entries.
-  TESTING.md §3 also now marks which tools actually exist vs which are the
-  target — the table used to read as a description of reality.
-- [x] **A3. RULES.md drift fixed.** §6 envelope corrected to the shipped
-  `{ success, message, data }` / `{ success, message, errorCode, details }`
-  with a note on why it was reconciled the code's way. §8 templates corrected
-  to `.ts` functions under `packages/shared/src/email/templates/` and *why*
-  (keeps `packages/shared` framework-agnostic for mobile). §16 corrected: one
-  `Notification` row per recipient **is** the receipt, no `NotificationReceipt`
-  collection. §4 bcrypt cost 10 → 12, and the rate-limit rule now names
-  `/api/v1/auth/*` as the single auth surface. §3 enforcement now names the
-  data-access layer that actually exists (`modules/*` + `lib/tenant.ts`) and
-  points at B8 for the repository move, instead of describing a directory that
-  was never created.
-- [x] **A4. DATABASE.md drift fixed.** Header now reads "end of Phase 5" with
-  the real **72** models. The `Decimal128 (never Number)` convention —
-  which contradicted RULES.md §6 and every shipped model — resolved in favour
-  of `Number`, with the reasoning recorded. The "not built" list is now a table
-  giving each model a status and a reason: `NotificationReceipt` superseded and
-  never to be built, `AccountDeletionRequest` in flight under B5,
-  `Subscription` needing a client scope decision.
-- [x] **A5. Redirect tables corrected** in ARCHITECTURE.md §3.1 and PRD.md §8.5:
-  `/platform/dashboard` for both platform roles (one portal, separated by route
-  rule rather than URL prefix), `/hostel-admin/dashboard` plus the tenant
-  `/{slug}/admin` form, `/resident/dashboard`, `/guardian/dashboard`, and
-  `COOK → /` with the reason. Both tables now point at `roleLandingPath` in
-  `lib/route-access.ts` as the single source of truth.
-- [x] **A6. DESIGN.md reconciled.** Found a bigger drift than the font count:
-  §2's colour tokens were the **stock blue shadcn HSL palette** while the
-  shipped theme is green oklch (`--primary: oklch(0.508 0.118 165.612)`,
-  `--brand-teal: #0a8a4b`) in Tailwind v4 `:root` + `@theme inline` form, with
-  four per-portal role tokens the doc never mentioned. Replaced, with the
-  "copy a mockup's layout, never its colours" rule stated. Typography now
-  documents the deliberate Geist body / Poppins heading / Geist Mono trio
-  instead of "one font, don't mix". §9 dark mode moved from "optional for v1"
-  to "built" — `.dark` overrides every token — which is also the real argument
-  for the hardcoded-colour cleanup. The 88 hex literals stay under B17.
-- [x] **A7. docs/MEMORY.md corrected.** The `packages/database` + `packages/ui`
-  "delete manually" instructions removed (both verified gone). The pnpm
-  "deviation to revisit later" downgraded to a settled decision in three places
-  and the tech-stack table. RESUME POINT rewritten: it claimed `apps/mobile`
-  was a stub, which was wrong, and it now points at `TODO.md` as the tracker.
-- [x] **A8. MOBILE_STATUS.md rewritten from the filesystem.** Both prior claims
-  were wrong in opposite directions. Verified: **17 screens (~2,200 lines), a
-  32-function typed API client, secure token store, React Navigation stack, and
-  working QR camera activation via `expo-camera`** — `npm run mobile:typecheck`
-  clean. The file's own "Phase 1/2/3" numbering is retired in favour of
-  PHASES.md §6, and it now lists the real remaining gaps: `expo-notifications`
-  not installed, no server-side push delivery, no `expo-location`/
-  `expo-task-manager`, no guardian or cook screens, no global SOS button, and
-  Google sign-in still a placeholder.
+- **D1 Code format.** Note says `{code}_Bai_2083`. Bank and wallet remark boxes often
+  reject `_`. Default: `RUP-4821-BAI83` shown, and the reader accepts `-`, `_`, space or
+  nothing between the parts.
+- **D2 Score after day 7.** Note says "it gets lower". Default: day 1–4 = 10,
+  day 5–7 = 8, day 8–15 = 5, later = 2.
+- **D3 Paying at the warden's desk — DECIDED by owner.** Cash and online at the desk
+  both earn score. The score day is the day the warden records it. When the warden
+  saves cash, the resident gets a "Cash collected" receipt (push + in app).
+  **Certified too (owner, 2026-11-11):** any payment the resident makes and a warden /
+  admin approves or records is a certified receipt — cash at the desk included.
+  Only the platform's own fee-off (`OFFER_PROGRAM` source) stays uncertified.
+- **D4 Score and the Offer Program.** Default: the score does not replace the Resident
+  Offer Program. It ranks residents inside it (higher score = first for gifts / fee-off).
 
 ---
 
-## Track B — Website: missing code
+## A. Month code a resident can guess (backend first — everything else needs it)
 
-### B0. Auth screens — remove the demo shortcuts *(explicitly requested)* ✅
-- [x] Stripped the "OR PREVIEW AS DEMO" panel from
-  `apps/web/src/app/(auth)/login/login-form.tsx` — four buttons that filled in
-  real account emails and the password `admin`. Removed the panel, the
-  `DEMO_ACCOUNTS`/`DemoRole` declarations, the `selectedDemo` state,
-  `handleDemoSelect`, the reset-on-type handlers and the now-unused
-  `Building2`/`Users`/`UserRound` icon imports.
-- [x] Audited `signup-form.tsx`, `reset-password-form.tsx`, `auth-shell.tsx` —
-  no prefilled credentials, demo hints or seeded values found.
-- [x] No `DEMO_ACCOUNTS` / `DemoRole` / "preview as demo" references remain.
-  *(Kept `DemoDataBadge` — that is the opposite thing: it flags seeded test
-  records inside real portals so staff know which rows aren't real.)*
-- Verified: typecheck clean, lint clean.
+Today: `apps/web/src/modules/finance/reference-code.ts` makes one random-looking code
+per invoice (`RUP-4821-K`). The owner wants: one fixed code per resident, plus the BS
+month and year. Same resident, next month → same code, new month part.
 
-### B1. Pagination — specified everywhere, implemented nowhere
-`API.md` §1.4 and `RULES.md` §6 require `?page=1&pageSize=20` →
-`{ items, page, pageSize, total }`. `pageSize` appeared **zero times** in the
-codebase. Lists were capped by bare `.limit(100)` (residents, payments,
-complaints) — a hostel with 101 residents could not reach #101 and was never told.
-- [x] Shared helper `lib/pagination.ts` — `paginationQuerySchema` (spread into a
-  list endpoint's Zod schema), `paginationRange()` (skip/limit, clamps to
-  `MAX_PAGE_SIZE` 100 rather than erroring), `paginationMeta()`
-  (`page`/`pageSize`/`total`/`totalPages`/`hasMore`). Defaults live in exactly
-  one place — the schema fields are `.optional()`, not `.default()` — so a
-  service called directly from a test or a cron behaves like one called through
-  a route. **11 unit tests** in `lib/pagination.test.ts`.
-- [x] **Envelope decision:** API.md §1.4 specified renaming every list array to
-  `items`. That is a breaking change across ~184 route files *and* the mobile
-  client for no behavioural gain, so the collection keeps its descriptive key
-  (`residents`, `payments`, `complaints`) and gains a sibling `pagination`
-  block. API.md still needs correcting to match — see the open item below.
-- [x] Applied to the three 100-capped admin lists: residents, payments,
-  complaints (admin + resident).
-- [x] **Bug found while doing it:** `listAdminComplaints` returned
-  `summary: complaintSummary(complaints)` computed from the returned array.
-  Once paginated that array is one page, so the admin header would have read
-  "20 complaints" forever. Replaced with `complaintSummaryForFilter()`, a
-  `$group` aggregate over the same filter as the list query, plus a separate
-  overdue count. The old in-memory reduce is deleted. Test now asserts an
-  11-row summary alongside a 2-row page, so the two can't silently re-couple.
-- [x] **All remaining user-facing lists paginated** — inquiries, notices (admin
-  + resident), wardens, reviews (public + platform moderation), sos-alerts,
-  night-status, listing-flags, referrals, service-providers (platform + admin
-  picker), platform hostels, notifications bell, community feed / comments /
-  moderation queue, notification campaigns, attendance alerts. Deliberately
-  **not** touched: the internal batch bounds in `complaint-sla` (500),
-  `payment-reminders` (500), `questioncall` (5000) and attendance maintenance —
-  those are job batch sizes, not pages.
-- [x] **Three more page-scoped-aggregate bugs found and fixed** by doing this:
-  - **Public hostel ratings.** `listPublicHostelReviews` derived the average,
-    the seven per-category means and the star distribution from the returned
-    array. Paginated naively, a hostel's public rating would have changed as a
-    visitor clicked through pages. Now a second narrow projection over every
-    visible review feeds the summary while the page feeds the list.
-  - **Night status roster.** The status filter was applied *after* `.limit(200)`,
-    so `?status=OUTSIDE_HOSTEL` only ever searched the first 200 residents by
-    name and reported a total to match. Now the roster is built, filtered, then
-    sliced — and the summary counts the filtered roster, not the page.
-  - **Referral dashboard.** `byStatus`, `converted` and the three reward totals
-    all came from the page. Now `$group` aggregates over the hostel scope, so
-    the breakdown no longer collapses to one bucket when an admin filters.
-  - Community moderation `summary` and the notification bell's unread badge got
-    the same treatment.
-- [x] **API.md §1.4 rewritten** to document the shipped envelope, with the
-  reason the generic `items` key was rejected (a response can carry more than
-  one collection — payments returns `payments` *and* `proofs`, complaints
-  returns `complaints` *and* a `summary`), the 20/100 defaults, and an explicit
-  rule that any aggregate returned beside a page must be computed over the whole
-  filter. That rule is what the four bugs above all violated.
-- [x] **UI paging** — `usePagedPortalResource` + `withPage` in
-  `lib/portal-pagination.ts`, rendered with the **existing** `ListPager`
-  component (found it in `portal-dashboard-ui.tsx` after drafting a second
-  pager — deleted mine). Wired into residents and wardens. The residents "Total
-  Residents" badge now reads the server total instead of the page length.
-- [ ] **Remaining screens still owe a `ListPager`.** They are held at the old
-  behaviour by an explicit `FULL_PAGE` (`pageSize=100`) on their endpoint
-  constants, so nothing regressed to a silent 20 rows. **`grep FULL_PAGE`** to
-  find them; the goal is that every use disappears.
-- [ ] Push the residents list's search/status/type filters into the query
-  instead of filtering the fetched page client-side (same for the other list
-  screens that filter locally).
+- ☑ A1 Give each resident one fixed personal code (hostel prefix + resident number).
+  Store it on the resident. Backfill existing residents.
+  → `Resident.paymentCode` = `RUP-482K` (3-symbol number + check char) from a per-hostel
+  `RESIDENT_CODE` counter. Backfill is lazy: first bill or first score read sets it.
+  Unique index `{hostelId, paymentCode}` needs `npm --prefix apps/web run db:indexes`.
+- ☑ A2 Monthly rent invoice code = personal code + BS month short name + BS year
+  (see D1). Use the shared BS calendar file for month names. One-off invoices
+  (`period: null`) keep the old style code.
+  → `RUP-482K-BHA83` (`BAI JES ASA SHR BHA ASW KAR MAN POU MAG FAL CHA` + YY), set in
+  `runBillingCycle` via `allocateMonthCode`. Admission / old-dues keep `RUP-4821-K`.
+- ☑ A3 Parser reads **both** old codes and new codes. Old open invoices must still
+  match. Tolerate case, spaces, `-`, `_`.
+  → `extractReferenceCodes` / `normalizeReferenceCode` read both; `_` now splits tokens.
+- ☑ A4 Typo safety: the old code had a check character. Keep one inside the personal
+  code, or prove with a test that a one-letter typo can never match another resident
+  in the same hostel.
+  → check char kept inside the personal code; test walks every one-symbol typo and swap.
+- ☑ A5 Check every reader of `referenceCode`: `claim.service`, `review.service`,
+  `statements/reconcile.service`, `statement-import.service`, `gateway/intent.service`,
+  `receipt.service`, `receipt-pdf`, `offer-program.rules`, `finance-notify`,
+  resident notify files. Fix tests that hard-code the old shape.
+  → every reader goes through `extractReferenceCodes` and compares strings; no shape
+  regex anywhere (web, mobile, shared). Sample code updated in Offer Program copy + preview.
+- ☑ A6 Same change in Go. Shared test vectors so Go and TS make and read identical codes.
+  → `server/testdata/vectors/refcodes.{ts,json}` + `ledger/refcodes_vectors_test.go`.
 
-### B2. Three "nobody gets notified" gaps ✅
-New module `modules/hostels/hostel-notify.ts`. Both functions swallow their own
-errors — they run after the row is already written, so a mail failure must never
-turn a submitted inquiry or registration into a failed request.
-- [x] **Public inquiry submitted** (EMAIL_SYSTEM §2.4) — now emails every hostel
-  admin *and* writes an in-app `Notification`. New template
-  `hostel/inquiry-received.ts` carrying name, phone, email, preferred visit date
-  and message, with a link to the inbox.
-- [x] **Hostel submitted for approval** (EMAIL_SYSTEM §7.1) — now emails and
-  notifies SUPERADMIN **and** PLATFORM_MODERATOR (approving hostels is
-  explicitly a moderator power per PRD §7). New template
-  `platform/new-hostel-pending.ts`.
-- [x] **Service provider registered / approved / rejected** (EMAIL_SYSTEM
-  §6.1–6.3) — three new templates under `email/templates/service-provider/`.
-  **Root cause found:** these were unbuildable, not merely unbuilt — the
-  `ServiceProvider` model and the public registration form collected **no email
-  address at all**. Added an optional `email` field to the model, the Zod
-  schema, the registration form (clearly marked optional, with copy explaining
-  what it is used for) and the serializer; documented in DATABASE.md. Providers
-  without one keep working and are simply never emailed. `HIDDEN` deliberately
-  sends nothing — hiding is a moderation action, not a decision the provider is
-  owed mail about.
-- Verified: typecheck clean, lint clean, 349/349 tests.
+## B. Resident credit score (backend)
 
-### B3. Community engagement notifications ✅
-- [x] Reactions now notify the post author (ARCHITECTURE §9.4, RULES §14,
-  EMAIL_SYSTEM §8.1). Batching is done with a new
-  `createOrUpdateBatchedNotification()` in `notification.service.ts`: the row
-  carries a `data.dedupeKey`, and a later event for the same key rewrites that
-  row's title/body and bumps `createdAt` instead of writing a second one. Only
-  **unread** rows are reused — once the author has read "5 people reacted", the
-  next reaction writes a fresh row rather than silently mutating something they
-  have already seen. `notifyPostReaction()` fires only for a *new* reactor
-  (switching LIKE→LOVE is the same person; un-reacting is not news), skips
-  self-reactions, reads the count back from `countDocuments` so the number is
-  the true reactor count rather than a tally of how often the handler ran, and
-  never names the reactor. Swallows its own errors like the comment
-  notification does. **10 new tests** — `community-reaction-notify.test.ts` (7)
-  and `notification-batching.test.ts` (3).
-- Verified: typecheck clean, lint clean, 359/359 tests.
+- ☑ B1 On claim approval, add points by the **day the resident submitted** (BS day of
+  the bill's month), not the day the warden approved. Points per D2.
+- ☑ B2 One award per invoice. Rejected claims earn nothing. Reversed payment takes the
+  points back.
+  → score is derived from settled events (`credit-score.rules.ts`, Go `finance/creditscore.go`):
+  earliest standing payment per MONTHLY_RENT bill; claim day = sent, desk = recorded.
+- ☑ B3 Count per resident: receipts shared, receipts approved. Store or derive, one place.
+  → derived: `claimCounts` / `ClaimCounts`.
+- ☑ B4 API: resident reads own score + counts + history; admin/warden reads it per
+  resident; superadmin Offer Program list sorts by it (D4).
+  → `GET /api/v1/resident/credit-score`, `GET /api/v1/hostel-admin/residents/[id]/credit-score`
+  (score, approved, shared, history, rules, paymentCode); overview `eligible[].creditScore`.
+- ☑ B6 Certification rule: change `qualifiesForOfferProgram`
+  (`modules/offer-program/offer-program.rules.ts`, called once in `settleEvent`) so a
+  warden/admin-approved claim **or** a warden/admin-recorded desk payment (cash or
+  online) is certified. A desk payment is tied to the months the warden ticked, so it
+  needs no typed code. Fee-off payments still never qualify. Update the rules test,
+  the receipt stamp (cash at desk now prints CERTIFIED with its HP- code), and Go.
+  → TS + Go; the stamp follows `certificationCode`, so desk cash prints CERTIFIED.
+- ☑ B5 Go + TS, one rules file each, one test each (day 4 → 10, day 5 → 8, day 7 → 8,
+  day 8 → lower, late approval of a day-2 submit → 10).
+  → `credit-score.rules.test.ts`, `finance/creditscore_test.go`, `ledger/certify_test.go`.
 
-### B4. Multi-tenancy ✅
-- [x] **Cross-tenant miss now returns 404, not 403** (RULES.md §3, PHASES.md
-  §5.2). `TenantAccessError` and `assertHostelScopedApiAccess` now throw
-  `404 NOT_FOUND` with a bare "Not found." — the *code* changed as well as the
-  status, because a distinct `TENANT_ACCESS_DENIED` would confirm existence just
-  as surely as a 403 did. The two self-scope checks in `resident-access.ts` and
-  `guardian.service.ts` were folded into the genuine-miss errors immediately
-  above them (`RESIDENT_PROFILE_NOT_FOUND` / `GUARDIAN_ACCESS_NOT_FOUND`, both
-  404) so the two cases are indistinguishable from outside. API.md's error table
-  lost the `TENANT_ACCESS_DENIED` row and the `NOT_FOUND` row now records why
-  there deliberately isn't one. Six existing tests updated to the new shape.
-- [x] **Isolation suite built** — `apps/web/src/modules/tenant-isolation.test.ts`,
-  **16 tests** over residents, payments, notices, complaints and maintenance,
-  for both an admin and a warden principal. Deviates from the §7.1 template
-  deliberately: that template needs Supertest + `mongodb-memory-server`, neither
-  installed (B8), so it proves the property at the service boundary — which is
-  where the scoping lives, since route handlers never query models. Asserts the
-  **filter handed to Mongo**, not merely an empty result: a service that fetched
-  first and checked after would pass a null-result assertion right up until
-  someone deleted the check. `countDocuments` and the complaints summary
-  `$match` are asserted alongside the page, since an unscoped total leaks the
-  other hostel's row count even when the page is clean. Also covers the search
-  `$or` narrowing *within* the tenant rather than replacing the tenant clause,
-  and that a rejected scope never reaches the database.
-- [x] **Verified the suite bites** by removing `scopedHostelFilter` from
-  `listNotices` — 2 tests failed (the leak and the 404), and passed again on
-  restore. TESTING.md §6.1 now names the file, records the deviation and its
-  reasoning, and says to extend rather than fork it.
-- Verified: typecheck clean, lint clean, 375/375 tests.
+## C. Resident payment flow (app)
 
-### B5. Account deletion & data retention ✅ *(except §9.3 — moved to B6)*
-Specified in ARCHITECTURE §13, DATABASE §AccountDeletionRequest,
-PRIVACY_POLICY §7.3/§8, EMAIL_SYSTEM §9.1–9.3.
+Flow the owner wants: see bill → copy month code → pay in eSewa/bank with code in
+remarks → share the receipt to the app (or upload a screenshot) → claim sent → warden
+approves fast → score added.
 
-**Design decided by the client, not by the docs.** The docs assumed one
-universal "delete account". The client's answer was that it is four different
-actions, and that is what shipped (ARCHITECTURE §13.0):
-`SELF_SERVICE` (public / moved-out resident) · `GUARDIAN_RELEASE` (guardian
-demotes to PUBLIC, keeps the account) · `BLOCKED` (a resident still living in a
-hostel, and staff/platform accounts) · `PLATFORM_REVIEW` (a hostel owner's
-request is routed to the SUPERADMIN, with a review tab, and the account is
-**untouched** until approved). The server picks the pathway; the caller cannot.
+- ☐ C1 Resident pay screen: this month's amount, the month code big with a Copy
+  button, hostel QR / account, and two actions only: **Share receipt** and
+  **Upload screenshot**. Next month's code is shown too so they learn the pattern.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → `invoice/[id]/pay.tsx`: "Month code" + "Next month: …" (`lib/month-code.ts`, tested), bottom bar
+  Share receipt (steps sheet) / Upload screenshot (→ claim).
+- ☐ C2 `apps/mobile/src/app/share-payment.tsx` (receipt share sheet): make it clean and
+  informative. Show receipt thumbnail, amount read, code found (✓ or "code missing"),
+  which month it pays, one Submit button. No scrolling for the normal case.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → thumbnail + unpaid months (oldest ticked, code under each) + one Continue; one unpaid month
+  skips straight to the claim, which already shows amount read and code found / missing.
+  → the sheet over eSewa / bank apps (`apps/web/public/receipt-sheet.html`, native
+  `ReceiptSheetActivity`) redone for residents: thumbnail + amount, "Code found ✓ / Code missing",
+  month matched by the code on the receipt first, one Send button (Cancel is a quiet link).
+  Icons are our own glyphs inlined from `glyphs.ts` (header, scan, code ✓/!, PDF thumb, month,
+  picker chevron, menu tick, done, method fallbacks); no text-character icons left.
+  Bundled into the APK at build time — shows only after a new Android dev build.
+- ☐ C3 After submit: clear "Waiting for approval" state; push when approved or rejected,
+  with points earned.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → claim done screen says "Waiting for approval"; approval / desk push ends "+N points."
+  (`pointsEarnedBy`, TS + Go).
+- ☐ C4 Score card for resident: score, "shared N · approved M", simple rule line
+  ("Pay in day 1–4: 10 points"), link to perks.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → `components/credit-score-card.tsx` on Payments, replaces the Offer Program row (taps to perks).
+- ☐ C5 Approver side: new claim push opens straight to the claim with Approve / Reject.
+  Check this is one tap from the notification.
+  → checked in code: push → Money tab, claim cards (Approve / Reject) sit under the month strip;
+  the bell row also has an inline Verify. Open point for the owner: the claim push goes to
+  admins only (`adminsOnly: true`), wardens get none.
 
-- [x] `AccountDeletionRequest` model — one row per user, `kind` splitting the
-  two shapes. `scheduledDeletionAt` is deliberately unset on `PLATFORM_REVIEW`
-  until approval; that absence is what keeps the purge cron away from an
-  unreviewed request.
-- [x] Endpoints: `GET/POST /api/v1/users/account-deletion`,
-  `POST /api/v1/auth/cancel-account-deletion`,
-  `GET /api/v1/platform/account-deletions`,
-  `POST /api/v1/platform/account-deletions/[id]/review`,
-  `POST /api/v1/cron/account-purge`.
-- [x] UI: `/account/privacy` (role-aware panel that says what the button will
-  actually do *before* it is pressed), `/cancel-deletion` (token-based, public),
-  and the SUPERADMIN queue at `/platform/account-deletions` — added to
-  `portal-nav.ts` and to the superadmin-only prefix lists in both `portal-nav.ts`
-  and `route-access.ts`.
-- [x] Immediate effects: `User.status = SUSPENDED` (**not** `DISABLED` — the enum
-  has no such member and SUSPENDED is what the login check already refuses on),
-  `tokenVersion` bumped in the same update because revoking `Session` rows alone
-  leaves an unexpired access JWT working, sessions revoked, device tokens
-  deleted.
-- [x] **Cancellation runs off a signed `cancel-account-deletion` purpose token**
-  in the email. ARCHITECTURE §13.1 wants the account closed *and* cancellable —
-  the user cannot log in, so a settings page could not have worked. The cancel
-  query keys on the deletion clock rather than on `kind`, so an owner whose
-  request was approved can use the same link.
-- [x] Purge cron with the delete-vs-retain split. Marks `executed` only after
-  the purge succeeds, so a crash leaves the request due; one failure does not
-  strand the batch.
-- [x] Emails 9.1 (requested — also sent on owner approval, when the clock really
-  starts) and 9.2 (cancelled), plus a **new** platform-review email the spec had
-  no room for, documented as EMAIL_SYSTEM §9.1a.
-- [x] **Two places the docs could not be implemented literally, both amended
-  with the reason:**
-  - `Payment.residentId = null` would collide on the unique
-    `{ hostelId, residentId, month }` index the second time an account in the
-    same hostel/month was purged — a privacy guarantee turning into an error.
-    Neither `Payment` nor `Receipt` stores a name; deleting the `Resident` row
-    already leaves an id resolving to nothing, which is the de-identification
-    asked for.
-  - `CommunityPost/Comment.authorId` was `required: true`, so "set to null"
-    would have been sneaking a value past the schema. Made genuinely nullable,
-    and the community serializers, name lookup, comment notification and
-    reaction notification all now handle a purged author — who reads as
-    anonymous to moderators too, since re-identifying them would undo the
-    erasure.
-- [x] **26 new tests** — `account-deletion.test.ts` (18: pathway per role, the
-  immediate effects, the owner's account staying untouched, guardian demotion,
-  cancellation) and `account-purge.test.ts` (8: what is erased vs retained,
-  which requests are due, retry-on-failure).
-- Docs reconciled: ARCHITECTURE §13 (rewritten with the pathway table),
-  DATABASE.md, PRIVACY_POLICY §8, EMAIL_SYSTEM §9, CRON.md, ENVIRONMENT.md
-  (six → seven cron jobs).
-- Verified: typecheck clean, lint clean, 401/401 tests, production build exit 0
-  with all seven new routes present.
-- [x] **Confirmations moved onto the shadcn `AlertDialog`** *(client request)*.
-  Added `components/ui/alert-dialog.tsx` (no new dependency — the unified
-  `radix-ui` package already ships it) and a `useConfirm()` hook in
-  `app/_components/confirm-dialog.tsx` that keeps the boolean-returning shape of
-  `window.confirm`, so each call site changed by one line. Converted **all 8
-  surviving `window.confirm` calls** as well as the new B5 screens: resident
-  community/guardians/SOS/attendance, hostel-admin residents (delete + move-out)
-  and night-status bulk override, platform settings (revoke access), the
-  deletion queue's approve action, and the account-deletion panel. `grep
-  window.confirm` now returns only the hook's own docstring. Every dialog names
-  its action ("Delete post", "Revoke access") instead of "OK" and states the
-  consequence. DESIGN.md §1 now carries the rule and the usage snippet.
-- [ ] **Location history deletion email (EMAIL_SYSTEM §9.3)** — was listed here
-  but belongs with the location work in B6, where it now sits.
+## D. Shared receipt → expense (admin, warden)
 
-### B6. Privacy commitments the site makes but the code does not keep
-- [ ] **`/privacy` page is wrong.** It promises deletion "within 30 days"
-  (docs say 60), "delete your personal information at any time through your
-  account settings" (no such feature), "cookie preferences … from your account
-  settings page" (no such page), and "request a copy of all data" (no export).
-  It also never mentions location/attendance collection at all, which
-  docs/PRIVACY_POLICY.md §3 marks "⚠️ READ CAREFULLY". Rewrite to match what is
-  actually built + disclose location tracking.
-- [ ] **Data export / "Download My Data"** (PRIVACY_POLICY §7.1, §7.4) — build it.
-- [ ] **Location history deletion email** (EMAIL_SYSTEM §9.3) — the delete works,
-  the confirmation does not exist.
-- [ ] **Re-consent after policy update** (RULES §12) — `ConsentLog` only covers
-  location consent today; no policy version, no re-consent gate on login.
+- ☑ D1 When admin/warden shares a receipt into the app, the receipt image is attached
+  to the expense it creates. Check the headless Android path (`ReceiptSaveService`)
+  and the sheet path both attach it. Expense detail shows the receipt.
+  → no change needed: `ReceiptSaveService`, `receipt-sheet.html` and `expenses/new.tsx` all send
+  `photoAssetId`; the expense list's detail sheet shows the bill photo.
 
-### B7. Smaller conformance items
-- [ ] **Cook web-login message** (RULES §13) — no "Cook portal is mobile-only"
-  copy anywhere; `COOK` lands on `/`.
-- [ ] **`validateServerEnv()` is defined and never called** — a missing
-  `JWT_ACCESS_SECRET` in production surfaces as a runtime error at first login
-  instead of at boot.
-- [ ] **PlatformConfig in-memory cache** (ARCHITECTURE §5.2, RULES §12) —
-  spec says cache with a 5-minute TTL; `getOperationsConfig()` hits Mongo on
-  every call.
-- [ ] **High-privilege upgrade confirmation** (PRD §8.3, ARCHITECTURE §3.2,
-  RULES §4) — docs require a click-to-confirm email *before* the role changes;
-  code flips the role immediately and rotates to an emailed temp password.
-  Either build the gate or get the substitute signed off and amend the docs.
+## E. Collect payment sheet (app, admin + warden) — redesign
 
-### B8. Deferred — decide explicitly, don't let them rot
-- [ ] **Shared Zod schemas** (RULES §6, CODING_STANDARDS §3) — only
-  `auth.schema.ts` is shared; 27 `*.validation.ts` files live inside
-  `apps/web/src/modules/`. Moving them is the single biggest refactor here and
-  matters most for the mobile app, which will want the same schemas.
-- [ ] **Repository layer** `packages/db/src/repositories/` (RULES §3,
-  ARCHITECTURE §2, CODING_STANDARDS §5) — absent; services in
-  `apps/web/src/modules/` do the tenant scoping instead.
-- [ ] **Axios shared `apiClient`** (RULES §2, ARCHITECTURE §1) — axios is not
-  installed; a fetch wrapper (`browser-api.ts`) is used. Not in MEMORY.md's
-  deviation list. Amend the docs or adopt axios.
-- [ ] **2FA for administrative accounts** (PRIVACY_POLICY §5.1).
-- [ ] **Subscription tracking + expiry alerts** (DATABASE, ARCHITECTURE §10,
-  EMAIL_SYSTEM §7.2, PRD §9.2) — deliberately outside the pilot, still listed
-  as a platform-owner feature in the PRD.
-- [ ] **B17. Hardcoded colours** — 88 hex literals to move onto tokens.
-- [ ] **Test tooling** — Playwright (8 mandatory E2E flows in TESTING.md §8),
-  React Testing Library (zero component tests), Supertest,
-  mongodb-memory-server, and `.github/workflows/` CI (TESTING.md §10).
+Where: `apps/mobile/src/app/(admin)/money.tsx` (collect block near line 1090).
+Match web: Record payment in `apps/web/src/app/_components/hostel-admin-payments-page.tsx`.
 
----
+- ☐ E1 Warden taps a resident → sheet opens with **everything still unpaid**, one row
+  per month: month name, amount, and the month code in small muted text. Clean, one
+  column, total on top, one main button. Same rules as web Record payment.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → `components/collect-payment.tsx` (rules in `lib/desk-collect.ts`, tested); ledger months now
+  carry `referenceCode` (TS + Go).
+- ☐ E2 Warden ticks one or more months; total updates. Oldest month is ticked by default.
+- ☐ E3 Method row: **Cash** + only the online methods this hostel has set up
+  (eSewa, Khalti, bank… each shows only if its QR / number / account is saved).
+  No method set up → only Cash shows.
+- ☐ E4 Cash: show nothing extra. Just "Collect Rs X".
+- ☐ E5 Tap an online method: the sheet grows with an ease animation and shows that
+  method's QR / number / account inside the sheet. QR and Save both visible with no
+  scroll. Tap another method → content swaps, sheet height eases to fit.
+  ⏳ E2–E6 coded in the same component (oldest ticked; Cash + saved methods only; QR / number
+  inside the sheet with `LinearTransition`; Collect / Save posts per bill oldest first); device check pending.
+- ☐ E6 On save (cash): resident gets a "Cash collected" receipt and score (D3).
+  On save (online at desk): payment recorded against the ticked months, score (D3).
+- ☑ E7 Backend for E6: cash-collected receipt + push to resident, score award on
+  desk payments. Go + TS. One test.
+  → desk cash/online settle as CASH_ENTRY: certified (B6), scored (B), push titled "Cash collected"
+  for cash with "+N points". Tests: `certify_test.go`, `creditscore_test.go`, rules tests.
+- ☑ E8 Web Record payment gets the month → code display too (ask owner before changing web UI).
+  → owner approved 2026-11-11: each unpaid month row shows its code in small muted mono text
+  (`hostel-admin-payments-page.tsx`, reads `referenceCode` from the resident ledger). Typecheck clean.
 
-## Track C — Mobile enablement
+## F. App-wide fixes
 
-Reference implementation studied: `D:\Jiwan-Mijhar` — Expo Push service
-(`web/lib/push/expo-push.ts`), central fan-out (`web/lib/notifications/notify-user.ts`),
-per-device `PushSubscription`. Our `DeviceToken` model already matches that
-shape and `/api/v1/mobile/device-token` exists.
+- ☐ F1 Amount font: web uses Manrope + tabular numbers (`.font-amount` in
+  `apps/web/src/app/globals.css`). Load Manrope in the app, apply it in
+  `apps/mobile/src/components/ui/money.tsx`, then find amounts not using that
+  component and move them to it.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → `@expo-google-fonts/manrope` loaded in `app/_layout.tsx`, `font-amount tabular-nums` on `Money`
+  and on 31 raw amount texts.
+- ☐ F2 Add expense amount bug: `apps/mobile/src/app/expenses/new.tsx` line ~466. At the
+  4th digit the first digit is cut; at the 5th it comes back. Cause to check: the
+  input sizes itself (`minWidth: 80`, centred) and the comma added by `groupDigits`
+  lands before the width updates. Fix so no digit is ever cut from 1 to max digits.
+  Check `stock/buy.tsx` and `expenses/wallet.tsx` for the same input.
+  ⏳ coded + typecheck/lint clean; on-device check pending (no device attached 2026-11-11).
+  → input now fills the row between the two "Rs" labels (never resizes) and steps the font down
+  for 9+ / 11+ characters. `stock/buy` uses the fixed `Input`, `wallet` has no such input.
+- ☐ F3 Push on time: audit scheduled notices (now / later / daily / weekly) set by
+  admin or warden. Send one of each on the device and compare set time to arrival
+  time. Fix any drift. List what was tested in this file.
 
-- [ ] **C1. Push delivery.** Every "sends push" line in Phases 3–5 currently
-  means "wrote an in-app `Notification`". Add an Expo push sender and fan out
-  from the existing notification service. No Firebase Admin SDK needed — Expo's
-  push endpoint accepts both Expo and raw FCM tokens.
-- [ ] **C2. Token lifecycle.** Register/refresh/revoke, prune on
-  `DeviceNotRegistered`, one row per device.
-- [ ] **C3. Notification categories + Android channels** — FOOD_READY, PAYMENT,
-  ATTENDANCE, SOS, COMMUNITY, ANNOUNCEMENT (ARCHITECTURE §7.3).
-- [ ] **C4. MOBILE_API.md** — every endpoint with method, path, auth, request
-  params/body, response shape, and error codes, so the mobile developer never
-  has to read a route handler. This is the deliverable that makes Phase 6 fast.
-- [ ] **C5.** Reconcile what `apps/mobile` actually contains against PHASES.md
-  §6 before any new mobile work starts.
+## G. Rooms — full web parity in the app
 
----
+Web: `apps/web/src/app/_components/hostel-admin-floors-panel.tsx`.
+App: `apps/mobile/src/app/manage/rooms.tsx`.
 
-## Notes
+- ☑ G1 List every action the web panel has (add/edit/delete floor, add/edit/delete
+  room, beds, room swap, move resident, room type, anything else). Write the list here.
+  Web (`hostel-admin-floors-panel.tsx`) → app (`components/manage/rooms-floors-editor.tsx`, `manage/floors.tsx`):
+  | Action | Web | App |
+  |---|---|---|
+  | Add floor | ✓ | ✓ tile |
+  | Add rooms (per type, next numbers) | ✓ | ✓ |
+  | Room count per type (profile `roomConfigurations`) | ✓ | ✓ `manage/rooms.tsx` |
+  | Edit room: number, type, beds | ✓ | ✓ room sheet |
+  | Set type on many rooms | ✓ | ✓ "Set type" |
+  | Renumber / swap (101↔102, two passes) | ✓ | ✓ "Renumber" |
+  | Delete room (empty only) | ✓ | ✓ `openConfirm`, disabled while lived in |
+  | Remove empty floor | ✓ | ✓ select all → Remove |
+  | **Remove lived-in floor: move residents, then remove** | ✓ | ✗ server refusal only → G2 |
+  | Move resident to a room | ✓ | ✓ `floors.tsx` |
+  | Room tracking on / off | ✓ | ✓ |
+  | Room-change requests approve / decline | ✓ | ✓ `floors.tsx` |
+- ☐ G2 Build each missing one in the app. Destructive ones use `openConfirm()`.
+  Actions open from a bottom sheet on the room / floor row.
+  ⏳ coded + typecheck/lint clean; device check pending (no device attached 2026-11-11).
+  → bin on the floor card header: empty floor → `openConfirm`; lived-in floor → `MoveOffSheet`
+  (each resident picks a free bed of their type on another floor, first guess like web,
+  `lib/floor-moves.ts` + test) → confirm → moves one at a time, then deletes the rooms.
+- ☐ G3 Same refusals as web (e.g. floor with residents cannot be deleted) with a clear message.
+  ⏳ server already refuses `ROOM_OCCUPIED` ("N people live in Room X. Move them first."), the app
+  shows it as the toast; the move sheet means the owner never hits it from Remove floor.
 
-- Payment testing stays deferred to after every phase is built — client
-  decision (2026-08-01). Unticked payment items are not forgotten.
-- 260 `☐` remain in PHASES.md; 113 are Phase 6 and most of the rest are
-  acceptance tests needing a seeded DB, live Resend, or a browser — not missing
-  code. The genuinely code-side ones are captured above.
+## H. Screen redesigns (app)
+
+Do one screen at a time. Before: adb screenshot. After: adb screenshot beside the reference.
+
+### H0. The bar every screen must pass (read before any redesign)
+
+The target is the calm of Claude / Anthropic products: a user understands the screen
+in one glance. Layout and flow still come from our references; colour stays ours.
+
+- **One job per screen.** One primary button. Everything else is quiet (outline / ghost / row).
+- **Text budget.** Title ≤ 3 words. At most one hint line per screen, ≤ 8 words.
+  No paragraphs. If a label needs a sentence to explain it, the design is wrong.
+  Longer help goes behind an (i) that opens a sheet.
+- **Type.** Only the scale in `docs/DESIGN.md`. Max 3 sizes and 2 weights on one
+  screen. Amounts always in the amount font (F1), right-aligned in lists.
+- **Icons.** Only our own glyph set, one size per context (20 in rows, 24 in tiles),
+  one colour unless it carries meaning. No icon without a job.
+- **Space.** 4/8 grid. 16 side gutter. Group with space first, borders second, never both.
+- **Lists.** Row = icon · name · one muted fact · value. Nothing wraps to 3 lines.
+- **States.** Skeleton on load, `EmptyCard` when empty, error next to the thing that failed.
+- **Touch.** Targets ≥ 44. Main action in thumb reach (bottom bar).
+- **Check.** Hand the screenshot to someone for 3 seconds. If they cannot say what
+  the screen is for and what to tap, redo it.
+
+### H1. KYC — `apps/mobile/src/app/manage/kyc.tsx` (full redesign)
+
+Today: 13 steps as a two-column tile grid, a "Save changes?" sheet on every exit, one
+1000-line file. Steps: details, rates, documents, facilities, food, location, payments,
+payout, opening, photos, rooms, rules, agreement.
+
+**Design guide (how the best KYC flows work):**
+
+1. **Start easy, end heavy.** First steps are taps, not typing. Documents and the
+   signature come last, when the owner is already invested.
+2. **Never ask twice.** Prefill from sign-up (name, phone, hostel name). Map pin first,
+   then fill city / area / address from the pin; owner only corrects.
+3. **Chapters, not 13 loose steps.** New order:
+   - **Your hostel** — Map pin → Details (prefilled from pin) → Facilities → Photos
+   - **Rooms & price** — Room types (rent, fees) → Rooms & floors
+   - **Daily life** — Food menu → House rules
+   - **Money** — Rent payments → Booking money → Opening balance
+   - **Verify** — Documents → Agreement (sign)
+   Keep any order the server enforces (room types before rooms). Check the server's
+   required list; steps it does not require get a small "Optional" tag and a Skip.
+4. **Hub = a checklist, not a tile grid.** One screen: progress ring ("5 of 13"),
+   chapters as headings outside the cards, each step a row (icon · name · ✓ or "To do").
+   One green button: **Continue** → goes to the first step not done.
+5. **Step screen = one job.** AppBar: back, step name, thin progress bar. Body: the
+   fields only. Fixed bottom bar: **Save & next**. No other buttons competing.
+6. **Autosave.** Save on Next and on leaving. Remove the "Save changes?" sheet.
+   Coming back always resumes on the first step not done.
+7. **Tap before type.** Chips for choices, steppers for counts, number pad for money,
+   sensible defaults filled in. Right keyboard and autocomplete on every input.
+8. **Errors are local and kind.** Shown under the field, in plain words, when the
+   field loses focus or on Next. Next scrolls to the first error. Never a toast for a field error.
+9. **Documents.** One document per card: a sample outline of what to shoot, Camera as
+   the main action, Upload file as the quiet one, a status badge after. One line on
+   why we ask ("To confirm you own this hostel").
+10. **Review before send.** One screen, a small card per chapter with its key facts
+    and an Edit link. Then sign. Then one button: **Send**.
+11. **After send.** A status screen: Sent → In review → Approved. If something is
+    rejected, that step shows the reason and opens straight to the field.
+12. **Code.** One file per step under `apps/mobile/src/components/kyc/`, one line per
+    prop group — no 300-character JSX lines. `kyc.tsx` keeps only hub + routing.
+
+Tasks:
+- ☑ H1a Confirm the required / optional list and any forced order from the server review payload. Write it here.
+  → `KYC_REQUIRED_STEPS` (TS `hostel-kyc.service.ts`): details, photos, rates, documents, location,
+  agreement. Optional: rooms, payout, payments, opening, food, rules, facilities. The server forces
+  no order; the one real dependency is room types (`rates`) before rooms. Order is client-side
+  (`lib/kyc-order.ts`, tested); no server change.
+- ☑ H1b Split steps into files (guide 12). No behaviour change. Typecheck passes.
+  → `components/kyc/{details,location,facilities,photos,rates,rules,food,documents,agreement}-step.tsx`
+  + `use-managed-hostel.ts`; `kyc.tsx` is hub + routing only (999 → ~440 lines).
+- ☐ H1c New hub (guide 3, 4).
+- ☐ H1d Step frame: progress bar, bottom **Save & next**, autosave, resume (guide 5, 6).
+- ☐ H1e Map-first prefill of city / area / address (guide 2).
+  ⏳ H1c–H1e coded + typecheck/lint clean; device check pending. Hub = ring + "N of 13 done" +
+  chapters (heading outside, rows icon · name · ✓ / To do / Optional / Add again), one Continue
+  (→ first open step) or Review & send. Step = AppBar title, thin progress bar, one hint, footer
+  Save & next (+ Skip on optional steps). Back autosaves; a step that cannot save asks
+  "Leave without saving?" (the "Save changes?" sheet is gone). Map is step 1; its save fills
+  city / area / address from the pin when empty, and Save & next confirms a guessed pin (no tick box).
+- ☐ H1f Each step body cleaned to the H0 bar, in the new order (guide 7, 8). Tick per step:
+  ☐ map ☐ details ☐ facilities ☐ photos ☐ room types ☐ rooms & floors ☐ food ☐ rules
+  ☐ rent payments ☐ booking money ☐ opening balance ☐ documents ☐ agreement
+  ⏳ first pass coded: map (no tick box, outline buttons), details (errors under the field, not a
+  toast; autocomplete), facilities / rules (count lines gone), room types (extra caption gone),
+  documents (Camera main, Upload file quiet). The others unchanged; all wait for the device.
+- ☐ H1g Review screen + status screen (guide 10, 11).
+  ⏳ coded: Review = a card per chapter, each step with its fact and Edit, then Send (or
+  "Finish N required"). Status on the hub: Sent → In review → Approved; Sent back shows the note,
+  a rejected document marks Documents "Add again".
+- ☑ H1h Web KYC (`/hostel-admin/kyc`) keeps working with the same data. Ask before changing its UI.
+  → no server or data change; web untouched.
+
+### H2–H6. Other screens (each must pass H0)
+
+- ☐ H2 Expenses — `apps/mobile/src/app/expenses/`.
+- ☐ H3 Repairs — `apps/mobile/src/app/manage/maintenance.tsx`.
+- ☐ H4 Referrals — `apps/mobile/src/app/manage/referrals.tsx`, `apps/mobile/src/app/referrals.tsx`.
+- ☐ H5 Billing — `apps/mobile/src/app/manage/billing.tsx`.
+  ⏳ H2–H5: H0 text pass only (hints / empty states cut to ≤ 8 words; no spinners found). The
+  layout redesign needs the before / after adb screenshots, so it waits for the device.
+- ☐ H6 Stock — `apps/mobile/src/app/stock/` (index, buy, send, use, count, usage,
+  history, suppliers, reports) + `components/stock/stock-parts.tsx`. Clean fonts and
+  icons: one glyph per action (Bought / Send / Got it / Count) as an icon-tile grid,
+  item rows = name · unit · quantity in the amount font, low stock shown by colour not text.
+  ⏳ coded: tiles one colour (Waste stays red), quantity right-aligned in the amount font, low stock
+  = red number (the "Low · below" line is gone), stock hints trimmed. Device check pending.
+
+## I. User guide content (simple words)
+
+Short sentences. One idea per sentence. No hard words. English and नेपाली. Bump the
+doc version.
+
+- ☑ I1 Resident: "How to pay your fee" — find your month code, put it in remarks,
+  share the receipt, wait for approval.
+- ☑ I2 Resident: "Your month code" — it is the same every month, only the month changes. Show two examples.
+- ☑ I3 Resident: "Credit score" — pay early, get more points; points are counted from
+  the day you send the receipt; what points give you.
+- ☑ I4 Resident: "Pay at the office" — cash or scan the warden's QR.
+- ☑ I5 Warden / admin: "Collect a payment" (new sheet), "Approve a receipt",
+  "Shared receipts become expenses".
+- ☑ I6 Admin: "Rooms" — swap, move resident, delete floor.
+- ☑ I7 Already in the app, check the guide covers it: hostel detail, food, routines,
+  rules, alerts, notices.
+  → English written in `packages/shared/src/guide/guide.ts` (web /guide, app Guide, llms.txt):
+  resident `first-bill` → "How to pay your fee", new `month-code`, `credit-score`, `pay-at-office`;
+  owner `collect-payment`, `hostel-page`, rooms steps, approve-late line, shared receipt line;
+  warden `alerts` (bell + routines). Food and notices were already covered.
+  ☑ नेपाली (owner OK 2026-11-11): every chapter, group, caption, the access table and troubleshooting
+  in `packages/shared/src/guide/guide-ne.ts` (button names stay English, as the app shows them).
+  Web /guide has an EN / नेपाली switch in the top bar (`guide-lang.tsx`), kept per browser and set
+  before first paint; both languages are in the static page, CSS shows one. `guide-ne.test.ts` fails
+  when a chapter changes in English without its Nepali. Search still searches English only.
+  ☐ Version bump: owner sets it in Platform → Website Config → Legal Pages (the defaults file is in
+  the Go site-config contract vectors, so it is not edited here).
+
+## J. Testing
+
+- ☐ J1 Owner runs the Android dev build so changes show live (no OTA wait).
+- ☐ J2 After all items: `go test -p 2`, web typecheck + tests, mobile typecheck + tests.
+  Run 2026-11-11 (before device checks): Go all ok except `TestDemoHostelsCopy` (known). Web
+  typecheck clean; tests 3 fail, none from this work: `setting-change` (known), `platform-field-index`
+  (`PricingTab` "Residents", committed code). Fixed on the way: `receipt-sheet` test harness (no
+  `classList` / `append`, new "Waiting for approval" title) and `output-tracing` (workspaces +
+  receipt verify reach pdf-lib, llms no longer does). Mobile typecheck clean; tests: only the known
+  date-format failures (`calendar`, `format`, `hostel-statement`, `public-queries`).
+  Re-run after the device pass.
+- ☐ J3 Final review pass by Fable: verify each ☑ against the code and the device, then improve.
+  Code pass 2026-11-11 (no device attached): every ☑ in A, B, D1, E7, E8, G1, H1a/b/h, I matches
+  the code. Web + mobile typecheck clean, 71 web finance / offer / guide test files pass, 4 new
+  mobile rule tests pass, mobile lint 0 errors, Go build + vet + touched packages pass.
+  Fixed on the way: Go 1.27.3 → 1.27.4 (GO-2026-6859 in `net/http` was failing CI, so the server
+  had stopped deploying); collect sheet re-reads the ledger when a later month fails to save.
+  Open for the owner:
+  - **Score and part payments.** The first payment on a bill sets the points, so Rs 100 on day 2
+    and the rest on day 28 earns 10. Safer: points from the day the bill is fully paid.
+  - **Desk cash is certified** (D3) — a hostel can record cash that never moved and it counts in
+    the Offer Program. Owner's call; noted so it is a known trade.
+  - **Claim push to wardens** (C5): still admins only.
+  - **Re-billed month keeps its code.** Void a month and bill it again → same `RUP-482K-BHA83`.
+    Matching is fine (only open bills are read). An online checkout on the new bill would reuse
+    the old bill's merchant reference `…-1`; fix when gateway testing starts.
+  - `npm --prefix apps/web run db:indexes` on prod for the `{hostelId, paymentCode}` unique index.
+  Device pass still to do: C1–C4, E1–E6, F1–F3, G2–G3, H1c–H1g, H2–H6.
+
+## Order
+
+A → B → (C, D, E need A and B) → F → G → H → I (docs last, they describe what shipped) → J.

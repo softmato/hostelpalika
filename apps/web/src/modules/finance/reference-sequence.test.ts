@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
   findOneAndUpdate: vi.fn(),
   hostelFindById: vi.fn(),
   hostelFindOneAndUpdate: vi.fn(),
+  residentFindById: vi.fn(),
+  residentFindOneAndUpdate: vi.fn(),
 }));
 
 const lean = (value: unknown) => ({
@@ -27,12 +29,22 @@ vi.mock("@hostel/db/models/Hostel", () => ({
   },
 }));
 
+vi.mock("@hostel/db/models/Resident", () => ({
+  ResidentModel: {
+    findById: mocks.residentFindById,
+    findOneAndUpdate: mocks.residentFindOneAndUpdate,
+  },
+}));
+
 vi.mock("@hostel/db/models/ReceiptCounter", () => ({
   ReceiptCounterModel: { findOneAndUpdate: mocks.findOneAndUpdate },
 }));
 
 import { parseReferenceCode } from "@/modules/finance/reference-code";
-import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
+import {
+  allocateMonthCode,
+  allocateReferenceCode,
+} from "@/modules/finance/reference-sequence.service";
 
 const hostelId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0a1");
 
@@ -96,5 +108,29 @@ describe("allocateReferenceCode", () => {
     mocks.findOneAndUpdate.mockReturnValue(counter(31 ** 4));
 
     await expect(allocateReferenceCode(hostelId, "RUP")).rejects.toThrow(/exhausted/);
+  });
+});
+
+describe("allocateMonthCode (todo A1/A2)", () => {
+  const residentId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0b2");
+
+  it("reuses a stored personal code and allocates nothing", async () => {
+    mocks.residentFindById.mockReturnValue(lean({ paymentCode: "RUP-001F" }));
+
+    expect(await allocateMonthCode(hostelId, residentId, "2083-05", "RUP")).toBe("RUP-001F-BHA83");
+    expect(mocks.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it("gives an older resident a code on first use, from the RESIDENT_CODE counter", async () => {
+    mocks.residentFindById.mockReturnValue(lean({ paymentCode: null }));
+    mocks.residentFindOneAndUpdate.mockImplementation((_filter, update) =>
+      lean({ paymentCode: update.$set.paymentCode }),
+    );
+
+    const code = await allocateMonthCode(hostelId, residentId, "2083-01", "RUP");
+
+    expect(mocks.findOneAndUpdate.mock.calls[0]![0]).toMatchObject({ kind: "RESIDENT_CODE" });
+    expect(mocks.residentFindOneAndUpdate.mock.calls[0]![0]).toMatchObject({ paymentCode: { $in: [null, ""] } });
+    expect(code).toBe("RUP-001F-BAI83");
   });
 });

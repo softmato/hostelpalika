@@ -35,6 +35,8 @@ export const XLSX_PACKAGE = [
 export const PDF_LIB_ROUTES = [
   "/api/v1/account/hostel-leave/**",
   "/api/v1/account/residency-invite/**",
+  // The workspace list reads the leave state through `hostel.service`.
+  "/api/v1/account/workspaces/**",
   "/api/v1/bookings/**",
   // Expenses resolve the hostel through `hostel.service`, which reaches it.
   "/api/v1/cook/expenses/**",
@@ -93,6 +95,8 @@ export const PDF_LIB_ROUTES = [
   // A resident's join request reaches the existing-residents add path.
   "/api/v1/public/join/**",
   "/api/v1/public/plan-checkout/**",
+  // Verifying a certified receipt reads it through `receipt.service`.
+  "/api/v1/public/receipts/**",
   "/api/v1/resident/finance/checkout/**",
   "/api/v1/resident/finance/evidence/**",
   "/api/v1/resident/finance/invoices/**",
@@ -103,14 +107,13 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/team/hostels/**",
   "/api/v1/team/prepayments/**",
   "/api/v1/webhooks/**",
-  "/llms-full.txt",
-  "/llms.txt",
 ] as const;
 
 /** Routes that reach `xlsx` — the statement importer and the existing-resident sheet. */
 export const XLSX_ROUTES = [
   // Leaving the platform exports every sheet the hostel holds.
   "/api/v1/account/hostel-leave/**",
+  "/api/v1/account/workspaces/**",
   "/api/v1/hostel-admin/finance/statements/**",
   "/api/v1/hostel-admin/leave/**",
   "/api/v1/hostel-admin/residents/existing/**",

@@ -210,7 +210,7 @@ const STAMP_GREEN = rgb(0.01, 0.36, 0.18);
  *   the payment quoted its reference and was verified, and anyone can check the
  *   code at `/verify-receipt`.
  * - **Paid** — ink, no programme line: money received without its reference
- *   (cash, a transfer with no code), so it is receipted but not certified.
+ *   (an adjustment, or the platform's own fee-off), so it is receipted but not certified.
  */
 function drawStamp(
   page: Page,

@@ -33,6 +33,8 @@
  * Cost: 31⁴ = 923,521 codes per hostel instead of 1,048,576 — still the "~1M
  * values per hostel" of target §5.1.
  */
+import { BS_MONTHS, formatPeriodKey, periodParts } from "@hostel/shared/calendar/bs";
+
 const SYMBOLS = "0123456789ABCDEFGHJKMNPQRSTVWXY";
 const MODULUS = SYMBOLS.length; // 31, prime
 
@@ -59,6 +61,30 @@ const CODE_LENGTH = PREFIX_LENGTH + SEQ_LENGTH + 1;
 
 /** 31⁴ − 1 codes per hostel before the sequence wraps. */
 export const MAX_SEQUENCE = MODULUS ** SEQ_LENGTH - 1;
+
+/*
+ * The month code — `RUP-482K-BHA83` (todo A1/A2, D1).
+ *
+ * A resident keeps one personal code for life (`RUP-482K`: hostel prefix, a
+ * three-symbol resident number, a check character) and each monthly rent bill
+ * appends the BS month's first three letters and the year's last two digits.
+ * Same resident next month → same code, new month part, so it can be guessed.
+ *
+ * The check character covers prefix + number only, which is what keeps the
+ * personal part fixed. It still catches every one-symbol typo and adjacent swap
+ * inside the personal part (prime modulus, consecutive weights — see
+ * `checkCharacter`), so a typo can never land on another resident. A month typo
+ * is not a month (`BHX`) and fails to parse.
+ */
+const PERSONAL_SEQ_LENGTH = 3;
+const PERSONAL_LENGTH = PREFIX_LENGTH + PERSONAL_SEQ_LENGTH + 1;
+const MONTH_CODE_LENGTH = PERSONAL_LENGTH + 3 + 2;
+
+/** 29,790 residents per hostel. */
+export const MAX_PERSONAL_NUMBER = MODULUS ** PERSONAL_SEQ_LENGTH - 1;
+
+/** `BAI JES ASA SHR BHA ASW KAR MAN POU MAG FAL CHA` — all distinct. */
+const MONTH_TAGS = BS_MONTHS.map((month) => month.slice(0, 3).toUpperCase());
 
 export type ParsedReferenceCode = {
   prefix: string;
@@ -93,11 +119,11 @@ function letterValue(character: string): number {
   return value >= 0 && value <= 25 ? value : -1;
 }
 
-function encodeSequence(sequence: number): string {
+function encodeSequence(sequence: number, length = SEQ_LENGTH): string {
   let remaining = sequence;
   let encoded = "";
 
-  for (let position = 0; position < SEQ_LENGTH; position += 1) {
+  for (let position = 0; position < length; position += 1) {
     encoded = SYMBOLS[remaining % MODULUS] + encoded;
     remaining = Math.floor(remaining / MODULUS);
   }
@@ -233,7 +259,109 @@ export function generateReferenceCode(prefix: string, sequence: number): string 
  * right hostel and invoice; this only establishes that it was not mistyped.
  */
 export function isValidReferenceCode(raw: string | null | undefined): boolean {
-  return parseReferenceCode(raw) !== null;
+  return normalizeReferenceCode(raw) !== null;
+}
+
+/**
+ * The printed form of any code a resident might type — an invoice code
+ * (`RUP-4821-K`) or a month code (`RUP-482K-BHA83`) — or null. This is what
+ * `invoice.referenceCode` is compared against.
+ */
+export function normalizeReferenceCode(raw: string | null | undefined): string | null {
+  const old = parseReferenceCode(raw);
+
+  if (old) {
+    return formatReferenceCode(old.prefix, old.sequence);
+  }
+
+  const month = parseMonthCode(raw);
+
+  return month ? `${month.personalCode}-${month.tag}` : null;
+}
+
+/** `RUP-482K` — a resident's fixed code. */
+export function generatePersonalCode(prefix: string, residentNumber: number): string {
+  if (!isValidPrefix(prefix)) {
+    throw new Error(`Reference prefix must be three letters, received "${prefix}".`);
+  }
+
+  if (
+    !Number.isInteger(residentNumber) ||
+    residentNumber < 0 ||
+    residentNumber > MAX_PERSONAL_NUMBER
+  ) {
+    throw new Error(
+      `Resident number must be 0…${MAX_PERSONAL_NUMBER}, received ${residentNumber}.`,
+    );
+  }
+
+  const encoded = encodeSequence(residentNumber, PERSONAL_SEQ_LENGTH);
+
+  return `${prefix}-${encoded}${checkCharacter(prefix, encoded)!}`;
+}
+
+/** `RUP-482K` + `2083-05` → `RUP-482K-BHA83`. */
+export function generateMonthCode(personalCode: string, period: string): string {
+  const parts = periodParts(period);
+  const personal = parsePersonal(canonicalize(personalCode));
+
+  if (!parts || !personal) {
+    throw new Error(`Cannot make a month code from "${personalCode}" and "${period}".`);
+  }
+
+  const yy = String(parts.year % 100).padStart(2, "0");
+
+  return `${personal}-${MONTH_TAGS[parts.month - 1]}${yy}`;
+}
+
+/** Canonical `RUP482K` → printed `RUP-482K`, or null when the check fails. */
+function parsePersonal(canonical: string): string | null {
+  if (canonical.length !== PERSONAL_LENGTH) {
+    return null;
+  }
+
+  const prefix = canonical.slice(0, PREFIX_LENGTH);
+  const encoded = foldConfusables(canonical.slice(PREFIX_LENGTH, PERSONAL_LENGTH - 1));
+  const check = foldConfusables(canonical.slice(PERSONAL_LENGTH - 1));
+
+  if (!isValidPrefix(prefix) || checkCharacter(prefix, encoded) !== check) {
+    return null;
+  }
+
+  return `${prefix}-${encoded}${check}`;
+}
+
+export type ParsedMonthCode = {
+  personalCode: string;
+  period: string;
+  /** `BHA83` */
+  tag: string;
+};
+
+export function parseMonthCode(raw: string | null | undefined): ParsedMonthCode | null {
+  if (!raw) {
+    return null;
+  }
+
+  const canonical = canonicalize(raw);
+
+  if (canonical.length !== MONTH_CODE_LENGTH) {
+    return null;
+  }
+
+  const personalCode = parsePersonal(canonical.slice(0, PERSONAL_LENGTH));
+  const month = MONTH_TAGS.indexOf(canonical.slice(PERSONAL_LENGTH, PERSONAL_LENGTH + 3));
+  const yy = foldConfusables(canonical.slice(PERSONAL_LENGTH + 3));
+
+  if (!personalCode || month < 0 || !/^\d\d$/.test(yy)) {
+    return null;
+  }
+
+  return {
+    personalCode,
+    period: formatPeriodKey(2000 + Number(yy), month + 1),
+    tag: `${MONTH_TAGS[month]}${yy}`,
+  };
 }
 
 export function parseReferenceCode(
@@ -293,12 +421,12 @@ export function extractReferenceCodes(text: string | null | undefined): string[]
 
   // Split on everything that is not part of a code or its formatting. Spaces
   // are handled below rather than here, so "RUP 4821 K" survives as one run.
-  for (const run of text.toUpperCase().split(/[^A-Z0-9\s-]+/)) {
+  for (const run of text.toUpperCase().split(/[^A-Z0-9\s_-]+/)) {
     for (const candidate of candidatesInRun(run)) {
-      const parsed = parseReferenceCode(candidate);
+      const code = normalizeReferenceCode(candidate);
 
-      if (parsed) {
-        found.add(formatReferenceCode(parsed.prefix, parsed.sequence));
+      if (code) {
+        found.add(code);
       }
     }
   }
@@ -312,28 +440,31 @@ export function extractReferenceCodes(text: string | null | undefined): string[]
  * `RUP 4821 K` are seen — but `RENT PAYMENT THANK` never becomes a code.
  */
 function candidatesInRun(run: string): string[] {
-  const tokens = run.split(/\s+/).filter(Boolean);
+  const tokens = run.split(/[\s_]+/).filter(Boolean);
   const candidates: string[] = [];
 
   for (let index = 0; index < tokens.length; index += 1) {
     const single = canonicalize(tokens[index]!);
 
-    if (single.length === CODE_LENGTH) {
+    if (single.length === CODE_LENGTH || single.length === MONTH_CODE_LENGTH) {
       candidates.push(single);
     }
 
-    // Join up to three tokens: the spaced form of a code is exactly three
-    // pieces. Anything longer is prose, not a reference.
+    // Join neighbours: an invoice code spaced out is three pieces, a month code
+    // up to four (`RUP 482K BHA 83`). Anything longer is prose, not a reference.
     let joined = single;
 
-    for (let span = 1; span < 3 && index + span < tokens.length; span += 1) {
+    for (let span = 1; span < 4 && index + span < tokens.length; span += 1) {
       joined += canonicalize(tokens[index + span]!);
 
-      if (joined.length === CODE_LENGTH) {
+      if (
+        (joined.length === CODE_LENGTH && span < 3) ||
+        joined.length === MONTH_CODE_LENGTH
+      ) {
         candidates.push(joined);
       }
 
-      if (joined.length > CODE_LENGTH) {
+      if (joined.length > MONTH_CODE_LENGTH) {
         break;
       }
     }

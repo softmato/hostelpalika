@@ -2,6 +2,7 @@ import type { Types } from "mongoose";
 import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
+import { creditScoresFor } from "@/modules/finance/credit-score.service";
 import { connectToDatabase } from "@/lib/db";
 import { formatBsPeriod } from "@/lib/hostel-day";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
@@ -309,7 +310,7 @@ export async function getOfferProgramOverview(quarterInput?: string | null) {
     ...awards.map((award) => award.hostelId),
   ];
 
-  const [residents, hostels, periods] = await Promise.all([
+  const [residents, hostels, periods, scores] = await Promise.all([
     ResidentModel.find({ _id: { $in: residentIds } })
       .select("firstName fullName lastName status isDeleted")
       .lean<ResidentRecord[]>(),
@@ -317,7 +318,12 @@ export async function getOfferProgramOverview(quarterInput?: string | null) {
       .select("name")
       .lean<{ _id: Types.ObjectId; name?: string }[]>(),
     periodsByInvoice(awards),
+    creditScoresFor(groups.map((group) => group._id)),
   ]);
+
+  // D4: the credit score ranks residents inside the program — first for gifts.
+  const scoreOf = (id: Types.ObjectId) => scores.get(id.toString()) ?? 0;
+  groups.sort((a, b) => scoreOf(b._id) - scoreOf(a._id) || b.bills - a.bills || b.amount - a.amount);
 
   const residentById = new Map(residents.map((resident) => [resident._id.toString(), resident]));
   const hostelName = new Map(hostels.map((hostel) => [hostel._id.toString(), hostel.name ?? "Hostel"]));
@@ -348,6 +354,7 @@ export async function getOfferProgramOverview(quarterInput?: string | null) {
         bills: group.bills,
         certifiedAmount: group.amount,
         certifiedCount: group.count,
+        creditScore: scoreOf(group._id),
       };
     }),
     owedToHostels: { amount: owed[0]?.amount ?? 0, count: owed[0]?.count ?? 0 },

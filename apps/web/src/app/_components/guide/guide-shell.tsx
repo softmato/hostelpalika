@@ -6,7 +6,10 @@ import { useState, type ComponentType, type ReactNode } from "react";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { GUIDE_GROUPS } from "@hostel/shared/guide/guide";
+import { GUIDE_NE, GUIDE_NE_GROUPS } from "@hostel/shared/guide/guide-ne";
 
+import { L } from "@/app/_components/guide/guide-l";
+import { GUIDE_LANG_SCRIPT, GuideLangSwitch } from "@/app/_components/guide/guide-lang";
 import { GuideSearch } from "@/app/_components/guide/guide-search";
 import { jumpToChapter } from "@/app/_components/guide/guide-toc";
 import { BrandMark } from "@/components/brand-mark";
@@ -83,7 +86,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="size-4" />
                 </span>
-                <span className="flex-1">{group.label}</span>
+                <span className="flex-1"><L en={group.label} ne={GUIDE_NE_GROUPS[group.slug]?.label} /></span>
                 <ChevronRight
                   aria-hidden
                   className={cn("size-4 text-muted-foreground transition-transform duration-200 ease-out", isOpen && "rotate-90")}
@@ -117,7 +120,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
                           }}
                           prefetch={false}
                         >
-                          {c.title}
+                          <L en={c.title} ne={GUIDE_NE[c.id]?.title} />
                         </Link>
                       </li>
                     );
@@ -145,6 +148,8 @@ export function GuideShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-background">
+      {/* The language before first paint. Inside a div's HTML so React never renders a <script>. */}
+      <div dangerouslySetInnerHTML={{ __html: `<script>${GUIDE_LANG_SCRIPT}</script>` }} hidden suppressHydrationWarning />
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:px-6">
           <button
@@ -200,6 +205,7 @@ export function GuideShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          <GuideLangSwitch />
           <ThemeToggle />
         </div>
       </header>

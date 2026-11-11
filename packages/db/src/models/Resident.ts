@@ -41,6 +41,12 @@ const residentSchema = new Schema(
       default: null,
     },
     moveInDate: { type: Date, required: true },
+    /**
+     * The resident's fixed payment code, `RUP-482K` (todo A1). Every monthly rent
+     * bill's reference is this plus the BS month: `RUP-482K-BHA83`. Set once,
+     * on the first bill or first read, never changed.
+     */
+    paymentCode: { type: String, default: null, trim: true, uppercase: true },
     depositAmount: { min: 0, default: 0, type: Number },
     /**
      * Per-resident rent **override**, not the normal path (target §3.3).
@@ -222,6 +228,10 @@ residentSchema.index(
     partialFilterExpression: { ...LIVE_ROW, email: { $type: "string" } },
     unique: true,
   },
+);
+residentSchema.index(
+  { hostelId: 1, paymentCode: 1 },
+  { partialFilterExpression: { paymentCode: { $type: "string" } }, unique: true },
 );
 residentSchema.index({ hostelId: 1, status: 1 });
 residentSchema.index({ hostelId: 1, roomType: 1 });

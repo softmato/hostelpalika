@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
@@ -243,6 +245,26 @@ func (a *Admin) overview(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	// D4: the credit score ranks residents inside the program — first for gifts.
+	ids := make([]bson.ObjectID, len(groups))
+	for i, g := range groups {
+		ids[i] = g.ID
+	}
+	scores, err := finance.CreditScoresFor(c, a.DB, ids)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	sort.SliceStable(groups, func(x, y int) bool {
+		gx, gy := groups[x], groups[y]
+		if scores[gx.ID] != scores[gy.ID] {
+			return scores[gx.ID] > scores[gy.ID]
+		}
+		if gx.Bills != gy.Bills {
+			return gx.Bills > gy.Bills
+		}
+		return gx.Amount > gy.Amount
+	})
 	cur, err = a.DB.Collection("offerawards").Find(c, bson.D{{Key: "quarter", Value: b.key}}, options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}))
 	awards, err := all[awardRow](c, cur, err)
 	if err != nil {
@@ -356,7 +378,7 @@ func (a *Admin) overview(c *gin.Context) {
 			award = ordered.Map{{Key: "id", Value: w.ID.Hex()}, {Key: "status", Value: w.Status}, {Key: "title", Value: w.Title}}
 		}
 		eligible[i] = append(who(g.ID, g.HostelID), ordered.Pair{Key: "award", Value: award}, ordered.Pair{Key: "bills", Value: g.Bills},
-			ordered.Pair{Key: "certifiedAmount", Value: g.Amount}, ordered.Pair{Key: "certifiedCount", Value: g.Count})
+			ordered.Pair{Key: "certifiedAmount", Value: g.Amount}, ordered.Pair{Key: "certifiedCount", Value: g.Count}, ordered.Pair{Key: "creditScore", Value: scores[g.ID]})
 	}
 	owedOut := ordered.Map{{Key: "amount", Value: 0}, {Key: "count", Value: 0}}
 	if len(owed) > 0 {

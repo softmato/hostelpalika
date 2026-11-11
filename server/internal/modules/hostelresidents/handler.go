@@ -55,6 +55,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.DELETE("/admission-forms/:formId", reg, h.declineForm)
 	a.GET("/admission-forms/:formId/photo", reg, h.formPhoto)
 	a.GET("/:id/leave", hostelrooms.Cap(h.Guards, "viewPayments"), httpx.ETag(), h.leaves)
+	a.GET("/:id/credit-score", hostelrooms.Cap(h.Guards, "viewPayments"), httpx.ETag(), h.creditScore)
 	a.POST("/:id/leave", hostelrooms.Cap(h.Guards, "recordCash"), h.addLeave)
 	a.DELETE("/:id/leave/:leaveId", hostelrooms.Cap(h.Guards, "recordCash"), h.cancelLeave)
 	a.GET("/:id/move-in", reg, httpx.ETag(), h.moveIn)

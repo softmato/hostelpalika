@@ -1058,3 +1058,9 @@ html.dark {
   font-family: var(--font-manrope), var(--font-geist-sans), Arial, Helvetica, sans-serif;
   font-variant-numeric: tabular-nums lining-nums;
 }
+
+/* The guide's English / नेपाली switch (`guide-lang.tsx`): both are in the page, one shows. */
+html:not([data-guide-lang="ne"]) .guide-ne,
+html[data-guide-lang="ne"] .guide-en {
+  display: none !important;
+}

@@ -258,6 +258,17 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Rooms & Beds shows every floor, how many rooms, and which beds are free. A room can be numbered (Room 304) or just a type (Two sharing).",
         ],
         id: "rooms",
+        steps: [
+          "Add a floor: tap Add floor. It copies the floor below.",
+          "Change a room: tap it. Fix the number or the type.",
+          "Swap numbers: hold two rooms, tap Renumber. 101 and 102 trade places.",
+          "Move a resident: open Rooms & Beds, pick the person, pick a free bed.",
+          "Remove a floor: tap the bin next to the floor name. If people live there, the app asks where each one goes first. Then the floor goes.",
+        ],
+        note: {
+          body: "A room with people in it cannot be deleted. Move them first.",
+          title: "Lived-in rooms stay",
+        },
         shot: pic(
           "rooms-and-beds",
           "Rooms & Beds: every floor, how many rooms, how many beds are free.",
@@ -277,6 +288,16 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
+          "Settings → The hostel is what the public listing shows: about, contact, map pin, facilities, house rules, how to find the gate, and photos.",
+          "Change it here and the listing changes too.",
+          "Hostel KYC asks for the same things the first time, one step at a time. Your work saves when you tap Save & next or go back.",
+        ],
+        id: "hostel-page",
+        summary: "Your listing, house rules and map pin.",
+        title: "Your hostel page",
+      },
+      {
+        body: [
           "Payments shows every resident for a month: who has paid, who still owes, and who is overdue, with any late fine added.",
           "Cash at the desk? Open the resident and record it. eSewa and Khalti payments made in the app clear on their own.",
         ],
@@ -287,6 +308,22 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ),
         summary: "Who has paid, who still owes.",
         title: "Payments",
+      },
+      {
+        body: [
+          "A resident pays at the desk? Tap Collect, then tap their name.",
+        ],
+        id: "collect-payment",
+        steps: [
+          "You see every month they still owe. The oldest is ticked.",
+          "Tick more months if they pay more. The total changes.",
+          "Pick Cash, or the eSewa, Khalti or bank you set up.",
+          "Online? The QR or number shows in the sheet. Let them scan it.",
+          "Tap Collect. The months are paid.",
+          "The resident gets a receipt in the app and their points.",
+        ],
+        summary: "Cash or QR at the desk, month by month.",
+        title: "Collecting a payment",
       },
       {
         body: [
@@ -306,6 +343,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Tap the receipt to see it full size.",
           "Tap Approve (or Reject with a reason).",
           "The payment is recorded, a receipt is issued, and the resident's balance updates straight away.",
+          "The resident gets points for the day they sent the receipt, not the day you approve. So approving late never costs them.",
         ],
         summary: "Approve the screenshots residents send.",
         title: "Confirming a payment",
@@ -353,7 +391,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Save. A warden's cash expenses come out of their cash box (My cash) on Home.",
         ],
         note: {
-          body: "Paid in eSewa, Khalti or your bank app? Open the payment there, tap Share and pick HostelPalika. Add expense opens with the receipt attached and the amount already read.",
+          body: "Paid in eSewa, Khalti or your bank app? Open the payment there, tap Share and pick HostelPalika. Add expense opens with the receipt attached and the amount already read. The receipt picture stays on the expense.",
           title: "Faster: share the receipt",
         },
         summary: "Spending, with the bill photo.",
@@ -495,6 +533,16 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
+          "The bell at the top holds your alerts: new claims, complaints, join requests and SOS.",
+          "Tap one to open it. The number on the bell goes away when you open them.",
+          "Daily routines, like meal times or Clothes Washing, are repeating notices. Set them once under Push notices.",
+        ],
+        id: "alerts",
+        summary: "The bell, and routines that repeat.",
+        title: "Alerts and routines",
+      },
+      {
+        body: [
           "Residents raise a complaint with a photo; you update it until it is fixed, and they see every update.",
           "Repairs can carry a voice note and go to a verified service provider.",
         ],
@@ -556,11 +604,14 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ),
         id: "first-bill",
         steps: [
-          "Tap Pay now. You see the amount, a reference code (keep it in the payment remarks) and the hostel's QR.",
-          "Pay by scanning the QR in your bank or wallet app, or with eSewa or Khalti.",
+          "Tap Pay now. You see the amount, your month code and the hostel's QR.",
+          "Tap Copy next to the month code.",
+          "Pay in your bank or wallet app. Paste the code in the remarks.",
+          "Share the receipt to HostelPalika, or upload a screenshot.",
+          "Wait for the hostel to approve it. You get a notification.",
         ],
-        summary: "What you owe, and how to pay it.",
-        title: "Your first bill",
+        summary: "Copy the code, pay, share the receipt.",
+        title: "How to pay your fee",
       },
       {
         body: [
@@ -584,6 +635,46 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ],
         summary: "I've paid → upload the screenshot → the hostel confirms.",
         title: "Sending payment proof",
+      },
+      {
+        body: [
+          "Your month code is yours. It stays the same every month. Only the month part changes.",
+          "The first part is you. The last part is the month and the year.",
+          "Put it in the remarks when you pay. Then the hostel knows it is you, and which month you paid.",
+        ],
+        id: "month-code",
+        note: {
+          body: "Bhadra 2083: RUP-482K-BHA83. Next month, Ashwin 2083: RUP-482K-ASW83.",
+          title: "Two examples",
+        },
+        summary: "Same code every month, new month part.",
+        title: "Your month code",
+      },
+      {
+        body: [
+          "Pay early, get more points.",
+          "Points count from the day you send the receipt. Not the day the hostel approves it.",
+          "One bill gives points once. A rejected receipt gives none.",
+          "More points put you first for gifts and fee-off in the Resident Offer Program.",
+        ],
+        id: "credit-score",
+        note: {
+          body: "Day 1 to 4 of the month: 10 points. Day 5 to 7: 8. Day 8 to 15: 5. After that: 2.",
+          title: "Points",
+        },
+        summary: "Pay early, get more points.",
+        title: "Credit score",
+      },
+      {
+        body: [
+          "You can pay at the office too.",
+          "Pay cash to the warden. Or scan the warden's QR with eSewa, Khalti or your bank.",
+          "The warden ticks the months you paid. You get a receipt in the app, and your points.",
+          "The day the warden records it is your points day.",
+        ],
+        id: "pay-at-office",
+        summary: "Cash or the warden's QR.",
+        title: "Pay at the office",
       },
       {
         body: [

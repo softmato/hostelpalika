@@ -31,6 +31,12 @@ vi.mock("@hostel/db/models/Receipt", () => ({
   ReceiptModel: { find: mocks.receiptFind },
 }));
 
+vi.mock("@hostel/db/models/Invoice", () => ({
+  InvoiceModel: {
+    find: () => ({ select: () => ({ lean: async () => [] }) }),
+  },
+}));
+
 vi.mock("@hostel/db/models/Resident", () => ({
   ResidentModel: { findOne: mocks.residentFindOne },
 }));

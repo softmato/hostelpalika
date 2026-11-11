@@ -34,6 +34,7 @@ func (h *Handler) registerExtras(v1 *gin.RouterGroup) {
 	r := v1.Group("/resident")
 	r.GET("/referral", httpx.ETag(), h.referral)
 	r.GET("/offer-program", httpx.ETag(), h.offer)
+	r.GET("/credit-score", httpx.ETag(), h.creditScore)
 	r.POST("/reviews", h.review)
 	r.POST("/questioncall/click", h.qcClick)
 	r.GET("/questioncall/status", httpx.ETag(), h.qcStatus)

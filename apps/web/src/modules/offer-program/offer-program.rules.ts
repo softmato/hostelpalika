@@ -8,7 +8,6 @@ import {
   formatPeriodKey,
   periodParts,
 } from "@hostel/shared/calendar/bs";
-import { extractReferenceCodes } from "@/modules/finance/reference-code";
 
 /**
  * The Resident Offer Program's rules, pure — no database, so each one is
@@ -80,36 +79,33 @@ type SettledEvent = {
 /**
  * Does this settled payment earn a certified receipt?
  *
- * Two things must both be true: the payment carried **its invoice's reference
- * code**, and somebody other than the payer **verified** it.
+ * Owner rule (todo D3, B6): any payment the resident makes that somebody other
+ * than the payer verified is certified.
  *
- * - A resident's claim: the warden approved it, and the code the resident typed
- *   (transaction id or note) is this invoice's, check character and all.
+ * - A resident's claim: it only settles once a warden or admin approved it.
+ * - A desk payment (cash, or online at the desk): a warden or admin recorded it
+ *   against the months they ticked, so it needs no typed code.
  * - A gateway payment: started from the invoice's own checkout, confirmed by the
  *   provider's API.
  * - A statement row: matched to the invoice by the code in the bank's remarks.
  *
- * Cash, adjustments and HostelPalika's own fee-off payments carry no code a
- * resident quoted, so they are receipted but not certified.
+ * Adjustments and HostelPalika's own fee-off (`OFFER_PROGRAM`) are not the
+ * resident paying, so they are receipted but never certified.
  */
 export function qualifiesForOfferProgram(event: SettledEvent): boolean {
-  const code = event.referenceCode?.toUpperCase();
-
-  if (!event.invoiceId || !code) {
+  if (!event.invoiceId) {
     return false;
   }
 
   switch (event.source) {
     case "RESIDENT_CLAIM":
-      return [
-        ...extractReferenceCodes(event.rawPayload?.transactionCode),
-        ...extractReferenceCodes(event.rawPayload?.referenceNote),
-      ].includes(code);
+    case "CASH_ENTRY":
+      return true;
     case "GATEWAY_POLL":
     case "GATEWAY_WEBHOOK":
-      return event.confirmation === "GATEWAY_VERIFIED";
+      return Boolean(event.referenceCode) && event.confirmation === "GATEWAY_VERIFIED";
     case "STATEMENT_IMPORT":
-      return event.confirmation === "STATEMENT_MATCH";
+      return Boolean(event.referenceCode) && event.confirmation === "STATEMENT_MATCH";
     default:
       return false;
   }

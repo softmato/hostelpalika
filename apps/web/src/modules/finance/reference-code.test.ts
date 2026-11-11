@@ -16,6 +16,9 @@ import {
   deriveHostelPrefix,
   extractReferenceCodes,
   generateReferenceCode,
+  generateMonthCode,
+  generatePersonalCode,
+  parseMonthCode,
   isValidPrefix,
   isValidReferenceCode,
   MAX_SEQUENCE,
@@ -327,6 +330,63 @@ describe("the backfill script's mirror of this module", () => {
 
         expect(mirrored).toBe(generateReferenceCode(prefix, sequence));
         expect(isValidReferenceCode(mirrored!)).toBe(true);
+      }
+    }
+  });
+});
+
+describe("month codes (todo A1–A4)", () => {
+  const personal = generatePersonalCode("RUP", 4000);
+
+  it("keeps the personal part and changes only the month", () => {
+    expect(personal).toMatch(/^RUP-[0-9A-Y]{4}$/);
+    expect(generateMonthCode(personal, "2083-01")).toBe(`${personal}-BAI83`);
+    expect(generateMonthCode(personal, "2083-02")).toBe(`${personal}-JES83`);
+    expect(generateMonthCode(personal, "2084-12")).toBe(`${personal}-CHA84`);
+  });
+
+  it("reads the month code with -, _, space, nothing, any case", () => {
+    const code = generateMonthCode(personal, "2083-05");
+    const bare = code.replace(/-/g, "");
+
+    for (const typed of [code, bare, bare.toLowerCase(), code.replace(/-/g, "_"), code.replace(/-/g, " "), `${bare.slice(0, 3)} ${bare.slice(3, 7)} ${bare.slice(7, 10)} ${bare.slice(10)}`]) {
+      expect(extractReferenceCodes(`rent ${typed} thanks`)).toEqual([code]);
+    }
+    expect(parseMonthCode(code)).toEqual({ personalCode: personal, period: "2083-05", tag: "BHA83" });
+  });
+
+  it("still reads old invoice codes beside new ones", () => {
+    const old = generateReferenceCode("RUP", 4821);
+    const fresh = generateMonthCode(personal, "2083-05");
+
+    expect(extractReferenceCodes(`${old} and ${fresh}`).sort()).toEqual([old, fresh].sort());
+    expect(isValidReferenceCode(fresh)).toBe(true);
+  });
+
+  it("rejects a month that is not a month", () => {
+    expect(parseMonthCode(`${personal}-BHX83`)).toBeNull();
+  });
+
+  // A4: a one-symbol typo in the personal part never lands on another resident.
+  it("catches every one-symbol typo and adjacent swap in the personal part", () => {
+    const symbols = "0123456789ABCDEFGHJKMNPQRSTVWXY";
+
+    for (const number of [0, 1, 30, 482, 4000, 29_790]) {
+      const code = generateMonthCode(generatePersonalCode("RUP", number), "2083-05");
+      const bare = code.replace(/-/g, "");
+
+      for (let index = 3; index < 7; index += 1) {
+        for (const symbol of symbols) {
+          if (symbol === bare[index]) continue;
+          const typo = bare.slice(0, index) + symbol + bare.slice(index + 1);
+          expect(parseMonthCode(typo)).toBeNull();
+        }
+      }
+
+      for (let index = 0; index < 6; index += 1) {
+        if (bare[index] === bare[index + 1]) continue;
+        const swapped = bare.slice(0, index) + bare[index + 1] + bare[index] + bare.slice(index + 2);
+        expect(parseMonthCode(swapped)).toBeNull();
       }
     }
   });

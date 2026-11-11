@@ -1,0 +1,769 @@
+{
+ "extract": [
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "RUP-0FH0-BHA83"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "RUP0FH0BHA83"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "rup0fh0bha83"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "RUP_0FH0_BHA83"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "RUP 0FH0 BHA83"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "RUP 0FH0 BHA 83"
+  },
+  {
+   "codes": [
+    "RUP-050G-P",
+    "RUP-0FH0-BHA83"
+   ],
+   "text": "rent RUP-050G-P and RUP-0FH0-BHA83 thanks"
+  },
+  {
+   "codes": [],
+   "text": "RUP0FH0BHX83"
+  },
+  {
+   "codes": [],
+   "text": "RUP0HF0BHA83"
+  },
+  {
+   "codes": [],
+   "text": "AUGUST RENT PAYMENT THANK YOU"
+  },
+  {
+   "codes": [
+    "RUP-0FH0-BHA03"
+   ],
+   "text": "RUP0FH0BHAO3"
+  }
+ ],
+ "month": [
+  {
+   "code": "RUP-0009-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-0009"
+  },
+  {
+   "code": "RUP-0009-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-0009"
+  },
+  {
+   "code": "RUP-0009-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-0009"
+  },
+  {
+   "code": "RUP-0009-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-0009"
+  },
+  {
+   "code": "RUP-001F-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-001F"
+  },
+  {
+   "code": "RUP-001F-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-001F"
+  },
+  {
+   "code": "RUP-001F-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-001F"
+  },
+  {
+   "code": "RUP-001F-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-001F"
+  },
+  {
+   "code": "RUP-00Y3-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-00Y3"
+  },
+  {
+   "code": "RUP-00Y3-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-00Y3"
+  },
+  {
+   "code": "RUP-00Y3-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-00Y3"
+  },
+  {
+   "code": "RUP-00Y3-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-00Y3"
+  },
+  {
+   "code": "RUP-010E-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-010E"
+  },
+  {
+   "code": "RUP-010E-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-010E"
+  },
+  {
+   "code": "RUP-010E-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-010E"
+  },
+  {
+   "code": "RUP-010E-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-010E"
+  },
+  {
+   "code": "RUP-0FH0-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-0FH0"
+  },
+  {
+   "code": "RUP-0FH0-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-0FH0"
+  },
+  {
+   "code": "RUP-0FH0-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-0FH0"
+  },
+  {
+   "code": "RUP-0FH0-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-0FH0"
+  },
+  {
+   "code": "RUP-451S-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-451S"
+  },
+  {
+   "code": "RUP-451S-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-451S"
+  },
+  {
+   "code": "RUP-451S-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-451S"
+  },
+  {
+   "code": "RUP-451S-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-451S"
+  },
+  {
+   "code": "RUP-YYYS-BAI83",
+   "period": "2083-01",
+   "personal": "RUP-YYYS"
+  },
+  {
+   "code": "RUP-YYYS-BHA83",
+   "period": "2083-05",
+   "personal": "RUP-YYYS"
+  },
+  {
+   "code": "RUP-YYYS-CHA84",
+   "period": "2084-12",
+   "personal": "RUP-YYYS"
+  },
+  {
+   "code": "RUP-YYYS-KAR90",
+   "period": "2090-07",
+   "personal": "RUP-YYYS"
+  },
+  {
+   "code": "EDU-0008-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-0008"
+  },
+  {
+   "code": "EDU-0008-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-0008"
+  },
+  {
+   "code": "EDU-0008-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-0008"
+  },
+  {
+   "code": "EDU-0008-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-0008"
+  },
+  {
+   "code": "EDU-001E-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-001E"
+  },
+  {
+   "code": "EDU-001E-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-001E"
+  },
+  {
+   "code": "EDU-001E-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-001E"
+  },
+  {
+   "code": "EDU-001E-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-001E"
+  },
+  {
+   "code": "EDU-00Y2-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-00Y2"
+  },
+  {
+   "code": "EDU-00Y2-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-00Y2"
+  },
+  {
+   "code": "EDU-00Y2-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-00Y2"
+  },
+  {
+   "code": "EDU-00Y2-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-00Y2"
+  },
+  {
+   "code": "EDU-010D-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-010D"
+  },
+  {
+   "code": "EDU-010D-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-010D"
+  },
+  {
+   "code": "EDU-010D-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-010D"
+  },
+  {
+   "code": "EDU-010D-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-010D"
+  },
+  {
+   "code": "EDU-0FHY-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-0FHY"
+  },
+  {
+   "code": "EDU-0FHY-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-0FHY"
+  },
+  {
+   "code": "EDU-0FHY-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-0FHY"
+  },
+  {
+   "code": "EDU-0FHY-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-0FHY"
+  },
+  {
+   "code": "EDU-451R-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-451R"
+  },
+  {
+   "code": "EDU-451R-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-451R"
+  },
+  {
+   "code": "EDU-451R-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-451R"
+  },
+  {
+   "code": "EDU-451R-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-451R"
+  },
+  {
+   "code": "EDU-YYYR-BAI83",
+   "period": "2083-01",
+   "personal": "EDU-YYYR"
+  },
+  {
+   "code": "EDU-YYYR-BHA83",
+   "period": "2083-05",
+   "personal": "EDU-YYYR"
+  },
+  {
+   "code": "EDU-YYYR-CHA84",
+   "period": "2084-12",
+   "personal": "EDU-YYYR"
+  },
+  {
+   "code": "EDU-YYYR-KAR90",
+   "period": "2090-07",
+   "personal": "EDU-YYYR"
+  },
+  {
+   "code": "LIO-0007-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-0007"
+  },
+  {
+   "code": "LIO-0007-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-0007"
+  },
+  {
+   "code": "LIO-0007-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-0007"
+  },
+  {
+   "code": "LIO-0007-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-0007"
+  },
+  {
+   "code": "LIO-001D-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-001D"
+  },
+  {
+   "code": "LIO-001D-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-001D"
+  },
+  {
+   "code": "LIO-001D-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-001D"
+  },
+  {
+   "code": "LIO-001D-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-001D"
+  },
+  {
+   "code": "LIO-00Y1-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-00Y1"
+  },
+  {
+   "code": "LIO-00Y1-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-00Y1"
+  },
+  {
+   "code": "LIO-00Y1-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-00Y1"
+  },
+  {
+   "code": "LIO-00Y1-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-00Y1"
+  },
+  {
+   "code": "LIO-010C-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-010C"
+  },
+  {
+   "code": "LIO-010C-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-010C"
+  },
+  {
+   "code": "LIO-010C-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-010C"
+  },
+  {
+   "code": "LIO-010C-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-010C"
+  },
+  {
+   "code": "LIO-0FHX-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-0FHX"
+  },
+  {
+   "code": "LIO-0FHX-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-0FHX"
+  },
+  {
+   "code": "LIO-0FHX-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-0FHX"
+  },
+  {
+   "code": "LIO-0FHX-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-0FHX"
+  },
+  {
+   "code": "LIO-451Q-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-451Q"
+  },
+  {
+   "code": "LIO-451Q-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-451Q"
+  },
+  {
+   "code": "LIO-451Q-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-451Q"
+  },
+  {
+   "code": "LIO-451Q-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-451Q"
+  },
+  {
+   "code": "LIO-YYYQ-BAI83",
+   "period": "2083-01",
+   "personal": "LIO-YYYQ"
+  },
+  {
+   "code": "LIO-YYYQ-BHA83",
+   "period": "2083-05",
+   "personal": "LIO-YYYQ"
+  },
+  {
+   "code": "LIO-YYYQ-CHA84",
+   "period": "2084-12",
+   "personal": "LIO-YYYQ"
+  },
+  {
+   "code": "LIO-YYYQ-KAR90",
+   "period": "2090-07",
+   "personal": "LIO-YYYQ"
+  },
+  {
+   "code": "ZZZ-000T-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-000T"
+  },
+  {
+   "code": "ZZZ-000T-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-000T"
+  },
+  {
+   "code": "ZZZ-000T-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-000T"
+  },
+  {
+   "code": "ZZZ-000T-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-000T"
+  },
+  {
+   "code": "ZZZ-0011-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-0011"
+  },
+  {
+   "code": "ZZZ-0011-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-0011"
+  },
+  {
+   "code": "ZZZ-0011-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-0011"
+  },
+  {
+   "code": "ZZZ-0011-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-0011"
+  },
+  {
+   "code": "ZZZ-00YM-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-00YM"
+  },
+  {
+   "code": "ZZZ-00YM-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-00YM"
+  },
+  {
+   "code": "ZZZ-00YM-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-00YM"
+  },
+  {
+   "code": "ZZZ-00YM-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-00YM"
+  },
+  {
+   "code": "ZZZ-0100-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-0100"
+  },
+  {
+   "code": "ZZZ-0100-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-0100"
+  },
+  {
+   "code": "ZZZ-0100-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-0100"
+  },
+  {
+   "code": "ZZZ-0100-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-0100"
+  },
+  {
+   "code": "ZZZ-0FHH-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-0FHH"
+  },
+  {
+   "code": "ZZZ-0FHH-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-0FHH"
+  },
+  {
+   "code": "ZZZ-0FHH-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-0FHH"
+  },
+  {
+   "code": "ZZZ-0FHH-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-0FHH"
+  },
+  {
+   "code": "ZZZ-451B-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-451B"
+  },
+  {
+   "code": "ZZZ-451B-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-451B"
+  },
+  {
+   "code": "ZZZ-451B-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-451B"
+  },
+  {
+   "code": "ZZZ-451B-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-451B"
+  },
+  {
+   "code": "ZZZ-YYYB-BAI83",
+   "period": "2083-01",
+   "personal": "ZZZ-YYYB"
+  },
+  {
+   "code": "ZZZ-YYYB-BHA83",
+   "period": "2083-05",
+   "personal": "ZZZ-YYYB"
+  },
+  {
+   "code": "ZZZ-YYYB-CHA84",
+   "period": "2084-12",
+   "personal": "ZZZ-YYYB"
+  },
+  {
+   "code": "ZZZ-YYYB-KAR90",
+   "period": "2090-07",
+   "personal": "ZZZ-YYYB"
+  }
+ ],
+ "personal": [
+  {
+   "code": "RUP-0009",
+   "number": 0,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-001F",
+   "number": 1,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-00Y3",
+   "number": 30,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-010E",
+   "number": 31,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-0FH0",
+   "number": 482,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-451S",
+   "number": 4000,
+   "prefix": "RUP"
+  },
+  {
+   "code": "RUP-YYYS",
+   "number": 29790,
+   "prefix": "RUP"
+  },
+  {
+   "code": "EDU-0008",
+   "number": 0,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-001E",
+   "number": 1,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-00Y2",
+   "number": 30,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-010D",
+   "number": 31,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-0FHY",
+   "number": 482,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-451R",
+   "number": 4000,
+   "prefix": "EDU"
+  },
+  {
+   "code": "EDU-YYYR",
+   "number": 29790,
+   "prefix": "EDU"
+  },
+  {
+   "code": "LIO-0007",
+   "number": 0,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-001D",
+   "number": 1,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-00Y1",
+   "number": 30,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-010C",
+   "number": 31,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-0FHX",
+   "number": 482,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-451Q",
+   "number": 4000,
+   "prefix": "LIO"
+  },
+  {
+   "code": "LIO-YYYQ",
+   "number": 29790,
+   "prefix": "LIO"
+  },
+  {
+   "code": "ZZZ-000T",
+   "number": 0,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-0011",
+   "number": 1,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-00YM",
+   "number": 30,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-0100",
+   "number": 31,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-0FHH",
+   "number": 482,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-451B",
+   "number": 4000,
+   "prefix": "ZZZ"
+  },
+  {
+   "code": "ZZZ-YYYB",
+   "number": 29790,
+   "prefix": "ZZZ"
+  }
+ ]
+}

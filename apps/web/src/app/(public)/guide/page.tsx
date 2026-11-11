@@ -4,7 +4,9 @@ import Link from "next/link";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { GUIDE_GROUPS } from "@hostel/shared/guide/guide";
+import { GUIDE_NE_GROUPS } from "@hostel/shared/guide/guide-ne";
 
+import { L } from "@/app/_components/guide/guide-l";
 import { HostelRail } from "@/app/_components/guide/guide-rail";
 import { BrandMark, BrandWordmark } from "@/components/brand-mark";
 import { JsonLd } from "@/components/json-ld";
@@ -112,14 +114,14 @@ export default async function GuidePage() {
               </span>
               <span className="flex items-center justify-between border-t border-border px-4 py-3">
                 <span>
-                  <span className="block font-heading font-bold text-foreground">{g.label}</span>
+                  <span className="block font-heading font-bold text-foreground"><L en={g.label} ne={GUIDE_NE_GROUPS[g.slug]?.label} /></span>
                   <span className="block text-xs text-muted-foreground">
                     {g.chapters.length} {g.chapters.length === 1 ? "chapter" : "chapters"}
                   </span>
                 </span>
                 <ChevronRight aria-hidden className="size-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
               </span>
-              <span className="sr-only">{g.intro}</span>
+              <span className="sr-only"><L en={g.intro} ne={GUIDE_NE_GROUPS[g.slug]?.intro} /></span>
             </Link>
           ))}
         </div>

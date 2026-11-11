@@ -17,7 +17,7 @@ import { markKhataBilled, unbilledKhata } from "@/modules/finance/khata.service"
 import { fromBs } from "@hostel/shared/calendar/bs";
 
 const mocks = vi.hoisted(() => ({
-  allocateReferenceCode: vi.fn(),
+  allocateMonthCode: vi.fn(),
   concessionFindOne: vi.fn(),
   audit: vi.fn(),
   eventCount: vi.fn(),
@@ -57,7 +57,7 @@ vi.mock("@/modules/finance/audit-finance", () => ({
 }));
 
 vi.mock("@/modules/finance/reference-sequence.service", () => ({
-  allocateReferenceCode: mocks.allocateReferenceCode,
+  allocateMonthCode: mocks.allocateMonthCode,
 }));
 
 vi.mock("@hostel/db/models/Hostel", () => ({
@@ -149,7 +149,7 @@ beforeEach(() => {
   mocks.concessionFindOne.mockReturnValue(lean(null));
   mocks.residentFind.mockReturnValue(lean([resident()]));
   mocks.invoiceFind.mockReturnValue(lean([]));
-  mocks.allocateReferenceCode.mockResolvedValue("RUP-0001-K");
+  mocks.allocateMonthCode.mockResolvedValue("RUP-001F-BAI83");
   mocks.invoiceCreate.mockImplementation(async () => ({ _id: new Types.ObjectId() }));
   mocks.applyCredit.mockResolvedValue(0);
   mocks.audit.mockResolvedValue(undefined);
@@ -200,8 +200,9 @@ describe("issuing invoices", () => {
     const result = await runBillingCycle({ hostelId, period: BHADRA }, principal);
 
     expect(result.billed).toHaveLength(1);
+    expect(mocks.allocateMonthCode).toHaveBeenCalledWith(hostelId, expect.anything(), BHADRA, expect.anything());
     expect(result.totalBilled).toBe(12000);
-    expect(result.billed[0]!.referenceCode).toBe("RUP-0001-K");
+    expect(result.billed[0]!.referenceCode).toBe("RUP-001F-BAI83");
 
     const created = mocks.invoiceCreate.mock.calls[0]![0];
 
@@ -417,7 +418,7 @@ describe("re-running", () => {
 
     await runBillingCycle({ hostelId, period: BHADRA }, principal);
 
-    expect(mocks.allocateReferenceCode).not.toHaveBeenCalled();
+    expect(mocks.allocateMonthCode).not.toHaveBeenCalled();
   });
 
   it("treats a lost race on the double-billing index as a skip, not an error", async () => {
@@ -521,7 +522,7 @@ describe("a missing fee schedule", () => {
 
   it("stops before billing when the hostel has no reference prefix", async () => {
     mocks.hostelFindOne.mockReturnValue(lean({ referencePrefix: null }));
-    mocks.allocateReferenceCode.mockRejectedValue(
+    mocks.allocateMonthCode.mockRejectedValue(
       Object.assign(new Error("no prefix"), { errorCode: "REFERENCE_PREFIX_MISSING" }),
     );
 

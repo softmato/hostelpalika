@@ -3,6 +3,7 @@ package ledger
 import (
 	"context"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -114,6 +115,10 @@ type ClaimReview struct {
 	Receipt              *Receipt
 	RejectionReason      string
 	Remaining, Verified  int64
+	// EventID is the settling event, so the push can say what it earned (todo C3).
+	EventID *bson.ObjectID
+	// Method is how a desk payment arrived; CASH titles the push "Cash collected" (todo E6).
+	Method string
 }
 
 // NotifyClaimReviewed is notifyClaimReviewed: the bell always fires, the mail only
@@ -139,6 +144,9 @@ func (e *Engine) NotifyClaimReviewed(ctx context.Context, in ClaimReview) {
 		title, body := "Payment proof rejected", "Your payment proof for "+period+" was not accepted: "+in.RejectionReason
 		if in.Kind == "verified" {
 			title = "Payment verified"
+			if in.Method == "CASH" {
+				title = "Cash collected"
+			}
 			body = "NPR " + money.GroupUS(in.Verified) + " received for " + period + "."
 			if in.Remaining > 0 {
 				body += " NPR " + money.GroupUS(in.Remaining) + " still due."
@@ -149,6 +157,11 @@ func (e *Engine) NotifyClaimReviewed(ctx context.Context, in ClaimReview) {
 				body += " Your receipt was added to the Resident Offer Program."
 			} else if number != "" {
 				body += " Receipt " + number + "."
+			}
+			if in.EventID != nil && in.InvoiceID != nil {
+				if pts := finance.PointsEarnedBy(ctx, e.DB, in.ResidentID, *in.InvoiceID, *in.EventID); pts > 0 {
+					body += " +" + strconv.Itoa(pts) + " points."
+				}
 			}
 		}
 		_, err := e.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/resident/payments", Body: body, Category: "PAYMENT", Data: ordered.Map{{Key: "invoiceId", Value: invoiceData}}, HostelID: in.HostelID.Hex(), Kind: "NORMAL", Title: title, UserID: r.UserID.Hex()})

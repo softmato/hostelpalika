@@ -11,6 +11,7 @@
 package ledger
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"log/slog"
@@ -267,30 +268,21 @@ func (e *Engine) RecomputeInvoiceBalance(ctx context.Context, invoiceID bson.Obj
 	return &Balance{InvoiceID: invoiceID, Outstanding: max(inv.Total-settled, 0), SettledAmount: settled, Status: status, TotalAmount: inv.Total}, nil
 }
 
-// qualifiesForOfferProgram: reference quoted and independently verified. Decided
-// once, here, for every path that settles.
+// qualifiesForOfferProgram: any payment the resident makes that somebody other than
+// the payer verified (owner rule, todo D3/B6). An approved claim and a desk payment
+// need no typed code; fee-off and adjustments never qualify.
 func qualifiesForOfferProgram(ev *Event) bool {
-	if ev.InvoiceID == nil || ev.ReferenceCode == nil || *ev.ReferenceCode == "" {
+	if ev.InvoiceID == nil {
 		return false
 	}
-	code := strings.ToUpper(*ev.ReferenceCode)
+	hasCode := ev.ReferenceCode != nil && *ev.ReferenceCode != ""
 	switch ev.Source {
-	case "RESIDENT_CLAIM":
-		for _, raw := range []*string{ev.Raw.TransactionCode, ev.Raw.ReferenceNote} {
-			if raw == nil {
-				continue
-			}
-			for _, quoted := range finance.ExtractReferenceCodes(*raw) {
-				if quoted == code {
-					return true
-				}
-			}
-		}
-		return false
+	case "RESIDENT_CLAIM", "CASH_ENTRY":
+		return true
 	case "GATEWAY_POLL", "GATEWAY_WEBHOOK":
-		return ev.Confirmation == "GATEWAY_VERIFIED"
+		return hasCode && ev.Confirmation == "GATEWAY_VERIFIED"
 	case "STATEMENT_IMPORT":
-		return ev.Confirmation == "STATEMENT_MATCH"
+		return hasCode && ev.Confirmation == "STATEMENT_MATCH"
 	}
 	return false
 }
@@ -391,7 +383,7 @@ func (e *Engine) afterSettle(ctx context.Context, s *Settled, p *authz.Principal
 		if s.Balance != nil {
 			remaining = s.Balance.Outstanding
 		}
-		e.NotifyClaimReviewed(ctx, ClaimReview{HostelID: ev.HostelID, InvoiceID: ev.InvoiceID, Kind: "verified", Receipt: s.Receipt, Remaining: remaining, Verified: ev.Amount, ResidentID: *ev.ResidentID, Period: e.PeriodOf(ctx, ev.InvoiceID)})
+		e.NotifyClaimReviewed(ctx, ClaimReview{HostelID: ev.HostelID, InvoiceID: ev.InvoiceID, Kind: "verified", Receipt: s.Receipt, Remaining: remaining, Verified: ev.Amount, ResidentID: *ev.ResidentID, Period: e.PeriodOf(ctx, ev.InvoiceID), EventID: &ev.ID, Method: cmp.Or(ev.Provider, "CASH")})
 	}
 	if e.Bump != nil {
 		e.Bump.Bump(ctx, ev.HostelID.Hex())

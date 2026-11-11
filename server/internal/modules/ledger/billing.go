@@ -86,6 +86,94 @@ func ReferenceCode(prefix string, sequence int64) string {
 	return prefix + "-" + string(enc) + "-" + string("0123456789ABCDEFGHJKMNPQRSTVWXY"[total%31])
 }
 
+const refMaxPersonal = 31*31*31 - 1
+
+// PersonalCode is generatePersonalCode: PRE-NNNC, a resident's fixed code.
+func PersonalCode(prefix string, number int64) string {
+	enc := make([]byte, 3)
+	for i := 2; i >= 0; i-- {
+		enc[i] = "0123456789ABCDEFGHJKMNPQRSTVWXY"[number%31]
+		number /= 31
+	}
+	total, weight := 0, 1
+	for i := 0; i < 3; i++ {
+		total += int(prefix[i]-'A') * weight
+		weight++
+	}
+	for _, c := range enc {
+		total += strings.IndexByte("0123456789ABCDEFGHJKMNPQRSTVWXY", c) * weight
+		weight++
+	}
+	return prefix + "-" + string(enc) + string("0123456789ABCDEFGHJKMNPQRSTVWXY"[total%31])
+}
+
+// MonthCode is generateMonthCode: RUP-482K + 2083-05 → RUP-482K-BHA83, "" when either is bad.
+func MonthCode(personal, period string) string {
+	p := finance.ParsePersonal(strings.ToUpper(strings.ReplaceAll(personal, "-", "")))
+	y, m, ok := bs.PeriodParts(period)
+	if p == "" || !ok {
+		return ""
+	}
+	return p + "-" + finance.RefMonthTags[m-1] + strconv.Itoa(100 + y%100)[1:]
+}
+
+// EnsureResidentPaymentCode is ensureResidentPaymentCode: the stored code, or a new one
+// from the hostel's RESIDENT_CODE counter. Lazy, so it is also the backfill.
+func (e *Engine) EnsureResidentPaymentCode(ctx context.Context, hostel, resident bson.ObjectID, prefix string) (string, error) {
+	col := e.DB.Collection("residents")
+	var r struct {
+		Code string `bson:"paymentCode"`
+	}
+	if err := col.FindOne(ctx, bson.D{{Key: "_id", Value: resident}}, options.FindOne().SetProjection(bson.D{{Key: "paymentCode", Value: 1}})).Decode(&r); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return "", err
+	}
+	if r.Code != "" {
+		return r.Code, nil
+	}
+	if !validPrefix(prefix) {
+		p, err := e.ensurePrefix(ctx, hostel)
+		if err != nil {
+			return "", err
+		}
+		prefix = p
+	}
+	at := now()
+	var counter struct {
+		Sequence int64 `bson:"sequence"`
+	}
+	err := e.DB.Collection("receiptcounters").FindOneAndUpdate(ctx, bson.D{{Key: "hostelId", Value: hostel}, {Key: "kind", Value: "RESIDENT_CODE"}, {Key: "period", Value: "LIFETIME"}},
+		bson.D{{Key: "$inc", Value: bson.D{{Key: "sequence", Value: 1}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: at}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "__v", Value: 0}, {Key: "createdAt", Value: at}}}},
+		options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)).Decode(&counter)
+	if err != nil {
+		return "", err
+	}
+	if counter.Sequence > refMaxPersonal {
+		return "", finance.Err("REFERENCE_PREFIX_MISSING", "This hostel has used all "+strconv.Itoa(refMaxPersonal)+" resident codes.")
+	}
+	code := PersonalCode(prefix, counter.Sequence)
+	if _, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: resident}, {Key: "paymentCode", Value: bson.D{{Key: "$in", Value: bson.A{nil, ""}}}}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "paymentCode", Value: code}}}}); err != nil {
+		return "", err
+	}
+	if err := col.FindOne(ctx, bson.D{{Key: "_id", Value: resident}}, options.FindOne().SetProjection(bson.D{{Key: "paymentCode", Value: 1}})).Decode(&r); err != nil || r.Code == "" {
+		return "", finance.Err("RESIDENT_NOT_FOUND", "Resident was not found.")
+	}
+	return r.Code, nil
+}
+
+// AllocateMonthCode is allocateMonthCode: the resident's fixed code + BS month.
+func (e *Engine) AllocateMonthCode(ctx context.Context, hostel, resident bson.ObjectID, period, prefix string) (string, error) {
+	personal, err := e.EnsureResidentPaymentCode(ctx, hostel, resident, prefix)
+	if err != nil {
+		return "", err
+	}
+	code := MonthCode(personal, period)
+	if code == "" {
+		return "", finance.Err("REFERENCE_PREFIX_MISSING", "Cannot make a month code from "+personal+" and "+period+".")
+	}
+	return code, nil
+}
+
 // AllocateReferenceCode is allocateReferenceCode: the hostel's next lifetime code.
 func (e *Engine) AllocateReferenceCode(ctx context.Context, hostel bson.ObjectID, prefix string) (string, error) {
 	if !validPrefix(prefix) {
@@ -715,7 +803,7 @@ func (e *Engine) RunBillingCycle(ctx context.Context, in BillingInput, p *authz.
 			skipped = append(skipped, BillingSkip{Reason: "ALREADY_BILLED", ResidentID: rid.Hex()})
 			continue
 		}
-		ref, err := e.AllocateReferenceCode(ctx, in.HostelID, hostel.Prefix)
+		ref, err := e.AllocateMonthCode(ctx, in.HostelID, rid, in.Period, hostel.Prefix)
 		if err != nil {
 			return nil, err
 		}

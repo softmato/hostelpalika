@@ -115,7 +115,7 @@
                 "sections": [
                   {
                     "body": [
-                      "Every invoice you receive carries its own reference code — something like RUP-4821-K.",
+                      "Your monthly bill carries your month code — something like RUP-482K-BHA83. Your part stays the same every month; only the month changes.",
                       "Quote that code when you pay, and your payment is matched to the right month automatically, usually within minutes instead of waiting on a manual check.",
                       "When your hostel verifies a payment that quoted its code, {siteName} issues a certified receipt — stamped for the Resident Offer Program, with a verification code anyone can check.",
                       "Every quarter (three Nepali months), {siteName} gives offers to residents with certified receipts."

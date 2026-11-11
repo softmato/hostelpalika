@@ -674,6 +674,32 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 		payments[k] = append(payments[k], ordered.Map{{Key: "amount", Value: e.Amount}, {Key: "method", Value: method}, {Key: "occurredAt", Value: httpx.ISO(e.OccurredAt)},
 			{Key: "receiptNumber", Value: number}, {Key: "settledAt", Value: isoOrNil(e.SettledAt)}, {Key: "transactionCode", Value: strOrNil(code)}})
 	}
+	// Each bill's month code, for the collect sheet (todo E1).
+	codes := map[string]any{}
+	if len(invoices) > 0 {
+		ids := bson.A{}
+		for i := range invoices {
+			if oid, err := bson.ObjectIDFromHex(invoices[i].ID); err == nil {
+				ids = append(ids, oid)
+			}
+		}
+		ccur, err := h.DB.Collection("invoices").Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}, options.Find().SetProjection(bson.D{{Key: "referenceCode", Value: 1}}))
+		if err != nil {
+			return nil, err
+		}
+		var rows []struct {
+			ID   bson.ObjectID `bson:"_id"`
+			Code *string       `bson:"referenceCode"`
+		}
+		if err := ccur.All(ctx, &rows); err != nil {
+			return nil, err
+		}
+		for _, r := range rows {
+			if r.Code != nil {
+				codes[r.ID.Hex()] = *r.Code
+			}
+		}
+	}
 	byPeriod := map[string]*finance.LedgerInvoice{}
 	for i := range invoices {
 		if invoices[i].Period != nil {
@@ -708,7 +734,7 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 		var m ordered.Map
 		if inv == nil {
 			m = ordered.Map{{Key: "dueAmount", Value: 0}, {Key: "dueDate", Value: nil}, {Key: "invoiceId", Value: nil}, {Key: "lines", Value: []finance.LedgerLine{}}, {Key: "paidAmount", Value: 0},
-				{Key: "payments", Value: []ordered.Map{}}, {Key: "period", Value: period}, {Key: "status", Value: "NOT_BILLED"}}
+				{Key: "payments", Value: []ordered.Map{}}, {Key: "period", Value: period}, {Key: "referenceCode", Value: nil}, {Key: "status", Value: "NOT_BILLED"}}
 		} else {
 			ps := payments[inv.ID]
 			if ps == nil {
@@ -721,7 +747,7 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 			outstanding += max(inv.DueAmount-inv.PaidAmount, 0)
 			paid += inv.PaidAmount
 			m = ordered.Map{{Key: "dueAmount", Value: inv.DueAmount}, {Key: "dueDate", Value: isoOrNil(inv.DueDate)}, {Key: "invoiceId", Value: inv.ID}, {Key: "lines", Value: linesOut(inv.Lines)},
-				{Key: "paidAmount", Value: inv.PaidAmount}, {Key: "payments", Value: ps}, {Key: "period", Value: period}, {Key: "status", Value: inv.Status}}
+				{Key: "paidAmount", Value: inv.PaidAmount}, {Key: "payments", Value: ps}, {Key: "period", Value: period}, {Key: "referenceCode", Value: codes[inv.ID]}, {Key: "status", Value: inv.Status}}
 		}
 		months = append(months, m)
 	}

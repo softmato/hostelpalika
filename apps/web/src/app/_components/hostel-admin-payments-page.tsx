@@ -146,6 +146,8 @@ type LedgerMonth = {
   lines: { amount: number; basis?: string; description: string }[];
   paidAmount: number;
   period: string;
+  /** The bill's month code (`RUP-482K-BHA83`), todo E8. */
+  referenceCode?: string | null;
 };
 
 type PeriodSummary = {
@@ -862,6 +864,9 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                                 type="checkbox"
                               />
                               {monthLabel(entry.period)}
+                              {entry.referenceCode ? (
+                                <span className="font-mono text-[11px] text-muted-foreground">{entry.referenceCode}</span>
+                              ) : null}
                               {entry.paidAmount > 0 ? <SoftBadge tone="amber">PARTIAL</SoftBadge> : null}
                               {entry.lines
                                 .filter((line) => line.basis === "FINE")

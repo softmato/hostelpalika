@@ -35,6 +35,8 @@ const receiptCounterSchema = new Schema(
       enum: [
         "RECEIPT",
         "REFERENCE",
+        /** A resident's fixed payment code number (`RUP-482K`), per hostel, LIFETIME. */
+        "RESIDENT_CODE",
         "STORE_ORDER",
         /**
          * The platform's own invoices and receipts to a hostel, for its plan.

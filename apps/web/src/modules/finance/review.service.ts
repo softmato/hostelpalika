@@ -792,6 +792,7 @@ export async function approveClaim(
       outcome: {
         kind: "verified",
         certificationCode: receipt?.certificationCode ?? null,
+        eventId: event._id.toString(),
         method: METHOD_BY_PROVIDER[claim.provider ?? "NONE"] ?? "OTHER",
         receiptId: receipt?._id ?? null,
         receiptNumber: receipt?.receiptNumber ?? null,

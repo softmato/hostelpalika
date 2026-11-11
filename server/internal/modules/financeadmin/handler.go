@@ -203,7 +203,7 @@ func (h *Handler) approveClaim(ctx context.Context, raw string, p *authz.Princip
 		if s.Balance != nil {
 			remaining = max(s.Balance.TotalAmount-s.Balance.SettledAmount, 0)
 		}
-		h.Ledger.NotifyClaimReviewed(ctx, ledger.ClaimReview{HostelID: cl.HostelID, InvoiceID: cl.InvoiceID, Kind: "verified", Period: h.Ledger.PeriodOf(ctx, cl.InvoiceID), Receipt: s.Receipt, Remaining: remaining, ResidentID: *ev.ResidentID, Verified: ev.Amount})
+		h.Ledger.NotifyClaimReviewed(ctx, ledger.ClaimReview{HostelID: cl.HostelID, InvoiceID: cl.InvoiceID, Kind: "verified", Period: h.Ledger.PeriodOf(ctx, cl.InvoiceID), Receipt: s.Receipt, Remaining: remaining, ResidentID: *ev.ResidentID, Verified: ev.Amount, EventID: &ev.ID})
 	}
 	realtime.PublishResourceChange(ctx, h.RT, h.Cache, realtime.Change{HostelIDs: []string{cl.HostelID.Hex()}, Topics: []realtime.Topic{realtime.Payments}})
 	return out, nil

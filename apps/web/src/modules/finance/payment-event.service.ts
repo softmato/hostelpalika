@@ -346,8 +346,10 @@ export async function settleEvent(
       invoiceId: event.invoiceId?.toString() ?? null,
       outcome: {
         certificationCode: receipt?.certificationCode ?? null,
+        eventId: event._id.toString(),
         kind: "verified",
-        method: "CASH",
+        // Cash or online at the desk (todo E6): the cash endpoint stores which.
+        method: (event as { provider?: string }).provider ?? "CASH",
         receiptId: receipt?._id ?? null,
         receiptNumber: receipt?.receiptNumber ?? null,
         remainingAmount: Math.max(balance?.outstanding ?? 0, 0),

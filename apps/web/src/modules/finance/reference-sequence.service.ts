@@ -3,12 +3,16 @@ import type { Types } from "mongoose";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import {
   deriveHostelPrefix,
+  generateMonthCode,
+  generatePersonalCode,
   generateReferenceCode,
   isValidPrefix,
+  MAX_PERSONAL_NUMBER,
   MAX_SEQUENCE,
 } from "@/modules/finance/reference-code";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { ReceiptCounterModel } from "@hostel/db/models/ReceiptCounter";
+import { ResidentModel } from "@hostel/db/models/Resident";
 
 /**
  * Allocates the next reference code for a hostel (target §5.2).
@@ -61,6 +65,81 @@ export async function allocateReferenceCode(
   }
 
   return generateReferenceCode(prefix, sequence);
+}
+
+/**
+ * A resident's fixed payment code (`RUP-482K`, todo A1), set on first use.
+ *
+ * Lazy on purpose — this is also the backfill: the first bill or first read of an
+ * older resident gives them a code. The conditional `$set` settles two callers
+ * racing; the loser's number is simply never used.
+ */
+export async function ensureResidentPaymentCode(
+  hostelId: Types.ObjectId | string,
+  residentId: Types.ObjectId | string,
+  prefix?: string | null,
+): Promise<string> {
+  const current = await ResidentModel.findById(residentId)
+    .select("paymentCode")
+    .lean<{ paymentCode?: string | null } | null>();
+
+  if (current?.paymentCode) {
+    return current.paymentCode;
+  }
+
+  if (!prefix || !isValidPrefix(prefix)) {
+    prefix = await ensureHostelPrefix(hostelId);
+  }
+
+  const counter = await ReceiptCounterModel.findOneAndUpdate(
+    { hostelId, kind: "RESIDENT_CODE", period: LIFETIME },
+    { $inc: { sequence: 1 } },
+    { new: true, setDefaultsOnInsert: true, upsert: true },
+  ).lean<{ sequence: number } | null>();
+
+  const number = counter?.sequence ?? 1;
+
+  if (number > MAX_PERSONAL_NUMBER) {
+    throw new FinanceServiceError(
+      `This hostel has used all ${MAX_PERSONAL_NUMBER} resident codes.`,
+      "REFERENCE_PREFIX_MISSING",
+    );
+  }
+
+  const updated = await ResidentModel.findOneAndUpdate(
+    { _id: residentId, paymentCode: { $in: [null, ""] } },
+    { $set: { paymentCode: generatePersonalCode(prefix, number) } },
+    { new: true },
+  )
+    .select("paymentCode")
+    .lean<{ paymentCode?: string | null } | null>();
+
+  if (updated?.paymentCode) {
+    return updated.paymentCode;
+  }
+
+  const raced = await ResidentModel.findById(residentId)
+    .select("paymentCode")
+    .lean<{ paymentCode?: string | null } | null>();
+
+  if (!raced?.paymentCode) {
+    throw new FinanceServiceError("Resident was not found.", "RESIDENT_NOT_FOUND");
+  }
+
+  return raced.paymentCode;
+}
+
+/** A monthly rent bill's code: the resident's fixed code + BS month (todo A2). */
+export async function allocateMonthCode(
+  hostelId: Types.ObjectId | string,
+  residentId: Types.ObjectId | string,
+  period: string,
+  prefix?: string | null,
+): Promise<string> {
+  return generateMonthCode(
+    await ensureResidentPaymentCode(hostelId, residentId, prefix),
+    period,
+  );
 }
 
 /**

@@ -19,6 +19,7 @@ import * as lifetime from "../../../packages/shared/src/plans/lifetime";
 import { createJiti } from "jiti";
 
 import { configVectors } from "./config";
+import { refcodeVectors } from "./refcodes";
 
 const here = join(process.cwd(), "server");
 const iso = (d: Date) => d.toISOString();
@@ -699,6 +700,8 @@ if (process.env.HP_ONLY === "config") {
     "Sunrise",
   );
   const facts = { amount: 8500, referenceCode: evCode, transactionCode: "8823119471" };
+  writeJson("refcodes.json", refcodeVectors());
+
   writeJson("evidence.json", {
     code: evCode,
     identity,

@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 )
 
@@ -21,12 +22,24 @@ const (
 	refSymbols    = "0123456789ABCDEFGHJKMNPQRSTVWXY"
 	refModulus    = len(refSymbols)
 	refCodeLength = 8
+	// Month code RUP-482K-BHA83 (reference-code.ts): personal 7 + month 3 + year 2.
+	refPersonalLength = 7
+	refMonthLength    = 12
 )
+
+// RefMonthTags is BS_MONTHS' first three letters: BAI JES ASA SHR BHA ASW KAR MAN POU MAG FAL CHA.
+var RefMonthTags = func() [12]string {
+	var t [12]string
+	for i, m := range bs.Months {
+		t[i] = strings.ToUpper(m[:3])
+	}
+	return t
+}()
 
 var (
 	refNotCode     = regexp.MustCompile(`[^A-Z0-9]`)
-	refRunSplit    = regexp.MustCompile(`[^A-Z0-9\s-]+`)
-	refSpaces      = regexp.MustCompile(`\s+`)
+	refRunSplit    = regexp.MustCompile(`[^A-Z0-9\s_-]+`)
+	refSpaces      = regexp.MustCompile(`[\s_]+`)
 	refConfusables = strings.NewReplacer("I", "1", "L", "1", "O", "0")
 )
 
@@ -49,9 +62,17 @@ func refCheck(prefix, encoded string) (byte, bool) {
 	return refSymbols[total%refModulus], true
 }
 
-// parseReference returns the code's printed form, "" when it does not validate.
+// parseReference returns the code's printed form, "" when it does not validate:
+// an invoice code RUP-4821-K or a month code RUP-482K-BHA83 (normalizeReferenceCode).
 func parseReference(raw string) string {
 	c := refCanonical(raw)
+	if len(c) == refMonthLength {
+		personal, period, tag := ParseMonthCode(c)
+		if period == "" {
+			return ""
+		}
+		return personal + "-" + tag
+	}
 	if len(c) != refCodeLength {
 		return ""
 	}
@@ -70,6 +91,43 @@ func parseReference(raw string) string {
 	return prefix + "-" + encoded + "-" + string(want)
 }
 
+// ParsePersonal is parsePersonal: canonical RUP482K → RUP-482K, "" when the check fails.
+func ParsePersonal(c string) string {
+	if len(c) != refPersonalLength {
+		return ""
+	}
+	prefix := c[:3]
+	for i := 0; i < 3; i++ {
+		if prefix[i] < 'A' || prefix[i] > 'Z' {
+			return ""
+		}
+	}
+	encoded := refConfusables.Replace(c[3:6])
+	check := refConfusables.Replace(c[6:])
+	want, ok := refCheck(prefix, encoded)
+	if !ok || string(want) != check {
+		return ""
+	}
+	return prefix + "-" + encoded + check
+}
+
+// ParseMonthCode is parseMonthCode: personal code, period "2083-05" and tag "BHA83",
+// all "" when raw is not a month code.
+func ParseMonthCode(raw string) (personal, period, tag string) {
+	c := refCanonical(raw)
+	if len(c) != refMonthLength {
+		return "", "", ""
+	}
+	personal = ParsePersonal(c[:refPersonalLength])
+	month := slices.Index(RefMonthTags[:], c[7:10])
+	yy := refConfusables.Replace(c[10:])
+	if personal == "" || month < 0 || yy[0] < '0' || yy[0] > '9' || yy[1] < '0' || yy[1] > '9' {
+		return "", "", ""
+	}
+	y, _ := strconv.Atoi(yy)
+	return personal, bs.FormatPeriodKey(2000+y, month+1), RefMonthTags[month] + yy
+}
+
 // ExtractReferenceCodes is extractReferenceCodes: a code is a token in its own right.
 func ExtractReferenceCodes(text string) []string {
 	found := []string{}
@@ -83,16 +141,16 @@ func ExtractReferenceCodes(text string) []string {
 		for i := range tokens {
 			single := refCanonical(tokens[i])
 			candidates := []string{}
-			if len(single) == refCodeLength {
+			if len(single) == refCodeLength || len(single) == refMonthLength {
 				candidates = append(candidates, single)
 			}
 			joined := single
-			for span := 1; span < 3 && i+span < len(tokens); span++ {
+			for span := 1; span < 4 && i+span < len(tokens); span++ {
 				joined += refCanonical(tokens[i+span])
-				if len(joined) == refCodeLength {
+				if (len(joined) == refCodeLength && span < 3) || len(joined) == refMonthLength {
 					candidates = append(candidates, joined)
 				}
-				if len(joined) > refCodeLength {
+				if len(joined) > refMonthLength {
 					break
 				}
 			}

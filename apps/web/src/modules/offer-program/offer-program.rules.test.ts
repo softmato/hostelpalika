@@ -41,24 +41,20 @@ describe("qualifiesForOfferProgram", () => {
     source: "RESIDENT_CLAIM",
   };
 
-  it("certifies a warden-approved claim that quoted the invoice's code", () => {
+  it("certifies a warden-approved claim with or without a typed code (D3)", () => {
     expect(qualifiesForOfferProgram({ ...claim, rawPayload: { referenceNote: `rent ${code}` } })).toBe(true);
+    expect(qualifiesForOfferProgram({ ...claim, rawPayload: { referenceNote: "rent" } })).toBe(true);
   });
 
-  it("does not certify a claim that quoted nothing, or another code", () => {
-    expect(qualifiesForOfferProgram({ ...claim, rawPayload: { referenceNote: "rent" } })).toBe(false);
-    expect(
-      qualifiesForOfferProgram({ ...claim, rawPayload: { transactionCode: generateReferenceCode("RUP", 4822) } }),
-    ).toBe(false);
-  });
-
-  it("certifies gateway and statement matches, never cash or HostelPalika's own payments", () => {
+  it("certifies desk cash, gateway and statement matches, never fee-off or adjustments", () => {
     const base = { invoiceId: "inv1", referenceCode: code };
 
     expect(qualifiesForOfferProgram({ ...base, confirmation: "GATEWAY_VERIFIED", source: "GATEWAY_POLL" })).toBe(true);
     expect(qualifiesForOfferProgram({ ...base, confirmation: "STATEMENT_MATCH", source: "STATEMENT_IMPORT" })).toBe(true);
-    expect(qualifiesForOfferProgram({ ...base, confirmation: "MANUAL_REVIEW", source: "CASH_ENTRY" })).toBe(false);
+    expect(qualifiesForOfferProgram({ confirmation: "MANUAL_REVIEW", invoiceId: "inv1", source: "CASH_ENTRY" })).toBe(true);
     expect(qualifiesForOfferProgram({ ...base, confirmation: "MANUAL_REVIEW", source: "OFFER_PROGRAM" })).toBe(false);
+    expect(qualifiesForOfferProgram({ ...base, confirmation: "MANUAL_REVIEW", source: "ADJUSTMENT" })).toBe(false);
+    expect(qualifiesForOfferProgram({ confirmation: "MANUAL_REVIEW", source: "CASH_ENTRY" })).toBe(false);
   });
 });
 

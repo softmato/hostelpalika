@@ -29,7 +29,7 @@ import { fineDueDate, getLateFine } from "@/modules/finance/late-fine.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
 import { applyLeavesAfterBilling } from "@/modules/finance/resident-leave.service";
 import { sumAmounts } from "@/modules/finance/money";
-import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
+import { allocateMonthCode } from "@/modules/finance/reference-sequence.service";
 import { applyPendingFeeOffsQuietly } from "@/modules/offer-program/offer-program.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -489,8 +489,10 @@ export async function runBillingCycle(
       continue;
     }
 
-    const referenceCode = await allocateReferenceCode(
+    const referenceCode = await allocateMonthCode(
       input.hostelId,
+      plan.resident._id,
+      input.period,
       hostel.referencePrefix,
     );
 

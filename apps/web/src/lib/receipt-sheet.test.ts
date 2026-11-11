@@ -7,7 +7,7 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)![1];
 type Message = { id: number; action: string; path?: string; method?: string; body?: Record<string, unknown>; enabled?: boolean };
 type Read = { fields: Record<string, unknown>; text?: boolean; refusal?: string | null; notPayment?: boolean; systemDocument?: boolean; bank?: { key: string; name: string } | null };
 function sheet(options: { auto?: boolean; eligible?: boolean; readFails?: boolean; upload?: Promise<string>; saveFails?: boolean; alreadySaved?: { amount: number; by: string; where?: string | null }; role?: string; category?: string | null; read?: Read; invoices?: { id: string; month: string; dueAmount: number }[] } = {}) {
-  type Element = { value: string; textContent: string; innerHTML: string; className: string; placeholder: string; required: boolean; hidden: boolean; disabled: boolean; checked: boolean; options: { length: number }; add(option: { value: string }): void; onclick?: () => void; onchange?: () => void; onsubmit?: (event: { preventDefault(): void }) => void; checkValidity(): boolean; reportValidity(): boolean };
+  type Element = { value: string; textContent: string; innerHTML: string; className: string; placeholder: string; required: boolean; hidden: boolean; disabled: boolean; checked: boolean; options: { length: number }; add(option: { value: string }): void; onclick?: () => void; onchange?: () => void; onsubmit?: (event: { preventDefault(): void }) => void; checkValidity(): boolean; reportValidity(): boolean; classList: { add(name: string): void; remove(name: string): void }; append(...nodes: unknown[]): void };
   const elements = new Map<string, Element>();
   const valid = (id: string) => id === "rform"
     ? Number(elements.get("ramount")!.value) > 0 && (!elements.get("rtxn")!.required || Boolean(elements.get("rtxn")!.value.trim()))
@@ -16,7 +16,7 @@ function sheet(options: { auto?: boolean; eligible?: boolean; readFails?: boolea
   for (const [, tag, id] of html.matchAll(/<([^>]*\bid="([^"]+)"[^>]*)>/g)) {
     elements.set(id, { value: id === "category" ? "OTHER" : id === "method" ? "BANK" : "", textContent: "", innerHTML: "", className: "", placeholder: "", required: false, hidden: /\shidden\b/.test(tag), disabled: false, checked: false,
       options: { length: 0 }, add(option) { this.options.length += 1; if (!this.value) this.value = option.value; },
-      checkValidity: () => valid(id), reportValidity: () => valid(id) });
+      checkValidity: () => valid(id), reportValidity: () => valid(id), classList: { add() {}, remove() {} }, append() {} });
   }
   const messages: Message[] = [];
   const window = { ReceiptBridge: { postMessage(raw: string) {
@@ -42,7 +42,7 @@ function sheet(options: { auto?: boolean; eligible?: boolean; readFails?: boolea
     });
   } }, receiptReply: (reply: { id: number; value?: unknown; error?: string }) => { void reply; } };
   class Option { constructor(public text: string, public value: string) {} }
-  runInNewContext(script, { window, document: { getElementById: (id: string) => elements.get(id), documentElement: { classList: { add() {} } }, querySelector: () => ({ scrollHeight: 400 }) }, ResizeObserver: class { observe() {} }, Option, URLSearchParams, URL, location: { search: "", origin: "https://receipt.invalid" }, setTimeout: () => 0, console });
+  runInNewContext(script, { window, document: { createElement: () => ({ textContent: "" }), createTextNode: (text: string) => ({ text }), getElementById: (id: string) => elements.get(id), documentElement: { classList: { add() {} } }, querySelector: () => ({ scrollHeight: 400 }) }, ResizeObserver: class { observe() {} }, Option, URLSearchParams, URL, location: { search: "", origin: "https://receipt.invalid" }, setTimeout: () => 0, console });
   const el = (id: string) => elements.get(id)!;
   return { messages, el, save: () => el("form").onsubmit!({ preventDefault() {} }), send: () => el("rform").onsubmit!({ preventDefault() {} }), options };
 }
@@ -92,7 +92,7 @@ describe("bundled receipt sheet", () => {
     expect(s.el("form").hidden).toBe(true);
     expect(s.messages.some(m => m.action === "preference" || m.action === "handoff")).toBe(false);
     s.send(); s.send();
-    await vi.waitFor(() => expect(s.el("doneTitle").textContent).toBe("Sent to your hostel"));
+    await vi.waitFor(() => expect(s.el("doneTitle").textContent).toBe("Waiting for approval"));
     const claims = s.messages.filter(m => m.path?.endsWith("/claims"));
     expect(claims).toHaveLength(1);
     expect(claims[0].path).toBe(`/resident/finance/invoices/${"b".repeat(24)}/claims`);
