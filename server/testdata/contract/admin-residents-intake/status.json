@@ -20,7 +20,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "resident",
@@ -46,7 +46,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "warden no grant",
@@ -72,7 +72,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "bad id",
@@ -98,7 +98,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "bad status",
@@ -138,7 +138,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "no status",
@@ -176,7 +176,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "bad hostel",
@@ -217,7 +217,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "unknown",
@@ -243,7 +243,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "outsiders",
@@ -269,7 +269,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "outsider hostel",
@@ -296,7 +296,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "suspend",
@@ -354,12 +354,12 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-04T07:17:13.117Z"
+            "updatedAt": "2026-11-11T13:06:06.710Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "suspend again",
@@ -417,12 +417,12 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "SUSPENDED",
-            "updatedAt": "2026-11-04T07:17:14.138Z"
+            "updatedAt": "2026-11-11T13:06:06.780Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reactivate",
@@ -481,12 +481,12 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-04T07:17:14.433Z"
+            "updatedAt": "2026-11-11T13:06:06.831Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "pending",
@@ -544,12 +544,12 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "PENDING",
-            "updatedAt": "2026-11-04T07:17:15.093Z"
+            "updatedAt": "2026-11-11T13:06:06.896Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "admit with account",
@@ -586,12 +586,12 @@
             "userId": "6d010000000000000000003c"
           },
           "firstMonth": {
-            "amount": 5367,
+            "amount": 1400,
             "dueDate": "2026-11-16T00:00:00.000Z",
-            "invoiceId": "6aeadbfbd87a417f5e48c4cb",
+            "invoiceId": "6af4683fa9d7d42d0f0fc43b",
             "period": "2083-07",
             "raised": true,
-            "referenceCode": "CON-0001-E"
+            "referenceCode": "CON-001D-KAR83"
           },
           "resident": {
             "admissionFee": null,
@@ -600,7 +600,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-04T07:17:03.267Z",
+            "createdAt": "2026-11-11T13:06:06.142Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "hari@contract.test",
@@ -615,20 +615,20 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-25T00:00:00.000Z",
+            "moveInDate": "2026-11-11T00:00:00.000Z",
             "phone": "9800000080",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-04T07:17:15.745Z",
+            "updatedAt": "2026-11-11T13:06:07.128Z",
             "userId": "6d010000000000000000003c"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "hari after",
@@ -656,7 +656,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-04T07:17:03.267Z",
+            "createdAt": "2026-11-11T13:06:06.142Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "hari@contract.test",
@@ -671,14 +671,14 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-25T00:00:00.000Z",
+            "moveInDate": "2026-11-11T00:00:00.000Z",
             "phone": "9800000080",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-04T07:17:15.745Z",
+            "updatedAt": "2026-11-11T13:06:07.128Z",
             "userId": "6d010000000000000000003c",
             "details": null,
             "documents": [],
@@ -691,7 +691,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "admit no email",
@@ -728,7 +728,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-04T07:17:03.267Z",
+            "createdAt": "2026-11-11T13:06:06.142Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "",
@@ -743,19 +743,19 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-15T07:17:03.267Z",
+            "moveInDate": "2026-10-17T00:00:00.000Z",
             "phone": "9800000090",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-04T07:17:17.584Z"
+            "updatedAt": "2026-11-11T13:06:07.311Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "moved out clash",
@@ -781,7 +781,7 @@
         "errorCode": "RESIDENT_ALREADY_HERE"
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "return linked",
@@ -823,7 +823,7 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-04T07:17:03.267Z",
+            "createdAt": "2026-11-11T13:06:06.142Z",
             "demoDataLabel": "",
             "depositAmount": 0,
             "email": "jay@contract.test",
@@ -838,20 +838,20 @@
             "roomId": null,
             "roomNumber": null,
             "moveOutDate": null,
-            "moveInDate": "2026-10-15T07:17:03.267Z",
+            "moveInDate": "2026-10-17T00:00:00.000Z",
             "phone": "9800099991",
             "photo": null,
             "referralCode": "",
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-04T07:17:19.573Z",
+            "updatedAt": "2026-11-11T13:06:07.421Z",
             "userId": "6d010000000000000000003d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "move out",
@@ -909,12 +909,12 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-04T07:17:20.449Z"
+            "updatedAt": "2026-11-11T13:06:07.555Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "move out again",
@@ -964,7 +964,7 @@
             "floor": null,
             "roomId": null,
             "roomNumber": null,
-            "moveOutDate": "2026-11-04T00:00:00.000Z",
+            "moveOutDate": "2026-11-11T00:00:00.000Z",
             "moveInDate": "2026-09-30T06:00:00.000Z",
             "phone": "9800000020",
             "photo": null,
@@ -972,12 +972,12 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-04T07:17:22.501Z"
+            "updatedAt": "2026-11-11T13:06:07.830Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "invoices of 42",
@@ -1032,23 +1032,23 @@
               "displayStatus": "UNPAID",
               "notBilled": null,
               "payment": {
-                "dueAmount": 1800,
+                "dueAmount": 3473,
                 "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6aeadc00d87a417f5e48c4d8",
+                "id": "6af4683fa9d7d42d0f0fc448",
                 "month": "2083-07",
                 "paidAmount": 0,
                 "status": "UNPAID",
                 "fineWaived": false,
                 "lines": [
                   {
-                    "amount": 3000,
+                    "amount": 4167,
                     "basis": "MANUAL",
                     "description": "Monthly rent — Kartik 2083 BS"
                   },
                   {
-                    "amount": -1200,
+                    "amount": -694,
                     "basis": "CREDIT",
-                    "description": "Moved out Kartik 18, 2083 BS — 12 days not charged"
+                    "description": "Moved out Kartik 25, 2083 BS — 5 days not charged"
                   }
                 ]
               },
@@ -1073,7 +1073,7 @@
                 "fullName": "Clash Status",
                 "id": "6d0100000000000000000039",
                 "image": null,
-                "moveInDate": "2026-10-15T07:17:03.267Z",
+                "moveInDate": "2026-10-17T00:00:00.000Z",
                 "phone": "9800000070",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1117,16 +1117,16 @@
               "displayStatus": "UNPAID",
               "notBilled": null,
               "payment": {
-                "dueAmount": 5367,
+                "dueAmount": 1400,
                 "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6aeadbfbd87a417f5e48c4cb",
+                "id": "6af4683fa9d7d42d0f0fc43b",
                 "month": "2083-07",
                 "paidAmount": 0,
                 "status": "UNPAID",
                 "fineWaived": false,
                 "lines": [
                   {
-                    "amount": 5367,
+                    "amount": 1400,
                     "basis": "MANUAL",
                     "description": "Monthly rent — Kartik 2083 BS"
                   }
@@ -1136,7 +1136,7 @@
                 "fullName": "Hari Status",
                 "id": "6d0100000000000000000030",
                 "image": null,
-                "moveInDate": "2026-10-25T00:00:00.000Z",
+                "moveInDate": "2026-11-11T00:00:00.000Z",
                 "phone": "9800000080",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1170,7 +1170,7 @@
                 "fullName": "Indu Status",
                 "id": "6d0100000000000000000031",
                 "image": null,
-                "moveInDate": "2026-10-15T07:17:03.267Z",
+                "moveInDate": "2026-10-17T00:00:00.000Z",
                 "phone": "9800000090",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1187,7 +1187,7 @@
                 "fullName": "Jay Status",
                 "id": "6d0100000000000000000033",
                 "image": null,
-                "moveInDate": "2026-10-15T07:17:03.267Z",
+                "moveInDate": "2026-10-17T00:00:00.000Z",
                 "phone": "9800099991",
                 "roomNumber": null,
                 "roomType": "Single"
@@ -1230,7 +1230,7 @@
           ],
           "totals": {
             "collected": 0,
-            "due": 507167,
+            "due": 504873,
             "notBilled": 8,
             "overdue": 0,
             "paid": 0,
@@ -1240,7 +1240,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "rooms after",
@@ -1413,6 +1413,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8f58e737"
+    "recorded": "http://localhost:3100 afd18b22"
   }
 ]

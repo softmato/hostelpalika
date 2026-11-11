@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan resident",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan warden no grant",
@@ -63,7 +63,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan no id",
@@ -100,7 +100,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan short id",
@@ -137,7 +137,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan bad hostel",
@@ -174,7 +174,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan not an id",
@@ -197,7 +197,7 @@
         "errorCode": "RESIDENT_ID_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan unknown card",
@@ -220,7 +220,7 @@
         "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan no profile",
@@ -254,11 +254,11 @@
           "profile": null,
           "profileNotice": "They have not filled in their HostelPalika profile, so the card carries nothing but the number.",
           "residentId": "HH-SCAN-0004",
-          "scannedAt": "2026-11-03T00:33:03.175Z"
+          "scannedAt": "2026-11-11T13:06:02.950Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan sharing off",
@@ -292,11 +292,11 @@
           "profile": null,
           "profileNotice": "They have turned profile sharing off. They can switch it back on from their ID card screen.",
           "residentId": "HH-SCAN-0003",
-          "scannedAt": "2026-11-03T00:33:03.273Z"
+          "scannedAt": "2026-11-11T13:06:03.011Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan ready",
@@ -349,6 +349,7 @@
                   "paidAmount": 0,
                   "payments": [],
                   "period": "2083-07",
+                  "referenceCode": null,
                   "status": "NOT_BILLED"
                 },
                 {
@@ -359,6 +360,7 @@
                   "paidAmount": 0,
                   "payments": [],
                   "period": "2083-06",
+                  "referenceCode": null,
                   "status": "NOT_BILLED"
                 }
               ],
@@ -427,11 +429,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0001",
-          "scannedAt": "2026-11-03T00:33:03.540Z"
+          "scannedAt": "2026-11-11T13:06:03.127Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan ready again",
@@ -484,6 +486,7 @@
                   "paidAmount": 0,
                   "payments": [],
                   "period": "2083-07",
+                  "referenceCode": null,
                   "status": "NOT_BILLED"
                 },
                 {
@@ -494,6 +497,7 @@
                   "paidAmount": 0,
                   "payments": [],
                   "period": "2083-06",
+                  "referenceCode": null,
                   "status": "NOT_BILLED"
                 }
               ],
@@ -562,11 +566,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0001",
-          "scannedAt": "2026-11-03T00:33:03.671Z"
+          "scannedAt": "2026-11-11T13:06:03.222Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan warden with grant",
@@ -661,11 +665,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0001",
-          "scannedAt": "2026-11-03T00:33:03.786Z"
+          "scannedAt": "2026-11-11T13:06:03.317Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan other hostel",
@@ -727,11 +731,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0001",
-          "scannedAt": "2026-11-03T00:33:03.893Z"
+          "scannedAt": "2026-11-11T13:06:03.390Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan off roll",
@@ -793,11 +797,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0002",
-          "scannedAt": "2026-11-03T00:33:04.002Z"
+          "scannedAt": "2026-11-11T13:06:03.474Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "scan scanned url",
@@ -859,11 +863,11 @@
           },
           "profileNotice": null,
           "residentId": "HH-SCAN-0002",
-          "scannedAt": "2026-11-03T00:33:04.111Z"
+          "scannedAt": "2026-11-11T13:06:03.547Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup signed out",
@@ -883,7 +887,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup resident",
@@ -906,7 +910,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup warden no grant",
@@ -929,7 +933,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup no id",
@@ -966,7 +970,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup short id",
@@ -1003,7 +1007,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup bad hostel",
@@ -1040,7 +1044,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup not an id",
@@ -1063,7 +1067,7 @@
         "errorCode": "RESIDENT_ID_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup unknown card",
@@ -1086,7 +1090,7 @@
         "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup no profile",
@@ -1109,7 +1113,7 @@
         "errorCode": "RESIDENT_PROFILE_INCOMPLETE"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup sharing off",
@@ -1132,7 +1136,7 @@
         "errorCode": "RESIDENT_PROFILE_SHARING_DISABLED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup ready",
@@ -1241,11 +1245,11 @@
             }
           },
           "residentId": "HH-SCAN-0001",
-          "sharedAt": "2026-11-03T00:33:08.605Z"
+          "sharedAt": "2026-11-11T13:06:03.886Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup ready again",
@@ -1354,11 +1358,11 @@
             }
           },
           "residentId": "HH-SCAN-0001",
-          "sharedAt": "2026-11-03T00:33:08.695Z"
+          "sharedAt": "2026-11-11T13:06:03.962Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup warden with grant",
@@ -1467,11 +1471,11 @@
             }
           },
           "residentId": "HH-SCAN-0001",
-          "sharedAt": "2026-11-03T00:33:08.788Z"
+          "sharedAt": "2026-11-11T13:06:04.038Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup other hostel",
@@ -1580,11 +1584,11 @@
             }
           },
           "residentId": "HH-SCAN-0001",
-          "sharedAt": "2026-11-03T00:33:08.881Z"
+          "sharedAt": "2026-11-11T13:06:04.107Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup off roll",
@@ -1693,11 +1697,11 @@
             }
           },
           "residentId": "HH-SCAN-0002",
-          "sharedAt": "2026-11-03T00:33:08.979Z"
+          "sharedAt": "2026-11-11T13:06:04.180Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "lookup scanned url",
@@ -1806,11 +1810,11 @@
             }
           },
           "residentId": "HH-SCAN-0002",
-          "sharedAt": "2026-11-03T00:33:09.080Z"
+          "sharedAt": "2026-11-11T13:06:04.246Z"
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "photo signed out",
@@ -1830,7 +1834,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "photo no id",
@@ -1867,7 +1871,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "photo unknown",
@@ -1890,7 +1894,7 @@
         "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "photo none",
@@ -1913,7 +1917,7 @@
         "errorCode": "PHOTO_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "photo sharing off",
@@ -1936,6 +1940,6 @@
         "errorCode": "PHOTO_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100 afd18b22"
   }
 ]

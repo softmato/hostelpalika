@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "queue resident",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "queue bad status",
@@ -77,7 +77,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "queue pending",
@@ -327,7 +327,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "approve bad id",
@@ -351,7 +351,7 @@
         "errorCode": "CLAIM_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "approve unknown",
@@ -375,7 +375,7 @@
         "errorCode": "CLAIM_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "approve",
@@ -404,7 +404,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "approve again",
@@ -428,7 +428,7 @@
         "errorCode": "CLAIM_ALREADY_REVIEWED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reject no reason",
@@ -466,7 +466,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reject short reason",
@@ -494,19 +494,19 @@
           "formErrors": [],
           "fieldErrors": {
             "rejectionReason": [
-              "Too small: expected string to have >=3 characters"
+              "Too small: expected string to have \u003e=3 characters"
             ]
           },
           "issues": [
             {
-              "message": "Too small: expected string to have >=3 characters",
+              "message": "Too small: expected string to have \u003e=3 characters",
               "path": "rejectionReason"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reject",
@@ -535,7 +535,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reject again",
@@ -561,7 +561,7 @@
         "errorCode": "CLAIM_ALREADY_REVIEWED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "bulk empty",
@@ -589,19 +589,19 @@
           "formErrors": [],
           "fieldErrors": {
             "eventIds": [
-              "Too small: expected array to have >=1 items"
+              "Too small: expected array to have \u003e=1 items"
             ]
           },
           "issues": [
             {
-              "message": "Too small: expected array to have >=1 items",
+              "message": "Too small: expected array to have \u003e=1 items",
               "path": "eventIds"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "bulk",
@@ -647,7 +647,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "queue settled",
@@ -729,7 +729,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "queue rejected",
@@ -811,7 +811,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reverse short reason",
@@ -839,19 +839,19 @@
           "formErrors": [],
           "fieldErrors": {
             "reason": [
-              "Too small: expected string to have >=3 characters"
+              "Too small: expected string to have \u003e=3 characters"
             ]
           },
           "issues": [
             {
-              "message": "Too small: expected string to have >=3 characters",
+              "message": "Too small: expected string to have \u003e=3 characters",
               "path": "reason"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reverse pending",
@@ -877,7 +877,7 @@
         "errorCode": "EVENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reverse",
@@ -908,11 +908,11 @@
             "status": "OVERDUE",
             "totalAmount": 1000
           },
-          "reversalId": "6aeb2c1237ebc2e9fc47de3f"
+          "reversalId": "6af46828a9d7d42d0f0fc3ac"
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "reverse again",
@@ -943,11 +943,11 @@
             "status": "OVERDUE",
             "totalAmount": 1000
           },
-          "reversalId": "6aeb2c1237ebc2e9fc47de3f"
+          "reversalId": "6af46828a9d7d42d0f0fc3ac"
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash resident",
@@ -975,7 +975,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash bad amount",
@@ -1017,7 +1017,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash missing receipt",
@@ -1058,7 +1058,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash unknown invoice",
@@ -1086,7 +1086,7 @@
         "errorCode": "INVOICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash",
@@ -1104,7 +1104,8 @@
     },
     "masks": [
       "**dates",
-      "data.receipt.receiptNumber"
+      "data.receipt.receiptNumber",
+      "data.receipt.certificationCode"
     ],
     "capture": {
       "rcp": "data.receipt._id"
@@ -1123,33 +1124,33 @@
             "status": "PAID",
             "totalAmount": 600
           },
-          "eventId": "6aeb2c1337ebc2e9fc47de42",
+          "eventId": "6af46828a9d7d42d0f0fc3af",
           "pendingApproval": false,
           "receipt": {
             "hostelId": "6d1000000000000000000002",
             "residentId": "6d100000000000000000000a",
-            "eventId": "6aeb2c1337ebc2e9fc47de42",
+            "eventId": "6af46828a9d7d42d0f0fc3af",
             "invoiceId": "6d1000000000000000000017",
             "paymentId": null,
             "month": null,
             "receiptNumber": "RCP-2083-07-00002",
-            "issuedAt": "2026-11-04T12:58:59.271Z",
+            "issuedAt": "2026-11-11T13:05:44.521Z",
             "issuedBy": "6c0000000000000000000005",
             "amount": 600,
-            "certificationCode": null,
-            "certifiedAt": null,
+            "certificationCode": "HP-BYEG-HEVA-92NM",
+            "certifiedAt": "2026-11-11T13:05:44.521Z",
             "voidedAt": null,
             "voidedBy": null,
             "voidReason": null,
             "replacedByReceiptId": null,
-            "_id": "6aeb2c1337ebc2e9fc47de43",
-            "createdAt": "2026-11-04T12:58:59.567Z",
+            "_id": "6af46828a9d7d42d0f0fc3b0",
+            "createdAt": "2026-11-11T13:05:44.591Z",
             "__v": 0
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "cash same receipt",
@@ -1167,7 +1168,8 @@
     },
     "masks": [
       "**dates",
-      "data.receipt.receiptNumber"
+      "data.receipt.receiptNumber",
+      "data.receipt.certificationCode"
     ],
     "response": {
       "status": 201,
@@ -1177,13 +1179,13 @@
         "message": "Cash recorded",
         "data": {
           "balance": null,
-          "eventId": "6aeb2c1337ebc2e9fc47de42",
+          "eventId": "6af46828a9d7d42d0f0fc3af",
           "pendingApproval": false,
           "receipt": null
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "receipt pdf",
@@ -1201,7 +1203,7 @@
       "status": 200,
       "contentType": "application/pdf"
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "void short reason",
@@ -1229,19 +1231,19 @@
           "formErrors": [],
           "fieldErrors": {
             "reason": [
-              "Too small: expected string to have >=3 characters"
+              "Too small: expected string to have \u003e=3 characters"
             ]
           },
           "issues": [
             {
-              "message": "Too small: expected string to have >=3 characters",
+              "message": "Too small: expected string to have \u003e=3 characters",
               "path": "reason"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "void",
@@ -1270,7 +1272,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "void again",
@@ -1299,7 +1301,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "void paid",
@@ -1325,7 +1327,7 @@
         "errorCode": "INVOICE_HAS_SETTLED_PAYMENTS"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "receipt pdf bad id",
@@ -1348,7 +1350,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "receipt pdf unknown",
@@ -1371,7 +1373,7 @@
         "errorCode": "RECEIPT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   },
   {
     "name": "receipt pdf resident",
@@ -1394,6 +1396,6 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100 afd18b22"
   }
 ]

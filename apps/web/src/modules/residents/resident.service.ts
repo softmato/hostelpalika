@@ -1465,7 +1465,7 @@ export async function listResidents(query: ResidentListQuery, principal: ApiPrin
 
   const [residents, total] = await Promise.all([
     ResidentModel.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean<ResidentRecord[]>(),
