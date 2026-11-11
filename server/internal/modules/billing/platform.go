@@ -39,6 +39,7 @@ func (p *Platform) Register(v1 *gin.RouterGroup) {
 	g := v1.Group("/platform/subscriptions", authz.Use(p.Guards.RequirePlatform))
 	g.GET("", httpx.ETag(), p.ledger)
 	g.GET("/cash", httpx.ETag(), p.cash)
+	g.GET("/hostels", httpx.ETag(), p.hostelPlans)
 	g.POST("/cash/:id/check", p.checkCash)
 	g.GET("/claims", httpx.ETag(), p.claims)
 	g.POST("/claims/:paymentId/review", p.review)

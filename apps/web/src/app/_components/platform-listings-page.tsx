@@ -1,24 +1,23 @@
 "use client";
 
-import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import {
   Archive,
   ArchiveRestore,
-  Ban,
   EyeOff,
   Globe,
   Image as ImageIcon,
-  LockOpen,
   MapPin,
+  Send,
   Star,
   Trash2,
-  Zap,
+  X,
 } from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
 
-import { useConfirm } from "@/app/_components/confirm-dialog";
+import { HostelNoticeDialog } from "@/app/_components/platform-hostel-notice-dialog";
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
@@ -26,6 +25,7 @@ import {
   ListPager,
   MetricCard,
   PortalPageHeader,
+  RoleButton,
   SearchField,
   SoftBadge,
   TabBar,
@@ -86,43 +86,6 @@ function listingQuality(hostel: Hostel) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-type PlanInvoice = {
-  dueAt: string | null;
-  hostelId: string;
-  outstanding: number;
-  planName: string;
-  status: string;
-};
-
-/** The hostel's latest plan invoice: its plan, and paid / part-paid / due / overdue. */
-function PlanCell({ invoice }: { invoice?: PlanInvoice }) {
-  if (!invoice) return <span className="text-[12px] text-muted-foreground">No plan billed</span>;
-
-  const overdue = invoice.outstanding > 0 && invoice.dueAt && Date.parse(invoice.dueAt) < Date.now();
-  const badge =
-    invoice.status === "VOID" ? (
-      <SoftBadge tone="slate">VOID</SoftBadge>
-    ) : invoice.outstanding <= 0 ? (
-      <SoftBadge tone="green">PAID</SoftBadge>
-    ) : (
-      <SoftBadge tone={overdue ? "rose" : "amber"}>
-        {overdue ? "OVERDUE" : invoice.status === "PARTIAL" ? "PART PAID" : "DUE"}
-      </SoftBadge>
-    );
-
-  return (
-    <div className="space-y-0.5">
-      <p className="truncate text-[12.5px] font-semibold text-foreground">{invoice.planName}</p>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {badge}
-        {invoice.outstanding > 0 && invoice.status !== "VOID" ? (
-          <span className="text-[11px] font-semibold text-muted-foreground">{currency(invoice.outstanding)}</span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export const PlatformListingsPageContent = memo(function PlatformListingsPageContent() {
   const invalidate = useInvalidateResources();
   const [actionMessage, setActionMessage] = useState("");
@@ -132,6 +95,10 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
   const [typeFilter, setTypeFilter] = useState("");
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
+  // Ticked rows, for a group notice. Cleared on tab change: a selection made
+  // on "Live" silently riding along to "Draft" would mail hostels off-screen.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [noticeTo, setNoticeTo] = useState<{ id: string; name: string }[] | null>(null);
 
   const showingArchived = tab === ARCHIVED_TAB;
 
@@ -146,22 +113,6 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
     { errorMessage: "Could not load archived listings." },
   );
   const hostelsResource = showingArchived ? archivedResource : liveResource;
-
-  // Each hostel's newest plan invoice (the ledger is newest-first), so a row can
-  // say what plan it is on and whether that is paid or still owed to us.
-  const ledgerResource = usePortalResource<{ invoices: PlanInvoice[] }>(
-    `${platformEndpoints.subscriptions}?limit=500`,
-    { errorMessage: "Could not load plan billing." },
-  );
-  const planByHostel = useMemo(() => {
-    const map = new Map<string, PlanInvoice>();
-
-    for (const invoice of ledgerResource.data?.invoices ?? []) {
-      if (!map.has(invoice.hostelId)) map.set(invoice.hostelId, invoice);
-    }
-
-    return map;
-  }, [ledgerResource.data]);
 
   const hostels = useMemo(
     () => hostelsResource.data?.hostels ?? [],
@@ -215,128 +166,6 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
         );
       } catch (error) {
         setActionMessage(error instanceof Error ? error.message : "Action failed.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [invalidate],
-  );
-
-  const { confirm, confirmDialog } = useConfirm();
-
-  /**
-   * Suspend for an unpaid plan, and undo it.
-   *
-   * Suspending closes nothing today. It emails the owner the unpaid plan
-   * invoice and starts three days of pre-suspension; after that every portal
-   * tied to the hostel stops until the plan is paid. Paying in full lifts it
-   * without anyone coming back here — Lift is for a mistake.
-   */
-  const suspensionAction = useCallback(
-    async (hostel: Hostel, next: "suspend" | "lift") => {
-      const confirmed = await confirm(
-        next === "suspend"
-          ? {
-              actionLabel: "Suspend",
-              description:
-                "Reason: plan payment not received. The owner is emailed the unpaid plan invoice now. The portal keeps working for 3 days, with a countdown for the owner and wardens. After that the admin, warden, resident, guardian and cook portals stop until the plan is paid. Paying in full lifts it automatically.",
-              title: `Suspend "${hostel.name}"?`,
-              tone: "destructive",
-            }
-          : {
-              actionLabel: "Lift suspension",
-              description:
-                "The portal opens again right away for everyone at this hostel. The unpaid invoice stays open.",
-              title: `Lift the suspension on "${hostel.name}"?`,
-            },
-      );
-
-      if (!confirmed) return;
-
-      setBusy(true);
-      try {
-        const result = await browserApi<{
-          notification?: { reason?: string; sent: boolean; to?: string };
-        }>(`${platformEndpoints.hostel(hostel.id)}/suspend`, {
-          ...(next === "suspend"
-            ? { body: JSON.stringify({ reason: "PLAN_PAYMENT" }), method: "PATCH" }
-            : { method: "DELETE" }),
-        });
-
-        const notification = result?.notification;
-
-        setActionMessage(
-          next === "lift"
-            ? `"${hostel.name}" suspension lifted.`
-            : notification && !notification.sent
-              ? `"${hostel.name}" is in pre-suspension, but the owner was NOT emailed (${notification.reason ?? "unknown error"}). Contact ${notification.to || "the owner"} manually.`
-              : `"${hostel.name}" is in pre-suspension. The owner has been emailed the invoice.`,
-        );
-        invalidate(platformEndpoints.hostels, platformEndpoints.hostelDetails);
-      } catch (error) {
-        setActionMessage(error instanceof Error ? error.message : "Action failed.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [confirm, invalidate],
-  );
-
-  /**
-   * Recharge a hostel's plan by hand: the months add onto what is running and
-   * the chosen plan becomes the live one. No payment is checked yet.
-   */
-  const rechargeAction = useCallback(
-    async (hostel: Hostel) => {
-      let plans: { id: string; monthly: number; name: string }[] = [];
-      try {
-        const site = await browserApi<{
-          config: { plans?: { plans?: { id: string; monthly: number; name: string }[] } };
-        }>("/api/v1/public/site-config");
-        plans = site?.config.plans?.plans ?? [];
-      } catch {
-        // Falls through to the empty-catalogue message below.
-      }
-
-      if (!plans.length) {
-        setActionMessage("No plans are configured to recharge with.");
-        return;
-      }
-
-      const picked = window.prompt(
-        `Recharge "${hostel.name}" — which plan?\n\n${plans
-          .map((plan, index) => `${index + 1}. ${plan.name} (${currency(plan.monthly)}/month)`)
-          .join("\n")}\n\nType the number:`,
-      );
-      if (picked === null) return;
-      const plan = plans[Number(picked) - 1];
-      if (!plan) {
-        setActionMessage("No such plan — nothing was recharged.");
-        return;
-      }
-
-      const months = Number(
-        window.prompt(`How many months of ${plan.name} to add (1–12)?`, "1"),
-      );
-      if (!Number.isInteger(months) || months < 1 || months > 12) {
-        setActionMessage("Months must be 1–12 — nothing was recharged.");
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const result = await browserApi<{ currentPeriodEnd: string; planName: string }>(
-          `${platformEndpoints.hostel(hostel.id)}/recharge`,
-          { body: JSON.stringify({ months, planId: plan.id }), method: "POST" },
-        );
-        setActionMessage(
-          `"${hostel.name}" recharged: ${result?.planName ?? plan.name}, paid till ${
-            result ? formatHostelDate(result.currentPeriodEnd) : "—"
-          }.`,
-        );
-        invalidate(platformEndpoints.hostels, platformEndpoints.hostelDetails);
-      } catch (error) {
-        setActionMessage(error instanceof Error ? error.message : "Recharge failed.");
       } finally {
         setBusy(false);
       }
@@ -483,11 +312,31 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
   const switchTab = (next: string) => {
     setTab(next);
     setPage(1);
+    setSelected(new Set());
   };
+
+  const toggleRow = (id: string) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // The header box ticks every row that matches the filters, not just this
+  // page: "everyone under 60% complete" is the group notice people want.
+  const allTicked = filtered.length > 0 && filtered.every((hostel) => selected.has(hostel.id));
+  const toggleAll = () =>
+    setSelected(allTicked ? new Set() : new Set(filtered.map((hostel) => hostel.id)));
+
+  const openGroupNotice = () =>
+    setNoticeTo(
+      hostels.filter((hostel) => selected.has(hostel.id)).map(({ id, name }) => ({ id, name })),
+    );
 
   return (
     <div className="mx-auto max-w-[1448px] space-y-4">
-      <PortalPageHeader description="What the public sees, and how complete it is." title="Listings" />
+      <PortalPageHeader description="What the public sees: publish, unpublish, and tell owners what to fix." title="Listings" />
       <Message value={message} />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -537,6 +386,22 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
             placeholder="Search listings"
             value={query}
           />
+          {selected.size > 0 ? (
+            <div className="flex items-center gap-1.5">
+              <RoleButton onClick={openGroupNotice} tone="team" type="button">
+                <Send className="size-3.5" />
+                Send notice ({selected.size})
+              </RoleButton>
+              <button
+                aria-label="Clear selection"
+                className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                onClick={() => setSelected(new Set())}
+                type="button"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          ) : null}
           <FilterButton
             active={(cityFilter ? 1 : 0) + (typeFilter ? 1 : 0)}
             onClear={() => {
@@ -579,15 +444,25 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
 
         {state === "ready" && filtered.length > 0 ? (
           <>
-            <DataTable className="min-w-[960px]">
+            <DataTable className="min-w-[900px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
+                  {showingArchived ? null : (
+                    <Th className="w-8">
+                      <input
+                        aria-label="Select every listing that matches"
+                        checked={allTicked}
+                        className="size-4 accent-[var(--brand)]"
+                        onChange={toggleAll}
+                        type="checkbox"
+                      />
+                    </Th>
+                  )}
                   <Th>Listing</Th>
                   <Th>Type</Th>
                   <Th align="right">From</Th>
                   <Th align="center">Photos</Th>
                   <Th>Complete</Th>
-                  <Th>Plan</Th>
                   <Th>Status</Th>
                   <Th align="right" />
                 </TableRow>
@@ -598,6 +473,17 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
 
                   return (
                     <TableRow key={hostel.id}>
+                      {showingArchived ? null : (
+                        <TableCell className="w-8">
+                          <input
+                            aria-label={`Select ${hostel.name}`}
+                            checked={selected.has(hostel.id)}
+                            className="size-4 accent-[var(--brand)]"
+                            onChange={() => toggleRow(hostel.id)}
+                            type="checkbox"
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex items-center gap-2.5">
                           <InitialsAvatar name={hostel.name} size="sm" tone="team" />
@@ -648,9 +534,6 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                             {quality}%
                           </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <PlanCell invoice={planByHostel.get(hostel.id)} />
                       </TableCell>
                       <TableCell>
                         {hostel.isArchived ? (
@@ -729,33 +612,18 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                               </DropdownMenuItem>
                             ) : (
                               <>
+                                <DropdownMenuItem
+                                  onSelect={() => setNoticeTo([{ id: hostel.id, name: hostel.name }])}
+                                >
+                                  <Send className="size-4" />
+                                  Send notice
+                                </DropdownMenuItem>
                                 {hostel.status === "PUBLISHED" ? (
                                   <DropdownMenuItem onSelect={() => void action(hostel.id, "unpublish")}>
                                     <EyeOff className="size-4" />
                                     Unpublish
                                   </DropdownMenuItem>
                                 ) : null}
-                                <DropdownMenuItem disabled={busy} onSelect={() => void rechargeAction(hostel)}>
-                                  <Zap className="size-4" />
-                                  Recharge plan
-                                </DropdownMenuItem>
-                                {/* A suspension is for a hostel with a portal to
-                                    lose: one that is live, or approved and waiting. */}
-                                {hostel.status !== "PUBLISHED" && hostel.status !== "APPROVED" ? null : hostel.suspension ? (
-                                  <DropdownMenuItem disabled={busy} onSelect={() => void suspensionAction(hostel, "lift")}>
-                                    <LockOpen className="size-4" />
-                                    Lift suspension
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    disabled={busy}
-                                    onSelect={() => void suspensionAction(hostel, "suspend")}
-                                    variant="destructive"
-                                  >
-                                    <Ban className="size-4" />
-                                    Suspend
-                                  </DropdownMenuItem>
-                                )}
                                 <DropdownMenuSeparator />
                                 {/* Offered at every stage — a listing can be a
                                     mistaken draft as easily as a closed business. */}
@@ -788,7 +656,14 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
           </>
         ) : null}
       </Panel>
-      {confirmDialog}
+      <HostelNoticeDialog
+        hostels={noticeTo}
+        onClose={() => setNoticeTo(null)}
+        onSent={(text) => {
+          setActionMessage(text);
+          setSelected(new Set());
+        }}
+      />
     </div>
   );
 });

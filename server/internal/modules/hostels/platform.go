@@ -47,6 +47,7 @@ func (p *Platform) Register(v1 *gin.RouterGroup) {
 	super := authz.Use(p.Guards.RequireSuperadmin)
 	v1.GET("/platform/hostels", staff, e, p.list)
 	v1.POST("/platform/hostels", staff, p.create)
+	v1.POST("/platform/hostels/notice", super, p.notice)
 	v1.GET("/platform/hostels/:id", staff, e, p.get)
 	v1.DELETE("/platform/hostels/:id", super, p.purge)
 	v1.PATCH("/platform/hostels/:id/approve", staff, p.approve)

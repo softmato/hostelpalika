@@ -58,6 +58,10 @@ export const platformEndpoints = {
   siteConfig: "/api/v1/platform/site-config",
   /** Plan billing across every hostel — what we invoiced and what arrived. */
   subscriptions: "/api/v1/platform/subscriptions",
+  /** Every hostel's plan as it stands (Hostels → Subscriptions). */
+  hostelPlans: "/api/v1/platform/subscriptions/hostels",
+  /** Personal or group notice to hostel owners (Listings → Send notice). */
+  hostelNotice: "/api/v1/platform/hostels/notice",
   /** Hostels that say they have paid us by QR, waiting on a human. */
   subscriptionClaims: "/api/v1/platform/subscriptions/claims",
   subscriptionClaimReview: (paymentId: string) =>

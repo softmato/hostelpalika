@@ -467,3 +467,21 @@ export const bedUpdateSchema = z.object({
   roomId: objectIdSchema.optional(),
   status: z.enum(["AVAILABLE", "OCCUPIED", "RESERVED", "MAINTENANCE"]).optional(),
 });
+
+/**
+ * A notice the platform writes to hostel owners: one hostel (personal) or many
+ * (group), by email, push, or both. Push is the bell row plus the device push.
+ */
+export const HOSTEL_NOTICE_CHANNELS = ["EMAIL", "PUSH"] as const;
+
+export const hostelNoticeSchema = z.object({
+  body: z.string().trim().min(2).max(2000),
+  channels: z
+    .array(z.enum(HOSTEL_NOTICE_CHANNELS))
+    .min(1, "Pick email, push or both.")
+    .max(2),
+  hostelIds: z.array(objectIdSchema).min(1, "Pick at least one hostel.").max(200),
+  title: z.string().trim().min(2).max(120),
+});
+
+export type HostelNoticeInput = z.infer<typeof hostelNoticeSchema>;

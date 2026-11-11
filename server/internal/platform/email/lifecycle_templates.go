@@ -1,6 +1,9 @@
 package email
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 // The hostel lifecycle emails a platform admin's review sends
 // (packages/shared/src/email/templates/hostel/*).
@@ -244,4 +247,20 @@ func SubscriptionClaimRejected(amount int64, hostelName, invoiceNumber string, o
 		Paragraph("If you did pay, send a clear screenshot again. It must show the amount, the date and the transaction ID. Bank payments can take one day to reach us, so you can also try again tomorrow."),
 		Paragraph("Nothing else has changed. Need help? Reply to this email."))
 	return Content{Category: Billing, Subject: "We could not find your payment — " + hostelName, HTML: EmailLayout(Layout{Heading: "We could not find your payment", BodyHTML: strings.Join(parts, "\n")})}
+}
+
+var blankLines = regexp.MustCompile(`\n{2,}`)
+
+// PlatformNotice is platformNoticeEmail: a notice the platform team wrote to a
+// hostel owner. The text is escaped, split into paragraphs on blank lines, and
+// single line breaks are kept.
+func PlatformNotice(body, dashboardURL, hostelName, ownerName, title string) Content {
+	parts := []string{Greeting(ownerName)}
+	for _, p := range blankLines.Split(body, -1) {
+		if p = strings.TrimSpace(p); p != "" {
+			parts = append(parts, Paragraph(strings.ReplaceAll(EscapeHTML(p), "\n", "<br>")))
+		}
+	}
+	parts = append(parts, CTAButton(dashboardURL, "Open your dashboard"))
+	return Content{Category: Info, Subject: title + " — " + hostelName, HTML: EmailLayout(Layout{Eyebrow: "From the " + PlatformName + " team", Heading: title, BodyHTML: joinBody(parts...)})}
 }

@@ -3,23 +3,18 @@
 import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import {
-  Archive,
-  ArchiveRestore,
   BadgeCheck,
   Building2,
   Check,
   Clock3,
   ExternalLink,
-  EyeOff,
   FileSearch,
   FileText,
   Fingerprint,
   Mail,
   Pencil,
-  Globe,
   ScanSearch,
   ShieldCheck,
-  Trash2,
   X,
   type IconComponent,
 } from "@/components/icons";
@@ -56,14 +51,11 @@ import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { DemoDataBadge, Hostel, type HostelPortal, Message } from "./core-portal-shared";
 
-type ActionKey =
-  | "approve"
-  | "reject"
-  | "request-documents"
-  | "publish"
-  | "unpublish"
-  | "archive"
-  | "restore";
+/**
+ * Approval decisions only. Publishing, unpublishing and archiving are what the
+ * public sees, so they live on Listings; plan money lives on Subscriptions.
+ */
+type ActionKey = "approve" | "reject" | "request-documents";
 
 type VerificationDocument = {
   createdAt: string | null;
@@ -128,12 +120,8 @@ const ACTION_CONFIG: Record<
   { danger?: true; icon: IconComponent; label: string; variant: "solid" | "outline" }
 > = {
   approve: { icon: Check, label: "Approve", variant: "solid" },
-  archive: { danger: true, icon: Archive, label: "Archive", variant: "outline" },
-  publish: { icon: Globe, label: "Publish", variant: "solid" },
-  reject: { icon: X, label: "Reject", variant: "outline" },
+  reject: { danger: true, icon: X, label: "Reject", variant: "outline" },
   "request-documents": { icon: FileText, label: "Request docs", variant: "outline" },
-  restore: { icon: ArchiveRestore, label: "Restore", variant: "solid" },
-  unpublish: { icon: EyeOff, label: "Unpublish", variant: "outline" },
 };
 
 /** Documents a hostel must supply before it can be marked verified. */
@@ -146,26 +134,22 @@ const REQUIRED_DOCUMENTS = [
 
 /**
  * Approval and KYC are two readings of the same queue, so the tabs mix both
- * axes on purpose: four listing-status stages plus the cross-cutting document
- * queue, which can hold hostels sitting at any approval stage.
+ * axes on purpose: the decision stages plus the cross-cutting document queue,
+ * which can hold hostels sitting at any approval stage. Live vs not-live is a
+ * Listings question, so "Approved" counts published hostels too.
  */
 const TABS = [
   { key: "PENDING", label: "Pending Approval" },
   { key: "KYC", label: "KYC Queue" },
   { key: "APPROVED", label: "Approved" },
-  { key: "PUBLISHED", label: "Published" },
   { key: "REJECTED", label: "Rejected" },
   { key: "ALL", label: "All" },
-  { key: "ARCHIVED", label: "Archived" },
 ];
 
-/**
- * The Archived tab reads a different endpoint, not a different slice of the
- * same one — an archived hostel is excluded from every other platform read.
- */
-const ARCHIVED_TAB = "ARCHIVED";
-
 const PAGE_SIZE = 10;
+
+const isApproved = (hostel: Hostel) =>
+  hostel.status === "APPROVED" || hostel.status === "PUBLISHED";
 
 const isAwaitingApproval = (hostel: Hostel) =>
   hostel.status === "PENDING_APPROVAL" || hostel.status === "DRAFT";
@@ -180,61 +164,31 @@ function matchesTab(hostel: Hostel, tab: string) {
     case "KYC":
       return isAwaitingKyc(hostel);
     case "APPROVED":
-      return hostel.status === "APPROVED";
-    case "PUBLISHED":
-      return hostel.status === "PUBLISHED";
+      return isApproved(hostel);
     case "REJECTED":
       return hostel.status === "REJECTED";
-    case ARCHIVED_TAB:
-      // The endpoint has already scoped this list to archived hostels; there
-      // is nothing left to filter out.
-      return true;
     default:
       return true;
   }
 }
 
 /**
- * Only the actions valid for a hostel's current status: approve/reject/publish
- * are one-way transitions, so e.g. showing "publish" on a hostel that's
- * already published (or "approve" on one already approved) is a no-op button,
- * not a real choice.
+ * Only the decisions valid for a hostel's current status — "approve" on one
+ * already approved is a no-op button, not a real choice. A published hostel
+ * has no approval decision left; pulling it is Unpublish, on Listings.
  */
 function actionsForHostel(hostel: Hostel): ActionKey[] {
-  // An archived hostel has exactly one thing that can be done to it here.
-  // Approving or publishing something that is off the site and counting down
-  // to erasure is not a decision the queue should offer.
-  if (hostel.isArchived) {
-    return ["restore"];
+  switch (hostel.status) {
+    case "DRAFT":
+    case "PENDING_APPROVAL":
+      return ["approve", "request-documents", "reject"];
+    case "APPROVED":
+      return ["reject"];
+    case "REJECTED":
+      return ["approve", "request-documents"];
+    default:
+      return [];
   }
-
-  const review = ((): ActionKey[] => {
-    switch (hostel.status) {
-      case "DRAFT":
-      case "PENDING_APPROVAL":
-        return ["approve", "request-documents", "reject"];
-      case "APPROVED":
-        return ["publish", "reject"];
-      case "PUBLISHED":
-        return ["unpublish"];
-      case "REJECTED":
-        return ["approve", "request-documents"];
-      default:
-        return [];
-    }
-  })();
-
-  // Archive is offered at every stage, last. A hostel can be a mistaken draft
-  // as easily as a closed business.
-  return [...review, "archive"];
-}
-
-/** Whole days left before the purge cron erases an archived hostel. */
-function daysUntilPurge(purgeScheduledAt: string | null | undefined) {
-  if (!purgeScheduledAt) return null;
-  const due = new Date(purgeScheduledAt).getTime();
-  if (Number.isNaN(due)) return null;
-  return Math.max(0, Math.ceil((due - Date.now()) / (24 * 60 * 60 * 1000)));
 }
 
 function documentHref(document: VerificationDocument) {
@@ -268,21 +222,11 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const showingArchived = tab === ARCHIVED_TAB;
-
   const invalidate = useInvalidateResources();
-  const liveResource = usePortalResource<{ hostels: Hostel[] }>(
+  const hostelsResource = usePortalResource<{ hostels: Hostel[] }>(
     platformEndpoints.hostels,
     { errorMessage: "Could not load hostels." },
   );
-  // Fetched only once the Archived tab is opened. The queue this page exists
-  // for is the live one, and archived hostels are dead weight on every other
-  // tab's load.
-  const archivedResource = usePortalResource<{ hostels: Hostel[] }>(
-    showingArchived ? platformEndpoints.hostelsArchived : null,
-    { errorMessage: "Could not load archived hostels." },
-  );
-  const hostelsResource = showingArchived ? archivedResource : liveResource;
   const meResource = usePortalResource<{ user: { role: string } }>(
     platformEndpoints.currentUser,
     { errorMessage: "Could not load your account." },
@@ -329,30 +273,6 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
           window.prompt("Optional message to the owner (leave blank to skip):") ||
           undefined;
         body = JSON.stringify({ documents, note });
-      } else if (nextAction === "unpublish") {
-        // Pulling a live listing is owner-visible, and the reason is quoted
-        // verbatim in the email they receive — so it is required, not optional.
-        const reason = window
-          .prompt(
-            "Why is this listing being unpublished? The owner will see this reason.",
-          )
-          ?.trim();
-        if (!reason) return;
-        body = JSON.stringify({ reason });
-      } else if (nextAction === "archive") {
-        const target = hostels.find((hostel) => hostel.id === hostelId);
-        // Named confirmation before the reason, not after: the reason prompt
-        // reads like paperwork, and paperwork is a bad place to discover you
-        // are about to take a hostel off the platform.
-        const confirmed = window.confirm(
-          `Archive "${target?.name ?? "this hostel"}"?\n\nIt comes off the public site and out of its own portal immediately, and its staff and residents are signed out.\n\nIt can be restored for 60 days. After that it is erased permanently, along with its residents, invoices, payments and photos.`,
-        );
-        if (!confirmed) return;
-        const reason = window
-          .prompt("Why is this hostel being archived? (recorded in the audit log)")
-          ?.trim();
-        if (!reason) return;
-        body = JSON.stringify({ reason });
       }
 
       setBusy(true);
@@ -373,66 +293,9 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
             ? `Hostel ${nextAction} completed, but the owner was NOT emailed (${notification.reason ?? "unknown error"}). Contact ${notification.to ?? "the owner"} manually.`
             : `Hostel ${nextAction} action completed.`,
         );
-        // Archiving and restoring move a hostel between the two lists, so both
-        // have to be dropped — invalidating only the one on screen leaves the
-        // other holding a hostel that is no longer in it.
-        invalidate(
-          platformEndpoints.hostels,
-          platformEndpoints.hostelsArchived,
-          platformEndpoints.hostel(hostelId),
-        );
-        // Its detail panel is about a hostel that just left this list.
-        if (nextAction === "archive" || nextAction === "restore") {
-          setSelectedId(null);
-        }
+        invalidate(platformEndpoints.hostels, platformEndpoints.hostel(hostelId));
       } catch (error) {
         setActionMessage(error instanceof Error ? error.message : "Action failed.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [hostels, invalidate],
-  );
-
-  /**
-   * Erase an archived hostel now rather than waiting out its 60 days.
-   *
-   * Guarded by typing the hostel's name, not an OK button. Nothing else in this
-   * portal destroys data that cannot be recovered, and a confirm dialog is a
-   * reflex — typing the name is the only guard that requires the reviewer to
-   * have read which hostel they are on.
-   */
-  const purgeNow = useCallback(
-    async (hostel: Hostel) => {
-      const typed = window.prompt(
-        `Erase "${hostel.name}" permanently?\n\nThis cannot be undone. Its residents, invoices, payments, complaints, photos and documents are deleted outright. Only the audit record survives.\n\nType the hostel's name to confirm:`,
-      );
-
-      if (typed?.trim() !== hostel.name) {
-        if (typed !== null) {
-          setActionMessage("Name did not match — nothing was erased.");
-        }
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const result = await browserApi<{
-          documentsDeleted: number;
-          objectsDeleted: number;
-        }>(platformEndpoints.hostel(hostel.id), { method: "DELETE" });
-
-        setActionMessage(
-          `"${hostel.name}" erased permanently — ${result?.documentsDeleted ?? 0} records and ${result?.objectsDeleted ?? 0} files.`,
-        );
-        setSelectedId(null);
-        invalidate(
-          platformEndpoints.hostels,
-          platformEndpoints.hostelsArchived,
-          platformEndpoints.hostel(hostel.id),
-        );
-      } catch (error) {
-        setActionMessage(error instanceof Error ? error.message : "Erase failed.");
       } finally {
         setBusy(false);
       }
@@ -528,24 +391,14 @@ A new temporary password is issued. Any earlier one stops working.`,
     }
   }, []);
 
-  // Always the live list, never the archived one. These four cards describe the
-  // platform, and "Total Hostels: 3" meaning three *archived* hostels while the
-  // Archived tab happens to be open is a number that lies.
-  const liveHostels = useMemo(
-    () => liveResource.data?.hostels ?? [],
-    [liveResource.data],
-  );
-
   const counts = useMemo(
     () => ({
-      approvedLive: liveHostels.filter(
-        (hostel) => hostel.status === "APPROVED" || hostel.status === "PUBLISHED",
-      ).length,
-      kycPending: liveHostels.filter(isAwaitingKyc).length,
-      pendingApproval: liveHostels.filter(isAwaitingApproval).length,
-      total: liveHostels.length,
+      approved: hostels.filter(isApproved).length,
+      kycPending: hostels.filter(isAwaitingKyc).length,
+      pendingApproval: hostels.filter(isAwaitingApproval).length,
+      total: hostels.length,
     }),
-    [liveHostels],
+    [hostels],
   );
 
   const cities = useMemo(
@@ -574,18 +427,7 @@ A new temporary password is issued. Any earlier one stops working.`,
     [filtered, page],
   );
 
-  const tabCount = (key: string) => {
-    // The archived count comes from its own list, and only once that list has
-    // been fetched — counting the live one here would show a live total under
-    // an "Archived" label.
-    if (key === ARCHIVED_TAB) {
-      return archivedResource.data?.hostels.length;
-    }
-    if (showingArchived) {
-      return undefined;
-    }
-    return hostels.filter((hostel) => matchesTab(hostel, key)).length;
-  };
+  const tabCount = (key: string) => hostels.filter((hostel) => matchesTab(hostel, key)).length;
 
   const switchTab = (next: string) => {
     setTab(next);
@@ -626,12 +468,12 @@ A new temporary password is issued. Any earlier one stops working.`,
           value={counts.kycPending}
         />
         <MetricCard
-          active={tab === "PUBLISHED"}
+          active={tab === "APPROVED"}
           icon={BadgeCheck}
-          label="Approved & live"
-          note={counts.total > 0 ? `${Math.round((counts.approvedLive / counts.total) * 100)}% of all` : undefined}
-          onClick={() => switchTab("PUBLISHED")}
-          value={counts.approvedLive}
+          label="Approved"
+          note={counts.total > 0 ? `${Math.round((counts.approved / counts.total) * 100)}% of all` : undefined}
+          onClick={() => switchTab("APPROVED")}
+          value={counts.approved}
         />
       </div>
 
@@ -723,24 +565,9 @@ A new temporary password is issued. Any earlier one stops working.`,
                         </div>
                       </TableCell>
                       <TableCell>
-                        {hostel.isArchived ? (
-                          <div className="space-y-0.5">
-                            <SoftBadge tone="rose">ARCHIVED</SoftBadge>
-                            <p className="text-[11px] text-muted-foreground">
-                              {(() => {
-                                const days = daysUntilPurge(hostel.purgeScheduledAt);
-                                if (days === null) return "Not scheduled for erasure";
-                                return days === 0
-                                  ? "Erased on the next sweep"
-                                  : `Erased in ${days} day${days === 1 ? "" : "s"}`;
-                              })()}
-                            </p>
-                          </div>
-                        ) : (
-                          <SoftBadge tone={statusToneFromLabel(hostel.status)}>
-                            {hostel.status.replaceAll("_", " ")}
-                          </SoftBadge>
-                        )}
+                        <SoftBadge tone={statusToneFromLabel(hostel.status)}>
+                          {hostel.status.replaceAll("_", " ")}
+                        </SoftBadge>
                       </TableCell>
                       <TableCell>
                         <SoftBadge tone={statusToneFromLabel(hostel.verificationStatus)}>
@@ -845,20 +672,6 @@ A new temporary password is issued. Any earlier one stops working.`,
                     <ScanSearch className="size-3" />
                     Run duplicate check
                   </button>
-                  {/* Only ever on an already-archived hostel — the server
-                      refuses anything else, and offering it here on a live one
-                      would be a button that exists to fail. */}
-                  {selectedHostel.isArchived ? (
-                    <button
-                      className="inline-flex items-center gap-1 text-destructive transition hover:underline disabled:opacity-40"
-                      disabled={busy}
-                      onClick={() => void purgeNow(selectedHostel)}
-                      type="button"
-                    >
-                      <Trash2 className="size-3" />
-                      Erase now
-                    </button>
-                  ) : null}
                 </div>
               </div>
             }
@@ -878,31 +691,6 @@ A new temporary password is issued. Any earlier one stops working.`,
 
             {detailState === "ready" ? (
               <>
-                {selectedHostel.isArchived ? (
-                  <DetailSection title="Archived">
-                    <DetailField
-                      label="Archived on"
-                      value={formatDateTime(selectedHostel.archivedAt)}
-                    />
-                    <DetailField
-                      label="Reason"
-                      value={selectedHostel.archiveReason || "—"}
-                    />
-                    <DetailField
-                      label="Erased in"
-                      value={(() => {
-                        const days = daysUntilPurge(selectedHostel.purgeScheduledAt);
-                        if (days === null) {
-                          return "Not scheduled";
-                        }
-                        return days === 0
-                          ? "Due now"
-                          : `${days} day${days === 1 ? "" : "s"}`;
-                      })()}
-                    />
-                  </DetailSection>
-                ) : null}
-
                 <DetailSection title="Status">
                   <DetailField
                     label="Listing status"

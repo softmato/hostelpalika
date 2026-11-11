@@ -64,6 +64,12 @@ export const protectedRouteRules: ProtectedRouteRule[] = [
     roles: [Role.SUPERADMIN],
   },
   {
+    // Recharge and suspend are superadmin-only on the server; a moderator
+    // would land on a screen of buttons that all refuse.
+    prefix: "/platform/hostel-subscriptions",
+    roles: [Role.SUPERADMIN],
+  },
+  {
     // Same rule: what the platform sells, at what price, and who has been
     // charged for it is commercial, not content to be moderated.
     prefix: "/platform/store",

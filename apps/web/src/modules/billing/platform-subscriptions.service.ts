@@ -260,3 +260,46 @@ export async function getPlatformSubscriptionLedger(options: {
     },
   };
 }
+
+/**
+ * Every hostel's plan as it stands — what it is on, its state, and when the
+ * paid period, free months, trial or due date run out. The Subscriptions tab
+ * joins it to the hostel list by `hostelId`.
+ */
+export async function listHostelSubscriptions() {
+  await connectToDatabase();
+
+  const rows = await HostelSubscriptionModel.find({})
+    .sort({ _id: 1 })
+    .select("hostelId planId planName status cycle lifetime currentPeriodEnd dueBy freeUntil trialEndsAt")
+    .lean<
+      Array<{
+        currentPeriodEnd?: Date | null;
+        cycle?: string | null;
+        dueBy?: Date | null;
+        freeUntil?: Date | null;
+        hostelId: Types.ObjectId;
+        lifetime?: boolean;
+        planId?: string | null;
+        planName?: string | null;
+        status: string;
+        trialEndsAt?: Date | null;
+      }>
+    >();
+  const iso = (value?: Date | null) => (value ? value.toISOString() : null);
+
+  return {
+    subscriptions: rows.map((row) => ({
+      currentPeriodEnd: iso(row.currentPeriodEnd),
+      cycle: row.cycle ?? null,
+      dueBy: iso(row.dueBy),
+      freeUntil: iso(row.freeUntil),
+      hostelId: row.hostelId.toString(),
+      lifetime: row.lifetime === true,
+      planId: row.planId ?? null,
+      planName: row.planName ?? null,
+      status: row.status,
+      trialEndsAt: iso(row.trialEndsAt),
+    })),
+  };
+}

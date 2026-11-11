@@ -141,7 +141,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
     items: [
       {
         description:
-          "Review submitted hostels — check KYC documents, then approve, reject, request more papers, publish, or unpublish.",
+          "Review submitted hostels — check KYC documents, then approve, reject, or request more papers.",
         href: "/platform/hostels",
         icon: "building",
         keywords: [
@@ -163,11 +163,45 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
       },
       {
         description:
-          "Manage live public listings — visibility, featured placement, and listing quality.",
+          "What the public sees — publish, unpublish, archive, and send owners a notice by email or push.",
         href: "/platform/listings",
         icon: "globe",
-        keywords: ["public", "live", "featured", "visibility", "seo", "ranking"],
+        keywords: [
+          "public",
+          "live",
+          "publish",
+          "unpublish",
+          "visibility",
+          "notice",
+          "message",
+          "email",
+          "push",
+          "archive",
+        ],
         label: "Listings",
+      },
+      {
+        /*
+         * Each hostel's plan as it stands, and the two hands a platform admin
+         * has on it: recharge and suspend. Plan Billing (Finance) is the money
+         * ledger — invoices and receipts — and shares no actions with this.
+         */
+        description:
+          "Every hostel's current plan and when it runs out — recharge a plan, suspend for non-payment, or lift a suspension.",
+        href: "/platform/hostel-subscriptions",
+        icon: "card",
+        keywords: [
+          "subscription",
+          "plan",
+          "recharge",
+          "renew",
+          "suspend",
+          "suspension",
+          "expired",
+          "overdue",
+          "trial",
+        ],
+        label: "Subscriptions",
       },
       {
         description:
