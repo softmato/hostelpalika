@@ -902,7 +902,7 @@ export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () =
           icon="eye"
           iconBgColor={colors.primary}
           right={<Toggle accessibilityLabel="Still buying it" onChange={setActive} value={active} />}
-          subtitle="Off hides it from Buy, Use, Send and Count. Its history stays."
+          subtitle="Off hides it; history stays"
           title="Still buying it"
         />
       </Card>

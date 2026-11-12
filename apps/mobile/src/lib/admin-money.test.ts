@@ -321,6 +321,21 @@ describe("the first-month note", () => {
 });
 
 describe("billRows", () => {
+  it("spells out an exact N% off: full rent, the offer taken off, the price after", () => {
+    const rows = billRows([
+      { amount: 13_500, basis: "SCHEDULE", description: "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off" },
+      { amount: 1_080, basis: "FINE", description: "Late fine" },
+    ]);
+
+    expect(rows.map((r) => [r.kind, r.amount])).toEqual([
+      ["rent", 18_000],
+      ["less", -4_500],
+      ["net", 13_500],
+      ["fine", 1_080],
+    ]);
+    expect(rows[1]?.label).toBe("Hostel Anniversary · 25% off");
+  });
+
   it("orders rent, discount, fine, khata and sums back to the bill", () => {
     const lines = [
       { amount: 8_000, basis: "SCHEDULE", description: "Monthly rent — Kartik 2083" },
@@ -343,7 +358,7 @@ describe("billRows", () => {
       billRows([
         { amount: 1, basis: "SCHEDULE", description: "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off" },
       ])[0]?.detail,
-    ).toBe("Hostel Anniversary · 25% off");
+    ).toBe("After Hostel Anniversary · 25% off");
     expect(rows.reduce((sum, r) => sum + r.amount, 0)).toBe(4_450);
   });
 

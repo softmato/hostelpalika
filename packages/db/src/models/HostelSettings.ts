@@ -180,6 +180,8 @@ const hostelSettingsSchema = new Schema(
      * hostel with no settings document reads as on.
      */
     roomTracking: { default: true, type: Boolean },
+    /** Owner-chosen floor names keyed by floor number ("0", "-1", "3"); a floor with no entry reads as its ordinal. */
+    floorNames: { of: String, type: Map },
     /** How a leaving month is charged unless the move-out sheet says otherwise. */
     moveOutCharge: { default: "TILL_DAY", enum: ["FULL_MONTH", "TILL_DAY"], type: String },
     /** A resident's leaving date must be at least this many days ahead (field review E5). */

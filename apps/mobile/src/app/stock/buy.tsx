@@ -287,7 +287,7 @@ export default function AddStockScreen() {
       >
         <Stagger className="gap-4 pb-4 pt-3">
           {opening ? (
-            <Text variant="muted">What was already on the shelf before you started. Write its value to know what the store is worth.</Text>
+            <Text variant="muted">Already on the shelf before you started.</Text>
           ) : (
             <Card className="gap-4">
               <SupplierField
@@ -380,7 +380,7 @@ export default function AddStockScreen() {
                   <Text className="text-warning" variant="label">
                     {supplierName ? `Owed to ${supplierName}` : "Still owed"}
                   </Text>
-                  <Text className="text-warning" variant="subtitle">
+                  <Text className="font-amount tabular-nums text-warning" variant="subtitle">
                     {formatMoney(due)}
                   </Text>
                 </View>

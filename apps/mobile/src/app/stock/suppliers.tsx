@@ -109,7 +109,7 @@ export default function SuppliersScreen() {
         ) : suppliers.length === 0 ? (
           <View className="pt-5">
             <EmptyCard
-              description="Add the shops you buy from. Then pick one on a bill, and what you still owe shows here."
+              description="Add the shops you buy from."
               title="No suppliers yet"
             />
           </View>
@@ -189,14 +189,14 @@ function SupplierRow({ money, supplier }: { money: boolean; supplier: StockSuppl
         <View className="items-end">
           {due > 0 ? (
             <>
-              <Text className="text-destructive" variant="label">
+              <Text className="font-amount tabular-nums text-destructive" variant="label">
                 {formatMoney(due)}
               </Text>
               <Text variant="caption">due</Text>
             </>
           ) : due < 0 ? (
             <>
-              <Text className="text-success" variant="label">
+              <Text className="font-amount tabular-nums text-success" variant="label">
                 {formatMoney(-due)}
               </Text>
               <Text variant="caption">paid ahead</Text>

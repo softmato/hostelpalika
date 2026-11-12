@@ -95,7 +95,7 @@ export function DocumentScreen({
    * title under the app bar's is the same words three times.
    */
   icon?: InfoIcon;
-  legalDocument?: keyof MobileLegal;
+  legalDocument?: Exclude<keyof MobileLegal, "guide">;
   /** Pictures of the product, shown under the action and above the copy. */
   media?: ReactNode;
   page: Exclude<keyof SiteContent, "faq">;

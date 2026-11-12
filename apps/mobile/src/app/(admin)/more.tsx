@@ -53,7 +53,7 @@ const MANAGE_GROUPS: ManageRow[][] = [
     { href: "/expenses", icon: "wallet", title: "Expenses" },
   ],
   [
-    { href: "/manage/floors", icon: "bed", title: "Rooms & Beds" },
+    { href: "/manage/floors", icon: "bed", title: "Rooms & Floors" },
     { href: "/manage/wardens", icon: "shield-checkmark", ownerOnly: true, title: "Wardens" },
     { href: "/manage/cook", icon: "flame", title: "Cooks", tone: "warning" },
     { href: "/manage/roll-call", icon: "moon", title: "Night status", tone: "warning" },

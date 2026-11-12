@@ -230,12 +230,14 @@ type unassignedOut struct {
 
 // Layout is the answer of getRoomLayout and of every room write.
 type Layout struct {
-	PendingRequests int64           `json:"pendingRequests"`
-	Rooms           []roomOut       `json:"rooms"`
-	RoomTypes       []string        `json:"roomTypes"`
-	Totals          totalsOut       `json:"totals"`
-	Tracking        bool            `json:"tracking"`
-	Unassigned      []unassignedOut `json:"unassigned"`
+	// FloorNames is only there once the owner named a floor, so a hostel that never did keeps the layout it had.
+	FloorNames      map[string]string `json:"floorNames,omitempty"`
+	PendingRequests int64             `json:"pendingRequests"`
+	Rooms           []roomOut         `json:"rooms"`
+	RoomTypes       []string          `json:"roomTypes"`
+	Totals          totalsOut         `json:"totals"`
+	Tracking        bool              `json:"tracking"`
+	Unassigned      []unassignedOut   `json:"unassigned"`
 }
 
 // dues is outstandingByResident for one hostel: unsettled invoices, what is still owed.
@@ -276,6 +278,10 @@ func (s *Service) Layout(ctx context.Context, hostel bson.ObjectID) (*Layout, er
 		return nil, err
 	}
 	tracking, err := s.Tracking(ctx, hostel)
+	if err != nil {
+		return nil, err
+	}
+	floorNames, err := s.floorNames(ctx, hostel)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +347,7 @@ func (s *Service) Layout(ctx context.Context, hostel bson.ObjectID) (*Layout, er
 			}
 		}
 	}
-	out := &Layout{PendingRequests: pending, Rooms: viewRooms(rooms, residents, x), RoomTypes: make([]string, len(configs)), Tracking: tracking, Unassigned: []unassignedOut{}}
+	out := &Layout{FloorNames: floorNames, PendingRequests: pending, Rooms: viewRooms(rooms, residents, x), RoomTypes: make([]string, len(configs)), Tracking: tracking, Unassigned: []unassignedOut{}}
 	for i, c := range configs {
 		out.RoomTypes[i] = c.RoomType()
 	}
@@ -626,6 +632,38 @@ func (s *Service) Delete(ctx context.Context, hostel, roomID, by bson.ObjectID) 
 		return nil, err
 	}
 	if err := s.syncTypeCounts(ctx, hostel); err != nil {
+		return nil, err
+	}
+	return s.Layout(ctx, hostel)
+}
+
+// floorNames is loadFloorNames: the owner's floor names by floor number, nil when there are none.
+func (s *Service) floorNames(ctx context.Context, hostel bson.ObjectID) (map[string]string, error) {
+	var row struct {
+		Names map[string]string `bson:"floorNames"`
+	}
+	err := s.DB.Collection("hostelsettings").FindOne(ctx, bson.D{{Key: "hostelId", Value: hostel}}, options.FindOne().SetProjection(bson.D{{Key: "floorNames", Value: 1}})).Decode(&row)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, err
+	}
+	if len(row.Names) == 0 {
+		return nil, nil
+	}
+	return row.Names, nil
+}
+
+// SetFloorName is setFloorName: an empty name puts the floor's ordinal back.
+func (s *Service) SetFloorName(ctx context.Context, hostel bson.ObjectID, floor int, name string, by bson.ObjectID) (*Layout, error) {
+	now := time.Now().UTC()
+	key := "floorNames." + numStr(int64(floor))
+	set := bson.D{{Key: "updatedBy", Value: by}, {Key: "updatedAt", Value: now}}
+	update := bson.D{{Key: "$setOnInsert", Value: bson.D{{Key: "createdBy", Value: by}, {Key: "createdAt", Value: now}, {Key: "hostelId", Value: hostel}, {Key: "__v", Value: int32(0)}}}}
+	if name == "" {
+		update = append(update, bson.E{Key: "$set", Value: set}, bson.E{Key: "$unset", Value: bson.D{{Key: key, Value: ""}}})
+	} else {
+		update = append(update, bson.E{Key: "$set", Value: append(set, bson.E{Key: key, Value: name})})
+	}
+	if _, err := s.DB.Collection("hostelsettings").UpdateOne(ctx, bson.D{{Key: "hostelId", Value: hostel}}, update, options.UpdateOne().SetUpsert(true)); err != nil {
 		return nil, err
 	}
 	return s.Layout(ctx, hostel)

@@ -67,13 +67,15 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
 
   const id = new Types.ObjectId(String(hostelId));
   const [hostel, documents, payout, profile, routine, rooms, settings, rateCard, signed] = await Promise.all([
-    HostelModel.findById(id).select("photos rules facilities location hostelType kyc").lean<{
+    HostelModel.findById(id).select("photos rules facilities location hostelType kyc status verificationStatus").lean<{
       facilities?: string[];
       hostelType?: string;
       kyc?: { note?: string | null; required?: boolean; status?: string | null; submittedAt?: Date | null };
       location?: { address?: string; area?: string; city?: string; lat?: number; locationSource?: string };
       photos?: { url?: string }[];
       rules?: string[];
+      status?: string;
+      verificationStatus?: string;
     } | null>(),
     HostelDocumentModel.find({ hostelId: id, isDeleted: false })
       .sort({ createdAt: -1 })
@@ -134,7 +136,16 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
   };
 
   const missing = KYC_REQUIRED_STEPS.filter((key) => !done[key]);
-  const reviewStatus = hostel.kyc?.status ?? "DRAFT";
+  // A quick sign-up always has a review. Any other hostel gets one until it is
+  // verified, so a branch or an admin-created hostel can send its KYC too.
+  // A hostel with no verification status at all predates reviews and stays out of it.
+  const unverified = Boolean(hostel.verificationStatus) && hostel.verificationStatus !== "VERIFIED";
+  const needsReview = Boolean(hostel.kyc?.required) || unverified;
+  const reviewStatus = hostel.kyc?.required
+    ? (hostel.kyc.status ?? "DRAFT")
+    : hostel.status === "REJECTED"
+      ? "REJECTED"
+      : (hostel.kyc?.status ?? "DRAFT");
 
   return {
     // What the details step pre-fills from.
@@ -165,20 +176,20 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
     percent: kycPercent(done),
     photoCount: (hostel.photos ?? []).filter((photo) => photo.url).length,
     /** The review. `null` for a hostel that never needed one (every one before the quick sign-up). */
-    review: hostel.kyc?.required
+    review: needsReview
       ? {
           canSubmit: missing.length === 0 && (reviewStatus === "DRAFT" || reviewStatus === "REJECTED"),
           missing,
-          note: reviewStatus === "REJECTED" ? (hostel.kyc.note ?? null) : null,
+          note: reviewStatus === "REJECTED" ? (hostel.kyc?.note ?? null) : null,
           status: reviewStatus,
-          submittedAt: hostel.kyc.submittedAt?.toISOString() ?? null,
+          submittedAt: hostel.kyc?.submittedAt?.toISOString() ?? null,
         }
       : null,
     rules: hostel.rules ?? [],
     steps: KYC_STEPS.map((key) => ({
       done: done[key],
       key,
-      required: Boolean(hostel.kyc?.required) && KYC_REQUIRED_STEPS.includes(key),
+      required: needsReview && KYC_REQUIRED_STEPS.includes(key),
     })),
   };
 }
@@ -208,14 +219,17 @@ export async function submitHostelKyc(hostelId: string | Types.ObjectId, userId:
     throw new HostelServiceError("Finish every required section before you submit.", "KYC_INCOMPLETE", 422);
   }
 
+  // A hostel that is already approved or listed keeps its status while its KYC is checked.
+  const current = await HostelModel.findById(id).select("status").lean<{ status?: string } | null>();
+  const reopen = !current?.status || ["DRAFT", "REJECTED", "PENDING_APPROVAL"].includes(current.status);
   const hostel = await HostelModel.findOneAndUpdate(
-    { _id: id, "kyc.required": true, "kyc.status": { $ne: "APPROVED" } },
+    { _id: id, "kyc.status": { $ne: "APPROVED" }, verificationStatus: { $ne: "VERIFIED" } },
     {
       $set: {
         "kyc.note": null,
         "kyc.status": "SUBMITTED",
         "kyc.submittedAt": new Date(),
-        status: "PENDING_APPROVAL",
+        ...(reopen ? { status: "PENDING_APPROVAL" } : {}),
         updatedBy: userId,
         verificationStatus: "PENDING",
       },

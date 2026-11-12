@@ -1,5 +1,5 @@
 import { planRank } from "@hostel/plans/catalog";
-import { PlanUsageSection, usePlanUsage } from "@/components/plan-usage-section";
+import { PlanLimitBanner, PlanUsageSection, usePlanUsage } from "@/components/plan-usage-section";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -254,15 +254,16 @@ export default function ManageBillingScreen() {
           placement="billing"
           state={data?.subscriptionState ?? null}
         />
-        <PlanUsageSection usage={planUsage} />
+        <PlanLimitBanner usage={planUsage} />
         {plan ? (
           <Standing dates={dates} plan={plan} />
         ) : (
           <EmptyCard
-            description="This hostel is not on a plan yet, so there is nothing to bill."
+            description="No plan yet, so nothing to bill."
             title="No plan"
           />
         )}
+        <PlanUsageSection usage={planUsage} />
 
         <View>
           <SectionHeader title="Paperwork" />
@@ -302,7 +303,7 @@ export default function ManageBillingScreen() {
               )
             ) : payments.length === 0 ? (
               <EmptyCard
-                description="No payment has been received against a plan invoice yet."
+                description="No plan payment yet."
                 title="No receipts"
               />
             ) : (

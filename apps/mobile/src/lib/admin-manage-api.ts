@@ -2891,6 +2891,8 @@ export async function recordCashPayment(
     amount: number;
     cashReceiptNumber: string;
     collectedBy: string;
+    /** Cash, or online at the desk (todo E3). Absent means cash. */
+    method?: "CASH" | "ESEWA" | "KHALTI" | "BANK";
     note?: string;
     receivedAt?: string;
   },
@@ -2930,6 +2932,8 @@ export type ResidentLedger = {
       transactionCode: string | null;
     }[];
     period: string;
+    /** The bill's month code (`RUP-482K-BHA83`). */
+    referenceCode?: string | null;
     status: string;
   }[];
   resident: {

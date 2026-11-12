@@ -248,7 +248,7 @@ export default function EntryDetailScreen() {
                             {gap === 0 ? "matches" : `${formatQty(Math.abs(gap ?? 0), line.unit)} ${gap! < 0 ? "missing" : "extra"}`}
                           </Text>
                         ) : line.rate ? (
-                          <Text variant="caption">
+                          <Text className="font-amount tabular-nums" variant="caption">
                             {formatMoney(line.rate)}/{unitLabel(line.unit)}
                             {line.amount ? ` · ${formatMoney(line.amount)}` : ""}
                           </Text>

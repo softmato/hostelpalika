@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { CreditScoreCard } from "@/components/credit-score-card";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -424,7 +425,7 @@ export default function ResidentPaymentsScreen() {
           <Card className="flex-row items-center gap-3">
             <View className="flex-1">
               <Text variant="caption">Credit balance</Text>
-              <Text variant="label">{formatMoney(credit)}</Text>
+              <Text className="font-amount tabular-nums" variant="label">{formatMoney(credit)}</Text>
             </View>
 
             {focus ? (
@@ -456,12 +457,8 @@ export default function ResidentPaymentsScreen() {
           tone="brand"
         />
 
-        <CardRow
-          icon="ribbon"
-          onPress={() => router.push("/offer-program/mine")}
-          subtitle="Certified receipts, perks & your offers"
-          title="Offer Program"
-        />
+        {/* Todo C4: the score card is the door to the Offer Program's perks. */}
+        <CreditScoreCard />
 
         {openClaims.length > 0 ? (
           <View>

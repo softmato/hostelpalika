@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Share, useWindowDimensions, View } from "react-native";
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
@@ -111,6 +111,8 @@ const PAGE_INSET = 40;
 
 /** How much of the scroll the frosted doors give back — 0.4 means they move up at 60% of page speed. */
 const PARALLAX = 0.4;
+/** How far the green's fade runs past the doors block, in dp. */
+const FADE_PAST = 48;
 
 /** The gap between cards in every horizontal row on this screen. */
 const ROW_GAP = 12;
@@ -365,12 +367,19 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
     };
   });
   // Solid down to the card's midline, then a short fade into the page.
-  const paintEdge = useAnimatedStyle(() => ({
-    bottom: cardHeight.value > 0 ? cardHeight.value / 2 + 16 : 0,
-  }));
-  const fadeEdge = useAnimatedStyle(() => ({
-    height: cardHeight.value > 0 ? cardHeight.value / 2 + 16 : 0,
-  }));
+  // Plain state, not an animated style: the sizes are static once measured, and
+  // the animated route left the fade at height 0 (a hard green edge) on device.
+  const [cardH, setCardH] = useState(0);
+  const fadeH = cardH > 0 ? cardH / 2 + 16 : 0;
+  // A theme switch remounts this tree and Fabric can deliver the first layout
+  // before mount commits; setting state then logs "hasn't mounted yet". Hold the
+  // measure in a ref and publish it from an effect.
+  const measured = useRef(0);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    if (measured.current > 0) setCardH(measured.current);
+  }, []);
   const account = useAppSelector((state) => state.auth.account);
   const { features } = useSiteConfig().config;
 
@@ -474,15 +483,30 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
   return (
     <View style={{ marginHorizontal: -PAGE_INSET / 2 }}>
       <Animated.View
-        style={[
-          { backgroundColor: paint.from, left: 0, position: "absolute", right: 0, top: 0 },
-          paintEdge,
-        ]}
+        style={{ backgroundColor: paint.from, bottom: fadeH, left: 0, position: "absolute", right: 0, top: 0 }}
       />
-      {/* Two opaque stops: see the map button on `transparent`. */}
-      <Animated.View style={[{ bottom: 0, left: 0, position: "absolute", right: 0 }, fadeEdge]}>
-        <LinearGradient colors={[paint.from, colors.background]} style={{ flex: 1 }} />
-      </Animated.View>
+      {/*
+        The fade runs past the block's bottom edge so it is long and soft. Eased
+        alpha stops of the same green, ending at 0 — no tint left behind to read
+        as a border. Not `transparent` — see the map button.
+      */}
+      <View
+        style={{ bottom: -FADE_PAST, height: fadeH + FADE_PAST, left: 0, position: "absolute", right: 0 }}
+      >
+        <LinearGradient
+          colors={[
+            paint.from,
+            `${paint.from}D9`,
+            `${paint.from}99`,
+            `${paint.from}59`,
+            `${paint.from}26`,
+            `${paint.from}0D`,
+            `${paint.from}00`,
+          ]}
+          locations={[0, 0.2, 0.4, 0.6, 0.78, 0.9, 1]}
+          style={{ flex: 1 }}
+        />
+      </View>
 
       <View className="gap-6 px-5 pb-4 pt-3">
         <Animated.View
@@ -512,6 +536,8 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
             onLayout={(event) => {
               cardTop.set(event.nativeEvent.layout.y);
               cardHeight.set(event.nativeEvent.layout.height);
+              measured.current = event.nativeEvent.layout.height;
+              if (mounted.current) setCardH(measured.current);
             }}
             style={restTuck}
           >

@@ -882,7 +882,7 @@ export default function ManageStatementScreen() {
                 >
                   {day.label}
                 </Text>
-                <Text className="text-xs font-semibold text-muted-foreground">
+                <Text className="font-amount tabular-nums text-xs font-semibold text-muted-foreground">
                   {formatMoney(day.total)}
                 </Text>
               </View>

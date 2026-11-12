@@ -34,11 +34,11 @@ export function fineDetail(line: { amount: number; description: string }) {
 export type BillRow = {
   amount: number;
   detail: string | null;
-  kind: "rent" | "less" | "fine" | "khata";
+  kind: "rent" | "less" | "net" | "fine" | "khata";
   label: string;
 };
 
-const BILL_ORDER = { rent: 0, less: 1, fine: 2, khata: 3 } as const;
+const BILL_ORDER = { rent: 0, less: 1, net: 2, fine: 3, khata: 4 } as const;
 
 /**
  * A bill's lines in reading order: rent, anything taken off, late fine, khata.
@@ -47,34 +47,59 @@ const BILL_ORDER = { rent: 0, less: 1, fine: 2, khata: 3 } as const;
  * one applies, so a bill without a discount simply has no discount row.
  */
 export function billRows(lines: readonly BillLine[] | null | undefined): BillRow[] {
-  const rows = (lines ?? []).map((line): BillRow => {
+  const rows = (lines ?? []).flatMap((line): BillRow[] => {
     if (line.basis === "FINE" || line.basis === "KHATA") {
       const fine = line.basis === "FINE";
 
-      return {
+      return [{
         amount: line.amount,
         detail: fine
           ? fineDetail(line)
           : line.description.replace(/^(Late fine|Khata) — /, "") || null,
         kind: fine ? "fine" : "khata",
         label: fine ? "Late fine" : "Khata",
-      };
+      }];
     }
 
     if (line.amount < 0 || line.basis === "CREDIT") {
-      return { amount: line.amount, detail: null, kind: "less", label: line.description };
+      return [{ amount: line.amount, detail: null, kind: "less", label: line.description }];
     }
 
-    return line.basis === "MANUAL"
-      ? { amount: line.amount, detail: null, kind: "rent", label: line.description }
-      : {
-          amount: line.amount,
-          // "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off": the label
-          // and the sheet's heading already say rent and the month; keep the rest.
-          detail: line.description.replace(/^Monthly rent(\s*—\s*[^·]*)?(·\s*)?/, "").trim() || null,
-          kind: "rent",
-          label: "Month rent",
-        };
+    if (line.basis === "MANUAL") {
+      return [{ amount: line.amount, detail: null, kind: "rent", label: line.description }];
+    }
+
+    // "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off": the label
+    // and the sheet's heading already say rent and the month; keep the rest.
+    const detail = line.description.replace(/^Monthly rent(\s*—\s*[^·]*)?(·\s*)?/, "").trim();
+    const offer = /^(.*?)\s*·?\s*(\d+)%\s*off$/i.exec(detail);
+    const percent = offer ? Number(offer[2]) : 0;
+
+    // The rent line's amount is already the discounted one, so "25% off" beside
+    // it read as a discount that changed nothing. When the percentage divides the
+    // amount exactly, print the full rent, the offer taken off, and the rest.
+    if (offer && percent > 0 && percent < 100 && (line.amount * 100) % (100 - percent) === 0) {
+      const full = (line.amount * 100) / (100 - percent);
+
+      return [
+        { amount: full, detail: null, kind: "rent", label: "Month rent" },
+        {
+          amount: line.amount - full,
+          detail: null,
+          kind: "less",
+          label: `${offer[1] || "Offer"} · ${percent}% off`,
+        },
+        // The price after the offer, so the discount visibly changed the figure.
+        { amount: line.amount, detail: null, kind: "net", label: "After offer" },
+      ];
+    }
+
+    return [{
+      amount: line.amount,
+      detail: detail ? `After ${detail}` : null,
+      kind: "rent",
+      label: "Month rent",
+    }];
   });
 
   return rows.sort((a, b) => BILL_ORDER[a.kind] - BILL_ORDER[b.kind]);

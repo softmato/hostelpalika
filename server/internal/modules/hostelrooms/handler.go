@@ -29,6 +29,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.GET("/rooms", staff, httpx.ETag(), h.layout)
 	a.POST("/rooms", Cap(h.Guards, "manageRooms"), h.add)
 	a.PUT("/rooms/order", admin, h.order)
+	a.PUT("/rooms/floor-names", admin, h.floorName)
 	a.PUT("/rooms/tracking", admin, h.tracking)
 	a.GET("/rooms/requests", staff, httpx.ETag(), h.requests)
 	a.POST("/rooms/requests/:requestId", Cap(h.Guards, "registerResidents"), h.answer)
@@ -198,6 +199,28 @@ func (h *Handler) order(c *gin.Context) {
 		return
 	}
 	l, err := h.Rooms.Order(c, hostel, floor, ids)
+	h.send(c, l, err, "Saved", 200)
+}
+
+func (h *Handler) floorName(c *gin.Context) {
+	body, err := valid.Body(c)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	f := valid.NewForm(body)
+	floor, _ := intOf(f, "floor", -5, 200, false)
+	hid := OptionalID(f, "hostelId", "Invalid id.")
+	name, _ := f.Str("name", valid.S{Trim: true, Max: 30})
+	if err := f.Err(); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	hostel, ok := HostelOf(c, hid)
+	if !ok {
+		return
+	}
+	l, err := h.Rooms.SetFloorName(c, hostel, floor, name, UserID(authz.From(c)))
 	h.send(c, l, err, "Saved", 200)
 }
 

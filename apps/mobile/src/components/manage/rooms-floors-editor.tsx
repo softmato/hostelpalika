@@ -1,7 +1,7 @@
 import { bedsForRoomType, roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { memo, useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   FadeIn,
@@ -15,7 +15,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { NumberStepper } from "@/components/step-flow";
-import { ActionTiles } from "@/components/ui/action-grid";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { StatTile } from "@/components/ui/layout";
+import { Meter } from "@/components/ui/meter";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonTiles } from "@/components/ui/skeleton";
@@ -36,17 +35,21 @@ import { type ManagedHostel, updateManagedHostel } from "@/lib/admin-manage-api"
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { openConfirm } from "@/lib/confirm";
+import { bedsClaimed, firstFloorMoves, floorLeavers } from "@/lib/floor-moves";
 import { formatMoney } from "@/lib/format";
 import {
   addRooms,
   byFloor,
   deleteRoom,
+  deleteRooms,
+  renameFloor,
   floorLabel,
   getRoomLayout,
   orderRooms,
   type Room,
   type RoomLayout,
   roomsQuery,
+  setResidentRoom,
   setRoomTracking,
   updateRoom,
 } from "@/lib/rooms-api";
@@ -170,14 +173,7 @@ export function RoomsFloorsEditor({ onChanged }: { onChanged?: () => Promise<voi
   const mode: Mode = data.tracking ? "floor" : "type";
   const onServer = new Set(data.rooms.map((room) => room.number));
   const added = draft.adds.filter((room) => !onServer.has(room.number) && !draft.removes.includes(room.number));
-  const gone = data.rooms.filter((room) => draft.removes.includes(room.number));
   const rooms = [...data.rooms.filter((room) => !draft.removes.includes(room.number)), ...added];
-  const base = data.totals ?? { beds: sum(data.rooms, (room) => room.beds), free: sum(data.rooms, (room) => room.free), rooms: data.rooms.length };
-  const totals = {
-    beds: base.beds + sum(added, (room) => room.beds) - sum(gone, (room) => room.beds),
-    free: base.free + sum(added, (room) => room.beds) - sum(gone, (room) => room.free),
-    rooms: base.rooms + added.length - gone.length,
-  };
 
   const addOne = (floor: number, roomType: string) => {
     const [number] = nextRoomNumbers(floor, [...rooms.map((room) => room.number), ...draft.removes, ...claimed.current], 1);
@@ -208,7 +204,6 @@ export function RoomsFloorsEditor({ onChanged }: { onChanged?: () => Promise<voi
 
   return (
     <View className="gap-4">
-      <Button icon="pricetags" label="Room types" onPress={() => router.push("/manage/rooms")} variant="outline" />
       <Segmented<Mode>
         onChange={(next) => next !== mode && void run(() => setRoomTracking(next === "floor"))}
         options={[
@@ -217,16 +212,12 @@ export function RoomsFloorsEditor({ onChanged }: { onChanged?: () => Promise<voi
         ]}
         value={mode}
       />
-      <View className="flex-row gap-3">
-        <StatTile icon="business" label="Rooms" tone="brand" value={String(totals.rooms)} />
-        <StatTile icon="bed" label="Beds" value={String(totals.beds)} />
-        <StatTile icon="checkmark-circle" label="Free" tone={totals.free > 0 ? "success" : "neutral"} value={String(totals.free)} />
-      </View>
       {types.length === 0 ? (
         <EmptyCard description="Add room types first." title="No room types" />
       ) : mode === "floor" ? (
         <FloorPlan
           busy={busy}
+          floorNames={data.floorNames}
           fresh={fresh}
           onAdd={addOne}
           onRemove={removeOne}
@@ -245,9 +236,59 @@ type Run = (work: () => Promise<RoomLayout | void>) => Promise<boolean>;
 
 /** "Ground", "1st", "Basement" — a floor tile's first line. */
 const shortFloor = (floor: number) => floorLabel(floor).replace(/ floor$/, "");
+/** The owner's name for a floor, else the ordinal. */
+const floorTitle = (floor: number, names?: Record<string, string>) => names?.[String(floor)] || floorLabel(floor);
+const shortTitle = (floor: number, names?: Record<string, string>) => names?.[String(floor)] || shortFloor(floor);
+const beds = (rooms: Room[]) => sum(rooms, (room) => room.beds);
+const filled = (rooms: Room[]) => sum(rooms, (room) => room.beds - room.free);
+const share = (rooms: Room[]) => (beds(rooms) ? Math.round((filled(rooms) / beds(rooms)) * 100) : 0);
+/** A floor (or any rooms) somebody lives on: it cannot be removed without moving them. */
+const lived = (rooms: Room[]) => rooms.some((room) => room.residents.length > 0);
+
+type PillProps = {
+  filledBeds: number;
+  floor: number;
+  hasPeople: boolean;
+  on: boolean;
+  onLongPress: (floor: number, hasPeople: boolean) => void;
+  onPress: (floor: number, hasPeople: boolean) => void;
+  picked: boolean;
+  picking: boolean;
+  rooms: number;
+  sharePct: number;
+  title: string;
+  totalBeds: number;
+};
+
+/** Primitive props only, so a tap re-renders the two pills that changed, not all of them. */
+const FloorPill = memo(function FloorPill({ filledBeds, floor, hasPeople, on, onLongPress, onPress, picked, picking, rooms, sharePct, title, totalBeds }: PillProps) {
+  const { colors } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityLabel={`${title}, ${plural(rooms, "room")}, ${hasPeople ? `${filledBeds} of ${totalBeds} beds filled` : "empty"}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      className={`w-24 gap-1.5 rounded-2xl border px-3 py-2.5 active:opacity-70 ${on ? "border-primary bg-brand-soft" : "border-border bg-card"} ${picking && hasPeople ? "opacity-40" : ""}`}
+      onLongPress={() => onLongPress(floor, hasPeople)}
+      onPress={() => onPress(floor, hasPeople)}
+    >
+      <View className="flex-row items-center justify-between">
+        <Text className={`text-sm font-semibold ${on ? "text-primary" : "text-foreground"}`} numberOfLines={1} variant={null}>{title}</Text>
+        {picking && !hasPeople ? (
+          <Glyph color={picked ? colors.primary : colors.mutedForeground} name={picked ? "checkmark-circle" : "radio-button-off"} size={16} />
+        ) : null}
+      </View>
+      <Text className="text-xs text-muted-foreground" numberOfLines={1} variant={null}>
+        {hasPeople ? `${filledBeds}/${totalBeds} beds` : "Empty"}
+      </Text>
+      <Meter height={3} label={null} percent={sharePct} reading="share" />
+    </Pressable>
+  );
+});
 
 function FloorPlan({
   busy,
+  floorNames,
   fresh,
   onAdd,
   onRemove,
@@ -256,6 +297,7 @@ function FloorPlan({
   types,
 }: {
   busy: boolean;
+  floorNames?: Record<string, string>;
   fresh: string[];
   onAdd: (floor: number, roomType: string) => void;
   onRemove: (floor: number, roomType: string) => void;
@@ -266,16 +308,22 @@ function FloorPlan({
   const { colors } = useAppTheme();
   const floors = byFloor(rooms);
   const [floorPick, setFloorPick] = useState<number | null>(null);
-  const [chip, setChip] = useState<string | null>(null);
+  /** Floors ticked for removal together; null when not picking. */
+  const [floorPicks, setFloorPicks] = useState<number[] | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [openNumber, setOpenNumber] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<"type" | "renumber" | null>(null);
+  const [sheet, setSheet] = useState<"name" | "type" | "renumber" | "rooms" | null>(null);
+  const [leavingFloor, setLeavingFloor] = useState<number | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [order, setOrder] = useState<{ floor: number; ids: string[] } | null>(null);
+  const floorStrip = useRef<ScrollView>(null);
   const spots = useRef(new Map<string, { height: number; width: number; x: number; y: number }>());
   const taken = rooms.map((room) => room.number);
-  const current = floors.find((entry) => entry.floor === floorPick) ?? floors[0];
+  // The pills follow the tap at once; the floor's rooms below catch up a frame later.
+  const shownFloor = useDeferredValue(floorPick);
+  const current = floors.find((entry) => entry.floor === shownFloor) ?? floors[0];
+  const pickedFloor = floorPick ?? floors[0]?.floor;
   const open = rooms.find((room) => room.number === openNumber) ?? null;
 
   const addFloor = () => {
@@ -283,7 +331,7 @@ function FloorPlan({
     const above = floors.at(-1);
     const floor = above ? above.floor + 1 : 0;
     // A new floor copies the one above it; the first starts with one room.
-    const plan = above ? [...above.rooms].sort(byNumber).map((room) => room.roomType) : [chip ?? types[0]];
+    const plan = above ? [...above.rooms].sort(byNumber).map((room) => room.roomType) : [types[0]];
     void run(async () => {
       const numbers = nextRoomNumbers(floor, taken, plan.length);
       let last: RoomLayout | undefined;
@@ -291,7 +339,11 @@ function FloorPlan({
         last = await addRooms({ beds: bedsForRoomType(roomType), floor, numbers: numbers.filter((_, at) => plan[at] === roomType), roomType });
       }
       return last;
-    }).then((ok) => ok && setFloorPick(floor));
+    }).then((ok) => {
+      if (!ok) return;
+      setFloorPick(floor);
+      setTimeout(() => floorStrip.current?.scrollToEnd({ animated: true }), 120);
+    });
   };
 
   const retype = (list: Room[], roomType: string) =>
@@ -310,6 +362,42 @@ function FloorPlan({
   const pressSelect = (id: string) => setSelected((list) => [...new Set([...list, id])]);
 
   const chosen = rooms.filter((room) => selected.includes(room.id)).sort(byNumber);
+
+  /**
+   * Empty floors go together after one confirm and one PIN; a lived-in floor
+   * goes alone, through the move sheet first (web parity).
+   */
+  const removeFloors = (picked: number[]) => {
+    const list = rooms.filter((room) => picked.includes(room.floor) && !room.id.startsWith("new:"));
+    const one = picked.length === 1;
+    if (one && lived(list)) {
+      setLeavingFloor(picked[0]);
+      return;
+    }
+    openConfirm({
+      confirmLabel: one ? "Remove floor" : "Remove floors",
+      destructive: true,
+      message: `${plural(list.length, "empty room")} ${list.length === 1 ? "goes" : "go"} with ${one ? "it" : "them"}.`,
+      onConfirm: async () => {
+        const ok = await run(() => deleteRooms(list.map((room) => room.id)));
+        if (ok) {
+          setFloorPick(null);
+          setFloorPicks(null);
+        }
+      },
+      pin: true,
+      title: `Remove ${one ? floorTitle(picked[0], floorNames) : plural(picked.length, "floor")}?`,
+    });
+  };
+
+  const pressFloor = useCallback((floor: number, hasPeople: boolean) => {
+    if (!floorPicks) setFloorPick(floor);
+    else if (hasPeople) toastInfo("Residents live here", "Remove this floor on its own to move them first.");
+    else setFloorPicks(floorPicks.includes(floor) ? floorPicks.filter((item) => item !== floor) : [...floorPicks, floor]);
+  }, [floorPicks]);
+  const longPressFloor = useCallback((floor: number, hasPeople: boolean) => {
+    if (!floorPicks && !hasPeople) setFloorPicks([floor]);
+  }, [floorPicks]);
 
   if (!current) {
     return <EmptyCard action={<Button disabled={busy} icon="add" label="Add ground floor" onPress={addFloor} />} title="No floors added yet" />;
@@ -342,32 +430,84 @@ function FloorPlan({
     setOrder({ floor: current.floor, ids });
     void run(() => orderRooms(current.floor, real)).then(() => setOrder(null));
   };
-  const ofChip = chip ? onFloor.filter((room) => room.roomType === chip).length : 0;
 
   return (
     <View className="gap-4">
-      <ActionTiles
-        tiles={[
-          ...floors.map((entry) => ({
-            glyph: colors.primary,
-            icon: "floor" as const,
-            key: `floor:${entry.floor}`,
-            label: `${shortFloor(entry.floor)}\n${plural(entry.rooms.length, "room")}`,
-            onPress: () => setFloorPick(entry.floor),
-            selected: entry.floor === current.floor,
-            tone: "brand" as const,
-          })),
-          { glyph: colors.primary, icon: "add" as const, key: "floor:add", label: "Add floor", onPress: addFloor, tone: "brand" as const },
-        ]}
-      />
+      <View className="gap-2">
+        <View className="flex-row items-center justify-between">
+          <Text variant="label">{floorPicks ? `${plural(floorPicks.length, "floor")} selected` : "Floors"}</Text>
+          {floorPicks || floors.some((entry) => !lived(entry.rooms)) ? (
+            <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setFloorPicks(floorPicks ? null : [])}>
+              <Text className="text-sm font-semibold text-primary" variant={null}>{floorPicks ? "Cancel" : "Select"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        <ScrollView
+          contentContainerStyle={{ gap: 8, paddingRight: 8 }}
+          horizontal
+          ref={floorStrip}
+          showsHorizontalScrollIndicator={false}
+        >
+          {floors.map((entry) => {
+            const hasPeople = lived(entry.rooms);
+            const picked = floorPicks?.includes(entry.floor) ?? false;
+            return (
+              <FloorPill
+                filledBeds={filled(entry.rooms)}
+                floor={entry.floor}
+                hasPeople={hasPeople}
+                key={entry.floor}
+                on={floorPicks ? picked : entry.floor === pickedFloor}
+                onLongPress={longPressFloor}
+                onPress={pressFloor}
+                picked={picked}
+                picking={floorPicks !== null}
+                rooms={entry.rooms.length}
+                sharePct={share(entry.rooms)}
+                title={shortTitle(entry.floor, floorNames)}
+                totalBeds={beds(entry.rooms)}
+              />
+            );
+          })}
+          {floorPicks ? null : (
+            <Pressable
+              accessibilityLabel="Add floor"
+              accessibilityRole="button"
+              className="w-14 items-center justify-center rounded-2xl border border-dashed border-primary bg-brand-soft active:opacity-70"
+              onPress={addFloor}
+            >
+              <Glyph color={colors.primary} name="add" size={20} />
+            </Pressable>
+          )}
+        </ScrollView>
+        {floorPicks ? (
+          <Button
+            disabled={busy || floorPicks.length === 0}
+            icon="trash"
+            label={floorPicks.length ? `Remove ${plural(floorPicks.length, "floor")}` : "Pick empty floors"}
+            onPress={() => removeFloors(floorPicks)}
+            variant="danger"
+          />
+        ) : null}
+      </View>
 
       <Card className="gap-3">
-        <View>
-          <Text variant="label">{floorLabel(current.floor)}</Text>
-          <Text variant="caption">
-            {plural(onFloor.length, "room")} · {plural(sum(onFloor, (room) => room.beds), "bed")} · {sum(onFloor, (room) => room.free)} free
-          </Text>
+        <View className="flex-row items-center gap-1">
+          <View className="flex-1">
+            <Text variant="label">{floorTitle(current.floor, floorNames)}</Text>
+            <Text variant="caption">
+              {plural(onFloor.length, "room")} · {lived(onFloor) ? `${filled(onFloor)} of ${plural(beds(onFloor), "bed")} filled` : `${plural(beds(onFloor), "bed")}, all empty`}
+            </Text>
+          </View>
+          {selected.length ? null : (
+            <>
+              <IconButton label={`Rename ${floorTitle(current.floor, floorNames)}`} name="create" onPress={() => setSheet("name")} />
+              <IconButton label={`Add or remove rooms on ${floorTitle(current.floor, floorNames)}`} name="add" onPress={() => setSheet("rooms")} />
+              <IconButton label={`Remove ${floorTitle(current.floor, floorNames)}`} name="trash" onPress={() => !busy && removeFloors([current.floor])} />
+            </>
+          )}
         </View>
+        <Meter height={6} label={null} percent={share(onFloor)} reading="share" />
 
         {selected.length ? (
           <View className="gap-3">
@@ -386,11 +526,7 @@ function FloorPlan({
                   destructive: true,
                   message: "Only empty rooms can be removed.",
                   onConfirm: async () => {
-                    if (await run(async () => {
-                      let last: RoomLayout | undefined;
-                      for (const room of chosen) last = await deleteRoom(room.id);
-                      return last;
-                    })) setSelected([]);
+                    if (await run(() => deleteRooms(chosen.map((room) => room.id)))) setSelected([]);
                   },
                   pin: true,
                   title: `Remove ${plural(chosen.length, "room")}?`,
@@ -403,43 +539,10 @@ function FloorPlan({
               ))}
             </View>
           </View>
-        ) : (
-          <View className="flex-row flex-wrap gap-2">
-            {types.map((roomType) => {
-              const on = chip === roomType;
-              const beds = bedsForRoomType(roomType);
-              return (
-                <Pressable
-                  accessibilityLabel={`${on ? "Stop adding" : "Add or remove"} ${roomTypeLabel(roomType)}`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: on }}
-                  className={`min-h-12 justify-center rounded-xl border px-3 py-1.5 active:opacity-70 ${on ? "border-primary bg-primary" : "border-border bg-card"}`}
-                  key={roomType}
-                  // Tapping the picked chip again puts it down; another chip switches.
-                  onPress={() => setChip(on ? null : roomType)}
-                >
-                  <Text className={on ? "font-semibold text-primary-foreground" : "font-semibold text-foreground"} numberOfLines={1}>
-                    {roomTypeLabel(roomType).replace(" — Attached Bathroom", " + bath")}
-                  </Text>
-                  <Text className={on ? "text-xs text-primary-foreground" : "text-xs text-muted-foreground"}>{plural(beds, "bed")}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-
-        {chip && !selected.length ? (
-          <Animated.View className="flex-row items-center gap-3 rounded-2xl bg-brand-soft px-3 py-2" entering={fade.in} exiting={fade.out}>
-            <IconButton label={`Remove an empty ${roomTypeLabel(chip)}`} name="remove" onPress={() => onRemove(current.floor, chip)} />
-            <View className="flex-1 items-center">
-              <Text className="text-lg font-bold text-foreground">{ofChip}</Text>
-              <Text numberOfLines={1} variant="caption">{roomTypeLabel(chip)}</Text>
-            </View>
-            <IconButton label={`Add a ${roomTypeLabel(chip)}`} name="add" onPress={() => onAdd(current.floor, chip)} />
-          </Animated.View>
         ) : null}
 
-        <GestureHandlerRootView className="flex-row flex-wrap justify-between gap-y-2">
+
+        <GestureHandlerRootView style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 8 }}>
           {onFloor.map((room) => {
             const isNew = fresh.includes(room.number);
             return (
@@ -479,6 +582,53 @@ function FloorPlan({
 
       <RoomSheet busy={busy} onClose={() => setOpenNumber(null)} room={open} run={run} types={types} />
 
+      {/* One row per type: − count +. The type is named here once, not on the card. */}
+      <Sheet onClose={() => setSheet(null)} open={sheet === "rooms"} title={`Rooms on ${floorTitle(current.floor, floorNames)}`}>
+        <View className="gap-1 pb-2">
+          {types.map((roomType) => (
+            <View className="min-h-14 flex-row items-center gap-2" key={roomType}>
+              <View className="flex-1">
+                <Text numberOfLines={1} variant="label">{roomTypeLabel(roomType).replace(" — Attached Bathroom", " + bath")}</Text>
+                <Text variant="caption">{plural(bedsForRoomType(roomType), "bed")}</Text>
+              </View>
+              <IconButton label={`Remove an empty ${roomTypeLabel(roomType)}`} name="remove" onPress={() => onRemove(current.floor, roomType)} />
+              <Text className="w-8 text-center text-lg font-bold text-foreground" variant={null}>
+                {onFloor.filter((room) => room.roomType === roomType).length}
+              </Text>
+              <IconButton label={`Add a ${roomTypeLabel(roomType)}`} name="add" onPress={() => onAdd(current.floor, roomType)} />
+            </View>
+          ))}
+        </View>
+      </Sheet>
+
+      {leavingFloor === null ? null : (
+        <MoveOffSheet
+          busy={busy}
+          floor={leavingFloor}
+          onClose={() => setLeavingFloor(null)}
+          onConfirm={(moves) => openConfirm({
+            confirmLabel: "Move and remove",
+            destructive: true,
+            message: `${plural(moves.length, "resident")} move, then the floor and its rooms are removed.`,
+            onConfirm: async () => {
+              const floor = leavingFloor;
+              const ok = await run(async () => {
+                // One at a time: each move reads the room's free beds as the one before left them.
+                for (const move of moves) await setResidentRoom(move.residentId, move.roomId);
+                return deleteRooms(rooms.filter((item) => item.floor === floor && !item.id.startsWith("new:")).map((item) => item.id));
+              });
+              if (ok) {
+                setLeavingFloor(null);
+                setFloorPick(null);
+              }
+            },
+            pin: true,
+            title: `Remove ${floorLabel(leavingFloor).toLowerCase()}?`,
+          })}
+          rooms={rooms.filter((room) => !room.id.startsWith("new:"))}
+        />
+      )}
+
       <Sheet onClose={() => setSheet(null)} open={sheet === "type"} title="Set room type">
         <TypeChoice
           busy={busy}
@@ -492,6 +642,17 @@ function FloorPlan({
           types={types}
         />
       </Sheet>
+
+      <FloorNameSheet
+        busy={busy}
+        floor={current.floor}
+        name={floorNames?.[String(current.floor)] ?? ""}
+        onApply={async (name) => {
+          if (await run(() => renameFloor(current.floor, name))) setSheet(null);
+        }}
+        onClose={() => setSheet(null)}
+        open={sheet === "name"}
+      />
 
       <RenumberSheet
         busy={busy}
@@ -514,6 +675,85 @@ function FloorPlan({
         start={chosen[0]?.number ?? ""}
       />
     </View>
+  );
+}
+
+/** Emptying a lived-in floor: every resident gets a free bed of their room type on another floor first. */
+function MoveOffSheet({
+  busy,
+  floor,
+  onClose,
+  onConfirm,
+  rooms,
+}: {
+  busy: boolean;
+  floor: number;
+  onClose: () => void;
+  onConfirm: (moves: { residentId: string; roomId: string }[]) => void;
+  rooms: Room[];
+}) {
+  const { colors } = useAppTheme();
+  const leaving = floorLeavers(rooms, floor);
+  const targets = rooms.filter((room) => room.floor !== floor).sort((a, b) => a.floor - b.floor || byNumber(a, b));
+  const [picks, setPicks] = useState(() => firstFloorMoves(rooms, floor));
+  const placed = leaving.filter(({ person }) => picks[person.id]).length;
+
+  return (
+    <Sheet
+      footer={
+        <Button
+          disabled={busy || placed < leaving.length}
+          label={placed < leaving.length ? `${placed} of ${leaving.length} placed` : "Move and remove floor"}
+          loading={busy}
+          onPress={() => onConfirm(leaving.map(({ person }) => ({ residentId: person.id, roomId: picks[person.id] })))}
+          variant="danger"
+        />
+      }
+      onClose={onClose}
+      open
+      tall
+      title="Move residents first"
+    >
+      <View className="gap-5 pb-2">
+        {leaving.map(({ person, room }) => {
+          const options = targets.filter((item) => item.roomType === room.roomType && item.free - bedsClaimed(picks, item.id, person.id) > 0);
+          return (
+            <View className="gap-2" key={person.id}>
+              <View className="flex-row items-center gap-3">
+                <PersonAvatar image={person.photo} name={person.name} size="md" />
+                <View className="flex-1">
+                  <Text className="font-semibold text-foreground" numberOfLines={1}>{person.name}</Text>
+                  <Text numberOfLines={1} variant="caption">Room {room.number} · {roomTypeLabel(room.roomType)}</Text>
+                </View>
+                {picks[person.id] ? <Glyph color={colors.primary} name="checkmark-circle" size={20} variant="solid" /> : null}
+              </View>
+              {options.length ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {options.map((item) => {
+                    const on = picks[person.id] === item.id;
+                    return (
+                      <Pressable
+                        accessibilityLabel={`Room ${item.number}, ${floorLabel(item.floor)}`}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: on }}
+                        className={`min-h-12 justify-center rounded-xl border px-3 py-1.5 active:opacity-70 ${on ? "border-primary bg-brand-soft" : "border-border"}`}
+                        key={item.id}
+                        onPress={() => setPicks((current) => ({ ...current, [person.id]: item.id }))}
+                      >
+                        <Text className="font-semibold text-foreground">Room {item.number}</Text>
+                        <Text variant="caption">{shortFloor(item.floor)} · {item.free - bedsClaimed(picks, item.id, person.id)} free</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text className="text-destructive" variant="caption">No free {roomTypeLabel(room.roomType)} bed on another floor.</Text>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </Sheet>
   );
 }
 
@@ -587,32 +827,31 @@ function DragTile({
   );
 }
 
-/** A room; one added this pass has a dashed brand edge until the screen is left. */
+/** A room: its number over a dot per bed, filled for each bed taken. One added this pass has a dashed brand edge. */
 function RoomTile({ fresh, onPress, room, selected }: { fresh: boolean; onPress: () => void; room: Room; selected: boolean }) {
   const { colors } = useAppTheme();
   const taken = room.beds - room.free;
-  const full = room.free <= 0 && room.beds > 0 && taken > 0;
 
   return (
     <Pressable
       accessibilityLabel={`Room ${room.number}, ${roomTypeLabel(room.roomType)}, ${room.free} of ${room.beds} free${fresh ? ", just added" : ""}`}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      className={`w-full items-center gap-1 rounded-xl border-2 py-2.5 active:opacity-70 ${
-        selected ? "border-primary bg-brand-soft" : fresh ? "border-dashed border-primary bg-brand-soft" : full ? "border-destructive/40" : "border-border"
+      className={`h-16 w-full items-center justify-center gap-1.5 rounded-xl border active:opacity-70 ${
+        selected ? "border-primary bg-brand-soft" : fresh ? "border-dashed border-primary bg-brand-soft" : taken > 0 ? "border-border bg-muted" : "border-border"
       }`}
       onPress={onPress}
     >
-      <Text className="font-bold text-foreground">{room.number}</Text>
-      <View className="flex-row items-center gap-1">
-        <Glyph color={selected || fresh ? colors.primary : colors.mutedForeground} name="bed" size={14} />
-        <Text variant="caption">{room.beds}</Text>
-      </View>
-      {taken > 0 ? (
-        <View className="h-1 w-3/4 overflow-hidden rounded-full bg-muted">
-          <View className={`h-full rounded-full ${full ? "bg-destructive" : "bg-primary"}`} style={{ width: `${(taken / room.beds) * 100}%` }} />
+      <Text className="text-base font-bold text-foreground" variant={null}>{room.number}</Text>
+      {room.beds > 6 ? (
+        <Text className="text-xs text-muted-foreground" variant={null}>{taken}/{room.beds}</Text>
+      ) : (
+        <View className="flex-row gap-1">
+          {Array.from({ length: room.beds }, (_, at) => (
+            <View key={at} style={{ backgroundColor: at < taken ? colors.primary : "transparent", borderColor: at < taken ? colors.primary : colors.mutedForeground, borderRadius: 6, borderWidth: 1.5, height: 12, width: 12 }} />
+          ))}
         </View>
-      ) : null}
+      )}
       {selected ? (
         <View className="absolute -bottom-1.5 -right-1.5 rounded-full bg-background">
           <Glyph color={colors.primary} name="checkmark-circle" size={18} />
@@ -639,6 +878,23 @@ function TypeChoice({ busy, label, onApply, types, value }: { busy: boolean; lab
       })}
       <Button disabled={busy || !pick} label={label} loading={busy} onPress={() => pick && onApply(pick)} />
     </View>
+  );
+}
+
+function FloorNameSheet({ busy, floor, name, onApply, onClose, open }: { busy: boolean; floor: number; name: string; onApply: (name: string) => void; onClose: () => void; open: boolean }) {
+  const [value, setValue] = useState(name);
+  const [seeded, setSeeded] = useState(false);
+
+  if (open && !seeded) {
+    setSeeded(true);
+    setValue(name);
+  }
+  if (!open && seeded) setSeeded(false);
+
+  return (
+    <Sheet footer={<Button disabled={busy} label="Save" loading={busy} onPress={() => onApply(value.trim())} />} onClose={onClose} open={open} title="Floor name">
+      <Input autoCapitalize="words" hint={`Leave empty to show "${shortFloor(floor)}"`} label="Name" maxLength={30} onChangeText={setValue} placeholder="Girls block" value={value} variant="line" />
+    </Sheet>
   );
 }
 

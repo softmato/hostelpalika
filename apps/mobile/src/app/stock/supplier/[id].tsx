@@ -114,11 +114,11 @@ export default function SupplierScreen() {
               </View>
               <View className="flex-row">
                 <Figure label="Bills">
-                  <Text variant="label">{formatMoney(ledger.billed)}</Text>
+                  <Text className="font-amount tabular-nums" variant="label">{formatMoney(ledger.billed)}</Text>
                 </Figure>
                 <View className="w-px bg-border" />
                 <Figure label="Paid">
-                  <Text variant="label">{formatMoney(ledger.paid)}</Text>
+                  <Text className="font-amount tabular-nums" variant="label">{formatMoney(ledger.paid)}</Text>
                 </Figure>
               </View>
               <View className="flex-row gap-2">
@@ -284,7 +284,7 @@ function LedgerRow({ onPress, row }: { onPress?: () => void; row: SupplierLedger
           {row.change < 0 ? "−" : "+"}
           {formatMoney(Math.abs(row.change))}
         </Text>
-        <Text variant="caption">Owe {formatMoney(row.balance)}</Text>
+        <Text className="font-amount tabular-nums" variant="caption">Owe {formatMoney(row.balance)}</Text>
       </View>
     </Pressable>
   );

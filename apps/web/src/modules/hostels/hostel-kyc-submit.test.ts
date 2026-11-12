@@ -96,6 +96,22 @@ describe("submitHostelKyc", () => {
     expect(applications.docs[0]).toMatchObject({ status: "PENDING" });
   });
 
+  it("lets a branch awaiting approval send its KYC, without locking the account", async () => {
+    await documents.create({ documentType: "Owner ID proof", hostelId, isDeleted: false, status: "PENDING" });
+    await rateCards.create({ effectiveTo: null, hostelId, rates: [{ monthlyAmount: 9000, roomType: "Double" }] });
+    agreement.signed = true;
+    hostels.docs[0]!.kyc = undefined;
+    Object.assign(hostels.docs[0]!, { status: "PENDING_APPROVAL", verificationStatus: "PENDING" });
+
+    expect((await getHostelKyc(hostelId)).review).toMatchObject({ canSubmit: true, status: "DRAFT" });
+
+    const kyc = await submitHostelKyc(hostelId, ownerId.toString());
+
+    expect(kyc.review).toMatchObject({ canSubmit: false, status: "SUBMITTED" });
+    expect(hostels.docs[0]!.kyc).not.toMatchObject({ required: true });
+    expect(applications.docs[0]).toMatchObject({ status: "PENDING" });
+  });
+
   it("does not apply to a hostel registered before the quick sign-up", async () => {
     hostels.docs[0]!.kyc = undefined;
 

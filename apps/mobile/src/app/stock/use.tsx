@@ -181,7 +181,7 @@ export default function UseStockScreen() {
   if (store.length === 0) {
     return (
       <Screen header={header}>
-        <EmptyCard description="Add what came in with Buy first. Daily items are used the day they come." title="Nothing in store" />
+        <EmptyCard description="Add what came in with Buy first." title="Nothing in store" />
       </Screen>
     );
   }

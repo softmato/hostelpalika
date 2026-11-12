@@ -2,6 +2,7 @@ import "@/global.css";
 
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { router, Stack, usePathname, useSegments } from "expo-router";
+import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from "@expo-google-fonts/manrope";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
@@ -727,6 +728,10 @@ function ToastHost() {
 }
 
 export default function RootLayout() {
+  // Todo F1: the amount font, same as web's `.font-amount`. Not awaited — an
+  // amount drawn in the system font for the first frame beats a held splash.
+  useFonts({ Manrope_600SemiBold, Manrope_700Bold });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>

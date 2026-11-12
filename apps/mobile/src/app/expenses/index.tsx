@@ -307,8 +307,8 @@ export default function ExpensesScreen() {
           <Text variant="label">You cannot add expenses yet</Text>
           <Text variant="muted">
             {denied.code === "EXPENSES_OFF_FOR_COOK"
-              ? "The owner has not turned this on for the kitchen. Ask them to turn on “Cook can add expenses”."
-              : "Your account does not have “Add expenses”. Ask the hostel owner to turn it on for you."}
+              ? "Ask the owner to turn on “Cook can add expenses”."
+              : "Ask the owner to turn on “Add expenses”."}
           </Text>
         </Card>
       </Screen>
@@ -413,7 +413,7 @@ export default function ExpensesScreen() {
                   >
                     {day.label}
                   </Text>
-                  <Text className="text-xs font-semibold text-muted-foreground">
+                  <Text className="font-amount tabular-nums text-xs font-semibold text-muted-foreground">
                     {formatMoney(day.total)}
                   </Text>
                 </View>

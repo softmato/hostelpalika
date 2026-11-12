@@ -342,14 +342,14 @@ function SummaryCard({ invoice, owed }: { invoice: ResidentInvoice; owed: number
         <View className="flex-row items-start gap-3">
           <View className="flex-1 gap-0.5">
             <Text variant="caption">Total due</Text>
-            <Text variant="label">{formatMoney(invoice.dueAmount)}</Text>
+            <Text className="font-amount tabular-nums" variant="label">{formatMoney(invoice.dueAmount)}</Text>
           </View>
 
           <View className="h-8 w-px bg-border" />
 
           <View className="flex-1 gap-0.5">
             <Text variant="caption">Paid</Text>
-            <Text variant="label">{formatMoney(invoice.paidAmount)}</Text>
+            <Text className="font-amount tabular-nums" variant="label">{formatMoney(invoice.paidAmount)}</Text>
           </View>
         </View>
 

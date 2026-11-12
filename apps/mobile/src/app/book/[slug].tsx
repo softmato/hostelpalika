@@ -150,7 +150,7 @@ function PackageCard({ quote }: { quote: BookingQuote }) {
             <Text className="text-sm font-semibold text-foreground">Booking fee</Text>
             <Text variant="caption">{quote.terms.feePercent}% of one month&apos;s rent</Text>
           </View>
-          <Text className="text-2xl font-bold text-foreground">{formatMoney(quote.fee)}</Text>
+          <Text className="font-amount tabular-nums text-2xl font-bold text-foreground">{formatMoney(quote.fee)}</Text>
         </View>
         <Text className="mt-2" variant="caption">
           Paid to {APP_NAME}. Rent, admission fee and deposit are paid to the hostel.

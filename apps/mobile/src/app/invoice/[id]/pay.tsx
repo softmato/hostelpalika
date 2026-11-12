@@ -38,6 +38,7 @@ import {
 } from "@/lib/finance-api";
 import { formatDueLabel, formatMoney } from "@/lib/format";
 import { residentQuery } from "@/lib/resident-queries";
+import { nextMonthCode } from "@/lib/month-code";
 import { toastError } from "@/lib/toast";
 import { openPaymentUrl } from "@/lib/wallet";
 
@@ -109,6 +110,7 @@ export default function PayInvoiceScreen() {
 
   /** Which alternative method's sheet is up, by `methodKey`. */
   const [openMethod, setOpenMethod] = useState<string | null>(null);
+  const [shareHelp, setShareHelp] = useState(false);
 
   const data = instructions.data;
   const header = <AppBar showBack title="Pay now" />;
@@ -152,8 +154,32 @@ export default function PayInvoiceScreen() {
   const sheetMethod =
     others.find((method) => methodKey(method) === openMethod) ?? null;
 
+  /*
+   * Todo C1: after paying by a manual method there are exactly two things to do —
+   * share the receipt from the payment app, or upload a screenshot. A gateway
+   * checkout settles itself, so the bar only shows when a manual method exists.
+   */
+  const footer = needsReference ? (
+    <View className="flex-row gap-3">
+      <Button
+        className="flex-1"
+        icon="share-social"
+        label="Share receipt"
+        onPress={() => setShareHelp(true)}
+      />
+      <Button
+        className="flex-1"
+        icon="image"
+        label="Upload screenshot"
+        onPress={() => router.push(`/invoice/${id}/claim`)}
+        variant="outline"
+      />
+    </View>
+  ) : undefined;
+
   return (
     <Screen
+      footer={footer}
       header={header}
       onRefresh={instructions.refresh}
       refreshing={instructions.refreshing}
@@ -241,21 +267,6 @@ export default function PayInvoiceScreen() {
           </Card>
         ) : null}
 
-        {/*
-          The last word on the screen, and scoped. A gateway checkout settles
-          itself; telling somebody who just paid through one to submit a
-          screenshot and wait is how they end up paying twice.
-        */}
-        {needsReference ? (
-          <Card className="flex-row items-start gap-2.5">
-            <Glyph
-              color={colors.mutedForeground}
-              name="information-circle"
-              size={16}
-            />
-            <Text className="flex-1" variant="caption">{"Proof only for manual methods."}</Text>
-          </Card>
-        ) : null}
       </View>
 
       <Sheet
@@ -271,6 +282,21 @@ export default function PayInvoiceScreen() {
             <MethodPanel invoiceId={id} method={sheetMethod} />
           </View>
         ) : null}
+      </Sheet>
+
+      <Sheet onClose={() => setShareHelp(false)} open={shareHelp} title="Share receipt">
+        <View className="gap-3 pb-2">
+          {[
+            { icon: "receipt" as const, text: "Open the receipt in eSewa or your bank" },
+            { icon: "share-social" as const, text: "Tap Share" },
+            { icon: "checkmark-circle" as const, text: "Choose HostelPalika" },
+          ].map((step) => (
+            <View className="flex-row items-center gap-3" key={step.text}>
+              <Glyph color={colors.primary} name={step.icon} size={20} />
+              <Text variant="body">{step.text}</Text>
+            </View>
+          ))}
+        </View>
       </Sheet>
     </Screen>
   );
@@ -432,17 +458,21 @@ function ReferenceSection({
   needsReference: boolean;
 }) {
   const { colors } = useAppTheme();
+  // Todo C1: a month code shows next month's too, so the pattern is learnt.
+  const next = nextMonthCode(code);
 
   return (
     <View className="gap-2">
-      <Text variant="caption">Reference code</Text>
+      <Text variant="caption">{next ? "Month code" : "Reference code"}</Text>
 
       <View className="flex-row items-center justify-between gap-3">
         <Text className="flex-1 text-2xl font-bold tracking-wider text-foreground">
           {code}
         </Text>
-        <CopyButton label="reference code" tone="glyph" value={code} />
+        <CopyButton label={next ? "month code" : "reference code"} tone="glyph" value={code} />
       </View>
+
+      {next ? <Text variant="caption">{`Next month: ${next}`}</Text> : null}
 
       {needsReference ? (
         <Pressable

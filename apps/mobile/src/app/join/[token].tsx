@@ -449,7 +449,7 @@ function JoinForm({
       {estimate > 0 ? (
         <Card className="flex-row items-center justify-between">
           <Text variant="muted">About what you will owe</Text>
-          <Text className="font-bold">{formatMoney(estimate)}</Text>
+          <Text className="font-amount tabular-nums font-bold">{formatMoney(estimate)}</Text>
         </Card>
       ) : null}
 

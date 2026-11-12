@@ -3,6 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
+import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import {
 } from "@/lib/admin-manage-api";
 import { type AdminSettingsData, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
+import { FACILITY_OPTIONS } from "@/lib/hostel-registration";
 import { formatMoney, humanizeEnum } from "@/lib/format";
 import { uploadPublicFile } from "@/lib/public-uploads";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -118,6 +120,9 @@ export default function ManageSettingsScreen() {
   // slice of the same hostel record, and a save sends only the keys it touched.
   const [form, setForm] = useState<Record<string, string>>({});
   const [listDraft, setListDraft] = useState<string[]>([]);
+  const suggestions = FACILITY_OPTIONS.filter(
+    (option) => !listDraft.some((entry) => entry.toLowerCase() === option.toLowerCase()),
+  );
   const [listEntry, setListEntry] = useState("");
   const [changeType, setChangeType] = useState<"HOSTEL_NAME" | "OWNER_NAME" | "OWNER_EMAIL">(
     "HOSTEL_NAME",
@@ -416,8 +421,8 @@ export default function ManageSettingsScreen() {
               icon="bed"
               iconBgColor="#5E5CE6"
               onPress={() => router.push("/manage/rooms")}
-              subtitle={`${hostel.roomConfigurations.length} room type(s) · ${hostel.photos.length} photo(s)`}
-              title="Rooms, beds and photos"
+              subtitle={`${hostel.photos.length} photo(s)`}
+              title="Hostel & Room Photos"
             />
           </Card>
         </View>
@@ -966,25 +971,53 @@ export default function ManageSettingsScreen() {
             />
           </View>
 
-          <View className="flex-row flex-wrap gap-2">
+          <Animated.View className="flex-row flex-wrap gap-2" layout={LinearTransition.duration(220)}>
             {listDraft.map((entry, index) => (
-              <Chip
-                icon="close-circle"
+              <Animated.View
+                entering={FadeIn.duration(180)}
+                exiting={FadeOut.duration(140)}
                 key={`${entry}-${index}`}
-                label={entry}
-                onPress={() =>
-                  setListDraft((prev) => prev.filter((_, position) => position !== index))
-                }
-                tone="brand"
-              />
+                layout={LinearTransition.duration(220)}
+              >
+                <Chip
+                  icon="close-circle"
+                  label={entry}
+                  onPress={() =>
+                    setListDraft((prev) => prev.filter((_, position) => position !== index))
+                  }
+                  tone="brand"
+                />
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
 
           {listDraft.length === 0 ? (
             <Text variant="muted">Nothing listed yet.</Text>
           ) : (
             <Text variant="caption">Tap one to remove it.</Text>
           )}
+
+          {panel === "facilities" && suggestions.length > 0 ? (
+            <View className="gap-2">
+              <Text variant="caption">Tap to add</Text>
+              <Animated.View className="flex-row flex-wrap gap-2" layout={LinearTransition.duration(220)}>
+                {suggestions.map((option) => (
+                  <Animated.View
+                    entering={FadeIn.duration(180)}
+                    exiting={FadeOut.duration(140)}
+                    key={option}
+                    layout={LinearTransition.duration(220)}
+                  >
+                    <Chip
+                      icon="add"
+                      label={option === "WiFi" ? "Wi-Fi" : option}
+                      onPress={() => setListDraft((prev) => [...prev, option])}
+                    />
+                  </Animated.View>
+                ))}
+              </Animated.View>
+            </View>
+          ) : null}
         </View>
       </Sheet>
 

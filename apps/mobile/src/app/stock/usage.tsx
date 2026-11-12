@@ -144,7 +144,7 @@ export default function StockUsageScreen() {
 
           {totals.length === 0 ? (
             <EmptyCard
-              description="When the cook taps Kitchen stock, or you tap Use, it shows here."
+              description="Every Use shows here."
               title={range === "today" ? "Nothing used yet today" : "Nothing used yet"}
             />
           ) : (
@@ -240,7 +240,7 @@ function TotalRow({ money, row }: { money: boolean; row: UsageTotal }) {
       </View>
       <View className="items-end">
         <Text variant="subtitle">{formatQty(row.used, row.item.unit)}</Text>
-        {money && row.value ? <Text variant="caption">{formatMoney(row.value)}</Text> : null}
+        {money && row.value ? <Text className="font-amount tabular-nums" variant="caption">{formatMoney(row.value)}</Text> : null}
       </View>
     </Pressable>
   );

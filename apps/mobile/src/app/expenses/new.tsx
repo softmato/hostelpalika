@@ -449,7 +449,7 @@ export default function AddExpenseScreen() {
           {/* ------------------------------------------------------ amount */}
           <Card className="items-center gap-1" padding="px-4 py-5">
             <Text variant="caption">{isCash ? "How much did you give?" : "How much did you pay?"}</Text>
-            <View className="flex-row items-center justify-center gap-2">
+            <View className="w-full flex-row items-center gap-2">
               <Text className="text-muted-foreground" style={{ fontSize: 22, fontWeight: "600" }}>
                 Rs
               </Text>
@@ -463,7 +463,7 @@ export default function AddExpenseScreen() {
                 onChangeText={(value) => setAmountText(groupDigits(value))}
                 placeholder="0"
                 placeholderTextColor={colors.mutedForeground}
-                style={{ fontSize: 40, fontWeight: "700", minWidth: 80, textAlign: "center" }}
+                style={{ flex: 1, fontSize: amountText.length > 10 ? 26 : amountText.length > 8 ? 32 : 40, fontWeight: "700", textAlign: "center" }}
                 value={amountText}
               />
               {/* An unseen twin of "Rs": balances the row so the number, not the pair, sits on the centre line. */}
@@ -730,7 +730,7 @@ export default function AddExpenseScreen() {
         <View className="gap-3 pb-2">
           <Input
             autoFocus
-            hint="It shows as a tile next time, for everyone who adds expenses."
+            hint="Shows as a tile next time"
             label="Name"
             maxLength={32}
             onChangeText={setNewCategoryName}

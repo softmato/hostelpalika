@@ -270,7 +270,7 @@ function tilesFor(
   if (!overall) {
     tiles.push(
       { glyph: colors.primary, icon: "restaurant", key: "use", label: "Use", onPress: go("/stock/use"), tone: "brand" },
-      { glyph: colors.success, icon: "cart", key: "buy", label: "Buy", onPress: go("/stock/buy"), tone: "success" },
+      { glyph: colors.primary, icon: "cart", key: "buy", label: "Buy", onPress: go("/stock/buy"), tone: "brand" },
       {
         glyph: colors.destructive,
         icon: "trash",
@@ -281,12 +281,12 @@ function tilesFor(
       },
       {
         badge: home.canApprove && home.toApprove.length > 0 ? home.toApprove.length : undefined,
-        glyph: colors.warning,
+        glyph: colors.primary,
         icon: "clipboard",
         key: "count",
         label: "Stock check",
         onPress: go("/stock/count"),
-        tone: "warning",
+        tone: "brand",
       },
     );
 
@@ -304,12 +304,12 @@ function tilesFor(
   }
 
   tiles.push({
-    glyph: colors.success,
+    glyph: colors.primary,
     icon: "storefront",
     key: "suppliers",
     label: "Suppliers",
     onPress: go("/stock/suppliers"),
-    tone: "success",
+    tone: "brand",
   });
 
   if (home.money) {
@@ -325,12 +325,12 @@ function tilesFor(
 
   if (home.owner && !overall) {
     tiles.push({
-      glyph: colors.warning,
+      glyph: colors.primary,
       icon: "archive",
       key: "opening",
       label: "Opening",
       onPress: go({ params: { mode: "opening" }, pathname: "/stock/buy" }),
-      tone: "warning",
+      tone: "brand",
     });
   }
 
@@ -370,7 +370,7 @@ function UsedToday() {
           </Text>
         )}
       </View>
-      {usage?.money && value > 0 ? <Text variant="label">{formatMoney(value)}</Text> : null}
+      {usage?.money && value > 0 ? <Text className="font-amount tabular-nums" variant="label">{formatMoney(value)}</Text> : null}
       <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
     </Pressable>
   );
@@ -462,9 +462,7 @@ function StockRow({ home, item }: { home: StockHome; item: StockItem }) {
       ? item.at
           .map((at) => `${home.places.find((place) => place.id === at.hostelId)?.name ?? "Hostel"} ${formatQty(amount(at), item.unit)}`)
           .join(" · ")
-      : low
-        ? `Low · below ${formatQty(item.lowAt ?? 0, item.unit)}`
-        : onWay > 0
+      : onWay > 0
           ? `+${formatQty(onWay, item.unit)} coming`
           : !store
             ? "Daily · came this month"
@@ -484,12 +482,17 @@ function StockRow({ home, item }: { home: StockHome; item: StockItem }) {
           {item.name}
         </Text>
         {line ? (
-          <Text className={low ? "font-semibold text-destructive" : undefined} numberOfLines={1} variant="caption">
+          <Text numberOfLines={1} variant="caption">
             {line}
           </Text>
         ) : null}
       </View>
-      <Text className={low ? "text-destructive" : undefined} variant="subtitle">
+      {/* Low stock is the colour of the number, not a sentence (TODO.md H6). */}
+      <Text
+        accessibilityLabel={low ? `${formatQty(total, item.unit)}, low` : undefined}
+        className={`text-right font-amount tabular-nums ${low ? "text-destructive" : ""}`}
+        variant="subtitle"
+      >
         {formatQty(total, item.unit)}
       </Text>
       <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />

@@ -931,7 +931,7 @@ export default function ManageMaintenanceScreen() {
               </>
             ) : (
               <>
-                <Text className="text-2xl font-bold text-foreground">
+                <Text className="font-amount tabular-nums text-2xl font-bold text-foreground">
                   {formatMoney(quotedCharge)}
                 </Text>
                 <Text className="text-center" variant="caption">{"Minimum fee. Final cost after the work."}</Text>
@@ -1067,7 +1067,7 @@ export default function ManageMaintenanceScreen() {
               ) : null}
 
               <Input
-                hint="Kept on the history entry, so “why was this cancelled” has an answer."
+                hint="Saved with the history"
                 label="Note"
                 onChangeText={setStatusNote}
                 placeholder="Plumber came, part on order"

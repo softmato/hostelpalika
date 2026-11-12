@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
@@ -22,7 +23,7 @@ import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
-import { APP_NAME, APP_NAME_PARTS } from "@/constants/branding";
+import { APP_NAME, logo } from "@/constants/branding";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -222,20 +223,20 @@ export function DiscoveryHeader({
             The tail at 0.72 white washed into the green on device; 0.88 plus a
             faint drop shadow keeps the two tones and reads cleanly.
           */}
-          <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="flex-1">
-            <Text
-              style={{
-                fontSize: 23,
-                fontWeight: "800",
-                letterSpacing: -0.2,
-                textShadowColor: "rgba(0,0,0,0.18)",
-                textShadowOffset: { height: 1, width: 0 },
-                textShadowRadius: 2,
-              }}
-            >
-              <Text style={{ color: "#FFFFFF" }}>{APP_NAME_PARTS.head}</Text>
-              <Text style={{ color: "rgba(255,255,255,0.88)" }}>{APP_NAME_PARTS.tail}</Text>
-            </Text>
+          {/* The full HostelPalika lockup, tinted white: its dark H and green P
+              would vanish straight onto the green. Aspect 1614:229. */}
+          <View
+            accessibilityLabel={APP_NAME}
+            accessibilityRole="header"
+            className="flex-1 flex-row"
+          >
+            <Image
+              cachePolicy="memory-disk"
+              contentFit="contain"
+              source={logo.wordmark}
+              style={{ aspectRatio: 1614 / 229, height: 14 }}
+              tintColor="#FFFFFF"
+            />
           </View>
 
           {account ? (

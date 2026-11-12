@@ -1326,10 +1326,10 @@ function SubmittedScreen({
           </View>
 
           <Text className="text-center" variant="title">
-            {duplicate ? "Already sent" : "Sent to your hostel"}
+            {duplicate ? "Already sent" : "Waiting for approval"}
           </Text>
           <Text className="text-center" variant="body">
-            You&apos;ll get a notification when it&apos;s confirmed.
+            We&apos;ll notify you with your points.
           </Text>
         </View>
       </View>

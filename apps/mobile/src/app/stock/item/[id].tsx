@@ -197,11 +197,11 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
         <View className="flex-row">
           <View className="flex-1 gap-0.5">
             <Text variant="caption">Worth</Text>
-            <Text variant="label">{formatMoney(Math.round(Math.max(0, at.left) * item.avgCost))}</Text>
+            <Text className="font-amount tabular-nums" variant="label">{formatMoney(Math.round(Math.max(0, at.left) * item.avgCost))}</Text>
           </View>
           <View className="flex-1 gap-0.5">
             <Text variant="caption">Average cost</Text>
-            <Text variant="label">
+            <Text className="font-amount tabular-nums" variant="label">
               {formatMoney(item.avgCost)} / {STOCK_UNIT_LABELS[item.unit].one}
             </Text>
           </View>

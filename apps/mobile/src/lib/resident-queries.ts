@@ -55,6 +55,7 @@ import { listGuardians } from "@/lib/guardian-access-api";
 import type { GuardianLink } from "@/lib/guardian-access";
 import { getIdentity, type IdentityResponse } from "@/lib/identity-api";
 import { getOfferProgram, type ResidentOfferProgram } from "@/lib/offer-program-api";
+import { type CreditScore, getCreditScore } from "@/lib/credit-score-api";
 import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
 import {
   getResidentDashboard,
@@ -161,6 +162,10 @@ export const residentQuery = {
   /** This quarter's certified total, the perks and the resident's offers. */
   offerProgram: (): ResidentQuery<ResidentOfferProgram> =>
     define("resident:offer-program", [REALTIME_TOPIC.PAYMENTS], () => getOfferProgram()),
+
+  /** Score, receipts shared / approved, and the rule (todo C4). */
+  creditScore: (): ResidentQuery<CreditScore> =>
+    define("resident:credit-score", [REALTIME_TOPIC.PAYMENTS], () => getCreditScore()),
 
   /** The ID card, read by both the card and its editor. */
   identity: (): ResidentQuery<IdentityResponse> =>

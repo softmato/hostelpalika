@@ -347,9 +347,9 @@ function MonthRow({
           {label}
         </Text>
         <View className="flex-row flex-wrap items-center gap-x-3">
-          <Text className="text-xs font-semibold text-success">{`↑ ${formatMoney(money.in)}`}</Text>
+          <Text className="font-amount tabular-nums text-xs font-semibold text-success">{`↑ ${formatMoney(money.in)}`}</Text>
           {mixed ? (
-            <Text className="text-xs font-semibold text-destructive">{`↓ ${formatMoney(money.out)}`}</Text>
+            <Text className="font-amount tabular-nums text-xs font-semibold text-destructive">{`↓ ${formatMoney(money.out)}`}</Text>
           ) : null}
         </View>
       </View>
@@ -599,7 +599,7 @@ export default function ManageReportsScreen() {
                   tone={rateTone(finance.collectionRate)}
                 />
               </View>
-              <Text className="text-2xl font-semibold tracking-tight text-foreground">{formatMoney(finance.collected)}</Text>
+              <Text className="font-amount tabular-nums text-2xl font-semibold tracking-tight text-foreground">{formatMoney(finance.collected)}</Text>
               <Meter
                 percent={finance.collectionRate}
                 label={`of ${formatMoney(finance.billed)} billed`}
@@ -770,7 +770,7 @@ export default function ManageReportsScreen() {
                 <Text variant="caption">
                   {mixed ? "Net received" : "Money received"}
                 </Text>
-                <Text className="text-2xl font-semibold tracking-tight text-foreground">
+                <Text className="font-amount tabular-nums text-2xl font-semibold tracking-tight text-foreground">
                   {formatMoney(mixed ? overall.in - overall.out : overall.in)}
                 </Text>
               </View>

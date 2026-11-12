@@ -1,9 +1,11 @@
 import { roomTypeLabel } from "@hostel/constants/room-types";
+import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
 import { RoomsFloorsEditor } from "@/components/manage/rooms-floors-editor";
 import { RoomPicker } from "@/components/manage/room-picker";
+import { RoomTypesSection } from "@/components/manage/room-types-section";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -30,8 +32,8 @@ import { toastError, toastSuccess } from "@/lib/toast";
  *
  * The building as it stands: each floor, its rooms, who is in each and how
  * many beds are free. Requests to change room and residents with no room yet
- * sit on top because they want a decision. Room types and rent stay on
- * `manage/rooms` — this screen numbers the rooms those types describe.
+ * sit on top because they want a decision. Room types are edited at the bottom
+ * of this screen, rent on Finance → Room rates, photos on `manage/rooms`.
  */
 
 type Assign = { id: string; name: string; roomType: string } | null;
@@ -98,7 +100,7 @@ export default function FloorsScreen() {
   };
 
   const data = layout.data;
-  const header = <AppBar accent centerTitle showBack title="Rooms" />;
+  const header = <AppBar accent centerTitle showBack title="Rooms & Floors" />;
 
   if (layout.loading) {
     return (
@@ -182,6 +184,8 @@ export default function FloorsScreen() {
           </View>
         ) : null}
 
+        <RoomTypesSection />
+        <Button icon="image" label="Hostel & Room Photos" onPress={() => router.push("/manage/rooms")} variant="outline" />
       </View>
 
       <Sheet onClose={() => setAssign(null)} open={assign !== null} tall title={assign ? `Room for ${assign.name}` : "Room"}>

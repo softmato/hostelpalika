@@ -21,6 +21,8 @@ export type Room = {
 };
 
 export type RoomLayout = {
+  /** Owner-chosen floor names by floor number; absent until one is named. */
+  floorNames?: Record<string, string>;
   pendingRequests: number;
   rooms: Room[];
   roomTypes: string[];
@@ -123,6 +125,27 @@ export async function orderRooms(floor: number, ids: string[]) {
 
 export async function deleteRoom(id: string) {
   return unwrap(await api.delete<ApiEnvelope<RoomLayout>>(`/hostel-admin/rooms/${id}`));
+}
+
+/**
+ * Many empty rooms at once. Each DELETE re-derives the type counts and answers
+ * with the whole layout, so one at a time is N round trips of that. These go
+ * together instead, and the last one goes alone after they settle so the counts
+ * it derives see every earlier removal. Failures are rethrown after that.
+ */
+export async function deleteRooms(ids: string[]) {
+  const last = ids.at(-1);
+  if (last === undefined) return undefined;
+  const settled = await Promise.allSettled(ids.slice(0, -1).map((id) => deleteRoom(id)));
+  const layout = await deleteRoom(last);
+  const failed = settled.find((result) => result.status === "rejected");
+  if (failed) throw (failed as PromiseRejectedResult).reason;
+  return layout;
+}
+
+/** Name a floor; an empty name puts its ordinal back. */
+export async function renameFloor(floor: number, name: string) {
+  return unwrap(await api.put<ApiEnvelope<RoomLayout>>("/hostel-admin/rooms/floor-names", { floor, name }));
 }
 
 export async function setRoomTracking(enabled: boolean) {

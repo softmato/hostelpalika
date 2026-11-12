@@ -1,4 +1,5 @@
 import { roomTypeLabel } from "@hostel/constants/room-types";
+import { CollectPayment } from "@/components/collect-payment";
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { KycLockedScreen } from "@/components/kyc-frost";
@@ -6,7 +7,7 @@ import { Glyph } from "@/components/ui/glyph";
 import { useKycLock } from "@/lib/kyc-lock";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import {
   DeniedNotice,
@@ -21,7 +22,6 @@ import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { BillBreakdown } from "@/components/bill-extras";
 import { Chip, Stagger } from "@/components/ui/layout";
 import { Lottie } from "@/components/ui/lottie";
 import { PersonAvatar } from "@/components/ui/avatar";
@@ -44,10 +44,9 @@ import {
   adminQuery,
   prefetchAdminResident,
 } from "@/lib/admin-queries";
-import { recordCashPayment, voidInvoice } from "@/lib/admin-manage-api";
+import { voidInvoice } from "@/lib/admin-manage-api";
 import {
   amountOwed,
-  fineGrowth,
   type InvoiceSegment,
   invoiceSegment,
   isFirstMonth,
@@ -395,11 +394,7 @@ function BranchAdminMoneyScreen() {
    * Minted once per opening, so a double tap or a retry after a dropped
    * connection lands on the same payment instead of banking it twice.
    */
-  const [cash, setCash] = useState({ amount: "", collectedBy: "", note: "", slip: "" });
-  const [editCollector, setEditCollector] = useState(false);
-  const [showNote, setShowNote] = useState(false);
-  /* Said beside the button it is about, not in a toast at the top of the screen. */
-  const [cashError, setCashError] = useState<string | null>(null);
+  const [slip, setSlip] = useState("");
   const [done, setDone] = useState<{ amount: number; pending: boolean } | null>(null);
   const [voidOpen, setVoidOpen] = useState(false);
   const [voidReason, setVoidReason] = useState("");
@@ -421,60 +416,13 @@ function BranchAdminMoneyScreen() {
      * has already chosen this person.
      */
     prefetchAdminResident(row.resident.id);
-    setCash({
-      amount:
-        row.payment && row.payment.dueAmount > row.payment.paidAmount
-          ? String(row.payment.dueAmount - row.payment.paidAmount)
-          : "",
-      collectedBy: me,
-      note: "",
-      slip: `APP-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase(),
-    });
-    setEditCollector(!me);
-    setShowNote(false);
-    setCashError(null);
+    setSlip(`APP-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase());
     setDone(null);
     setVoidOpen(false);
     setVoidReason("");
     setVoidError(null);
-  }, [me]);
+  }, []);
 
-  const takeCash = useCallback(async () => {
-    if (!open?.payment) {
-      return;
-    }
-
-    const amount = Number(cash.amount);
-
-    if (!Number.isInteger(amount) || amount <= 0) {
-      setCashError("Enter the amount in whole rupees.");
-      return;
-    }
-
-    if (cash.collectedBy.trim().length < 2) {
-      setCashError("Add who took the cash.");
-      setEditCollector(true);
-      return;
-    }
-
-    setCashError(null);
-    setBusy("cash");
-
-    try {
-      const { pendingApproval } = await recordCashPayment(open.payment.id, {
-        amount,
-        cashReceiptNumber: cash.slip,
-        collectedBy: cash.collectedBy.trim(),
-        note: cash.note.trim() || undefined,
-      });
-      setDone({ amount, pending: pendingApproval });
-      money.refresh();
-    } catch (error) {
-      setCashError(readApiError(error));
-    } finally {
-      setBusy(null);
-    }
-  }, [cash, money, open]);
 
   /* Takes the late fine off this bill; the sheet then offers the smaller total. */
   const waiveFine = useCallback(() => {
@@ -497,7 +445,6 @@ function BranchAdminMoneyScreen() {
           setOpen((current) =>
             current?.payment ? { ...current, payment: { ...current.payment, dueAmount, lines } } : current,
           );
-          setCash((prev) => ({ ...prev, amount: String(Math.max(dueAmount - payment.paidAmount, 0)) }));
           toastSuccess("Fine waived");
           money.refresh();
         } catch (error) {
@@ -604,50 +551,6 @@ function BranchAdminMoneyScreen() {
           />
 
           {/*
-            Search, and the way out of searching at all.
-
-            `Reconcile` is not a second search control: it is the answer to "I am
-            not going to check forty of these by eye". It uploads the bank or
-            wallet statement and matches it against the open invoices, which
-            settles the ones that agree without anybody approving them
-            individually — the same work this queue does one card at a time.
-
-            It sits here rather than in the queue's own header because it is
-            worth offering *before* the queue is read, and because on the day the
-            queue is empty it is still the fastest way to settle a month.
-
-            The field used to appear only over a list of more than eight, on the
-            argument that a search box over six rows is a control that exists to
-            be ignored. That gate is gone: the row now carries a control that is
-            always worth showing, and a lone button floating on the right of an
-            empty row reads as a layout accident rather than as a decision.
-          */}
-          <View className="flex-row items-center gap-2 px-5">
-            <View className="flex-1">
-              <Input
-                autoCapitalize="none"
-                autoCorrect={false}
-                onChangeText={(next) => {
-                  setQuery(next);
-                  // The cap belongs to the list that was open, and a query
-                  // narrows to a new one.
-                  setShowAll(false);
-                }}
-                placeholder="Search name, room or phone"
-                returnKeyType="search"
-                value={query}
-              />
-            </View>
-
-            <Button
-              label="Reconcile"
-              onPress={() => router.push("/manage/statements")}
-              size="sm"
-              variant="outline"
-            />
-          </View>
-
-          {/*
             Present only when there is something to decide — see the note at the
             top. `DeniedNotice` is outside that condition on purpose: "nothing to
             verify" and "you are not allowed to see what needs verifying" are
@@ -732,6 +635,22 @@ function BranchAdminMoneyScreen() {
                   }}
                   options={segments}
                   value={segment}
+                />
+
+                {/* Under the Owing / Paid toggle, full width — it searches that
+                    list. Reconcile left this screen; it lives on Finance. */}
+                <Input
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onChangeText={(next) => {
+                    setQuery(next);
+                    // The cap belongs to the list that was open, and a query
+                    // narrows to a new one.
+                    setShowAll(false);
+                  }}
+                  placeholder="Search name, room or phone"
+                  returnKeyType="search"
+                  value={query}
                 />
               </View>
             </View>
@@ -818,61 +737,22 @@ function BranchAdminMoneyScreen() {
                       }
                       subtitle={[
                         roomTypeLabel(row.resident.roomType),
-                        row.resident.roomNumber,
-                        /*
-                         * Why this row's amount is smaller than its neighbours'.
-                         * The billing run prorates from the move-in day, so a
-                         * resident admitted mid-month is billed part of one —
-                         * and an unexplained low figure on a list of rents reads
-                         * as a billing fault rather than as arithmetic. Plain
-                         * text in the subtitle, not a badge: nothing is wrong,
-                         * and a coloured marker here would compete with the
-                         * overdue pill, which is the thing on this screen that
-                         * does want the eye.
-                         */
+                        // Room type, then this month's fine as one total. The room
+                        // number, the per-day growth and the phone are on the
+                        // resident's sheet; here they made a row of five facts.
+                        // The fine is on this month's own bill — an older month's
+                        // fine stays on that month's bill, never added to this one.
                         isFirstMonth(row, period) ? "First month" : null,
-                        /*
-                         * What the month would cost somebody nobody has
-                         * invoiced yet. "Not billed" with no figure beside it is
-                         * the row a warden sees the day after a registration,
-                         * and it reads as money that has gone missing; the
-                         * amount says the resident is priced and the run simply
-                         * has not happened.
-                         *
-                         * Deliberately in the subtitle rather than in the amount
-                         * column on the right. That column is what is *owed*,
-                         * every figure in it is summed into the hostel's
-                         * outstanding total, and a projection sitting there
-                         * would read as a debt the resident does not yet have.
-                         */
                         (() => {
                           const fine = row.payment?.lines?.find((line) => line.basis === "FINE");
-                          const growth = fine ? fineGrowth(fine) : null;
 
-                          if (!fine && row.payment?.fineWaived) {
-                            return "Fine waived";
-                          }
+                          if (!fine && row.payment?.fineWaived) return "Fine waived";
 
-                          return fine
-                            ? `Fine ${formatMoney(fine.amount)}${growth ? ` · +${formatMoney(growth.perDay)}/day` : ""}`
-                            : null;
+                          return fine ? `Fine ${formatMoney(fine.amount)}` : null;
                         })(),
                         projectedAmount(row)
                           ? `Would be ${formatMoney(projectedAmount(row)!)}`
                           : null,
-                        /*
-                         * Says so when there is no number, rather than simply
-                         * leaving it out: the sheet this opens leads with a call
-                         * button, and a row that cannot be called should say so
-                         * before it is tapped.
-                         *
-                         * Truthiness, not `??`: the server sends `phone` as
-                         * optional and an empty string reaches here as often as
-                         * an absent key.
-                         */
-                        row.resident.phone
-                          ? row.resident.phone
-                          : "No phone on file",
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -943,7 +823,7 @@ function BranchAdminMoneyScreen() {
         title={open?.resident.fullName || "Resident"}
       >
         {open && done ? (
-          <View className="items-center gap-3 pb-2 pt-2">
+          <View className="items-center gap-3 pb-8 pt-2">
             {done.pending ? (
               <Glyph color={colors.warning} name="hourglass" size={72} />
             ) : (
@@ -960,7 +840,7 @@ function BranchAdminMoneyScreen() {
             </View>
           </View>
         ) : open ? (
-          <View className="gap-4 pb-2">
+          <View className="gap-4 pb-8">
             <View className="gap-2">
               <View className="flex-row items-center justify-between gap-2">
                 <View className="flex-1">
@@ -983,13 +863,7 @@ function BranchAdminMoneyScreen() {
                 <StatusPill status={open.displayStatus} />
               </View>
 
-              {open.payment ? (
-                <BillBreakdown
-                  dueAmount={open.payment.dueAmount}
-                  lines={open.payment.lines}
-                  paidAmount={open.payment.paidAmount}
-                />
-              ) : projectedAmount(open) ? (
+              {open.payment ? null : projectedAmount(open) ? (
                 /*
                   The unbilled sheet's answer to "how much". One chip, and it
                   says `Would be` rather than `Billed`: the resident is priced,
@@ -1027,137 +901,35 @@ function BranchAdminMoneyScreen() {
                 </Text>
               ) : null}
 
-              <View className="flex-row flex-wrap gap-2">
-                {open.resident.phone ? (
-                  <Chip
-                    icon="call"
-                    label={open.resident.phone}
-                    onPress={() =>
-                      void Linking.openURL(`tel:${open.resident.phone}`)
-                    }
-                    tone="brand"
-                  />
-                ) : null}
-                <Chip
-                  icon="person"
-                  label="Record"
-                  onPress={() => {
-                    const residentId = open.resident.id;
-
-                    setOpen(null);
-                    router.push(`/manage/resident/${residentId}`);
-                  }}
-                />
-                {open.payment &&
-                open.payment.status !== "PAID" &&
-                open.payment.lines?.some((line) => line.basis === "FINE") ? (
-                  <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
-                ) : null}
-              </View>
             </View>
+
+            {/* Every month this resident still owes, whichever month this sheet was
+                opened from — the ledger decides, not the row that was tapped. */}
+            {/* Todo E1–E6: every unpaid month, Cash or the hostel's own online methods. */}
+            <CollectPayment
+              collectedBy={me}
+              onDone={(result) => {
+                setDone(result);
+                money.refresh();
+              }}
+              bill={
+                open.payment
+                  ? {
+                      dueAmount: open.payment.dueAmount,
+                      id: open.payment.id,
+                      lines: open.payment.lines,
+                      paidAmount: open.payment.paidAmount,
+                      status: open.payment.status,
+                    }
+                  : undefined
+              }
+              onWaiveFine={waiveFine}
+              residentId={open.resident.id}
+              slip={slip}
+            />
 
             {open.payment ? (
               <>
-                <View className="gap-3 border-t border-border pt-4">
-                  <Input
-                    keyboardType="number-pad"
-                    label="Cash received"
-                    leading={<Text variant="subtitle">Rs</Text>}
-                    onChangeText={(amount) => {
-                      setCash((prev) => ({ ...prev, amount: amount.replace(/\D/g, "") }));
-                      setCashError(null);
-                    }}
-                    placeholder="0"
-                    style={{ fontSize: 20, fontWeight: "600" }}
-                    value={cash.amount}
-                  />
-                  {amountOwed(open) > 1 ? (
-                    <View className="flex-row flex-wrap gap-2">
-                      {[
-                        { label: "Full", value: amountOwed(open) },
-                        { label: "Half", value: Math.round(amountOwed(open) / 2) },
-                      ].map((pick) => (
-                        <Chip
-                          key={pick.label}
-                          label={`${pick.label} · ${formatMoney(pick.value)}`}
-                          onPress={() => {
-                            setCash((prev) => ({ ...prev, amount: String(pick.value) }));
-                            setCashError(null);
-                          }}
-                          tone={cash.amount === String(pick.value) ? "brand" : "neutral"}
-                        />
-                      ))}
-                    </View>
-                  ) : null}
-
-                  {editCollector ? (
-                    <Input
-                      label="Collected by"
-                      onChangeText={(collectedBy) =>
-                        setCash((prev) => ({ ...prev, collectedBy }))
-                      }
-                      placeholder="Name of who took the cash"
-                      value={cash.collectedBy}
-                    />
-                  ) : (
-                    <Pressable
-                      accessibilityLabel={`Collected by ${cash.collectedBy}. Change`}
-                      accessibilityRole="button"
-                      className="min-h-11 flex-row items-center gap-2 active:opacity-70"
-                      onPress={() => setEditCollector(true)}
-                    >
-                      <PersonAvatar
-                        image={cash.collectedBy === me ? account?.image : null}
-                        name={cash.collectedBy}
-                        size="sm"
-                      />
-                      <Text className="flex-1" numberOfLines={1} variant="muted">
-                        {`Taken by ${cash.collectedBy}`}
-                      </Text>
-                      <Text className="text-primary" variant="label">
-                        Change
-                      </Text>
-                    </Pressable>
-                  )}
-
-                  {showNote ? (
-                    <Input
-                      label="Note"
-                      onChangeText={(note) => setCash((prev) => ({ ...prev, note }))}
-                      placeholder="Optional"
-                      value={cash.note}
-                    />
-                  ) : (
-                    <Pressable
-                      accessibilityRole="button"
-                      className="min-h-11 justify-center self-start active:opacity-70"
-                      onPress={() => setShowNote(true)}
-                    >
-                      <Text className="text-primary" variant="label">
-                        + Add a note
-                      </Text>
-                    </Pressable>
-                  )}
-
-                  {cashError ? (
-                    <Text className="text-destructive" variant="label">
-                      {cashError}
-                    </Text>
-                  ) : null}
-                  <Button
-                    disabled={busy === "void"}
-                    icon="cash"
-                    label={
-                      Number(cash.amount) > 0
-                        ? `Collect ${formatMoney(Number(cash.amount))}`
-                        : "Collect cash"
-                    }
-                    loading={busy === "cash"}
-                    onPress={() => void takeCash()}
-                    size="lg"
-                  />
-                </View>
-
                 {/* Rare and irreversible, so it stays folded away. */}
                 <View className="border-t border-border pt-1">
                   <Pressable
@@ -1199,9 +971,7 @@ function BranchAdminMoneyScreen() {
                   ) : null}
                 </View>
               </>
-            ) : (
-              <Text variant="muted">{"Nothing billed this month."}</Text>
-            )}
+            ) : null}
           </View>
         ) : null}
       </Sheet>

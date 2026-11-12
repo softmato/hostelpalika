@@ -72,6 +72,13 @@ export const roomTrackingSchema = z.object({
   hostelId: objectId.optional(),
 });
 
+export const floorNameSchema = z.object({
+  floor: z.coerce.number().int().min(-5).max(200),
+  hostelId: objectId.optional(),
+  /** Empty clears the name and the floor reads as its ordinal again. */
+  name: z.string().trim().max(30),
+});
+
 export const roomChangeAskSchema = z.object({
   note: z.string().trim().max(200).optional(),
   toRoomId: objectId,
@@ -254,10 +261,11 @@ export async function getRoomLayout(hostelId: Types.ObjectId | string) {
   await connectToDatabase();
 
   const id = oid(hostelId);
-  const [rooms, residents, tracking, hostel, pending] = await Promise.all([
+  const [rooms, residents, tracking, floorNames, hostel, pending] = await Promise.all([
     loadRooms(id),
     loadLiveResidents(id),
     isRoomTracking(id),
+    loadFloorNames(id),
     HostelModel.findById(id).select("roomConfigurations").lean<{ roomConfigurations?: RoomConfiguration[] } | null>(),
     RoomChangeRequestModel.countDocuments({ hostelId: id, status: "PENDING" }),
   ]);
@@ -281,6 +289,8 @@ export async function getRoomLayout(hostelId: Types.ObjectId | string) {
   const images = new Map(users.flatMap((user) => (user.image ? [[user._id.toString(), user.image] as const] : [])));
 
   return {
+    // Only when the owner named a floor, so a hostel that never did sees the layout it always had.
+    ...(Object.keys(floorNames).length ? { floorNames } : {}),
     pendingRequests: pending,
     rooms: viewRooms(rooms, residents, { dues, images }),
     roomTypes: configurations.map((config) => config.roomType),
@@ -464,6 +474,30 @@ export async function deleteRoom(hostelId: Types.ObjectId | string, roomId: stri
   await syncTypeCounts(id);
 
   return getRoomLayout(id);
+}
+
+async function loadFloorNames(hostelId: Types.ObjectId): Promise<Record<string, string>> {
+  const settings = await HostelSettingsModel.findOne({ hostelId })
+    .select("floorNames")
+    .lean<{ floorNames?: Record<string, string> | null } | null>();
+
+  return settings?.floorNames ?? {};
+}
+
+export async function setFloorName(hostelId: Types.ObjectId | string, floor: number, name: string, principal: ApiPrincipal) {
+  await connectToDatabase();
+
+  const key = `floorNames.${floor}`;
+
+  await HostelSettingsModel.updateOne(
+    { hostelId: oid(hostelId) },
+    name
+      ? { $set: { [key]: name, updatedBy: principal.userId }, $setOnInsert: { createdBy: principal.userId } }
+      : { $set: { updatedBy: principal.userId }, $setOnInsert: { createdBy: principal.userId }, $unset: { [key]: "" } },
+    { upsert: true },
+  );
+
+  return getRoomLayout(hostelId);
 }
 
 export async function setRoomTracking(hostelId: Types.ObjectId | string, enabled: boolean, principal: ApiPrincipal) {

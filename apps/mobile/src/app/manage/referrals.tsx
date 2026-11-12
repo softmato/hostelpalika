@@ -258,7 +258,7 @@ export default function ManageReferralsScreen() {
 
         {rows.length === 0 ? (
           <EmptyCard
-            description="Residents share their code from Refer a friend; anyone who enquires with it lands here."
+            description="Enquiries with a resident’s code land here."
             icon="gift"
             title="No referrals yet"
           />

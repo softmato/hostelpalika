@@ -387,7 +387,9 @@ doc version.
   - **Re-billed month keeps its code.** Void a month and bill it again → same `RUP-482K-BHA83`.
     Matching is fine (only open bills are read). An online checkout on the new bill would reuse
     the old bill's merchant reference `…-1`; fix when gateway testing starts.
-  - `npm --prefix apps/web run db:indexes` on prod for the `{hostelId, paymentCode}` unique index.
+  - ☑ `db:indexes` run on prod 2026-11-11: `Resident {hostelId, paymentCode}` created.
+  - ☑ Go deployed 2026-11-11 (`e5535423`): six contract fixtures re-recorded for month codes;
+    TS resident list got the `_id` tie-break Go already had.
   Device pass still to do: C1–C4, E1–E6, F1–F3, G2–G3, H1c–H1g, H2–H6.
 
 ## Order

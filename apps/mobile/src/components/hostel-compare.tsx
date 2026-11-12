@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -17,6 +17,7 @@ import { API_BASE_URL } from "@/lib/api";
 import { cardPhotoUrl, coverPhoto, priceRange, ratingDisplay } from "@/lib/hostel-display";
 import { absoluteMediaUrl } from "@/lib/media";
 import {
+  COMPARE_MAX,
   COMPARE_MIN,
   type ComparedHostel,
   HOSTEL_TYPE_LABELS,
@@ -73,7 +74,35 @@ export function HostelCompare({
   showBack = false,
 }: HostelCompareProps) {
   const { ids } = useLocalSearchParams<{ ids?: string }>();
-  const selected = (ids ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+  const picked = (ids ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+  // Held here, not written back with `router.setParams`, which did not re-render
+  // the screen inside the tab group.
+  const [seeded, setSeeded] = useState<string[]>([]);
+  const selected = picked.length > 0 ? picked : seeded;
+
+  // Nothing picked → seed three random listed hostels, as the web's /compare
+  // does, so opening the tab directly is not an empty state.
+  const nothingPicked = picked.length === 0;
+  useEffect(() => {
+    if (!nothingPicked) return;
+    let live = true;
+    publicQuery
+      .hostels()
+      .load()
+      .then((hostels) => {
+        if (!live || hostels.length < COMPARE_MIN) return;
+        setSeeded(
+          [...hostels]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, COMPARE_MAX)
+            .map((hostel) => hostel.id),
+        );
+      })
+      .catch(() => undefined); // the empty state below still explains what to do
+    return () => {
+      live = false;
+    };
+  }, [nothingPicked]);
 
   const query = publicQuery.compare(selected);
   const compared = useResource<ComparedHostel[]>(

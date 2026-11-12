@@ -139,39 +139,6 @@ export function AdminHomeHeader({
  */
 
 /**
- * This month against last, as a pill beside the section label.
- *
- * The only pill left on the hero. Three of them wrapped across the amount block
- * in the first cut, and a wrapping row of `shrink` chips is a truncation
- * machine: every chip gives up width to its neighbours until each one ellipses,
- * so `NPR 74,000 this month` became `NPR 74,0…` and the figures the hero exists
- * to show were the first thing lost. What those chips carried went to a fixed
- * two-up row, and then off the hero altogether — the month is the Money
- * section's subject and was being answered twice.
- *
- * This one survives as a pill because it is genuinely a *label*, not a figure —
- * it is short, bounded (`Up 99% on Sep` is the worst case), and it belongs
- * beside the heading it qualifies rather than under the number.
- *
- * The month's own figure came back, but as the right half of the fixed two-up
- * under the headline rather than as a chip beside it — see the note there. A
- * pill is the wrong container for a currency amount and always was.
- */
-function DeltaPill({ delta }: { delta: MonthDelta }) {
-  const icon =
-    delta.direction === "up" ? "arrow-up" : delta.direction === "down" ? "arrow-down" : "remove";
-
-  return (
-    <View className="flex-row items-center gap-1 rounded-full border border-white/25 bg-white/20 px-2.5 py-1">
-      <Glyph color="rgba(255,255,255,0.9)" name={icon} size={11} />
-      <Text className="font-semibold text-white" numberOfLines={1} style={{ fontSize: 11 }}>
-        {delta.label}
-      </Text>
-    </View>
-  );
-}
-
-/**
  * The one thing allowed to interrupt the hero.
  *
  * It sits **above the money**, which is the rule the previous Home already held
@@ -324,7 +291,6 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
  */
 export function HostelHero({
   balance = null,
-  delta,
   earnings,
   hostel,
   listing,
@@ -341,8 +307,8 @@ export function HostelHero({
    * unreadable or truncated; the headline then falls back to collections.
    */
   balance?: number | null;
-  /** This month against last. Null in a first month — see `monthOverMonth`. */
-  delta: MonthDelta | null;
+  /** Not shown on the hero any more; callers may still pass it. */
+  delta?: MonthDelta | null;
   earnings: EarningsSummary;
   hostel: AdminHostel | null;
   /** Omitted for Overall — several listings have no single state. */
@@ -480,12 +446,6 @@ export function HostelHero({
             </Pressable>
           </View>
 
-          {/*
-            Only when there is a comparison to make. A first month, and a
-            month following a blank one, both return null rather than a
-            percentage computed against zero.
-          */}
-          {delta ? <DeltaPill delta={delta} /> : null}
         </View>
 
         {/*
@@ -1064,7 +1024,7 @@ export function EarningsTrend({ bars }: { bars: readonly TrendBar[] }) {
       */}
       <View className="flex-row items-baseline justify-between">
         <Text variant="label">Collected</Text>
-        <Text className="font-semibold">{formatMoney(latest.collected)}</Text>
+        <Text className="font-amount tabular-nums font-semibold">{formatMoney(latest.collected)}</Text>
       </View>
 
       <View className="flex-row">

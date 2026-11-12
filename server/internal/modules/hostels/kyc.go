@@ -91,7 +91,9 @@ type kycHostel struct {
 	Photos []struct {
 		URL string `bson:"url"`
 	} `bson:"photos"`
-	Rules []string `bson:"rules"`
+	Rules              []string `bson:"rules"`
+	Status             string   `bson:"status"`
+	VerificationStatus string   `bson:"verificationStatus"`
 }
 
 // profileUsable is isPaymentProfileUsable: the same test the resident pay screen
@@ -142,7 +144,7 @@ func (a *Admin) exists(ctx context.Context, coll string, filter bson.D) (bool, e
 func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*kycOut, error) {
 	var h kycHostel
 	err := a.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: id}}, options.FindOne().SetProjection(bson.D{
-		{Key: "photos", Value: 1}, {Key: "rules", Value: 1}, {Key: "facilities", Value: 1}, {Key: "location", Value: 1}, {Key: "hostelType", Value: 1}, {Key: "kyc", Value: 1}})).Decode(&h)
+		{Key: "photos", Value: 1}, {Key: "rules", Value: 1}, {Key: "facilities", Value: 1}, {Key: "location", Value: 1}, {Key: "hostelType", Value: 1}, {Key: "kyc", Value: 1}, {Key: "status", Value: 1}, {Key: "verificationStatus", Value: 1}})).Decode(&h)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, httpx.NewError(404, "HOSTEL_NOT_FOUND", "Hostel was not found.", nil)
 	}
@@ -282,14 +284,17 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 		}
 		out.Documents = append(out.Documents, row)
 	}
+	// A quick sign-up always has a review. Any other hostel gets one until it is
+	// verified, so a branch or an admin-created hostel can send its KYC too.
 	isRequired := h.Kyc != nil && h.Kyc.Required
+	needsReview := isRequired || (h.VerificationStatus != "" && h.VerificationStatus != "VERIFIED")
 	doneCount := 0
 	for _, key := range kycSteps {
 		if done[key] {
 			doneCount++
 		}
 		required := false
-		if isRequired {
+		if needsReview {
 			for _, r := range kycRequired {
 				required = required || r == key
 			}
@@ -297,10 +302,13 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 		out.Steps = append(out.Steps, kycStep{done[key], key, required})
 	}
 	out.Percent = int(math.Round(100 * float64(doneCount) / float64(len(kycSteps))))
-	if isRequired {
+	if needsReview {
 		status := "DRAFT"
-		if h.Kyc.Status != nil {
+		if h.Kyc != nil && h.Kyc.Status != nil {
 			status = *h.Kyc.Status
+		}
+		if !isRequired && h.Status == "REJECTED" {
+			status = "REJECTED"
 		}
 		missing := []string{}
 		for _, key := range kycRequired {
@@ -309,10 +317,10 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 			}
 		}
 		r := &kycReview{CanSubmit: len(missing) == 0 && (status == "DRAFT" || status == "REJECTED"), Missing: missing, Status: status}
-		if status == "REJECTED" {
+		if status == "REJECTED" && h.Kyc != nil {
 			r.Note = h.Kyc.Note
 		}
-		if h.Kyc.SubmittedAt != nil {
+		if h.Kyc != nil && h.Kyc.SubmittedAt != nil {
 			s := h.Kyc.SubmittedAt.UTC().Format("2006-01-02T15:04:05.000Z")
 			r.SubmittedAt = &s
 		}
@@ -479,9 +487,20 @@ func (a *Admin) submitKyc(ctx context.Context, id bson.ObjectID, userID string) 
 		Name    string         `bson:"name"`
 		OwnerID *bson.ObjectID `bson:"ownerId"`
 	}
-	err = a.DB.Collection("hostels").FindOneAndUpdate(ctx, bson.D{{Key: "_id", Value: id}, {Key: "kyc.required", Value: true}, {Key: "kyc.status", Value: bson.D{{Key: "$ne", Value: "APPROVED"}}}},
-		bson.D{{Key: "$set", Value: bson.D{{Key: "kyc.note", Value: nil}, {Key: "kyc.status", Value: "SUBMITTED"}, {Key: "kyc.submittedAt", Value: now}, {Key: "status", Value: "PENDING_APPROVAL"},
-			{Key: "updatedBy", Value: actor}, {Key: "verificationStatus", Value: "PENDING"}, {Key: "updatedAt", Value: now}}}},
+	// A hostel that is already approved or listed keeps its status while its KYC is checked.
+	var cur struct {
+		Status string `bson:"status"`
+	}
+	if err := a.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: id}}, options.FindOne().SetProjection(bson.D{{Key: "status", Value: 1}})).Decode(&cur); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, err
+	}
+	set := bson.D{{Key: "kyc.note", Value: nil}, {Key: "kyc.status", Value: "SUBMITTED"}, {Key: "kyc.submittedAt", Value: now}}
+	if cur.Status == "" || cur.Status == "DRAFT" || cur.Status == "REJECTED" || cur.Status == "PENDING_APPROVAL" {
+		set = append(set, bson.E{Key: "status", Value: "PENDING_APPROVAL"})
+	}
+	set = append(set, bson.E{Key: "updatedBy", Value: actor}, bson.E{Key: "verificationStatus", Value: "PENDING"}, bson.E{Key: "updatedAt", Value: now})
+	err = a.DB.Collection("hostels").FindOneAndUpdate(ctx, bson.D{{Key: "_id", Value: id}, {Key: "kyc.status", Value: bson.D{{Key: "$ne", Value: "APPROVED"}}}, {Key: "verificationStatus", Value: bson.D{{Key: "$ne", Value: "VERIFIED"}}}},
+		bson.D{{Key: "$set", Value: set}},
 		options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&h)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, httpx.NewError(404, "HOSTEL_NOT_FOUND", "Hostel was not found.", nil)

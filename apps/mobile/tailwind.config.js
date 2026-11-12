@@ -16,6 +16,8 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      // Todo F1: amounts, like web `.font-amount` (loaded in app/_layout.tsx).
+      fontFamily: { amount: ["Manrope_700Bold"] },
       colors: {
         background: "rgb(var(--background) / <alpha-value>)",
         foreground: "rgb(var(--foreground) / <alpha-value>)",

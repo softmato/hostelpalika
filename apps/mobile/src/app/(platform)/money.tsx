@@ -145,7 +145,7 @@ function ClaimCard({ claim, onReviewed }: { claim: PlanClaim; onReviewed: () => 
             {claim.planName} · {claim.invoiceNumber}
           </Text>
         </View>
-        <Text variant="title">{formatMoney(claim.amount)}</Text>
+        <Text className="font-amount tabular-nums" variant="title">{formatMoney(claim.amount)}</Text>
       </View>
 
       {claim.proofAssetId ? (
@@ -234,7 +234,7 @@ function CashCard({ onChecked, row }: { onChecked: () => void; row: FieldCash })
             {row.collectedBy} · {dates.ago(row.collectedAt)}
           </Text>
         </View>
-        <Text className="font-bold">{formatMoney(row.amount)}</Text>
+        <Text className="font-amount tabular-nums font-bold">{formatMoney(row.amount)}</Text>
       </View>
       <FactRow label="Invoice" value={row.invoiceNumber} />
       <FactRow label="Softmato no." value={row.transactionNo ?? "Not filed yet"} />

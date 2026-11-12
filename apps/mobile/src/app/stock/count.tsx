@@ -143,7 +143,7 @@ export default function CountScreen() {
   if (overall || !here) {
     return (
       <Screen header={header}>
-        <EmptyCard description="Overall is view only. Switch to the building you are counting." title="Pick a building" />
+        <EmptyCard description="Pick the building you are counting." title="Pick a building" />
       </Screen>
     );
   }

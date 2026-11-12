@@ -114,7 +114,7 @@ export function Money({
   const prefix = text.startsWith("Rs ") ? "Rs" : null;
 
   return (
-    <Text className={`${inkClass} ${className}`} variant={VARIANTS[size]}>
+    <Text className={`${inkClass} font-amount tabular-nums ${className}`} variant={VARIANTS[size]}>
       {prefix ? (
         <>
           {/*

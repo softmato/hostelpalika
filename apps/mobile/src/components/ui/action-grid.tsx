@@ -219,7 +219,11 @@ export function ActionCell({
         className={`text-center ${
           selected ? "font-bold text-primary" : onAccent ? "font-semibold text-white" : "font-medium text-foreground"
         }`}
-        numberOfLines={2}
+        // On painted ground (the public Home) a label is one line that shrinks
+        // to fit — `Service provider` broke into two and made the row ragged.
+        adjustsFontSizeToFit={onAccent}
+        minimumFontScale={0.7}
+        numberOfLines={onAccent ? 1 : 2}
         style={{ fontSize: 11, lineHeight: 14 }}
       >
         {label}

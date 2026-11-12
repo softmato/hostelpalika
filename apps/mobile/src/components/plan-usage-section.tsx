@@ -1,15 +1,12 @@
-import { freeTierLines } from "@hostel/plans/catalog";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 
-import { PlanMark } from "@/components/plan-mark";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Meter } from "@/components/ui/meter";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { useSiteConfig } from "@/hooks/use-site-config";
 import { adminQuery } from "@/lib/admin-queries";
 import type { PlanSeat, PlanUsage } from "@/lib/admin-manage-api";
 
@@ -70,29 +67,15 @@ export function PlanLimitBanner({ usage }: { usage: PlanUsage | null }) {
  * with the hostel's own numbers in front of it.
  */
 export function PlanUsageSection({ usage }: { usage: PlanUsage | null }) {
-  const { colors } = useAppTheme();
-  const { config } = useSiteConfig();
-
   if (!usage || usage.state === "none") return null;
 
-  const free = config.plans.free;
-  const options = [
-    ...(free
-      ? [{ caps: { cooks: free.portalAccess.cooks, residents: free.maxResidents, wardens: free.portalAccess.wardens }, id: "free", name: free.name }]
-      : []),
-    ...config.plans.plans.map((plan) => ({
-      caps: { cooks: plan.portalAccess.cooks, residents: plan.maxResidents, wardens: plan.portalAccess.wardens },
-      id: plan.id,
-      name: plan.name,
-    })),
-  ];
   const trial = usage.state === "trial";
 
-  return (
-    <View className="gap-3">
-      <PlanLimitBanner usage={usage} />
+  // Nothing to measure against: every seat is unlimited (Max).
+  if (!trial && SEATS.every(({ id }) => usage.caps[id] === null)) return null;
 
-      <View>
+  return (
+    <View>
         <SectionHeader title={trial ? "Your usage" : `On ${usage.planName ?? "your plan"}`} />
         <Card className="gap-4">
           {SEATS.map(({ id, label }) => {
@@ -102,59 +85,14 @@ export function PlanUsageSection({ usage }: { usage: PlanUsage | null }) {
 
             return (
               <View className="gap-1.5" key={id}>
-                <View className="flex-row items-baseline justify-between">
-                  <Text className="text-sm text-muted-foreground" variant={null}>
-                    {label}
-                  </Text>
-                  <Text className={`text-sm font-bold ${over ? "text-destructive" : "text-foreground"}`} variant={null}>
-                    {`${used} / ${cap === null ? "Unlimited" : cap}`}
-                  </Text>
-                </View>
-                <Meter label={null} percent={cap === null ? null : cap === 0 ? 100 : Math.round((used / cap) * 100)} reading="elapsed" />
+                <Text className={`text-sm ${over ? "font-bold text-destructive" : "text-muted-foreground"}`} variant={null}>
+                  {label}
+                </Text>
+                <Meter label={null} percent={cap === null ? 0 : cap === 0 ? 100 : Math.round((used / cap) * 100)} reading="elapsed" />
               </View>
             );
           })}
         </Card>
-      </View>
-
-      <View>
-        <SectionHeader title={trial ? "After your trial" : "Which plan fits"} />
-        <Card className="gap-0 p-0">
-          {options.map((option, index) => {
-            const short = SEATS.filter(({ id }) => option.caps[id] !== null && usage.used[id] > option.caps[id]!);
-            const current = (usage.state === "free" && option.id === "free") || (usage.state === "paid" && option.name === usage.planName);
-
-            return (
-              <View className={`flex-row items-center gap-3 px-4 py-3 ${index > 0 ? "border-t border-border" : ""}`} key={option.id}>
-                <PlanMark color={colors.primary} free={option.id === "free"} rank={Math.max(0, index - 1)} size={22} />
-                <View className="flex-1">
-                  <Text className="text-sm font-bold text-foreground" variant={null}>
-                    {option.name}
-                    {current ? <Text className="text-xs font-normal text-muted-foreground" variant={null}>{"  · current"}</Text> : null}
-                  </Text>
-                  {option.id === "free" && free && short.length === 0 ? (
-                    <Text className="text-xs text-muted-foreground" variant={null}>
-                      {freeTierLines(free).join(" · ")}
-                    </Text>
-                  ) : null}
-                </View>
-                {short.length === 0 ? (
-                  <View className="flex-row items-center gap-1">
-                    <Glyph color={colors.primary} name="checkmark" size={16} />
-                    <Text className="text-sm font-semibold text-primary" variant={null}>
-                      Fits
-                    </Text>
-                  </View>
-                ) : (
-                  <Text className="max-w-[45%] text-right text-xs font-semibold text-destructive" variant={null}>
-                    {short.map(({ id, label }) => `${usage.used[id]}/${option.caps[id]} ${label.split(" ")[0].toLowerCase()}`).join(" · ")}
-                  </Text>
-                )}
-              </View>
-            );
-          })}
-        </Card>
-      </View>
     </View>
   );
 }

@@ -133,7 +133,7 @@ export default function CashBoxScreen() {
                 {day.label}
               </Text>
               {day.total > 0 ? (
-                <Text className="text-xs font-semibold text-muted-foreground">{`−${formatMoney(day.total)}`}</Text>
+                <Text className="font-amount tabular-nums text-xs font-semibold text-muted-foreground">{`−${formatMoney(day.total)}`}</Text>
               ) : null}
             </View>
             <Card padding="px-4 py-1">

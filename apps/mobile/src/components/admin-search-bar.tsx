@@ -1,8 +1,16 @@
 import type { ReactNode } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+} from "react-native-reanimated";
 
 import { Glyph } from "@/components/ui/glyph";
+import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
@@ -63,6 +71,25 @@ export function AdminSearchBar({
   const insets = useSystemInsets();
   const { colors } = useAppTheme();
 
+  // The same collapse Payments' bar does (`AppBar large`): the title shrinks
+  // toward its start as the page scrolls under it, and a hairline marks the edge.
+  const scrollY = useScreenScroll();
+  const reduceMotion = useReducedMotion();
+  const { distance, scale } = MOTION.titleCollapse;
+  const titleMotion = useAnimatedStyle(() => ({
+    transform: [
+      {
+        scale:
+          scrollY && !reduceMotion
+            ? interpolate(scrollY.get(), [0, distance], [1, scale], Extrapolation.CLAMP)
+            : 1,
+      },
+    ],
+  }));
+  const edgeMotion = useAnimatedStyle(() => ({
+    opacity: scrollY ? interpolate(scrollY.get(), [0, distance], [0, 1], Extrapolation.CLAMP) : 0,
+  }));
+
   return (
     /*
      * An explicit colour, not a `bg-*` class. This strip is the one surface with
@@ -74,9 +101,13 @@ export function AdminSearchBar({
       <View className="gap-3 px-5 pb-3 pt-2">
         <View className="flex-row items-center gap-3">
           <View className="flex-1">
-            <Text numberOfLines={1} variant="title">
-              {title}
-            </Text>
+            <Animated.View
+              style={[{ transformOrigin: subtitle ? "left bottom" : "left center" }, titleMotion]}
+            >
+              <Text numberOfLines={1} variant="title">
+                {title}
+              </Text>
+            </Animated.View>
             {subtitle ? (
               <Text numberOfLines={1} variant="caption">
                 {subtitle}
@@ -125,6 +156,21 @@ export function AdminSearchBar({
           ) : null}
         </View>
       </View>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            backgroundColor: colors.border,
+            bottom: 0,
+            height: StyleSheet.hairlineWidth,
+            left: 0,
+            position: "absolute",
+            right: 0,
+          },
+          edgeMotion,
+        ]}
+      />
     </View>
   );
 }

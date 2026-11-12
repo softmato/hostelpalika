@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { Glyph } from "@/components/ui/glyph";
 import { Money as Amount } from "@/components/ui/money";
@@ -47,7 +47,7 @@ export function BillExtras({ lines }: { lines?: BillLine[] | null }) {
                 {fine ? fineDetail(line) : line.description.replace(/^Khata — /, "")}
               </Text>
             </View>
-            <Text variant="subtitle">{formatMoney(line.amount)}</Text>
+            <Text className="font-amount tabular-nums" variant="subtitle">{formatMoney(line.amount)}</Text>
           </View>
         );
       })}
@@ -63,10 +63,13 @@ export function BillExtras({ lines }: { lines?: BillLine[] | null }) {
 export function BillBreakdown({
   dueAmount,
   lines,
+  onWaiveFine,
   paidAmount,
 }: {
   dueAmount: number;
   lines?: BillLine[] | null;
+  /** Shown on the fine row when given — the fine's own control, not a chip elsewhere. */
+  onWaiveFine?: () => void;
   paidAmount: number;
 }) {
   const rows = billRows(lines);
@@ -79,28 +82,35 @@ export function BillBreakdown({
       {rows.map((row, index) => (
         <View className="flex-row items-start justify-between gap-3" key={`${row.kind}-${index}`}>
           <View className="flex-1">
-            <Text className="text-sm text-foreground">{row.label}</Text>
+            <Text className={`text-sm ${row.kind === "net" ? "font-semibold" : ""} text-foreground`}>{row.label}</Text>
             {row.detail ? (
-              <Text numberOfLines={1} variant="caption">
+              <Text numberOfLines={2} variant="caption">
                 {row.detail}
               </Text>
+            ) : null}
+            {row.kind === "fine" && onWaiveFine ? (
+              <Pressable accessibilityRole="button" className="min-h-9 justify-center self-start active:opacity-70" onPress={onWaiveFine}>
+                <Text className="text-primary" variant="label">Waive fine</Text>
+              </Pressable>
             ) : null}
           </View>
           <Amount tone={row.amount < 0 ? "credit" : "default"} value={row.amount} />
         </View>
       ))}
-      <View className="gap-1.5 border-t border-border pt-2">
-        {paidAmount > 0 ? (
+      {/* The total lives at the end of the sheet, over Collect. Here only what
+          has already been paid on this month, so the figures still add up. */}
+      {paidAmount > 0 ? (
+        <View className="gap-1.5 border-t border-border pt-2">
           <View className="flex-row justify-between">
             <Text variant="muted">{`Paid of ${formatMoney(dueAmount)}`}</Text>
             <Amount tone="credit" value={paidAmount} />
           </View>
-        ) : null}
-        <View className="flex-row items-center justify-between">
-          <Text variant="subtitle">{paidAmount > 0 ? "Left" : "To collect"}</Text>
-          <Amount owed size="large" value={left} />
+          <View className="flex-row justify-between">
+            <Text variant="muted">Left this month</Text>
+            <Amount owed value={left} />
+          </View>
         </View>
-      </View>
+      ) : null}
     </View>
   );
 }

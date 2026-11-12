@@ -188,7 +188,7 @@ export default function StockReportsScreen() {
                         {row.bills} bill{row.bills === 1 ? "" : "s"} · {formatMoney(row.paid)} paid
                       </Text>
                     </View>
-                    <Text variant="label">{formatMoney(row.billed)}</Text>
+                    <Text className="font-amount tabular-nums" variant="label">{formatMoney(row.billed)}</Text>
                   </Pressable>
                 </View>
               ))}

@@ -243,7 +243,7 @@ function ReferralRow({ referral }: { referral: Referral }) {
       right={
         reward && reward.amount > 0 ? (
           <View className="items-end gap-0.5">
-            <Text variant="label">{formatMoney(reward.amount)}</Text>
+            <Text className="font-amount tabular-nums" variant="label">{formatMoney(reward.amount)}</Text>
             <StatusPill status={reward.status} />
           </View>
         ) : referral.converted ? (
