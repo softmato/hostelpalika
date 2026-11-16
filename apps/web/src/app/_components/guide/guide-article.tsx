@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { GUIDE_ACCESS, GUIDE_PAGES, GUIDE_TROUBLE, type GuidePicture } from "@hostel/shared/guide/guide";
+import { GUIDE_ACCESS, GUIDE_PAGES, GUIDE_TROUBLE, type GuideLink, type GuidePicture } from "@hostel/shared/guide/guide";
 import { GUIDE_NE, GUIDE_NE_ACCESS, GUIDE_NE_GROUPS, GUIDE_NE_TROUBLE, GUIDE_NE_UI, type GuideChapterNe } from "@hostel/shared/guide/guide-ne";
 
+import { AutoBillingDemo } from "@/app/_components/guide/guide-auto-billing";
 import { L } from "@/app/_components/guide/guide-l";
 import { GuideReader } from "@/app/_components/guide/guide-reader";
 import { chapterKey, type GuidePageEntry } from "@/app/_components/guide/guide-toc";
 import { ShareReceiptSteps } from "@/app/_components/share-receipt-steps";
-import { ChevronRight, House } from "@/components/icons";
+import { ArrowUpRight, ChevronRight, House } from "@/components/icons";
 import type { GuideHostel } from "@/lib/guide-hostels";
 
 const ROLES = ["owner", "warden", "resident", "guardian", "cook"] as const;
@@ -82,28 +83,30 @@ function Trouble() {
   );
 }
 
-/**
- * One chapter. Visible: breadcrumb, title, one line, the pictures. On the chapter
- * the URL names (`own`), the full text (paragraphs, steps, notes) stays in the DOM
- * as sr-only for search engines and AI readers; the other chapters leave it out so
- * no URL repeats the whole guide. A chapter with no picture shows its steps.
- */
-/** The chapter's words: paragraphs, steps and the note, in one language. */
-function Words({ c, lang, visual, k }: { c: Pick<GuideChapterNe, "body" | "note" | "steps">; k: string; lang: "en" | "ne"; visual: boolean }) {
+/** The chapter's words: paragraphs, bullets, steps and the note, in one language. */
+function Words({ c, lang, k }: { c: Pick<GuideChapterNe, "body" | "note" | "points" | "steps">; k: string; lang: "en" | "ne" }) {
   return (
     <div className={lang === "ne" ? "guide-ne space-y-4" : "guide-en space-y-4"} lang={lang === "ne" ? "ne" : undefined}>
       {c.body?.map((p) => <p key={p}>{p}</p>)}
+      {c.points ? (
+        <ul className="space-y-2">
+          {c.points.map((pt) => (
+            <li className="flex gap-3" key={pt}>
+              <span aria-hidden className="mt-[0.7em] size-1.5 shrink-0 rounded-full bg-primary" />
+              <span>{pt}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {c.steps ? (
         <section className="scroll-mt-24" id={lang === "en" ? `${k}-steps` : undefined}>
-          <h3 className={visual ? "" : "mb-3 font-heading text-lg font-bold text-foreground"}>{lang === "ne" ? GUIDE_NE_UI.steps : "Steps"}</h3>
-          <ol className={visual ? "" : "space-y-3"}>
+          <h3 className="mb-3 font-heading text-lg font-bold text-foreground">{lang === "ne" ? GUIDE_NE_UI.steps : "Steps"}</h3>
+          <ol className="space-y-3">
             {c.steps.map((s, i) => (
-              <li className={visual ? "" : "flex gap-3"} key={s}>
-                {visual ? null : (
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {i + 1}
-                  </span>
-                )}
+              <li className="flex gap-3" key={s}>
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {i + 1}
+                </span>
                 <span>{s}</span>
               </li>
             ))}
@@ -111,7 +114,7 @@ function Words({ c, lang, visual, k }: { c: Pick<GuideChapterNe, "body" | "note"
         </section>
       ) : null}
       {c.note ? (
-        <p>
+        <p className="rounded-xl border-l-4 border-primary bg-primary/5 px-4 py-3">
           <strong>{c.note.title}.</strong> {c.note.body}
         </p>
       ) : null}
@@ -119,13 +122,34 @@ function Words({ c, lang, visual, k }: { c: Pick<GuideChapterNe, "body" | "note"
   );
 }
 
+/** "Where to do it": each opens the screen in a new tab, so the guide stays open beside it. */
+function Links({ links }: { links: GuideLink[] }) {
+  return (
+    <div className="mt-5 flex flex-wrap gap-2">
+      {links.map((l) => (
+        <a
+          className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3.5 py-1.5 text-sm font-semibold text-primary hover:bg-primary/10"
+          href={l.href}
+          key={l.href + l.label}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {l.label}
+          <ArrowUpRight aria-hidden className="size-3.5" />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/** One chapter: breadcrumb, title, one line, the pictures, then the words and where to do it. */
 function Chapter({ own, page, first }: { first: boolean; own: boolean; page: GuidePageEntry }) {
   const { chapter: c, group } = page;
   const ne = GUIDE_NE[c.id];
   // A part not yet in Nepali reads in English under the Nepali switch.
-  const neWords = { body: ne?.body ?? c.body, note: ne?.note ?? c.note, steps: ne?.steps ?? c.steps };
+  const neWords = { body: ne?.body ?? c.body, note: ne?.note ?? c.note, points: ne?.points ?? c.points, steps: ne?.steps ?? c.steps };
   const k = chapterKey(page);
-  const visual = Boolean(c.flow || c.shot || c.widget);
   const Title = own ? "h1" : "h2";
 
   return (
@@ -154,15 +178,17 @@ function Chapter({ own, page, first }: { first: boolean; own: boolean; page: Gui
         ) : null}
         {c.widget === "access-table" ? <AccessTable /> : null}
         {c.widget === "troubleshooting" ? <Trouble /> : null}
+        {c.widget === "auto-billing" ? <AutoBillingDemo /> : null}
         {c.shot ? <Figure caption={ne?.shot} id={`${k}-screen`} label="On web and app" picture={c.shot} priority={own && !c.flow} /> : null}
       </div>
 
-      {visual && !own ? null : (
-        <div className={visual ? "sr-only" : "mt-6 text-[15.5px] leading-[1.8] text-foreground/80"}>
-          <Words c={c} k={k} lang="en" visual={visual} />
-          <Words c={neWords} k={k} lang="ne" visual={visual} />
-        </div>
-      )}
+      {/* Visible on every chapter, under the pictures (owner, 2026-11-16: "use clean
+          bullets / paragraphs to make them understand"). Was sr-only beside a picture. */}
+      <div className="mt-6 text-[15.5px] leading-[1.8] text-foreground/80">
+        <Words c={c} k={k} lang="en" />
+        <Words c={neWords} k={k} lang="ne" />
+      </div>
+      {c.links ? <Links links={c.links} /> : null}
     </section>
   );
 }

@@ -13,6 +13,7 @@ describe("Nepali guide matches the English one", () => {
         expect(ne, c.id).toBeDefined();
         expect(ne.body?.length ?? 0, `${c.id} body`).toBe(c.body?.length ?? 0);
         expect(ne.steps?.length ?? 0, `${c.id} steps`).toBe(c.steps?.length ?? 0);
+        expect(ne.points?.length ?? 0, `${c.id} points`).toBe(c.points?.length ?? 0);
         expect(Boolean(ne.note), `${c.id} note`).toBe(Boolean(c.note));
         expect(Boolean(ne.flow), `${c.id} flow`).toBe(Boolean(c.flow));
         expect(Boolean(ne.shot), `${c.id} shot`).toBe(Boolean(c.shot));

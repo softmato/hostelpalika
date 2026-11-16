@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { formatBsDayMonth, HOSTEL_UTC_OFFSET_MINUTES } from "@hostel/calendar/bs";
 
 import {
   FLOAT_SHADOW,
@@ -205,10 +206,12 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
       }`}
     >
       <View className={`h-1.5 w-1.5 rounded-full ${listing.live ? "bg-white" : "bg-[#b45309]"}`} />
+      {/* Colour by style: the arbitrary `text-[#b45309]` lost to the Text
+          variant's colour in dark mode and printed white on the white pill. */}
       <Text
-        className={`font-semibold ${listing.live ? "text-white" : "text-[#b45309]"}`}
+        className="font-semibold"
         numberOfLines={1}
-        style={{ fontSize: 10 }}
+        style={{ color: listing.live ? "#ffffff" : "#b45309", fontSize: 10 }}
       >
         {listing.live ? "Live" : listing.note}
       </Text>
@@ -289,6 +292,18 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
  * is the longest string it produces, which is what keeps it inside its half of
  * the row — `This month · September` did not fit on a 360dp phone.
  */
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+/**
+ * `Mon · Mangsir 1` — the hostel's day (UTC+5:45), read off the clock with no
+ * `Intl` time zone, which Hermes does not reliably carry.
+ */
+function todayLabel(now = new Date()) {
+  const day = WEEKDAYS[new Date(now.getTime() + HOSTEL_UTC_OFFSET_MINUTES * 60_000).getUTCDay()];
+
+  return `${day} · ${formatBsDayMonth(now)}`;
+}
+
 export function HostelHero({
   balance = null,
   earnings,
@@ -461,6 +476,10 @@ export function HostelHero({
           <Text className="flex-1 text-white/80" numberOfLines={1} style={{ fontSize: 12 }}>
             {occupancyLine({ occupancy, residents, vacantBeds })}
           </Text>
+          {/* Today in Bikram Sambat, as the web portal's header chip shows it. */}
+          <Text className="font-semibold text-white/90" numberOfLines={1} style={{ fontSize: 12 }}>
+            {todayLabel()}
+          </Text>
         </View>
       </View>
 
@@ -624,6 +643,8 @@ export function ServiceGrid({
       tone: "danger",
     },
     { href: "/manage/reports", icon: "bar-chart", label: "Reports", tone: "admin" },
+    // Off Home's shortcut row (2026-11-16): rarely used, so a door here.
+    { href: "/manage/scan", icon: "scan", label: "Scan card", tone: "warning" },
     // Moved here from the Reports screen: inviting a hostel is a job, not a figure.
     { href: "/manage/referrals", icon: "gift", label: "Referrals", tone: "brand" },
     /*
@@ -769,8 +790,8 @@ export function ServiceGrid({
 export function QuickActions({
   onAddExpense,
   onNewResident,
+  onCollect,
   onRollCall,
-  onScan,
   onStore,
 }: {
   /**
@@ -783,8 +804,14 @@ export function QuickActions({
   onAddExpense?: () => void;
   onNewResident: () => void;
   /** The fallback for the lead cell when `onStore` is absent. */
+  /**
+   * Money with the search box focused: type a name, tap, collect. Replaced
+   * `Scan resident` (owner, 2026-11-16) — the scanner was rarely used, taking
+   * rent is the desk's daily job. It differs from the Money tab by landing in
+   * the search, which is the first thing collecting needs.
+   */
+  onCollect: () => void;
   onRollCall: () => void;
-  onScan: () => void;
   /** Omitted for a warden — see the note above. */
   onStore?: () => void;
 }) {
@@ -820,12 +847,12 @@ export function QuickActions({
             tone="admin"
           />
         </KycFrost>
-        <KycFrost center className="flex-1" frozen={locked} label="Scan resident">
+        <KycFrost center className="flex-1" frozen={locked} label="Collect">
           <ActionCell
             glyph={colors.warning}
-            icon="scan"
-            label="Scan resident"
-            onPress={onScan}
+            icon="cash"
+            label="Collect"
+            onPress={onCollect}
             tone="warning"
           />
         </KycFrost>

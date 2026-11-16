@@ -11,9 +11,8 @@ import { IdScanner } from "@/components/manage/id-scanner";
 import { RoomPicker } from "@/components/manage/room-picker";
 import { type Charges, ChargesSheet } from "@/components/manage/charges-sheet";
 import { Glyph } from "@/components/ui/glyph";
+import { Lottie } from "@/components/ui/lottie";
 import { type Room, type RoomLayout, roomsQuery } from "@/lib/rooms-api";
-import { ManualMethodPanel, methodLabel, methodProvider } from "@/components/pay-methods";
-import { ReferenceStrip } from "@/components/resident-payments";
 import { AppBar } from "@/components/ui/app-bar";
 import { Avatar, PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
-import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
@@ -62,7 +60,6 @@ import { dayInputFromNow, startOfDayIso } from "@/lib/manage-dates";
 import {
   backgroundFacts,
   careFacts,
-  collectableBills,
   firstMonthNote,
   identityFacts,
   type IntakeFact,
@@ -143,10 +140,14 @@ import { APP_NAME } from "@/constants/branding";
  */
 
 /**
- * `collect` is not a fourth thing to fill in — it is what the screen becomes
- * once the resident exists. See `CollectStep`.
+ * `done` is not a fourth thing to fill in — it is the moment between saving and
+ * landing on their payment record (owner's notebook, 2026-11-16).
  */
-type Step = "collect" | "confirm" | "identify" | "terms";
+type Step = "confirm" | "done" | "identify" | "terms";
+
+/** How long the tick plays before the warden lands on Money. */
+const DONE_HOLD_MS = 1600;
+const SUCCESS_ANIMATION = require("../../../../assets/lottie/success.lottie");
 
 const TYPE_OPTIONS = RESIDENT_TYPES.map((value) => ({
   label: humanizeEnum(value),
@@ -283,11 +284,7 @@ export default function NewResidentScreen() {
   /** Rent already handed over for the oldest month due — comes off that bill. */
   const [partPaid, setPartPaid] = useState("");
 
-  /*
-   * The intake response, kept rather than dropped on the floor. It carries the
-   * reference codes for the invoices the server has just raised, and the desk
-   * is the one moment somebody can act on them — see `CollectStep`.
-   */
+  /** The intake response: who was just added, for the done screen's hand-off. */
   const [registered, setRegistered] = useState<ResidentIntakeResult | null>(null);
 
   const rooms = useMemo(
@@ -654,16 +651,12 @@ export default function NewResidentScreen() {
     toastSuccess("Registered", registeredNote(result, contacts));
 
     /*
-     * Not `router.replace` any more. Navigating straight to the dossier threw
-     * away the two reference codes in `result` at the exact moment they were
-     * worth something — the resident is still at the desk with their phone out,
-     * and asking them to go home and find the code in their own app is asking
-     * for a payment that arrives next week or not at all.
-     *
-     * The dossier is one tap on, from the footer.
+     * A tick, then their payment record on Money with every unpaid charge and
+     * its total — the warden collects there. The old "Registered" screen of
+     * codes was a second place to collect from, and it is gone.
      */
     setRegistered(result);
-    setStep("collect");
+    setStep("done");
   }, [
     depositPaid,
     details,
@@ -732,35 +725,11 @@ export default function NewResidentScreen() {
   }
 
   /*
-   * Registered, and still on screen.
-   *
-   * Ahead of the loading and error guards below deliberately: those describe
-   * whether the *form* can be drawn, and the form is finished. A hostel resource
-   * that happened to be refetching would otherwise replace a screen holding two
-   * live reference codes with a spinner, and there is no way back to it.
+   * Ahead of the loading and error guards: the form is finished, and a hostel
+   * refetch must not swap the tick for a skeleton.
    */
-  if (step === "collect" && registered) {
-    return (
-      <Screen
-        footer={
-          <Button
-            label="Open their profile"
-            onPress={() => router.replace(`/manage/resident/${registered.resident.id}`)}
-          />
-        }
-        header={
-          <AppBar
-            accent
-            centerTitle
-            subtitle={`${person.firstName} ${person.lastName}`.trim() || undefined}
-            title="Registered"
-          />
-        }
-        scroll
-      >
-        <CollectStep result={registered} />
-      </Screen>
-    );
+  if (step === "done" && registered) {
+    return <DoneStep residentId={registered.resident.id} name={person.firstName} />;
   }
 
   if (hostel.loading) {
@@ -1715,204 +1684,26 @@ function MoneyCard({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* After registering — what can be collected at the desk                      */
-/* -------------------------------------------------------------------------- */
+/** The tick, then Money with this resident's record open to collect. */
+function DoneStep({ name, residentId }: { name: string; residentId: string }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace({ params: { resident: residentId }, pathname: "/(admin)/money" });
+    }, DONE_HOLD_MS);
 
-/**
- * The bill, again, with the codes that settle it — while they are still here.
- *
- * ## Why this screen exists at all
- *
- * The intake used to end on a toast and a jump to the dossier. The response it
- * jumped away from carried a reference code for each invoice the server had
- * just raised, and those codes are the only way a payment can be matched to
- * this resident. A person who has just handed over a phone number, a card and a
- * signature is at their most willing to also hand over the money; sending them
- * home to find the code themselves converts that into an open invoice.
- *
- * So the last thing the warden sees is what to collect and what to quote.
- *
- * ## One row per invoice, and no total across them
- *
- * `collectableBills` returns the joining charge and the first month separately
- * because they *are* separate invoices with separate codes. Summing them under
- * one figure would invite one transfer for the total quoting one of the two
- * codes — which settles that invoice, overpays it into credit, and leaves the
- * other showing unpaid. The line under the rows says so in words rather than
- * relying on two cards to imply it.
- *
- * ## Nothing to collect is an outcome, not an error
- *
- * A hostel with no admission fee, no deposit and no rate card raises no invoice
- * at the desk, and a resident marked as not yet living here is not billable
- * yet. Both are ordinary, and both get a sentence — an empty card under
- * "Collect now" would read as a screen that failed to load.
- */
-function CollectStep({ result }: { result: ResidentIntakeResult }) {
-  const dates = useDates();
-
-  const bills = collectableBills(result, dates.periodMonth);
-
-  if (bills.length === 0) {
-    return (
-      <View className="gap-5 pt-1">
-        <SectionHeader
-          subtitle="They are registered and hold a bed"
-          title="Nothing to collect yet"
-        />
-        <Card>
-          <Text variant="muted">{"No bill yet, so no code to quote."}</Text>
-        </Card>
-      </View>
-    );
-  }
+    return () => clearTimeout(timer);
+  }, [residentId]);
 
   return (
-    <View className="gap-5 pt-1">
-      <View className="gap-2">
-        <SectionHeader
-          subtitle="If they want to pay now, this is what to quote"
-          title="Collect now"
-        />
-
-        {bills.map((bill) => (
-          <Card key={bill.referenceCode} padding="px-4 pb-3 pt-1">
-            <FactRow label={bill.label} value={<Money size="large" value={bill.amount} />} />
-            {/*
-              The code sits under the figure it settles rather than beside it.
-              Two cards, two codes, and the only thing that keeps them straight
-              is that each code is directly beneath its own amount — a column of
-              codes on the right margin would be two strings a warden could read
-              across the wrong row.
-            */}
-            <ReferenceStrip code={bill.referenceCode} hint="Reference code" />
-          </Card>
-        ))}
+    <Screen>
+      <View className="flex-1 items-center justify-center gap-3">
+        <Lottie loop={false} size={160} source={SUCCESS_ANIMATION} />
+        <Text variant="title">{name ? `${name} is added` : "Resident added"}</Text>
+        <Text variant="caption">Opening their payments…</Text>
       </View>
-
-      {bills.length > 1 ? (
-        <Text className="px-1 text-xs text-muted-foreground">{"Two bills, two codes. Pay each with its own."}</Text>
-      ) : (
-        <Text className="px-1 text-xs text-muted-foreground">{"One payment, one code. Cash or transfer."}</Text>
-      )}
-
-      <HowToPay howToPay={result.howToPay} />
-    </View>
+    </Screen>
   );
 }
-
-/**
- * Where the money goes, under the codes that identify it.
- *
- * The codes alone were half an answer: a warden could read one out and then
- * had nowhere to point when the resident asked where to send it, so the eSewa
- * id came off a poster, a WhatsApp message, or memory. Both halves are on one
- * screen now, and they are the same components the resident's own checkout
- * renders — an account number a warden reads aloud must be the one the
- * resident's app will show them.
- *
- * One method at a time, chosen by tapping its name: six panels of account
- * numbers open at once is how somebody pays the right hostel from the wrong
- * app, which is the rule the pay screen already holds.
- */
-function HowToPay({
-  howToPay,
-}: {
-  howToPay: ResidentIntakeResult["howToPay"];
-}) {
-  const methods = howToPay?.methods ?? [];
-  const [selected, setSelected] = useState(0);
-
-  if (!howToPay || !howToPay.usable || methods.length === 0) {
-    return (
-      <Card>
-        <Text variant="muted">{"No payment details yet. Add them in Finance."}</Text>
-      </Card>
-    );
-  }
-
-  const active = methods[Math.min(selected, methods.length - 1)];
-
-  return (
-    <View className="gap-3">
-      <SectionHeader
-        subtitle={howToPay.displayName ? `Paid to ${howToPay.displayName}` : undefined}
-        title="Where to send it"
-      />
-
-      <View className="flex-row flex-wrap gap-2">
-        {methods.map((method, index) => {
-          const on = method === active;
-
-          return (
-            <Pressable
-              accessibilityLabel={methodLabel(method)}
-              accessibilityRole="button"
-              className={`rounded-xl border px-3 py-2 active:opacity-70 ${
-                on ? "border-brand bg-brand-soft" : "border-border"
-              }`}
-              key={methodLabel(method)}
-              onPress={() => setSelected(index)}
-            >
-              {/*
-                The provider's own mark on the chip, not only in the panel
-                below it. A warden picking a rail for somebody standing at the
-                desk reads the logos, not four lines of identically-set grey
-                text — and `eSewa` and `Khalti` are the two that get mis-tapped.
-                `<WalletMark>` draws the QR and bank glyphs for the two kinds
-                that have no brand of their own, so the row stays one shape.
-              */}
-              <View className="flex-row items-center gap-2">
-                <WalletMark name={methodProvider(method)} size={22} />
-                <Text
-                  className={on ? "font-semibold text-foreground" : undefined}
-                  variant={on ? "label" : "muted"}
-                >
-                  {methodLabel(method)}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Card>
-        {active.kind === "GATEWAY" ? (
-          /*
-           * A checkout cannot be started from here. Creating a payment intent
-           * authorises against the *resident's* session and hands their phone
-           * to the provider; a warden pressing it would be paying from their
-           * own account. So it is described rather than offered.
-           */
-          <View className="flex-row items-start gap-2.5">
-            {/*
-              The provider's mark, not `phone-portrait`. The glyph was
-              the same for eSewa as for Khalti on a card whose sentence names
-              one of them — see the same fix on the resident's own pay screen.
-            */}
-            <WalletMark name={methodProvider(active)} size={24} />
-            <Text className="flex-1" variant="muted">
-              {methodLabel(active)} checkout is live here. They pay with one tap
-              from their own Payments screen — it settles itself, with no
-              screenshot for anyone to review.
-            </Text>
-          </View>
-        ) : (
-          <ManualMethodPanel method={active} />
-        )}
-      </Card>
-
-      {howToPay.instructions ? (
-        <Text className="px-1 text-xs text-muted-foreground">
-          {howToPay.instructions}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
 
 /**
  * The quote, refetched as the three things that move it change.

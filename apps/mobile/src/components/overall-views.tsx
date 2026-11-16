@@ -366,9 +366,9 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
       <View className="pt-3">
         <QuickActions
           onAddExpense={() => open("/expenses/new")}
+          onCollect={() => open("/manage/finance")}
           onNewResident={() => open("/manage/resident/new")}
           onRollCall={() => open("/manage/roll-call")}
-          onScan={() => open("/manage/scan")}
         />
       </View>
 

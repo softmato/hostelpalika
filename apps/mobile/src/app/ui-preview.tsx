@@ -85,7 +85,7 @@ export default function UiPreview() {
       <QuickActions
         onNewResident={() => {}}
         onRollCall={() => {}}
-        onScan={() => {}}
+        onCollect={() => {}}
         onStore={() => {}}
       />
 

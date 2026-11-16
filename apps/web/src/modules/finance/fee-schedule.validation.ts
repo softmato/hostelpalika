@@ -48,6 +48,11 @@ export const feeScheduleCreateSchema = z
     depositAmount: wholeRupeeSchema.optional(),
     effectiveFrom: z.coerce.date(),
     hostelId: objectIdSchema.optional(),
+    /**
+     * Start the rents this month, for every bill not raised yet (owner, 2026-11-16).
+     * Bills already raised keep their amount; everyone pays the new rent next month.
+     */
+    startsToday: z.boolean().optional(),
     /** Comes off the admission fee for a referred resident. See the model. */
     referralAdmissionDiscount: wholeRupeeSchema.optional(),
     // At least one rate: an empty rate card prices nobody, and would fail every
@@ -127,3 +132,25 @@ export const rentConcessionSaveSchema = z.object({
 });
 
 export type RentConcessionSaveInput = z.infer<typeof rentConcessionSaveSchema>;
+
+/**
+ * The joining charges, changed right away (owner, 2026-11-16): they are charged
+ * once, on arrival, so they never wait for a month to start. 0 = not charged.
+ */
+export const feeScheduleOneOffSchema = z
+  .object({
+    admissionFee: wholeRupeeSchema.optional(),
+    depositAmount: wholeRupeeSchema.optional(),
+    formFee: wholeRupeeSchema.optional(),
+    hostelId: objectIdSchema.optional(),
+    referralAdmissionDiscount: wholeRupeeSchema.optional(),
+  })
+  .refine(
+    (input) =>
+      input.referralAdmissionDiscount === undefined ||
+      input.admissionFee === undefined ||
+      input.referralAdmissionDiscount <= input.admissionFee,
+    { message: "A referral discount cannot exceed the admission fee.", path: ["referralAdmissionDiscount"] },
+  );
+
+export type FeeScheduleOneOffInput = z.infer<typeof feeScheduleOneOffSchema>;

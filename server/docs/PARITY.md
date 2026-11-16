@@ -465,6 +465,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | DELETE | `/api/v1/hostel-admin/finance/fee-schedules/:id` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/:id/close` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | POST | `/api/v1/hostel-admin/finance/fee-schedules/kyc` | cap:manageFeeSchedule |  | finance, hostels |
+| ☑ | PATCH | `/api/v1/hostel-admin/finance/fee-schedules/one-off-fees` | cap:manageFeeSchedule |  | finance, hostels |
 | ☑ | GET | `/api/v1/hostel-admin/finance/invoices` | cap:viewPayments | redis etag | finance, hostels |
 | ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/cash` | cap:recordCash |  | finance |
 | ☑ | POST | `/api/v1/hostel-admin/finance/invoices/:id/void` | cap:reversePayments |  | finance |

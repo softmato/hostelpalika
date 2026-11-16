@@ -378,12 +378,10 @@ function BranchAdminHomeScreen() {
         <View className="pt-3">
           <QuickActions
             onAddExpense={canAddExpense ? () => router.push("/expenses/new") : undefined}
+            onCollect={() =>
+              router.push({ params: { collect: String(Date.now()) }, pathname: "/(admin)/money" })
+            }
             onNewResident={() => router.push("/manage/resident/new")}
-            /*
-             * The camera, not a search box. Everything about this action happens
-             * with a card in one hand and the phone in the other, which is why
-             * it took the slot `Post notice` had: see `QuickActions`.
-             */
             /*
              * The fallback for the lead cell, and a warden's own nightly job.
              * `QuickActions` uses it whenever `onStore` is absent.
@@ -394,7 +392,6 @@ function BranchAdminHomeScreen() {
              * digest screen.
              */
             onRollCall={() => router.push("/manage/roll-call")}
-            onScan={() => router.push("/manage/scan")}
             /*
              * HOSTEL_ADMIN only. The store's routes are
              * `requireHostelAdminPrincipal` — spending the hostel's budget is
@@ -450,7 +447,7 @@ function BranchAdminHomeScreen() {
           <FreeMonthCard state={due.data ?? null} />
 
           {/* A warden's cash box, one tap from Home: what is left, and cash waiting for "Got it". */}
-          {expenses.data?.kind === "ok" && expenses.data.home.wallet ? (
+          {expenses.data?.kind === "ok" && expenses.data.home?.wallet ? (
             <CardRow
               icon="wallet"
               onPress={() => router.push("/expenses")}

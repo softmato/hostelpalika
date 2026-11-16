@@ -21,6 +21,7 @@ import { type BranchName, getBranchesSummary, getBranchNames } from "@/lib/admin
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { absoluteMediaUrl } from "@/lib/media";
+import { serverAnswers } from "@/lib/server-reachable";
 import { toastError } from "@/lib/toast";
 import type { GlyphName } from "@hostel/constants/glyphs";
 
@@ -33,8 +34,10 @@ import type { GlyphName } from "@hostel/constants/glyphs";
  * hostel ticked, the rest dimmed, no Overall and no Manage branches.
  */
 
-const BRANCHES_KEY = "admin:branches";
-const BRANCH_NAMES_KEY = "admin:branch-names";
+// Account-wide: after a switch the list must still be there offline, or the
+// switcher hides and there is no way back to the other branch.
+const BRANCHES_KEY = "account:admin:branches";
+const BRANCH_NAMES_KEY = "account:admin:branch-names";
 
 function useBranches(warden: boolean) {
   return useResource<{ current?: string | null; hostels: BranchName[] }>(
@@ -76,9 +79,24 @@ export function useBranchesLock(): string | null | undefined {
   return role === ROLE.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
 }
 
+/**
+ * Changes the active hostel only when the server answers. Offline, the other
+ * branch has nothing cached, so the switch left Home on "Something went wrong"
+ * with the switcher gone and no way back (owner, 2026-11-16).
+ */
+async function setActiveWhenOnline(id: string | null) {
+  if (!(await serverAnswers())) {
+    toastError("You are offline", "Switch branch when the internet is back.");
+    return false;
+  }
+  await setActiveHostelId(id);
+  return true;
+}
+
 /** Switch into one branch, then open the screen there — every write from Overall starts this way. */
 export function openInBranch(branch: { id: string; isBranch: boolean }, route: string) {
-  void setActiveHostelId(branch.isBranch ? branch.id : null).then(() => {
+  void setActiveWhenOnline(branch.isBranch ? branch.id : null).then((switched) => {
+    if (!switched) return;
     if (route.startsWith("/(admin)")) router.navigate(route as never);
     else router.push(route as never);
   });
@@ -88,9 +106,7 @@ export function openInBranch(branch: { id: string; isBranch: boolean }, route: s
  * Switching remounts screens with the selected branch's cached answers.
  */
 async function switchTo(row: BranchName, rows: BranchName[]) {
-  await setActiveHostelId(
-    row.id === rows[0]?.id && !row.isBranch ? null : row.id,
-  );
+  await setActiveWhenOnline(row.id === rows[0]?.id && !row.isBranch ? null : row.id);
 }
 
 function currentRow(rows: BranchName[], active: string | null) {
@@ -236,7 +252,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                 leading={tile("overall", overall)}
                 onPress={() => {
                   setOpen(false);
-                  if (!overall) void setActiveHostelId(OVERALL);
+                  if (!overall) void setActiveWhenOnline(OVERALL);
                 }}
                 selected={overall}
                 subtitle={`All ${rows.length} branches together`}

@@ -48,14 +48,20 @@ const PITCH = (Math.atan2(RISE, RUN) * 180) / Math.PI;
 const FREE_RINGS = [14.5, 25.5];
 const RING_R = 5.5;
 
+/** The lifetime deal: one centred ring around a solid core, as on the website. */
+const SEAL = { cx: 20, cy: 27, core: 3, ring: 7.5 };
+
 export function PlanMark({
   color,
   free = false,
+  lifetime = false,
   rank,
   size = 28,
 }: {
   /** Draw the free tier's rings instead of resident rows. */
   free?: boolean;
+  /** Draw the lifetime seal; wins over `free` and `rank`. */
+  lifetime?: boolean;
   /** A resolved colour — the tile's ink, usually `colors.primary`. */
   color: string;
   /** Cheapest-first position of the plan. Doubles as the fill depth. */
@@ -91,7 +97,33 @@ export function PlanMark({
         );
       })}
 
-      {free
+      {lifetime ? (
+        <>
+          <View
+            style={{
+              borderColor: color,
+              borderRadius: SEAL.ring * unit,
+              borderWidth: stroke,
+              height: SEAL.ring * 2 * unit,
+              left: (SEAL.cx - SEAL.ring) * unit,
+              position: "absolute",
+              top: (SEAL.cy - SEAL.ring) * unit,
+              width: SEAL.ring * 2 * unit,
+            }}
+          />
+          <View
+            style={{
+              backgroundColor: color,
+              borderRadius: SEAL.core * unit,
+              height: SEAL.core * 2 * unit,
+              left: (SEAL.cx - SEAL.core) * unit,
+              position: "absolute",
+              top: (SEAL.cy - SEAL.core) * unit,
+              width: SEAL.core * 2 * unit,
+            }}
+          />
+        </>
+      ) : free
         ? FREE_RINGS.map((cx) => (
             <View
               key={cx}

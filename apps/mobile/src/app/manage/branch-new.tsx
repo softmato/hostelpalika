@@ -522,7 +522,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
     try {
       await requestBranch(payload());
       invalidateQuery("admin:branch-list");
-      invalidateQuery("admin:branches");
+      invalidateQuery("account:admin:branches");
       setDone(true);
     } catch (error) {
       toastError("Could not submit the branch", readApiError(error));

@@ -1,8 +1,11 @@
 /*
  * The service worker that receives browser push notifications.
  *
- * Pages and API responses are never cached. The share-target handler below
- * stages private receipt files locally for handoff to the app, with expiry.
+ * API responses and website pages are never cached. The one exception is the
+ * installed app's shell under `/app` (its HTML, hashed bundles, fonts, icons),
+ * so the PWA opens offline the way the Android app does; its data already
+ * lives in IndexedDB (`apps/mobile/web/local-db.ts`). The share-target handler
+ * below stages private receipt files locally for handoff to the app, with expiry.
  *
  * ## The payload
  *
@@ -256,12 +259,61 @@ async function resubscribe(event) {
 
 // A share POST is handled locally: financial files never enter a public URL.
 const SHARE_CACHE = "hostelpalika-shared-payments-v1";
+// The installed app's shell, so it opens offline (owner, 2026-11-16).
+const SHELL_CACHE = "hostelpalika-app-shell-v1";
+const SHELL_PAGE = "/app";
+const SHELL_KEEP = 300;
+const SHELL_FILES = ["/manifest.webmanifest", "/icon.png", "/apple-icon.png"];
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (url.origin === self.location.origin && url.pathname === "/app/share-payment" && event.request.method === "POST") {
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname === "/app/share-payment" && event.request.method === "POST") {
     event.respondWith(receivePaymentShare(event.request));
+    return;
+  }
+  if (event.request.method !== "GET") return;
+  const inApp = url.pathname === SHELL_PAGE || url.pathname.startsWith(SHELL_PAGE + "/");
+  if (event.request.mode === "navigate" && inApp) {
+    event.respondWith(shellPage(event.request));
+  } else if (url.pathname.startsWith("/app/_expo/") || url.pathname.startsWith("/app/assets/") || SHELL_FILES.includes(url.pathname)) {
+    event.respondWith(shellFile(event.request));
   }
 });
+// Network first, so a deploy shows at once; the saved page only when offline or stalled.
+async function shellPage(request) {
+  const cache = await caches.open(SHELL_CACHE);
+  try {
+    const response = await Promise.race([
+      fetch(request),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("slow")), 4000)),
+    ]);
+    if (response.ok) await cache.put(SHELL_PAGE, response.clone());
+    return response;
+  } catch (error) {
+    const saved = await cache.match(SHELL_PAGE);
+    if (saved) return saved;
+    throw error;
+  }
+}
+// Hashed and immutable: the saved copy is always right. Oldest dropped past SHELL_KEEP.
+async function shellFile(request) {
+  const cache = await caches.open(SHELL_CACHE);
+  const saved = await cache.match(request);
+  // Icons and the manifest are not hashed: serve the saved one, refresh it behind.
+  if (saved && SHELL_FILES.includes(new URL(request.url).pathname)) {
+    fetch(request).then((fresh) => fresh.ok && cache.put(request, fresh)).catch(() => {});
+  }
+  if (saved) return saved;
+  const response = await fetch(request);
+  if (response.ok) {
+    await cache.put(request, response.clone());
+    const keys = await cache.keys();
+    for (const key of keys.slice(0, Math.max(0, keys.length - SHELL_KEEP))) {
+      if (new URL(key.url).pathname !== SHELL_PAGE) await cache.delete(key);
+    }
+  }
+  return response;
+}
 async function sniffType(file) {
   const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const ascii = (from, to) => String.fromCharCode(...b.slice(from, to));

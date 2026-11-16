@@ -387,7 +387,9 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
         style={LIFT}
       >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft">
-          {onFree ? (
+          {plan.lifetime ? (
+            <PlanMark color={colors.primary} lifetime rank={0} size={30} />
+          ) : onFree ? (
             <PlanMark color={colors.primary} free rank={0} size={30} />
           ) : rank === null ? (
             <Glyph

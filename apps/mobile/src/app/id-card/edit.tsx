@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { GuidedCapture, type GuideShape } from "@/components/guided-capture";
 import { SignatureInk, SignaturePad } from "@/components/signature-pad";
@@ -17,14 +17,14 @@ import {
   TermsAgreement,
 } from "@/components/step-flow";
 import { AppBar } from "@/components/ui/app-bar";
+import { BirthDateField, formatBirthDate } from "@/components/ui/birth-date-field";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
 import { Glyph } from "@/components/ui/glyph";
-import { FieldLabel, Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
 import { Select } from "@/components/ui/select";
-import { Sheet } from "@/components/ui/sheet";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
@@ -935,7 +935,13 @@ function AboutStep({ control }: { control: FormControl }) {
         options={GENDER_OPTIONS}
         value={draft.gender}
       />
-      <DatePickerField control={control} name="dateOfBirth" />
+      <BirthDateField
+        error={control.errors.dateOfBirth}
+        label="Date of birth *"
+        onChange={(picked) => control.set("dateOfBirth", picked.ad)}
+        value={{ ad: control.draft.dateOfBirth }}
+        variant="line"
+      />
       <ChoiceChips
         columns={4}
         label="Blood group"
@@ -1537,7 +1543,7 @@ function ReviewStep({
     about: [
       ["Full name", dash(draft.fullName)],
       ["Gender", dash(GENDER_LABELS.get(draft.gender as Gender))],
-      ["Date of birth", formatDate(draft.dateOfBirth) ?? "—"],
+      ["Date of birth", formatBirthDate("AD", draft.dateOfBirth) ?? "—"],
       ["Blood group", draft.bloodGroup === "UNKNOWN" ? "—" : draft.bloodGroup],
     ],
     address: [
@@ -1716,203 +1722,3 @@ function TextField({
   );
 }
 
-function DatePickerField({
-  control,
-  name = "dateOfBirth",
-}: {
-  control: FormControl;
-  name: IdentityTextField;
-}) {
-  const { colors } = useAppTheme();
-  const [open, setOpen] = useState(false);
-  const rawValue = control.draft[name] || "";
-  const [year, setYear] = useState(2000);
-  const [month, setMonth] = useState(1);
-  const [day, setDay] = useState(1);
-
-  const days = new Date(year, month, 0).getDate();
-  const years = Array.from(
-    { length: 77 },
-    (_, i) => new Date().getFullYear() - i,
-  );
-  const pad = (value: number) => String(value).padStart(2, "0");
-
-  const openCalendar = () => {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(rawValue);
-
-    if (match) {
-      setYear(Number(match[1]));
-      setMonth(Number(match[2]));
-      setDay(Number(match[3]));
-    }
-
-    setOpen(true);
-  };
-
-  return (
-    <View className="gap-1">
-      <View style={{ opacity: rawValue ? 1 : 0 }}>
-        <FieldLabel>Date of birth *</FieldLabel>
-      </View>
-      <Pressable
-        accessibilityLabel="Date of birth"
-        accessibilityRole="button"
-        className={`h-11 flex-row items-center border-b active:opacity-70 ${
-          control.errors[name] ? "border-destructive" : "border-border"
-        }`}
-        onPress={openCalendar}
-      >
-        <Text
-          className={`flex-1 text-base ${rawValue ? "text-foreground" : "text-muted-foreground"}`}
-        >
-          {formatDate(rawValue) ?? "Date of birth *"}
-        </Text>
-        <Glyph color={colors.primary} name="calendar" size={20} />
-      </Pressable>
-      {control.errors[name] ? (
-        <Text className="text-destructive" variant="caption">
-          {control.errors[name]}
-        </Text>
-      ) : null}
-
-      <Sheet
-        footer={
-          <Button
-            label={`Set ${day} ${MONTHS[month - 1]} ${year}`}
-            onPress={() => {
-              control.set(name, `${year}-${pad(month)}-${pad(day)}`);
-              setOpen(false);
-            }}
-          />
-        }
-        onClose={() => setOpen(false)}
-        open={open}
-        tall
-        title="Date of birth"
-      >
-        <View className="gap-6 pb-2">
-          <View className="gap-2">
-            <FieldLabel>Year</FieldLabel>
-            <ScrollView
-              contentContainerStyle={{ gap: 8 }}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ flexGrow: 0, height: 40 }}
-            >
-              {years.map((value) => (
-                <CalendarCell
-                  key={value}
-                  label={String(value)}
-                  on={value === year}
-                  onPress={() => {
-                    setYear(value);
-                    setDay((current) =>
-                      Math.min(current, new Date(value, month, 0).getDate()),
-                    );
-                  }}
-                  style={{ height: 40, paddingHorizontal: 14 }}
-                />
-              ))}
-            </ScrollView>
-          </View>
-
-          <View className="gap-2">
-            <FieldLabel>Month</FieldLabel>
-            <View
-              className="flex-row flex-wrap"
-              style={{ marginHorizontal: -4 }}
-            >
-              {MONTHS.map((label, position) => (
-                <View key={label} style={{ padding: 4, width: "25%" }}>
-                  <CalendarCell
-                    label={label.slice(0, 3)}
-                    on={position + 1 === month}
-                    onPress={() => {
-                      setMonth(position + 1);
-                      setDay((current) =>
-                        Math.min(
-                          current,
-                          new Date(year, position + 1, 0).getDate(),
-                        ),
-                      );
-                    }}
-                    style={{ height: 40 }}
-                  />
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className="gap-2">
-            <FieldLabel>Day</FieldLabel>
-            <View
-              className="flex-row flex-wrap"
-              style={{ marginHorizontal: -3 }}
-            >
-              {Array.from({ length: days }, (_, i) => i + 1).map((value) => (
-                <View key={value} style={{ padding: 3, width: `${100 / 7}%` }}>
-                  <CalendarCell
-                    label={String(value)}
-                    on={value === day}
-                    onPress={() => setDay(value)}
-                    style={{ aspectRatio: 1 }}
-                  />
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Sheet>
-    </View>
-  );
-}
-
-/** One tappable year, month or day. Sized by explicit styles so nothing wraps into its neighbour. */
-function CalendarCell({
-  label,
-  on,
-  onPress,
-  style,
-}: {
-  label: string;
-  on: boolean;
-  onPress: () => void;
-  style: ViewStyle;
-}) {
-  return (
-    <Pressable
-      className={`items-center justify-center rounded-full active:opacity-70 ${on ? "bg-primary" : "bg-muted"}`}
-      onPress={onPress}
-      style={style}
-    >
-      <Text
-        className={`text-sm ${on ? "font-semibold text-primary-foreground" : "text-foreground"}`}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-/** `2001-09-17` → `17 September 2001`; `null` for anything that is not a date. */
-function formatDate(iso: string): string | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  const month = match ? MONTHS[Number(match[2]) - 1] : undefined;
-
-  return match && month ? `${Number(match[3])} ${month} ${match[1]}` : null;
-}

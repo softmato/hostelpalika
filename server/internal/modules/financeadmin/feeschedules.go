@@ -35,6 +35,7 @@ func (h *Handler) registerFeeSchedules(v1 *gin.RouterGroup) {
 	v1.GET("/hostel-admin/finance/fee-schedules", httpx.ETag(), h.listFeeSchedules)
 	v1.POST("/hostel-admin/finance/fee-schedules", h.createFeeSchedule)
 	v1.POST("/hostel-admin/finance/fee-schedules/kyc", h.kycRates)
+	v1.PATCH("/hostel-admin/finance/fee-schedules/one-off-fees", h.updateOneOffFees)
 	v1.DELETE("/hostel-admin/finance/fee-schedules/:id", h.deleteFeeSchedule)
 	v1.POST("/hostel-admin/finance/fee-schedules/:id/close", h.closeFeeSchedule)
 }
@@ -194,6 +195,9 @@ type scheduleInput struct {
 	Admission, Form, Deposit, Referral *int64
 	From                               time.Time
 	Rates                              []rateDoc
+	// Today starts the rents this month for every bill not raised yet (owner,
+	// 2026-11-16); raised bills keep their amount.
+	Today bool
 }
 
 var (
@@ -213,6 +217,9 @@ func (h *Handler) createSchedule(ctx context.Context, hostel bson.ObjectID, in s
 	thisMonth, err := bs.MonthStart(now)
 	if err != nil {
 		return nil, err
+	}
+	if in.Today {
+		from = thisMonth
 	}
 	current, err := h.loadSchedule(ctx, bson.D{{Key: "effectiveTo", Value: nil}, {Key: "hostelId", Value: hostel}})
 	if err != nil {
@@ -234,6 +241,19 @@ func (h *Handler) createSchedule(ctx context.Context, hostel bson.ObjectID, in s
 			return nil, err
 		}
 		switch {
+		case in.Today && curStart.After(thisMonth):
+			return nil, finance.Err("FEE_SCHEDULE_MISSING", "A rate change is already set for "+bs.FormatPeriod(mustPeriod(current.From))+". Change that one, or start next month.")
+		case in.Today && curStart.Equal(thisMonth):
+			used, err := h.DB.Collection("invoices").CountDocuments(ctx, bson.D{{Key: "lines.feeScheduleId", Value: current.ID}})
+			if err != nil {
+				return nil, err
+			}
+			if used > 0 {
+				return nil, finance.Err("FEE_SCHEDULE_MONTH_LOCKED", "Rates already changed this month. Start these next month.")
+			}
+			replace = true
+		case in.Today:
+			retire = bson.D{{Key: "$set", Value: bson.D{{Key: "effectiveTo", Value: from.Add(-24 * time.Hour)}, {Key: "updatedAt", Value: nowMS()}}}}
 		case !from.After(thisMonth):
 			return nil, errMonthLocked
 		case from.Equal(curStart):
@@ -292,7 +312,14 @@ func (h *Handler) createSchedule(ctx context.Context, hostel bson.ObjectID, in s
 	}
 	h.projectOntoListing(ctx, hostel, in.Admission, &form, in.Rates)
 	if inEffect != nil {
-		h.notifyRateCard(ctx, hostel, from, inEffect.Rates, in.Rates)
+		notice := from
+		if in.Today {
+			// Residents already billed this month pay the new rent from next month.
+			if next, err := bs.MonthStart(thisMonth.Add(32 * 24 * time.Hour)); err == nil {
+				notice = next
+			}
+		}
+		h.notifyRateCard(ctx, hostel, notice, inEffect.Rates, in.Rates)
 	}
 	before := int64(0)
 	if current != nil {
@@ -549,6 +576,7 @@ func (h *Handler) createFeeSchedule(c *gin.Context) {
 	in.From = from
 	requested, _ := f.Str("hostelId", valid.S{Opt: true, Re: hex24, ReMsg: "Invalid object id."})
 	in.Referral, _ = wholeRupees(f, "referralAdmissionDiscount", true, "")
+	in.Today, _ = f.Bool("startsToday", true, nil)
 	list, listOK := f.Array("rates", false, false)
 	ratesOK := listOK
 	seen := map[string]bool{}
@@ -1007,4 +1035,124 @@ func createdOut(raw bson.Raw) ordered.Map {
 		out = append(out, p)
 	}
 	return out
+}
+
+// updateOneOffFees is PATCH /hostel-admin/finance/fee-schedules/one-off-fees:
+// admission, form fee, deposit and referral discount, changed right away on the
+// card in force and on any card set for later (owner, 2026-11-16). 0 = not charged.
+func (h *Handler) updateOneOffFees(c *gin.Context) {
+	p, err := h.Guards.RequireHostelCapability(c, "manageFeeSchedule")
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	body, err := valid.Body(c)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	f := valid.NewForm(body)
+	admission, _ := wholeRupees(f, "admissionFee", true, "")
+	deposit, _ := wholeRupees(f, "depositAmount", true, "")
+	form, _ := wholeRupees(f, "formFee", true, "")
+	requested, _ := f.Str("hostelId", valid.S{Opt: true, Re: hex24, ReMsg: "Invalid object id."})
+	referral, _ := wholeRupees(f, "referralAdmissionDiscount", true, "")
+	if len(f.Is) == 0 && referral != nil && admission != nil && *referral > *admission {
+		f.Is.Add("referralAdmissionDiscount", "A referral discount cannot exceed the admission fee.")
+	}
+	if err := f.Err(); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	hostel, err := opsscope.HostelID(p, requested)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	ctx := c.Request.Context()
+	period, err := bs.PeriodOf(time.Now())
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	inEffect, err := finance.EffectiveSchedule(ctx, h.DB, hostel, period)
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	open, err := h.loadSchedule(ctx, bson.D{{Key: "effectiveTo", Value: nil}, {Key: "hostelId", Value: hostel}})
+	if err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	ids := bson.A{}
+	seen := map[bson.ObjectID]bool{}
+	if inEffect != nil {
+		ids, seen[inEffect.ID] = append(ids, inEffect.ID), true
+	}
+	if open != nil && !seen[open.ID] {
+		ids = append(ids, open.ID)
+	}
+	if len(ids) == 0 {
+		httpx.Fail(c, finance.Err("FEE_SCHEDULE_MISSING", "Set the room rents first."))
+		return
+	}
+	set, unset := bson.D{}, bson.D{}
+	for _, kv := range []struct {
+		k string
+		v *int64
+	}{{"admissionFee", admission}, {"depositAmount", deposit}, {"referralAdmissionDiscount", referral}} {
+		switch {
+		case kv.v == nil:
+		case *kv.v > 0:
+			set = append(set, bson.E{Key: kv.k, Value: ledger.JSInt(*kv.v)})
+		default:
+			unset = append(unset, bson.E{Key: kv.k, Value: ""})
+		}
+	}
+	if form != nil {
+		set = append(set, bson.E{Key: "formFee", Value: ledger.JSInt(*form)})
+	}
+	set = append(set, bson.E{Key: "updatedAt", Value: nowMS()})
+	update := bson.D{{Key: "$set", Value: set}}
+	if len(unset) > 0 {
+		update = append(update, bson.E{Key: "$unset", Value: unset})
+	}
+	if _, err := h.DB.Collection("feeschedules").UpdateMany(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}, update); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	// The listing shows the open card (or the one in force when none is open).
+	listed := open
+	if listed == nil {
+		if listed, err = h.loadSchedule(ctx, bson.D{{Key: "_id", Value: inEffect.ID}}); err != nil || listed == nil {
+			httpx.Fail(c, errNoSchedule)
+			return
+		}
+	}
+	listedID, listedAdm, listedDep, listedForm, listedRates := listed.ID, listed.Admission, listed.Deposit, listed.Form, listed.Rates
+	adm := listedAdm
+	if admission != nil {
+		adm = nil
+		if *admission > 0 {
+			adm = admission
+		}
+	}
+	zero := int64(0)
+	frm := firstOf(form, firstOf(listedForm, &zero))
+	h.projectOntoListing(ctx, hostel, adm, frm, listedRates)
+	sum := func(xs ...*int64) int64 {
+		t := int64(0)
+		for _, x := range xs {
+			if x != nil {
+				t += *x
+			}
+		}
+		return t
+	}
+	if err := h.auditSchedule(ctx, p, audit.Finance{Action: "FEE_SCHEDULE_ONE_OFFS_UPDATED", AmountAfter: sum(admission, deposit, form), AmountBefore: sum(listedAdm, listedDep, listedForm), EntityID: listedID.Hex(), EntityType: "FeeSchedule", HostelID: hostel, Source: "FEE_SCHEDULE_EDITOR"}); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	httpx.Write(c, http.StatusOK, ordered.Map{{Key: "updated", Value: len(ids)}}, "Joining fees updated")
 }

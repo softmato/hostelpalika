@@ -38,6 +38,13 @@ export const residentDetailsSchema = z.object({
     blankToUndefined,
     z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Write the date of birth as YYYY-MM-DD.").optional(),
   ),
+  /** The calendar it was picked in; `dateOfBirth` is always AD (owner, 2026-11-16). */
+  dateOfBirthCalendar: z.preprocess(blankToUndefined, z.enum(["AD", "BS"]).optional()),
+  /** The date exactly as picked, in that calendar — the original is kept. */
+  dateOfBirthAsEntered: z.preprocess(
+    blankToUndefined,
+    z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Write the date of birth as YYYY-MM-DD.").optional(),
+  ),
   gender: z.preprocess(blankToUndefined, z.enum(GENDER_VALUES).optional()),
   bloodGroup: z.preprocess(blankToUndefined, z.enum(BLOOD_GROUP_VALUES).optional()),
   food: z.preprocess(blankToUndefined, z.enum(DIETARY_PREFERENCE_VALUES).optional()),

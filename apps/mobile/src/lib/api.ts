@@ -158,6 +158,11 @@ api.interceptors.request.use((config) => {
   if (remembered) {
     config.headers.set("If-None-Match", remembered.etag);
     config.validateStatus = (status) => (status >= 200 && status < 300) || status === 304;
+  } else {
+    // A failover resend copies the first attempt's headers; without a body to
+    // replay here, a 304 from the other origin would arrive empty.
+    config.headers.delete("If-None-Match");
+    config.validateStatus = undefined;
   }
 
   return config;
@@ -171,7 +176,15 @@ api.interceptors.response.use((response) => {
   if (response.status === 304) {
     const remembered = etagMemory.get(key);
 
-    return remembered ? { ...response, data: remembered.data, status: 200 } : response;
+    if (remembered) return { ...response, data: remembered.data, status: 200 };
+
+    /*
+     * A 304 with nothing to replay used to pass through with an empty body:
+     * cached as an answer, saved to disk, and Home crashed on it at every start
+     * (the white screen after an offline spell, 2026-11-16). Ask again in full.
+     */
+    response.config.headers.delete("If-None-Match");
+    return api.request({ ...response.config, validateStatus: undefined });
   }
 
   const etag = response.headers?.etag as string | undefined;

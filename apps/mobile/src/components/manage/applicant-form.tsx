@@ -5,6 +5,7 @@ import { ApplicantDocumentsPicker } from "@/components/manage/applicant-document
 import { ApplicantPhotoPicker } from "@/components/manage/applicant-photo";
 import { SignaturePad } from "@/components/signature-pad";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { BirthDateField } from "@/components/ui/birth-date-field";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { Text } from "@/components/ui/text";
@@ -134,7 +135,15 @@ export function ApplicantForm({
             keyboard: "email-address",
             placeholder: own ? "Gmail you will log in with" : "Optional",
           })}
-          {box("dateOfBirth", `Date of birth${star}`, { keyboard: "numbers-and-punctuation", placeholder: "YYYY-MM-DD" })}
+          <BirthDateField
+            label={`Date of birth${star}`}
+            onChange={(picked) => {
+              onChange("dateOfBirth", picked.ad);
+              onChange("dateOfBirthCalendar", picked.calendar);
+              onChange("dateOfBirthAsEntered", picked.asEntered);
+            }}
+            value={{ ad: draft.dateOfBirth, asEntered: draft.dateOfBirthAsEntered, calendar: draft.dateOfBirthCalendar }}
+          />
 
           <View className="gap-2">
             <Text variant="label">{`Gender${star}`}</Text>

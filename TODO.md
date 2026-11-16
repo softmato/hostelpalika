@@ -395,3 +395,21 @@ doc version.
 ## Order
 
 A → B → (C, D, E need A and B) → F → G → H → I (docs last, they describe what shipped) → J.
+
+---
+
+## K. Notebook pages, 2026-11-16 (all uncommitted)
+
+- ☑ K1 Home card shows today in BS (`Mon · Kartik 30`) — seen on device.
+- ☑ K2 Scan resident → **Collect** (Money with search focused); scanner moved to the Manage grid as Scan card — seen on device.
+- ⏳ K3 Add resident: Registered screen removed → success tick → Money opens that resident's record (all charges + total). Not yet run on device.
+- ☑ K4 Offline: false "not yours to see" card (only a 403 is a denial now) — seen on device.
+- ☑ K5 White screen: an empty 304 replay (failover resend kept `If-None-Match`) was cached as an answer and crashed Home every start. Fixed in `lib/api.ts`; Home guards the read — seen on device.
+- ☑ K6 Offline chip: time fixed for the whole offline stretch, sits above the tab bar, hides when the server answers (10 s probe while offline, retries failed reads) — pill back after reconnect seen on device.
+- ☑ K7 Branch switch is refused offline; branch list cached account-wide so the switcher never disappears — seen on device.
+- ⏳ K8 Kicked to the public side while offline: not reproduced. Needs a repro with `adb logcat` running.
+- ⏳ K9 PWA offline: `sw.js` now caches the `/app` shell (network-first page, cache-first hashed files). Check on an installed PWA after the next deploy.
+- ⏳ K10 Guide: owner group split into Your hostel / Residents / Payments / Finance / Staff; new chapters (resident details, remove, bills make themselves + animated demo, payment flow, roles); text visible as bullets; "open in new tab" links; old `/guide/owner/*` URLs redirect. EN + नेपाली, parity test green. Screenshots `flow-join-bed` and `resident-registered` still show the old Registered screen — reshoot.
+- ? K11 "tets / domain resend mail" on page 3 — unclear, ask the owner.
+- ⏳ K12 Date of birth: calendar field with BS / AD switch (`components/ui/birth-date-field.tsx`, conversions in `lib/birth-date.ts`, tested). `dateOfBirth` stays AD; `dateOfBirthCalendar` + `dateOfBirthAsEntered` keep the original (TS + Go details schema). ID card editor uses the same field (AD stored only). Web admission form unchanged (needs owner OK).
+- ⏳ K13 Rates: joining fees (admission, form, deposit, referral) change right away via `PATCH /hostel-admin/finance/fee-schedules/one-off-fees` (TS + Go, PARITY row added); rents still start next month by default, plus "Change from today" (`startsToday`) — raised bills keep their amount. Header now "Current rates since …". No DB test for the new server rule yet; contract fixtures not re-run (needs Docker Mongo). Web rates editor unchanged (needs owner OK).

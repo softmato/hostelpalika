@@ -309,6 +309,15 @@ const nextConfig: NextConfig = {
         ["/pricings", "/plans-pricing"],
         ["/faq", "/plans-pricing"],
       ].map(([source, destination]) => ({ destination, permanent: true, source })),
+      // Guide chapters that left "Hostel owner" for their own groups (2026-11-16).
+      ...Object.entries({
+        finance: ["expenses", "statement", "reports"],
+        payments: ["payments", "collect-payment", "verify-payments", "how-bills-work"],
+        residents: ["add-resident", "admission-form", "bed-and-money", "after-registering", "existing-residents", "move-out"],
+        staff: ["team"],
+      }).flatMap(([group, chapters]) =>
+        chapters.map((chapter) => ({ destination: `/guide/${group}/${chapter}`, permanent: true, source: `/guide/owner/${chapter}` })),
+      ),
       // Stored photo paths (`/api/v1/files/<id>/url`) are rendered as-is in many
       // places; send them to Go at the routing layer instead of a TS function per
       // image. ponytail: bypasses the breaker, so photos break while Go is down;

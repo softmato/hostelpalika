@@ -415,7 +415,15 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
+        <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-teal/10 text-brand-teal">
+          <PlanMark
+            className="size-8"
+            free={!plan.planId}
+            lifetime={Boolean(plan.lifetime)}
+            rank={Math.max(0, planRank(catalog, plan.planId ?? ""))}
+          />
+        </span>
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Current plan
           </p>

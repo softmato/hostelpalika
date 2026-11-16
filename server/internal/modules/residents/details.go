@@ -105,6 +105,13 @@ func ParseDetails(f *valid.Form, key string) (ordered.Map, bool) {
 				out = append(out, ordered.Pair{Key: "dateOfBirth", Value: v})
 			}
 		}
+		// The calendar it was picked in and the date as picked; dateOfBirth stays AD.
+		pick(d, "dateOfBirthCalendar", &out, "AD", "BS")
+		if d.Present("dateOfBirthAsEntered") && !d.Blank("dateOfBirthAsEntered") {
+			if v, ok := d.Str("dateOfBirthAsEntered", valid.S{Opt: true, Trim: true, Re: dobShape, ReMsg: "Write the date of birth as YYYY-MM-DD."}); ok {
+				out = append(out, ordered.Pair{Key: "dateOfBirthAsEntered", Value: v})
+			}
+		}
 		pick(d, "gender", &out, GenderValues...)
 		pick(d, "bloodGroup", &out, BloodGroups...)
 		pick(d, "food", &out, DietaryValues...)

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { RealtimeTopic } from "@/constants/topics";
 import { isOfflineError, readApiError } from "@/lib/api-contract";
-import { showSavedCopy } from "@/lib/offline-stamp";
+import { markOfflineFailure, showSavedCopy, subscribeOnline } from "@/lib/offline-stamp";
 import {
   DEFAULT_MAX_AGE_MS,
   DEFAULT_STALE_MS,
@@ -460,6 +460,8 @@ export function useResource<T>(
         // The same object that was written, so React bails out of the re-render
         // when this screen is the one that wrote it.
         setData(next.data);
+        // Another screen fetched it live, so this one is no longer a saved copy.
+        setSavedAt(null);
       }
     });
   }, [cacheKey, maxAgeMs, staleMs]);
@@ -491,6 +493,15 @@ export function useResource<T>(
   // Only the focused screen speaks for the stamp; a tab behind it does not.
   useFocusEffect(
     useCallback(() => (savedAt === null ? undefined : showSavedCopy(savedAt)), [savedAt]),
+  );
+
+  // Back online: a read on a saved copy, or one that failed offline with none,
+  // fetches the live answer. The failed one also keeps the probe running.
+  const failedOffline = savedAt === null && isOfflineError(error);
+  useEffect(() => (failedOffline ? markOfflineFailure() : undefined), [failedOffline]);
+  useEffect(
+    () => (savedAt === null && !failedOffline ? undefined : subscribeOnline(() => void run("silent"))),
+    [failedOffline, run, savedAt],
   );
 
   const topicKey = topics?.join(",") ?? "";

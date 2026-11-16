@@ -27,6 +27,7 @@ import type { BedType } from "@hostel/shared/types/bed-type";
 import type {
   FeeScheduleCloseInput,
   FeeScheduleCreateInput,
+  FeeScheduleOneOffInput,
 } from "@/modules/finance/fee-schedule.validation";
 
 /**
@@ -600,8 +601,9 @@ export async function createFeeSchedule(
 ) {
   await connectToDatabase();
 
-  const effectiveFrom = hostelMonthStart(input.effectiveFrom);
   const thisMonth = hostelMonthStart(new Date());
+  // "Change from today" starts the card this month; otherwise the 1st it names.
+  const effectiveFrom = input.startsToday ? thisMonth : hostelMonthStart(input.effectiveFrom);
 
   const current = await FeeScheduleModel.findOne({
     effectiveTo: null,
@@ -621,7 +623,34 @@ export async function createFeeSchedule(
   const inEffect = await getEffectiveSchedule(hostelId, bsPeriodOf(new Date()));
   let displaced: "CLOSE" | "DELETE" | null = null;
 
-  if (current) {
+  if (current && input.startsToday) {
+    /*
+     * From today: the card in force is closed at the end of last month and the
+     * new one prices every bill this month that is not raised yet. Raised bills
+     * keep their amount. A future card or a card already started this month that
+     * has priced a bill is in the way, and is not silently overwritten.
+     */
+    const currentStart = hostelMonthStart(current.effectiveFrom);
+
+    if (currentStart > thisMonth) {
+      throw new FinanceServiceError(
+        `A rate change is already set for ${formatBsPeriod(bsPeriodOf(current.effectiveFrom))}. Change that one, or start next month.`,
+        "FEE_SCHEDULE_MISSING",
+      );
+    }
+
+    if (currentStart.getTime() === thisMonth.getTime()) {
+      if (await InvoiceModel.exists({ "lines.feeScheduleId": current._id })) {
+        throw new FinanceServiceError(
+          "Rates already changed this month. Start these next month.",
+          "FEE_SCHEDULE_MONTH_LOCKED",
+        );
+      }
+      displaced = "DELETE";
+    } else {
+      displaced = "CLOSE";
+    }
+  } else if (current) {
     if (effectiveFrom <= thisMonth) {
       throw new FinanceServiceError(
         "Rates can only change from the start of a future month. This month's residents are already being billed at the current rates.",
@@ -703,7 +732,10 @@ export async function createFeeSchedule(
    * whose own room type moved are written to — see `notifyRateCardChanged`.
    */
   await notifyRateCardChanged({
-    effectiveFrom,
+    // Residents already billed this month pay the new rent from next month.
+    effectiveFrom: input.startsToday
+      ? bsPeriodBounds(addBsMonths(bsPeriodOf(new Date()), 1)).start
+      : effectiveFrom,
     hostelId,
     previousRates: inEffect?.rates ?? null,
     rates,
@@ -722,6 +754,64 @@ export async function createFeeSchedule(
   });
 
   return created;
+}
+
+/**
+ * Admission, form fee, deposit and referral discount, changed right away on the
+ * card in force and on any card already set for later (owner, 2026-11-16). They
+ * are charged once, on arrival, so waiting for a month to start made no sense.
+ * Bills already raised keep their amounts. 0 = not charged.
+ */
+export async function updateOneOffFees(
+  hostelId: Types.ObjectId | string,
+  input: FeeScheduleOneOffInput,
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  const inEffect = await getEffectiveSchedule(hostelId, bsPeriodOf(new Date()));
+  const open = await FeeScheduleModel.findOne({ effectiveTo: null, hostelId }).lean<FeeScheduleRecord | null>();
+  const cards = [inEffect, open].filter((card): card is FeeScheduleRecord => card !== null);
+  const ids = [...new Set(cards.map((card) => String(card._id)))];
+
+  if (ids.length === 0) {
+    throw new FinanceServiceError("Set the room rents first.", "FEE_SCHEDULE_MISSING");
+  }
+
+  const set: Record<string, number> = {};
+  const unset: Record<string, ""> = {};
+
+  for (const key of ["admissionFee", "depositAmount", "referralAdmissionDiscount"] as const) {
+    const value = input[key];
+    if (value === undefined) continue;
+    if (value > 0) set[key] = value;
+    else unset[key] = "";
+  }
+  if (input.formFee !== undefined) set.formFee = input.formFee;
+
+  await FeeScheduleModel.updateMany(
+    { _id: { $in: ids.map((id) => new Types.ObjectId(id)) } },
+    { ...(Object.keys(set).length ? { $set: set } : {}), ...(Object.keys(unset).length ? { $unset: unset } : {}) },
+  );
+
+  const listed = open ?? inEffect!;
+  await projectScheduleOntoListing(hostelId, {
+    admissionFee: input.admissionFee !== undefined ? input.admissionFee || undefined : listed.admissionFee,
+    formFee: input.formFee ?? listed.formFee ?? 0,
+    rates: listed.rates,
+  });
+
+  await auditFinanceAction(principal, {
+    action: "FEE_SCHEDULE_ONE_OFFS_UPDATED",
+    amountAfter: (input.admissionFee ?? 0) + (input.depositAmount ?? 0) + (input.formFee ?? 0),
+    amountBefore: (listed.admissionFee ?? 0) + (listed.depositAmount ?? 0) + (listed.formFee ?? 0),
+    entityId: listed._id,
+    entityType: "FeeSchedule",
+    hostelId,
+    source: "FEE_SCHEDULE_EDITOR",
+  });
+
+  return { updated: ids.length };
 }
 
 export type ScheduleStanding = "current" | "past" | "upcoming";

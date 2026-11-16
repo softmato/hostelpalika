@@ -37,14 +37,24 @@ const ROOF = "M4.5 15.5 L20 5.5 L35.5 15.5";
 const FREE_RINGS = [14.5, 25.5];
 const RING_R = 5.5;
 
+/**
+ * The lifetime deal's mark: the same roof over one seal — a ring around a solid
+ * core — "paid once, kept". One centred ring, so it never reads as Free's two
+ * side-by-side rings or as a row of residents.
+ */
+const SEAL = { cx: 20, cy: 27, core: 3, ring: 7.5 };
+
 export function PlanMark({
   className,
   free = false,
+  lifetime = false,
   rank,
 }: {
   className?: string;
   /** Draw the free tier's rings instead of resident rows. */
   free?: boolean;
+  /** Draw the lifetime seal; wins over `free` and `rank`. */
+  lifetime?: boolean;
   /** Cheapest-first position of the plan. Doubles as the fill depth. */
   rank: number;
 }) {
@@ -68,7 +78,19 @@ export function PlanMark({
         strokeLinejoin="round"
         strokeWidth={1.8}
       />
-      {free
+      {lifetime ? (
+        <>
+          <circle
+            cx={SEAL.cx}
+            cy={SEAL.cy}
+            fill="none"
+            r={SEAL.ring}
+            stroke="currentColor"
+            strokeWidth={1.8}
+          />
+          <circle cx={SEAL.cx} cy={SEAL.cy} fill="currentColor" r={SEAL.core} />
+        </>
+      ) : free
         ? FREE_RINGS.map((cx) => (
             <circle
               cx={cx}

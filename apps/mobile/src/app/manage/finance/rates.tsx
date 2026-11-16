@@ -21,9 +21,10 @@ import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { createFeeSchedule, type FeeScheduleData } from "@/lib/admin-manage-api";
+import { createFeeSchedule, type FeeScheduleData, updateOneOffFees } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { formatMoney } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -81,6 +82,8 @@ export default function ManageRatesScreen() {
    * a hostel ever sets may also start this month.
    */
   const [monthOffset, setMonthOffset] = useState(1);
+  /** "Change from today": rents start this month for bills not raised yet (owner, 2026-11-16). */
+  const [fromToday, setFromToday] = useState(false);
   const [ratesDraft, setRatesDraft] = useState<Record<string, string> | null>(null);
   const [formDraft, setFormDraft] = useState<Record<string, string> | null>(null);
 
@@ -173,10 +176,24 @@ export default function ManageRatesScreen() {
     [seededForm],
   );
 
+  /*
+   * Two kinds of change, saved two ways (owner, 2026-11-16). Joining charges
+   * (admission, form, deposit, referral) change right away. Rents start on a
+   * month, next month by default, or "from today" for bills not raised yet.
+   * Saving sends only what changed, so a fee-only edit makes no new rate card.
+   */
   const submit = useCallback(async () => {
-    const effectiveFrom = bsPeriodBounds(
-      addBsMonths(currentBsPeriod(), monthOffset),
-    ).start.toISOString();
+    const amount = (raw: string | undefined) => (raw?.trim() ? Number(raw) : 0);
+    const changed = (draft: Record<string, string> | null, seed: Record<string, string>) =>
+      draft !== null &&
+      Object.keys({ ...seed, ...draft }).some((key) => (draft[key] ?? "").trim() !== (seed[key] ?? "").trim());
+    const rentsChanged = !open || changed(ratesDraft, seededRates);
+    const feesChanged = changed(formDraft, seededForm);
+
+    if (!rentsChanged && !feesChanged) {
+      toastError("Nothing changed", "Change a rent or a fee first.");
+      return;
+    }
 
     const priced = roomTypes.flatMap((option) => {
       const raw = rates[option.roomType]?.trim();
@@ -192,7 +209,7 @@ export default function ManageRatesScreen() {
         : [];
     });
 
-    if (priced.length === 0) {
+    if (rentsChanged && priced.length === 0) {
       toastError("Price at least one room type", "Otherwise nobody can be billed.");
       return;
     }
@@ -200,24 +217,44 @@ export default function ManageRatesScreen() {
     setSaving(true);
 
     try {
-      await createFeeSchedule({
-        admissionFee: form.admissionFee?.trim() ? Number(form.admissionFee) : undefined,
-        formFee: form.formFee?.trim() ? Number(form.formFee) : undefined,
-        depositAmount: form.depositAmount?.trim() ? Number(form.depositAmount) : undefined,
-        effectiveFrom,
-        rates: priced,
-        referralAdmissionDiscount: form.referralAdmissionDiscount?.trim()
-          ? Number(form.referralAdmissionDiscount)
-          : undefined,
-      });
-      toastSuccess("Rates saved", "Your public listing now shows these rents.");
+      if (open && feesChanged) {
+        await updateOneOffFees({
+          admissionFee: amount(form.admissionFee),
+          depositAmount: amount(form.depositAmount),
+          formFee: amount(form.formFee),
+          referralAdmissionDiscount: amount(form.referralAdmissionDiscount),
+        });
+      }
+
+      if (rentsChanged) {
+        await createFeeSchedule({
+          admissionFee: form.admissionFee?.trim() ? Number(form.admissionFee) : undefined,
+          depositAmount: form.depositAmount?.trim() ? Number(form.depositAmount) : undefined,
+          effectiveFrom: bsPeriodBounds(addBsMonths(currentBsPeriod(), fromToday ? 0 : monthOffset)).start.toISOString(),
+          formFee: form.formFee?.trim() ? Number(form.formFee) : undefined,
+          rates: priced,
+          referralAdmissionDiscount: form.referralAdmissionDiscount?.trim()
+            ? Number(form.referralAdmissionDiscount)
+            : undefined,
+          ...(open && fromToday ? { startsToday: true } : {}),
+        });
+      }
+
+      toastSuccess(
+        "Rates saved",
+        rentsChanged
+          ? fromToday || !open
+            ? "New rents apply from today."
+            : `New rents start ${formatBsPeriod(addBsMonths(currentBsPeriod(), monthOffset))}.`
+          : "New joining fees apply right away.",
+      );
       router.back();
     } catch (error) {
       toastError("Could not save", readApiError(error));
     } finally {
       setSaving(false);
     }
-  }, [form, monthOffset, rates, roomTypes]);
+  }, [form, formDraft, fromToday, monthOffset, open, rates, ratesDraft, roomTypes, seededForm, seededRates]);
 
   if (schedules.loading) {
     return (
@@ -253,7 +290,7 @@ export default function ManageRatesScreen() {
           centerTitle
           showBack
           subtitle={
-            open ? `Replaces the rates from ${formatBsDate(new Date(open.effectiveFrom))}` : undefined
+            open ? `Current rates since ${formatBsDate(new Date(open.effectiveFrom))}` : undefined
           }
           title={open ? "New rates" : "Set the rates"}
         />
@@ -305,7 +342,85 @@ export default function ManageRatesScreen() {
         </View>
 
         <View>
-          <SectionHeader subtitle="Charged once, on arrival" title="One-off" />
+          <SectionHeader subtitle="Only the rents wait for a month" title="Rent starts from" />
+          <Card className="gap-2">
+            {fromToday ? (
+              <View className="items-center gap-1 py-1">
+                <Text className="text-lg font-bold text-foreground">From today</Text>
+                <Text className="text-center" variant="caption">
+                  {"Bills already raised stay the same. Everyone pays the new rent from next month."}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  className="py-2 active:opacity-60"
+                  onPress={() => setFromToday(false)}
+                >
+                  <Text className="font-semibold text-primary" variant={null}>
+                    Pick a month instead
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+            <>
+            <View className="flex-row items-center justify-between">
+              <Pressable
+                accessibilityLabel="A month earlier"
+                accessibilityRole="button"
+                className={`h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70 ${
+                  monthOffset <= (open ? 1 : 0) ? "opacity-30" : ""
+                }`}
+                disabled={monthOffset <= (open ? 1 : 0)}
+                onPress={() => setMonthOffset((value) => value - 1)}
+              >
+                <Glyph color={colors.foreground} name="chevron-back" size={18} />
+              </Pressable>
+              <View className="items-center">
+                <Text className="text-lg font-bold text-foreground">
+                  {formatBsPeriod(addBsMonths(currentBsPeriod(), monthOffset))}
+                </Text>
+                <Text variant="caption">
+                  {monthOffset === 0
+                    ? "This month"
+                    : monthOffset === 1
+                      ? "Next month"
+                      : `In ${monthOffset} months`}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityLabel="A month later"
+                accessibilityRole="button"
+                className="h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70"
+                onPress={() => setMonthOffset((value) => value + 1)}
+              >
+                <Glyph color={colors.foreground} name="chevron-forward" size={18} />
+              </Pressable>
+            </View>
+            <Text className="text-center" variant="caption">{"Starts on the 1st."}</Text>
+            {open ? (
+              <Pressable
+                accessibilityRole="button"
+                className="items-center py-2 active:opacity-60"
+                onPress={() =>
+                  openConfirm({
+                    confirmLabel: "Change from today",
+                    message:
+                      "Residents already billed this month are not affected. They are billed at the new rent from next month. Anyone billed from today, like a new resident, pays the new rent now.",
+                    onConfirm: () => setFromToday(true),
+                    title: "Change rents from today?",
+                  })
+                }
+              >
+                <Text className="font-semibold text-primary" variant={null}>
+                  Change from today
+                </Text>
+              </Pressable>
+            ) : null}
+            </>
+            )}
+          </Card>
+        </View>
+        <View>
+          <SectionHeader subtitle="Charged once, on arrival · changes right away" title="Joining fees" />
           <Card className="gap-3">
             <Input
               keyboardType="number-pad"
@@ -343,45 +458,6 @@ export default function ManageRatesScreen() {
           </Card>
         </View>
 
-        <View>
-          <SectionHeader title="Starts from" />
-          <Card className="gap-2">
-            <View className="flex-row items-center justify-between">
-              <Pressable
-                accessibilityLabel="A month earlier"
-                accessibilityRole="button"
-                className={`h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70 ${
-                  monthOffset <= (open ? 1 : 0) ? "opacity-30" : ""
-                }`}
-                disabled={monthOffset <= (open ? 1 : 0)}
-                onPress={() => setMonthOffset((value) => value - 1)}
-              >
-                <Glyph color={colors.foreground} name="chevron-back" size={18} />
-              </Pressable>
-              <View className="items-center">
-                <Text className="text-lg font-bold text-foreground">
-                  {formatBsPeriod(addBsMonths(currentBsPeriod(), monthOffset))}
-                </Text>
-                <Text variant="caption">
-                  {monthOffset === 0
-                    ? "This month"
-                    : monthOffset === 1
-                      ? "Next month"
-                      : `In ${monthOffset} months`}
-                </Text>
-              </View>
-              <Pressable
-                accessibilityLabel="A month later"
-                accessibilityRole="button"
-                className="h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70"
-                onPress={() => setMonthOffset((value) => value + 1)}
-              >
-                <Glyph color={colors.foreground} name="chevron-forward" size={18} />
-              </Pressable>
-            </View>
-            <Text className="text-center" variant="caption">{"Starts on the 1st."}</Text>
-          </Card>
-        </View>
       </View>
     </Screen>
   );

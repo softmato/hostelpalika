@@ -5,8 +5,8 @@ import { useIsOverall } from "@/components/hostel-switcher";
 import { KycLockedScreen } from "@/components/kyc-frost";
 import { Glyph } from "@/components/ui/glyph";
 import { useKycLock } from "@/lib/kyc-lock";
-import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import {
@@ -423,6 +423,40 @@ function BranchAdminMoneyScreen() {
     setVoidError(null);
   }, []);
 
+  /*
+   * `?resident=<id>` — the add-resident flow lands here with the new resident's
+   * record open, so the warden collects the joining charges in one place. A
+   * cached list may predate them, so one refresh before giving up.
+   */
+  /* `?collect=<stamp>` — Home's Collect shortcut: remount the search focused. */
+  const { collect, resident: openFor } = useLocalSearchParams<{ collect?: string; resident?: string }>();
+  const refreshedFor = useRef<string | null>(null);
+
+  const { data: moneyData, refresh: refreshMoney, refreshing: moneyRefreshing } = money;
+
+  useEffect(() => {
+    if (!openFor || !moneyData || moneyRefreshing) {
+      return;
+    }
+
+    const row = rows.find((candidate) => candidate.resident.id === openFor);
+
+    // A tick later, not inside the effect: opening the sheet sets state.
+    const timer = setTimeout(() => {
+      if (row) {
+        openRow(row);
+      } else if (refreshedFor.current !== openFor) {
+        refreshedFor.current = openFor;
+        refreshMoney();
+        return;
+      }
+
+      router.setParams({ resident: undefined });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [moneyData, moneyRefreshing, openFor, openRow, refreshMoney, rows]);
+
 
   /* Takes the late fine off this bill; the sheet then offers the smaller total. */
   const waiveFine = useCallback(() => {
@@ -642,6 +676,8 @@ function BranchAdminMoneyScreen() {
                 <Input
                   autoCapitalize="none"
                   autoCorrect={false}
+                  autoFocus={Boolean(collect)}
+                  key={collect ?? "search"}
                   onChangeText={(next) => {
                     setQuery(next);
                     // The cap belongs to the list that was open, and a query

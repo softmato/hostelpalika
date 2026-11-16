@@ -35,8 +35,15 @@ export interface GuideChapter {
   /** One line under the title: what this chapter answers. */
   summary: string;
   body?: string[];
+  /** A bullet list (not a sequence): the parts of a screen, the roles. */
+  points?: string[];
   steps?: string[];
   note?: { title: string; body: string };
+  /**
+   * Where to do it: buttons under the text that open the screen in a new tab.
+   * Labels are the screen's own name, so they stay English in Nepali too.
+   */
+  links?: GuideLink[];
   /** The same screen on a laptop and a phone. */
   shot?: GuidePicture;
   /** A numbered row of phone screens, one per step. */
@@ -44,8 +51,16 @@ export interface GuideChapter {
   widget?: GuideWidget;
 }
 
+export interface GuideLink {
+  label: string;
+  /** A site path, like `/hostel-admin/residents`. */
+  href: string;
+}
+
 /** A part of the page rendered from code rather than prose (web and app map the slug). */
-export type GuideWidget = "share-receipt" | "access-table" | "troubleshooting";
+export type GuideWidget = "share-receipt" | "access-table" | "troubleshooting" | "auto-billing";
+
+const link = (label: string, href: string): GuideLink => ({ href, label });
 
 export interface GuideGroup {
   /** URL segment: `/guide/<slug>/<chapter id>`. */
@@ -84,6 +99,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         id: "sign-up",
+        links: [link("Register your hostel", "/signup")],
         note: {
           body: "People can find your hostel on the website only after we approve your KYC. Until then, you can set up everything in private.",
           title: "Your hostel is private at first",
@@ -107,6 +123,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Sign in with Google, or with your email and password. If you forget the password, tap Forgot password.",
         ],
         id: "sign-in",
+        links: [link("Log in", "/login")],
         shot: pic(
           "sign-in",
           "The sign-in page on the website, and the PIN screen in the app.",
@@ -139,9 +156,10 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         body: [
           "Home shows the main numbers of your hostel: money collected this month, money still due, the number of residents, and the free beds.",
           "Tap the eye to hide the amounts when other people can see your screen.",
-          "The tiles below are shortcuts to your daily work: Add resident, Scan resident, Add expense, Night status, Statement and Stock.",
+          "Today's date in Bikram Sambat is on the card. The row under it has your daily shortcuts: Add resident, Collect and Add expense. Scan card and the rest are in the grid below.",
         ],
         id: "home",
+        links: [link("Home", "/hostel-admin/dashboard")],
         shot: pic(
           "finding-your-way",
           "Home on the website and in the app. The numbers are the same.",
@@ -151,6 +169,71 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
+          "Rooms & Beds shows each floor, its rooms, and which beds are free. A room can have a number (Room 304) or only a type (Two sharing).",
+        ],
+        id: "rooms",
+        links: [link("Rooms & Beds", "/hostel-admin/rooms")],
+        steps: [
+          "Add a floor: tap Add floor. The new floor is a copy of the floor below it.",
+          "Change a room: tap the room, then change its number or its type.",
+          "Swap two room numbers: press and hold two rooms, then tap Renumber. Room 101 and Room 102 swap numbers.",
+          "Move a resident: open Rooms & Beds, choose the person, then choose a free bed.",
+          "Remove a floor: tap the bin next to the floor name. If people live on that floor, the app first asks where each person should go. Then it removes the floor.",
+        ],
+        note: {
+          body: "Move the residents to another bed first. Then you can delete the room.",
+          title: "You cannot delete a room with people in it",
+        },
+        shot: pic(
+          "rooms-and-beds",
+          "Rooms & Beds: each floor, its rooms, and the free beds.",
+        ),
+        summary: "See your floors, rooms and free beds. Change them here.",
+        title: "Rooms and beds",
+      },
+      {
+        body: [
+          "In Room rates you set one monthly rent for each room type. The app uses this rent everywhere: on your public page and on every new bill.",
+          "Does one resident pay a different rent? When you add them, tap Edit under What it costs and write a reason.",
+        ],
+        id: "room-rates",
+        links: [link("Room rates", "/hostel-admin/fee-schedule")],
+        shot: pic("room-rates", "Room rates on the website and in the app."),
+        summary: "Set one monthly rent for each room type.",
+        title: "Room rates",
+      },
+      {
+        body: [
+          "Settings → The hostel holds what the public sees: about, contact, map pin, facilities, house rules, how to find the gate, and photos.",
+          "When you change something here, your public page changes too.",
+          "Hostel KYC asks for the same details the first time, one step at a time. Your work is saved when you tap Save & next or go back.",
+        ],
+        id: "hostel-page",
+        links: [link("Settings", "/hostel-admin/settings"), link("Hostel KYC", "/hostel-admin/kyc")],
+        summary: "What people see about your hostel on the website.",
+        title: "Your hostel page",
+      },
+      {
+        body: [
+          "Plan billing shows your plan and how much you owe. Pay by QR, then upload a photo of the payment.",
+          "Do you want to leave the platform? Go to Settings → Leave. You can clear your bills and download all your data first.",
+        ],
+        id: "plan",
+        links: [link("Plan billing", "/hostel-admin/billing")],
+        shot: pic("plan", "Settings on the website, and App lock on the phone."),
+        summary: "Pay for your plan, or leave the platform.",
+        title: "Your plan and account",
+      },
+    ],
+    intro: "Home, rooms, rates, your public page and your plan.",
+    label: "Your hostel",
+    slug: "owner",
+  },
+  {
+    audience: ["owner", "warden"],
+    chapters: [
+      {
+        body: [
           "There are three ways to add a new resident. Use the one that fits the moment.",
         ],
         flow: pic(
@@ -158,6 +241,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "1 Scan their HostelPalika ID card · 2 Show your hostel's Form QR · 3 Fill in the form by hand.",
         ),
         id: "add-resident",
+        links: [link("Residents", "/hostel-admin/residents")],
         note: {
           body: "Most hostels fill in the form themselves. It is quick, and you can check each detail as you type.",
           title: "Not sure which one? Fill in the form",
@@ -214,20 +298,21 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Billing: choose Calendar month for a bill on the 1st of every month. Choose Same day each month for a bill on the day they joined.",
           "What it costs: this shows the monthly rent, the rent for the rest of this month, the admission fee, and the amount due at move-in. To change a fee for this resident only, tap Edit and write a reason.",
           "Referral code: if someone sent this resident to you, type their code.",
-          "Tap Register them. The Registered screen shows the monthly rent, the code of the joining bill, and a QR. The resident can pay right there.",
+          "Tap Register them. A green tick shows, then Payments opens on this resident with every charge and the total, ready to collect.",
         ],
         summary: "Step 3 of 3: the room, the move-in day and the first bill.",
         title: "Choose the bed and see the bill",
       },
       {
         body: [
-          "When you tap Register them, the app does three things on its own:",
+          "When you tap Register them, the app does four things on its own:",
         ],
         flow: pic(
           "flow-notify",
           "1 The notification on the phone · 2 The same message in Notifications.",
         ),
         id: "after-registering",
+        links: [link("Payments", "/hostel-admin/payments")],
         shot: pic(
           "resident-registered",
           "The new resident in the list on the website, and the Registered screen with the QR of the joining bill.",
@@ -236,6 +321,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "The resident's app changes to their hostel Home. It shows their room, what they owe, and a Pay now button.",
           "The app makes their first bills: the joining bill (admission fee and deposit) and this month's rent.",
           "You, the owner and the other wardens get a notification. It says New resident registered, with the room and the move-in day.",
+          "Your phone shows a green tick and opens Payments on the new resident: the admission fee, the deposit, this month's rent and the total. Tap Collect there if they pay now.",
         ],
         summary: "The app makes the bills and tells everyone.",
         title: "After you register a resident",
@@ -245,6 +331,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Some residents lived in your hostel before you started using HostelPalika. Add them from Residents → Add as existing resident, and choose the last month they have paid for. Their bills start from the next month.",
         ],
         id: "existing-residents",
+        links: [link("Residents", "/hostel-admin/residents")],
         shot: pic(
           "join-link",
           "The resident list on the website, and a resident's profile in the app.",
@@ -253,103 +340,80 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         title: "Add people who already live here",
       },
       {
-        body: [
-          "Rooms & Beds shows each floor, its rooms, and which beds are free. A room can have a number (Room 304) or only a type (Two sharing).",
+        body: ["Open Residents and tap a name. The profile has four parts:"],
+        id: "resident-details",
+        links: [link("Residents", "/hostel-admin/residents")],
+        points: [
+          "Who they are: name, phone, email, photo and ID documents.",
+          "Their tenancy: room, bed, move-in day and monthly fee.",
+          "What they have paid: what they owe now, and every payment with its receipt under Payment history.",
+          "Guardians and emergency contacts: who the hostel calls, in order.",
         ],
-        id: "rooms",
+        summary: "Everything about one resident, and what they have paid.",
+        title: "See a resident's details and payments",
+      },
+      {
+        body: [
+          "Move in / out lists who arrived and who left. The newest is at the top.",
+          "A resident tells you they are leaving from their app. They choose their last day. It must be at least your notice days from today. Rent stops on that day.",
+          "You and the resident get a reminder the day before, and on the day. On the day, Home shows Leaving today. Tap Move out to settle the last bill, the deposit and any dues. After that, their login becomes a normal public account again. Their history stays with you.",
+        ],
+        id: "move-out",
+        links: [link("Move in / out", "/hostel-admin/move-in-out")],
+        shot: pic("move-in", "Move in / out: who arrived and who left."),
+        summary: "How a resident leaves, and what you do on the last day.",
+        title: "Move in and move out",
+      },
+      {
+        body: [
+          "Remove is for a mistake, like a resident added twice. For someone who is leaving, use Move out, so their last bill and deposit are settled first.",
+        ],
+        id: "remove-resident",
+        links: [link("Residents", "/hostel-admin/residents")],
         steps: [
-          "Add a floor: tap Add floor. The new floor is a copy of the floor below it.",
-          "Change a room: tap the room, then change its number or its type.",
-          "Swap two room numbers: press and hold two rooms, then tap Renumber. Room 101 and Room 102 swap numbers.",
-          "Move a resident: open Rooms & Beds, choose the person, then choose a free bed.",
-          "Remove a floor: tap the bin next to the floor name. If people live on that floor, the app first asks where each person should go. Then it removes the floor.",
+          "Open Residents and tap the name.",
+          "Tap Remove resident at the bottom of their profile.",
+          "Tap Remove to confirm. Their bed is freed and they leave every list in this hostel.",
         ],
-        note: {
-          body: "Move the residents to another bed first. Then you can delete the room.",
-          title: "You cannot delete a room with people in it",
-        },
-        shot: pic(
-          "rooms-and-beds",
-          "Rooms & Beds: each floor, its rooms, and the free beds.",
-        ),
-        summary: "See your floors, rooms and free beds. Change them here.",
-        title: "Rooms and beds",
+        summary: "Take out a resident added by mistake.",
+        title: "Remove a resident",
       },
+    ],
+    intro: "Add, find, move out and remove residents.",
+    label: "Residents",
+    slug: "residents",
+  },
+  {
+    audience: ["owner", "warden"],
+    chapters: [
       {
         body: [
-          "In Room rates you set one monthly rent for each room type. The app uses this rent everywhere: on your public page and on every new bill.",
-          "Does one resident pay a different rent? When you add them, tap Edit under What it costs and write a reason.",
+          "You never make a bill by hand. On each resident's bill day the app makes the bill, sends it to their phone and starts the reminders.",
+          "Each bill has a month code, like RUP-482K-BHA83. The resident writes it in the remark when they pay, so you know which month the money is for.",
         ],
-        id: "room-rates",
-        shot: pic("room-rates", "Room rates on the website and in the app."),
-        summary: "Set one monthly rent for each room type.",
-        title: "Room rates",
+        id: "auto-billing",
+        links: [link("Payments", "/hostel-admin/payments")],
+        summary: "Every month the app bills each resident for you.",
+        title: "Bills make themselves",
+        widget: "auto-billing",
       },
       {
-        body: [
-          "Settings → The hostel holds what the public sees: about, contact, map pin, facilities, house rules, how to find the gate, and photos.",
-          "When you change something here, your public page changes too.",
-          "Hostel KYC asks for the same details the first time, one step at a time. Your work is saved when you tap Save & next or go back.",
-        ],
-        id: "hostel-page",
-        summary: "What people see about your hostel on the website.",
-        title: "Your hostel page",
-      },
-      {
-        body: [
-          "Payments lists every resident for the month. You see who has paid, who still owes, and who is late. If you use a late fine, it is added here.",
-          "If a resident pays cash at the desk, open the resident and record it. Payments made with eSewa or Khalti inside the app are marked paid on their own.",
-        ],
-        id: "payments",
-        shot: pic(
-          "payments",
-          "Payments on the website, and a payment waiting for your check in the app.",
-        ),
-        summary: "See who has paid and who still owes.",
-        title: "Payments",
-      },
-      {
-        body: [
-          "Use this when a resident pays you in person. Tap Collect, then tap their name.",
-        ],
-        id: "collect-payment",
+        body: ["Every bill is paid one of two ways. Both end in the same place."],
+        id: "payment-flow",
+        links: [link("Payments", "/hostel-admin/payments")],
         steps: [
-          "You see every month they still owe. The oldest month is already ticked.",
-          "If they pay for more months, tick those too. The total changes.",
-          "Choose how they pay: Cash, or the eSewa, Khalti or bank account you set up.",
-          "For an online payment, the QR or the number shows on the screen. Let the resident scan it.",
-          "Tap Collect. Those months are now paid.",
-          "The resident gets a receipt in the app, and their points.",
+          "The app makes the bill and sends it to the resident.",
+          "Online: the resident pays to your QR, eSewa, Khalti or bank and sends the screenshot from the app. You check it in Payments and tap Approve.",
+          "At the desk: the resident pays you cash or scans your QR. Tap Collect on Home, find their name, and save it.",
+          "Either way the month is marked paid, the resident gets a receipt and points, and the money shows in the Statement.",
         ],
-        summary: "Take cash or a QR payment, and mark the months as paid.",
-        title: "Take a payment at the desk",
-      },
-      {
-        body: [
-          "When a resident pays to your QR, eSewa, Khalti or bank, they send you a screenshot of the payment. The app calls this a claim. It waits for you under Payments → Claims to verify.",
-        ],
-        flow: pic(
-          "flow-verify",
-          "1 A claim to check, with the receipt and the checks · 2 Approved · 3 The resident's bill goes down.",
-        ),
-        id: "verify-payments",
-        note: {
-          body: "Each claim shows the checks the app has already done. Is it a payment screenshot? Was it paid to you? Do the amount and the reference match? Approve only when you can see the money in your own account.",
-          title: "Check first, then approve",
-        },
-        steps: [
-          "Open Payments. A card shows 1 claim to verify.",
-          "Tap the receipt to see it in full size.",
-          "Tap Approve. Or tap Reject and write a reason.",
-          "The app records the payment, makes a receipt, and updates the resident's balance right away.",
-          "The resident gets points for the day they sent the receipt, not the day you approve it. So a late approval does not hurt them.",
-        ],
-        summary: "Residents send a screenshot. You check it and approve it.",
-        title: "Check a payment screenshot",
+        summary: "Billed, then paid online or at your desk.",
+        title: "How a payment reaches you",
       },
       {
         body: ["The app makes every bill on its own. You do not have to press anything."],
         id: "how-bills-work",
+        links: [link("Late fine", "/hostel-admin/late-fine"), link("Khata", "/hostel-admin/khata")],
         note: {
           body: "The rent is 6,200. The resident joins on Bhadra 20, and Bhadra has 31 days. With Calendar month, the first bill is for 12 of 31 days (2,400), then 6,200 on every 1st. With Same day, they pay 6,200 now, then 6,200 on every 20th.",
           title: "Example",
@@ -370,6 +434,69 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
+          "Payments lists every resident for the month. You see who has paid, who still owes, and who is late. If you use a late fine, it is added here.",
+          "If a resident pays cash at the desk, open the resident and record it. Payments made with eSewa or Khalti inside the app are marked paid on their own.",
+        ],
+        id: "payments",
+        links: [link("Payments", "/hostel-admin/payments")],
+        shot: pic(
+          "payments",
+          "Payments on the website, and a payment waiting for your check in the app.",
+        ),
+        summary: "See who has paid and who still owes.",
+        title: "Payments",
+      },
+      {
+        body: [
+          "Use this when a resident pays you in person. Tap Collect, then tap their name.",
+        ],
+        id: "collect-payment",
+        links: [link("Payments", "/hostel-admin/payments")],
+        steps: [
+          "You see every month they still owe. The oldest month is already ticked.",
+          "If they pay for more months, tick those too. The total changes.",
+          "Choose how they pay: Cash, or the eSewa, Khalti or bank account you set up.",
+          "For an online payment, the QR or the number shows on the screen. Let the resident scan it.",
+          "Tap Collect. Those months are now paid.",
+          "The resident gets a receipt in the app, and their points.",
+        ],
+        summary: "Take cash or a QR payment, and mark the months as paid.",
+        title: "Take a payment at the desk",
+      },
+      {
+        body: [
+          "When a resident pays to your QR, eSewa, Khalti or bank, they send you a screenshot of the payment. The app calls this a claim. It waits for you under Payments → Claims to verify.",
+        ],
+        flow: pic(
+          "flow-verify",
+          "1 A claim to check, with the receipt and the checks · 2 Approved · 3 The resident's bill goes down.",
+        ),
+        id: "verify-payments",
+        links: [link("Payments", "/hostel-admin/payments")],
+        note: {
+          body: "Each claim shows the checks the app has already done. Is it a payment screenshot? Was it paid to you? Do the amount and the reference match? Approve only when you can see the money in your own account.",
+          title: "Check first, then approve",
+        },
+        steps: [
+          "Open Payments. A card shows 1 claim to verify.",
+          "Tap the receipt to see it in full size.",
+          "Tap Approve. Or tap Reject and write a reason.",
+          "The app records the payment, makes a receipt, and updates the resident's balance right away.",
+          "The resident gets points for the day they sent the receipt, not the day you approve it. So a late approval does not hurt them.",
+        ],
+        summary: "Residents send a screenshot. You check it and approve it.",
+        title: "Check a payment screenshot",
+      },
+    ],
+    intro: "Automatic bills, and how the money reaches you.",
+    label: "Payments",
+    slug: "payments",
+  },
+  {
+    audience: ["owner", "warden"],
+    chapters: [
+      {
+        body: [
           "Use Add expense to record money the hostel spends. Add a photo of the bill. The expense shows in the Statement right away.",
         ],
         flow: pic(
@@ -377,6 +504,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "1 How much · 2 What it was for, who paid, and the bill photo · 3 In the Statement.",
         ),
         id: "expenses",
+        links: [link("Expenses", "/hostel-admin/expenses")],
         shot: pic(
           "expenses-reports",
           "Expenses on the website, by category and staff cash. Expense added in the app.",
@@ -402,6 +530,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "For charts and PDF files of the same numbers, open Reports.",
         ],
         id: "statement",
+        links: [link("Statement", "/hostel-admin/statement")],
         shot: pic(
           "resident-balance",
           "Transactions: each bill, the money paid for it, and what is still owed.",
@@ -414,20 +543,32 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Reports shows your numbers as charts: money collected, beds filled, and expenses. Choose any dates, and save the report as a PDF.",
         ],
         id: "reports",
+        links: [link("Reports", "/hostel-admin/reports")],
         shot: pic("reports", "Reports: money collected, beds filled and expenses."),
         summary: "Charts of your money and beds, and PDF files.",
         title: "Reports",
       },
+    ],
+    intro: "What the hostel spends, and every rupee in and out.",
+    label: "Finance",
+    slug: "finance",
+  },
+  {
+    audience: ["owner"],
+    chapters: [
       {
-        body: [
-          "Move in / out lists who arrived and who left. The newest is at the top.",
-          "A resident tells you they are leaving from their app. They choose their last day. It must be at least your notice days from today. Rent stops on that day.",
-          "You and the resident get a reminder the day before, and on the day. On the day, Home shows Leaving today. Tap Move out to settle the last bill, the deposit and any dues. After that, their login becomes a normal public account again. Their history stays with you.",
+        body: ["Everyone uses the same app, and each person sees only their own part."],
+        id: "staff-roles",
+        links: [link("Wardens", "/hostel-admin/wardens")],
+        points: [
+          "Owner: everything, including money, staff and settings.",
+          "Warden: the daily work. The owner turns on each extra, like seeing money or adding expenses.",
+          "Cook: the food menu and meal counts.",
+          "Resident: their own room, bills and requests.",
+          "Guardian: their child's bills and safety.",
         ],
-        id: "move-out",
-        shot: pic("move-in", "Move in / out: who arrived and who left."),
-        summary: "How a resident leaves, and what you do on the last day.",
-        title: "Move in and move out",
+        summary: "Who sees what, by role.",
+        title: "Roles and permissions",
       },
       {
         body: [
@@ -435,6 +576,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Do you need someone for one day? Give them a temporary login. It stops working on its own. The Audit log shows who changed what, and when.",
         ],
         id: "team",
+        links: [link("Wardens", "/hostel-admin/wardens"), link("Cooks", "/hostel-admin/cooks")],
         shot: pic(
           "staff",
           "Warden permissions on the website, and the cook list in the app.",
@@ -442,20 +584,10 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         summary: "Add wardens and cooks, and choose what each one can do.",
         title: "Your staff",
       },
-      {
-        body: [
-          "Plan billing shows your plan and how much you owe. Pay by QR, then upload a photo of the payment.",
-          "Do you want to leave the platform? Go to Settings → Leave. You can clear your bills and download all your data first.",
-        ],
-        id: "plan",
-        shot: pic("plan", "Settings on the website, and App lock on the phone."),
-        summary: "Pay for your plan, or leave the platform.",
-        title: "Your plan and account",
-      },
     ],
-    intro: "How to run your hostel: residents, rooms, money and staff.",
-    label: "Hostel owner",
-    slug: "owner",
+    intro: "Wardens and cooks, and what each one can do.",
+    label: "Staff",
+    slug: "staff",
   },
   {
     audience: ["warden"],
@@ -590,6 +722,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "1 Home · 2 Payments · 3 Your digital ID card · 4 Night history.",
         ),
         id: "resident-home",
+        links: [link("My home", "/resident/dashboard")],
         summary: "Your room, your bills and today's food on one screen.",
         title: "Your Home",
       },
@@ -621,6 +754,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "1 Upload the receipt · 2 The app reads it · 3 It stops a wrong amount · 4 Sent to your hostel.",
         ),
         id: "send-proof",
+        links: [link("My payments", "/resident/payments")],
         widget: "share-receipt",
         note: {
           body: "The app reads the amount and the transaction ID from your screenshot. If the amount is much more than you owe, the app stops and asks you to check. This way a typing mistake does not become a wrong record.",
@@ -949,9 +1083,12 @@ export const GUIDE_TROUBLE: { problem: string; fix: string }[] = [
 export function chapterAsMarkdown(c: GuideChapter, heading = "#") {
   const out = [`${heading} ${c.title}`, "", `_${c.summary}_`, ""];
   c.body?.forEach((p) => out.push(p, ""));
+  c.points?.forEach((pt) => out.push(`- ${pt}`));
+  if (c.points) out.push("");
   c.steps?.forEach((st, i) => out.push(`${i + 1}. ${st}`));
   if (c.steps) out.push("");
   if (c.note) out.push(`> **${c.note.title}.** ${c.note.body}`, "");
+  if (c.links) out.push(c.links.map((l) => `[${l.label}](${l.href})`).join(" · "), "");
   return out.join("\n").trimEnd();
 }
 

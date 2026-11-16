@@ -505,7 +505,14 @@ async function settledList<T>(
 ): Promise<T[]> {
   try {
     return await load();
-  } catch {
+  } catch (error) {
+    /*
+     * Only a refusal is a denial. Offline, a timeout or a 5xx used to land
+     * here too and told an owner on a dropped connection that complaints, SOS
+     * and claims were "not yours to see" (owner, 2026-11-16). Those now fail
+     * the read, so the inbox falls back to its saved copy like every screen.
+     */
+    if ((error as { response?: { status?: number } })?.response?.status !== 403) throw error;
     denied.push(name);
     return [];
   }

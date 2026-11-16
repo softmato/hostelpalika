@@ -62,8 +62,10 @@ let activeScope: string | null = null;
 export function setQueryCacheScope(hostelId: string | null) {
   activeScope = hostelId;
 }
+/** Keys under `account:` read the same from every branch (the branch list itself). */
+const ACCOUNT_WIDE = "account:";
 function scopedKey(key: string) {
-  return JSON.stringify([activeScope, key]);
+  return JSON.stringify([key.startsWith(ACCOUNT_WIDE) ? null : activeScope, key]);
 }
 
 type Entry = {

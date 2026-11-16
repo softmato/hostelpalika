@@ -22,6 +22,10 @@ export type ResidentDetails = {
   citizenshipNo?: string;
   classTime?: string;
   dateOfBirth?: string;
+  /** How it was picked; `dateOfBirth` above is always AD. */
+  dateOfBirthCalendar?: "AD" | "BS";
+  /** The date as picked, in that calendar. */
+  dateOfBirthAsEntered?: string;
   district?: string;
   family?: DetailsPerson[];
   food?: string;
@@ -91,6 +95,8 @@ export const APPLICANT_FIELDS = [
   "phone",
   "email",
   "dateOfBirth",
+  "dateOfBirthCalendar",
+  "dateOfBirthAsEntered",
   "gender",
   "bloodGroup",
   "food",
@@ -209,6 +215,8 @@ export function detailsFromDraft(draft: ApplicantDraft): ResidentDetails {
     citizenshipNo: v("citizenshipNo"),
     classTime: v("classTime"),
     dateOfBirth: v("dateOfBirth"),
+    dateOfBirthAsEntered: v("dateOfBirthAsEntered"),
+    dateOfBirthCalendar: v("dateOfBirthCalendar") as ResidentDetails["dateOfBirthCalendar"],
     district: v("district"),
     family,
     food: v("food"),
@@ -284,7 +292,12 @@ export function detailsSections(details: ResidentDetails | null | undefined) {
   const sections = [
     {
       facts: facts([
-        ["Date of birth", details.dateOfBirth],
+        [
+          "Date of birth",
+          details.dateOfBirthCalendar === "BS" && details.dateOfBirthAsEntered
+            ? `${details.dateOfBirthAsEntered} BS (${details.dateOfBirth} AD)`
+            : details.dateOfBirth,
+        ],
         ["Gender", details.gender ? (GENDER_LABELS[details.gender] ?? details.gender) : undefined],
         ["Blood group", details.bloodGroup],
         ["Food", details.food ? (FOOD_LABELS[details.food] ?? details.food) : undefined],

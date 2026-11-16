@@ -1,6 +1,7 @@
 "use client";
 
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { planRank } from "@hostel/shared/plans/catalog";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,6 +26,7 @@ import {
 import { NotificationBell } from "@/components/notification-bell";
 import { PortalBootSplash } from "@/components/auth-loading-overlay";
 import { PortalAccount } from "@/components/portal-account";
+import { PlanMark } from "@/app/_components/plan-mark";
 import { PortalPageIconProvider } from "@/components/portal-page-context";
 import { PortalSearch, revealField } from "@/components/portal-search";
 import { SupportDialog } from "@/components/support-dialog";
@@ -143,8 +145,10 @@ type PlanState = {
     currentPeriodEnd: string | null;
     dueBy: string | null;
     lifetimeSince?: string | null;
+    planId?: string | null;
     planName: string | null;
     status: string;
+    trialEndsAt?: string | null;
   };
 } | null;
 
@@ -224,7 +228,7 @@ export function PortalShell({
   const prefetchHref = usePrefetchPortalHref();
   // A pasted `?field=` link; the palette handles the ones it opens itself.
   useEffect(() => revealField(window.location.href), []);
-  const { identity } = useSiteConfig();
+  const { identity, plans: planCatalog } = useSiteConfig();
   // Admin-configured branding wins; the prop is only an explicit override.
   const portalName = portalNameProp ?? identity.siteName;
   const cleanHeader = tone === "admin" || tone === "resident";
@@ -522,6 +526,14 @@ export function PortalShell({
     }
 
     const owing = planOwing(plan);
+    const { lifetimeSince, planId, planName, status, trialEndsAt } = plan.subscription;
+    // The same drawing /plans-pricing puts on the plan's card: Go/Pro/Max by
+    // rank, the seal for a lifetime plan, the rings once the trial ended unpaid.
+    const lifetime = status === "ACTIVE" && Boolean(lifetimeSince);
+    const rank = planId ? planRank(planCatalog, planId) : -1;
+    const onFree = !planName && Boolean(trialEndsAt);
+    const trialEnded = onFree && Date.parse(trialEndsAt as string) < Date.now();
+    const label = planName ?? (trialEnded ? planCatalog.free?.name ?? "Free" : onFree ? "Free trial" : "No plan");
 
     return (
       <div className="border-t border-border/70 p-2">
@@ -529,16 +541,25 @@ export function PortalShell({
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-muted"
           href="/hostel-admin/billing"
         >
-          <span
-            className={cn(
-              "size-1.5 shrink-0 rounded-full",
-              owing ? "bg-warning" : plan.subscription.status === "ACTIVE" ? "bg-success" : "bg-muted-foreground",
-            )}
-          />
-          <span className="min-w-0 flex-1 leading-tight">
-            <span className="block truncate text-[12px] font-bold text-foreground">
-              {plan.subscription.planName ?? "No plan"}
+          {lifetime || rank >= 0 || onFree ? (
+            <span
+              className={cn(
+                "grid size-8 shrink-0 place-items-center rounded-lg",
+                owing ? "bg-warning/10 text-warning" : "bg-primary/10 text-primary",
+              )}
+            >
+              <PlanMark className="size-5" free={!lifetime && rank < 0} lifetime={lifetime} rank={Math.max(0, rank)} />
             </span>
+          ) : (
+            <span
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                owing ? "bg-warning" : status === "ACTIVE" ? "bg-success" : "bg-muted-foreground",
+              )}
+            />
+          )}
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[12px] font-bold text-foreground">{label}</span>
             <span className={cn("block truncate text-[10px]", owing ? "text-warning" : "text-muted-foreground")}>
               {planLine(plan)}
             </span>

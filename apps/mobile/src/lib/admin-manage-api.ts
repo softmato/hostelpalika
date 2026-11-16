@@ -2539,8 +2539,20 @@ export async function createFeeSchedule(input: {
   rates: { monthlyAmount: number; roomType: string }[];
   /** Refused server-side if it exceeds `admissionFee`. */
   referralAdmissionDiscount?: number;
+  /** Rents start this month for bills not raised yet; raised bills keep their amount. */
+  startsToday?: boolean;
 }) {
   await api.post("/hostel-admin/finance/fee-schedules", input);
+}
+
+/** Admission, form fee, deposit, referral: changed right away. 0 = not charged. */
+export async function updateOneOffFees(input: {
+  admissionFee: number;
+  depositAmount: number;
+  formFee: number;
+  referralAdmissionDiscount: number;
+}) {
+  await api.patch("/hostel-admin/finance/fee-schedules/one-off-fees", input);
 }
 
 /**
@@ -3204,6 +3216,8 @@ export type PlanBillingPlan = {
    * is a share of. Absent from a server that predates it.
    */
   periodDays?: number | null;
+  /** Paid for life: nothing counts down, and the plan wears the lifetime seal. */
+  lifetime?: boolean;
   planId: string | null;
   planName: string | null;
   price: number | null;
