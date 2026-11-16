@@ -9,6 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../../apps/web"
 
+export NEXT_DIST_DIR=.next-contract
 export APP_ENV=development APP_URL=http://localhost:3000 NEXT_PUBLIC_APP_URL=http://localhost:3000
 export MONGODB_URI='mongodb://127.0.0.1:27018/hostelpalika_contract?directConnection=true'
 export JWT_ACCESS_SECRET=contract-access-secret-0123456789abcdef

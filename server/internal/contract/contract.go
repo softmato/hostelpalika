@@ -142,9 +142,9 @@ func Diff(c Case, status int, contentType string, setCookie []string, body []byt
 		g, _ := json.Marshal(got)
 		e, _ := json.Marshal(exp)
 		diffs = append(diffs, fmt.Sprintf("body:\n  got  %s\n  want %s", g, e))
-	} else if !c.UnorderedKeys && order(body) != order(want.Body) {
+	} else if !c.UnorderedKeys && order(body, c.Masks) != order(want.Body, c.Masks) {
 		// Key order matters to some clients (RULES.md §2); DeepEqual ignores it.
-		diffs = append(diffs, "body: same values, different key order\n  got  "+order(body)+"\n  want "+order(want.Body))
+		diffs = append(diffs, "body: same values, different key order\n  got  "+strings.ReplaceAll(order(body, c.Masks), "\x00", " ")+"\n  want "+strings.ReplaceAll(order(want.Body, c.Masks), "\x00", " "))
 	}
 	return diffs
 }
@@ -189,45 +189,59 @@ func mask(v any, path []string) {
 	}
 }
 
-// order lists object keys in document order, depth first. Inside an object the
-// decoder's tokens alternate key, value; a frame tracks which one is next.
-func order(raw []byte) string {
-	type frame struct{ object, wantKey bool }
-	var stack []frame
-	var keys []string
-	valueDone := func() {
-		if n := len(stack); n > 0 && stack[n-1].object {
-			stack[n-1].wantKey = true
+// order lists object keys in document order, depth first. Keys inside a masked
+// value are left out: a mask says that value varies run to run, so its shape may
+// too (a credit line that only exists mid-month, 2026-11-16).
+func order(raw []byte, masks []string) string {
+	var masked [][]string
+	for _, m := range masks {
+		if m != "**dates" {
+			masked = append(masked, strings.Split(m, "."))
 		}
 	}
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	for {
-		tok, err := dec.Token()
-		if err != nil {
-			break
-		}
-		if n := len(stack); n > 0 && stack[n-1].object && stack[n-1].wantKey {
-			if d, ok := tok.(json.Delim); ok && d == '}' {
-				stack = stack[:n-1]
-				valueDone()
+	hit := func(path []string) bool {
+	next:
+		for _, m := range masked {
+			if len(m) != len(path) {
 				continue
 			}
-			keys = append(keys, tok.(string))
-			stack[n-1].wantKey = false
-			continue
+			for i := range m {
+				if m[i] != "*" && m[i] != path[i] {
+					continue next
+				}
+			}
+			return true
+		}
+		return false
+	}
+	var keys []string
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	var walk func(path []string, skip bool)
+	walk = func(path []string, skip bool) {
+		skip = skip || hit(path)
+		tok, err := dec.Token()
+		if err != nil {
+			return
 		}
 		switch tok {
 		case json.Delim('{'):
-			stack = append(stack, frame{object: true, wantKey: true})
+			for dec.More() {
+				k, _ := dec.Token()
+				key, _ := k.(string)
+				if !skip {
+					keys = append(keys, key)
+				}
+				walk(append(path, key), skip)
+			}
+			_, _ = dec.Token()
 		case json.Delim('['):
-			stack = append(stack, frame{})
-		case json.Delim(']'), json.Delim('}'):
-			stack = stack[:len(stack)-1]
-			valueDone()
-		default:
-			valueDone()
+			for i := 0; dec.More(); i++ {
+				walk(append(path, strconv.Itoa(i)), skip)
+			}
+			_, _ = dec.Token()
 		}
 	}
+	walk(nil, false)
 	return strings.Join(keys, "\x00")
 }
 

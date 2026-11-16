@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list resident",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list",
@@ -76,7 +76,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -113,7 +113,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "invitee@contract.test",
@@ -144,7 +144,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -175,7 +175,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-04T15:08:14.986Z",
+              "createdAt": "2026-11-15T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -433,7 +433,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -470,7 +470,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -507,7 +507,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "invitee@contract.test",
@@ -538,7 +538,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -569,7 +569,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-04T15:08:14.986Z",
+              "createdAt": "2026-11-15T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -827,7 +827,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -893,7 +893,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list q regex chars",
@@ -925,7 +925,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list q empty",
@@ -962,7 +962,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list status moved out",
@@ -1059,7 +1059,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -1097,7 +1097,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list type",
@@ -1129,7 +1129,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list type bad",
@@ -1166,7 +1166,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list page 2",
@@ -1202,7 +1202,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-04T15:08:14.986Z",
+              "createdAt": "2026-11-15T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -1300,7 +1300,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -1338,7 +1338,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list pageSize 500",
@@ -1375,7 +1375,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list outsider hostel",
@@ -1398,7 +1398,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list bad hostel",
@@ -1435,7 +1435,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get signed out",
@@ -1455,7 +1455,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get resident",
@@ -1478,7 +1478,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get",
@@ -1536,7 +1536,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get with photo",
@@ -1594,7 +1594,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get moved out",
@@ -1652,7 +1652,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get outsiders",
@@ -1675,7 +1675,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get unknown",
@@ -1698,7 +1698,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get bad id",
@@ -1721,7 +1721,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get bad hostel",
@@ -1758,7 +1758,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get outsider hostel",
@@ -1781,7 +1781,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts signed out",
@@ -1801,7 +1801,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts warden no grant",
@@ -1824,7 +1824,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts empty",
@@ -1850,7 +1850,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts outsiders",
@@ -1873,7 +1873,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts bad id",
@@ -1896,7 +1896,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "photo signed out",
@@ -1916,7 +1916,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "photo none",
@@ -1939,7 +1939,7 @@
         "errorCode": "PHOTO_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "photo asset gone",
@@ -1962,7 +1962,7 @@
         "errorCode": "PHOTO_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "photo outsiders",
@@ -1985,7 +1985,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian resident",
@@ -2014,7 +2014,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian warden no grant",
@@ -2043,7 +2043,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian empty",
@@ -2102,7 +2102,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian short phone",
@@ -2152,7 +2152,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian bad email",
@@ -2196,7 +2196,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian outsiders",
@@ -2225,7 +2225,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian",
@@ -2255,17 +2255,17 @@
         "message": "Guardian added",
         "data": {
           "guardian": {
-            "createdAt": "2026-11-02T14:47:37.699Z",
+            "createdAt": "2026-11-16T12:42:10.209Z",
             "email": "gopal@contract.test",
             "firstName": "Gopal",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6ae8a2895e205a5564095ec4",
+            "id": "6afafa229a35879ef7c79978",
             "isPrimary": true,
             "lastName": "Rai",
             "phone": "9811111111",
             "relation": "Father",
             "residentId": "6d0100000000000000000028",
-            "updatedAt": "2026-11-02T14:47:37.699Z"
+            "updatedAt": "2026-11-16T12:42:10.209Z"
           },
           "resident": {
             "admissionFee": null,
@@ -2301,7 +2301,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "guardian second",
@@ -2329,17 +2329,17 @@
         "message": "Guardian added",
         "data": {
           "guardian": {
-            "createdAt": "2026-11-02T14:47:38.013Z",
+            "createdAt": "2026-11-16T12:42:10.280Z",
             "email": "",
             "firstName": "Maya",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6ae8a28a5e205a5564095ec5",
+            "id": "6afafa229a35879ef7c79979",
             "isPrimary": false,
             "lastName": "Rai",
             "phone": "9822222222",
             "relation": "Mother",
             "residentId": "6d0100000000000000000028",
-            "updatedAt": "2026-11-02T14:47:38.013Z"
+            "updatedAt": "2026-11-16T12:42:10.280Z"
           },
           "resident": {
             "admissionFee": null,
@@ -2375,7 +2375,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "emergency empty",
@@ -2427,7 +2427,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "emergency resident",
@@ -2455,7 +2455,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "emergency outsiders",
@@ -2483,7 +2483,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "emergency",
@@ -2511,15 +2511,15 @@
         "message": "Emergency contact added",
         "data": {
           "emergencyContact": {
-            "createdAt": "2026-11-02T14:47:38.420Z",
+            "createdAt": "2026-11-16T12:42:10.492Z",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6ae8a28a5e205a5564095ec6",
+            "id": "6afafa229a35879ef7c7997a",
             "isPrimary": true,
             "name": "Uncle Ram",
             "phone": "9833333333",
             "relation": "Uncle",
             "residentId": "6d0100000000000000000028",
-            "updatedAt": "2026-11-02T14:47:38.420Z"
+            "updatedAt": "2026-11-16T12:42:10.492Z"
           },
           "resident": {
             "admissionFee": null,
@@ -2555,7 +2555,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "contacts after",
@@ -2578,49 +2578,49 @@
         "data": {
           "emergencyContacts": [
             {
-              "createdAt": "2026-11-02T14:47:38.420Z",
+              "createdAt": "2026-11-16T12:42:10.492Z",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae8a28a5e205a5564095ec6",
+              "id": "6afafa229a35879ef7c7997a",
               "isPrimary": true,
               "name": "Uncle Ram",
               "phone": "9833333333",
               "relation": "Uncle",
               "residentId": "6d0100000000000000000028",
-              "updatedAt": "2026-11-02T14:47:38.420Z"
+              "updatedAt": "2026-11-16T12:42:10.492Z"
             }
           ],
           "guardians": [
             {
-              "createdAt": "2026-11-02T14:47:37.699Z",
+              "createdAt": "2026-11-16T12:42:10.209Z",
               "email": "gopal@contract.test",
               "firstName": "Gopal",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae8a2895e205a5564095ec4",
+              "id": "6afafa229a35879ef7c79978",
               "isPrimary": true,
               "lastName": "Rai",
               "phone": "9811111111",
               "relation": "Father",
               "residentId": "6d0100000000000000000028",
-              "updatedAt": "2026-11-02T14:47:37.699Z"
+              "updatedAt": "2026-11-16T12:42:10.209Z"
             },
             {
-              "createdAt": "2026-11-02T14:47:38.013Z",
+              "createdAt": "2026-11-16T12:42:10.280Z",
               "email": "",
               "firstName": "Maya",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae8a28a5e205a5564095ec5",
+              "id": "6afafa229a35879ef7c79979",
               "isPrimary": false,
               "lastName": "Rai",
               "phone": "9822222222",
               "relation": "Mother",
               "residentId": "6d0100000000000000000028",
-              "updatedAt": "2026-11-02T14:47:38.013Z"
+              "updatedAt": "2026-11-16T12:42:10.280Z"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch resident",
@@ -2646,7 +2646,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch warden no grant",
@@ -2672,7 +2672,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch bad",
@@ -2736,7 +2736,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch outsiders",
@@ -2762,7 +2762,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch unknown",
@@ -2788,7 +2788,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch phone taken",
@@ -2814,7 +2814,7 @@
         "errorCode": "RESIDENT_PHONE_TAKEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch same phone",
@@ -2867,12 +2867,12 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T14:47:39.385Z"
+            "updatedAt": "2026-11-16T12:42:10.898Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch rename",
@@ -2933,12 +2933,12 @@
             "residentType": "OTHER",
             "roomType": "Double Sharing",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T14:47:39.838Z"
+            "updatedAt": "2026-11-16T12:42:11.114Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch email",
@@ -2994,12 +2994,13 @@
             "residentType": "OTHER",
             "roomType": "Double Sharing",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T14:47:39.981Z"
+            "updatedAt": "2026-11-16T12:42:11.326Z",
+            "userId": "6afafa239a35879ef7c7997e"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch email taken",
@@ -3025,7 +3026,7 @@
         "errorCode": "RESIDENT_EMAIL_TAKEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch room type",
@@ -3081,12 +3082,13 @@
             "residentType": "OTHER",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T14:47:40.230Z"
+            "updatedAt": "2026-11-16T12:42:11.595Z",
+            "userId": "6afafa239a35879ef7c7997e"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "patch room type unknown",
@@ -3112,7 +3114,7 @@
         "errorCode": "ROOM_TYPE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get after patch",
@@ -3165,15 +3167,21 @@
             "residentType": "OTHER",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-02T14:47:40.230Z",
+            "updatedAt": "2026-11-16T12:42:11.595Z",
+            "userId": "6afafa239a35879ef7c7997e",
             "details": null,
             "documents": [],
-            "account": null
+            "account": {
+              "email": "asha@contract.test",
+              "image": null,
+              "name": "Asha2 Rai2",
+              "signedIn": false
+            }
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list after patch",
@@ -3209,7 +3217,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -3246,7 +3254,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "invitee@contract.test",
@@ -3277,7 +3285,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -3308,7 +3316,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-04T15:08:14.986Z",
+              "createdAt": "2026-11-15T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -3562,14 +3570,20 @@
               "residentType": "OTHER",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-05T15:09:13.922Z",
-              "account": null
+              "updatedAt": "2026-11-16T12:42:11.595Z",
+              "userId": "6afafa239a35879ef7c7997e",
+              "account": {
+                "email": "asha@contract.test",
+                "image": null,
+                "name": "Asha2 Rai2",
+                "signedIn": false
+              }
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -3725,7 +3739,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete resident",
@@ -3748,7 +3762,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete warden no grant",
@@ -3771,7 +3785,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete outsiders",
@@ -3794,7 +3808,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete bad id",
@@ -3817,7 +3831,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete",
@@ -3842,7 +3856,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete again",
@@ -3865,7 +3879,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "delete moved out",
@@ -3890,7 +3904,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "get after delete",
@@ -3913,7 +3927,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   },
   {
     "name": "list after delete",
@@ -3949,7 +3963,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -3986,7 +4000,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "invitee@contract.test",
@@ -4017,7 +4031,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-05T15:08:14.986Z",
+              "createdAt": "2026-11-16T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -4048,7 +4062,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-04T15:08:14.986Z",
+              "createdAt": "2026-11-15T12:42:05.812Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -4238,14 +4252,20 @@
               "residentType": "OTHER",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-05T15:09:13.922Z",
-              "account": null
+              "updatedAt": "2026-11-16T12:42:11.595Z",
+              "userId": "6afafa239a35879ef7c7997e",
+              "account": {
+                "email": "asha@contract.test",
+                "image": null,
+                "name": "Asha2 Rai2",
+                "signedIn": false
+              }
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f",
+    "recorded": "http://localhost:3100 6fbd83e1",
     "corrected": "P11-19"
   },
   {
@@ -4277,6 +4297,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 c0a6022f"
+    "recorded": "http://localhost:3100 6fbd83e1"
   }
 ]

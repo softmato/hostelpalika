@@ -7,6 +7,7 @@ website_mock_desing_for_portals
 kyc-redesign/
 # Next.js / React build output
 .next/
+.next-contract/
 out/
 build/
 dist/

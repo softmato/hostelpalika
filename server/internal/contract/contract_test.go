@@ -7,9 +7,14 @@ import (
 )
 
 func TestOrder(t *testing.T) {
-	got := order([]byte(`{"a":1,"b":{"c":[{"d":true},{}],"e":"x"},"f":[1,[2]],"g":{}}`))
+	got := order([]byte(`{"a":1,"b":{"c":[{"d":true},{}],"e":"x"},"f":[1,[2]],"g":{}}`), nil)
 	if want := strings.Join([]string{"a", "b", "c", "d", "e", "f", "g"}, "\x00"); got != want {
 		t.Errorf("order = %q, want %q", got, want)
+	}
+	// A masked value's own keys vary with it: "d" inside b.c.0 is left out, "c" stays.
+	got = order([]byte(`{"a":1,"b":{"c":[{"d":true},{}],"e":"x"}}`), []string{"**dates", "b.c.*"})
+	if want := strings.Join([]string{"a", "b", "c", "e"}, "\x00"); got != want {
+		t.Errorf("masked order = %q, want %q", got, want)
 	}
 }
 

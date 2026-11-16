@@ -122,6 +122,8 @@ const CANVAS_NATIVE = [
 const ID_CARD_FONTS = ["./src/lib/fonts/*.ttf"];
 
 const nextConfig: NextConfig = {
+  // record-ts.sh sets its own build folder so the contract recorder can run beside `next dev`.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   transpilePackages: ["@hostel/db", "@hostel/shared"],
   /**
    * `@napi-rs/canvas` ships a prebuilt `.node` binary and must be `require`d
