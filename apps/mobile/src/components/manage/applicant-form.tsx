@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+
+import { suggestEmail } from "@hostel/constants/email-typos";
 
 import { ApplicantDocumentsPicker } from "@/components/manage/applicant-documents";
 import { ApplicantPhotoPicker } from "@/components/manage/applicant-photo";
@@ -130,11 +132,12 @@ export function ApplicantForm({
         <Card className="gap-3">
           {pair(box("firstName", "First name *", { words: true }), box("lastName", "Last name *", { words: true }))}
           {box("phone", "Contact no. *", { keyboard: "phone-pad" })}
-          {box("email", `Email${star}`, {
-            hint: own ? undefined : "This email becomes their login.",
+          {box("email", "Email *", {
+            hint: own ? "You log in with this. Check the spelling." : "This becomes their login. Check the spelling with them.",
             keyboard: "email-address",
-            placeholder: own ? "Gmail you will log in with" : "Optional",
+            placeholder: own ? "Gmail you will log in with" : "name@gmail.com",
           })}
+          <EmailSuggestion onPick={(value) => onChange("email", value)} value={draft.email} />
           <BirthDateField
             label={`Date of birth${star}`}
             onChange={(picked) => {
@@ -261,5 +264,23 @@ export function ApplicantForm({
         </Card>
       </View>
     </View>
+  );
+}
+
+/** "Did you mean ram@gmail.com?" — one tap swaps the address in. Exported for the change-email sheet. */
+export function EmailSuggestion({ onPick, value }: { onPick: (value: string) => void; value: string }) {
+  const fix = suggestEmail(value);
+  if (!fix) return null;
+  return (
+    <Pressable
+      accessibilityLabel={`Use ${fix}`}
+      accessibilityRole="button"
+      className="-mt-1 flex-row flex-wrap rounded-xl bg-warning-soft px-3 py-2"
+      onPress={() => onPick(fix)}
+    >
+      <Text className="text-sm text-foreground">Did you mean </Text>
+      <Text className="text-sm font-semibold text-primary">{fix}</Text>
+      <Text className="text-sm text-foreground">?</Text>
+    </Pressable>
   );
 }

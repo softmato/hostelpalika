@@ -5,6 +5,7 @@ import { Linking, View } from "react-native";
 
 import { DaysAwaySheet } from "@/components/manage/days-away-sheet";
 import { MoveOutSheet } from "@/components/manage/move-out-sheet";
+import { EmailSuggestion } from "@/components/manage/applicant-form";
 import { RoomPicker } from "@/components/manage/room-picker";
 import { type RoomLayout, roomLine, roomsQuery, setResidentRoom } from "@/lib/rooms-api";
 import { AppBar } from "@/components/ui/app-bar";
@@ -75,6 +76,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
 type Panel =
   | "activation"
   | "contact"
+  | "email"
   | "fee"
   | "guardian"
   | "moveIn"
@@ -224,6 +226,10 @@ export default function ManageResidentScreen() {
 
       if (next === "status") {
         setForm({ status: resident.status });
+      }
+
+      if (next === "email") {
+        setForm({ email: resident.email ?? "" });
       }
 
       if (next === "guardian") {
@@ -385,6 +391,9 @@ export default function ManageResidentScreen() {
             {resident.userId ? null : (
               <Badge label="No app account yet" tone="warning" />
             )}
+            {resident.account && resident.account.signedIn === false ? (
+              <Badge label="Not signed in yet" tone="warning" />
+            ) : null}
           </View>
 
           <View className="gap-1 border-t border-border pt-3">
@@ -588,6 +597,13 @@ export default function ManageResidentScreen() {
               onPress={() => openPanel("status")}
               subtitle={humanizeEnum(resident.status)}
               title="Status"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="mail"
+              onPress={() => openPanel("email")}
+              subtitle={resident.account?.email || resident.email || "Not on file"}
+              title="Login email"
             />
             <RowDivider inset />
             <ListRow
@@ -808,6 +824,57 @@ export default function ManageResidentScreen() {
             options={roomTypes.map((value) => ({ label: value, value }))}
             value={form.roomType ?? null}
           />
+        </View>
+      </Sheet>
+
+      {/* ------------------------------------------------------------------ */}
+      {/*
+        The login email. The server moves their login with it: the old address
+        loses this hostel, the new one is linked and emailed "you can sign in".
+        So a typo made at admission is fixed here, not by a new record.
+      */}
+      <Sheet
+        footer={
+          <Button
+            label="Change login email"
+            loading={busy}
+            onPress={() => {
+              const next = (form.email ?? "").trim().toLowerCase();
+              const current = resident.account?.email || resident.email || "";
+              if (!/^\S+@\S+\.\S+$/.test(next)) {
+                toastError("Check the email", "Write the full address, like name@gmail.com.");
+                return;
+              }
+              if (next === current.toLowerCase()) {
+                setPanel(null);
+                return;
+              }
+              openConfirm({
+                confirmLabel: "Move login",
+                message: current
+                  ? `${current} loses access to this hostel. ${next} becomes their login and gets a sign-in email.${resident.account?.signedIn ? " They have already signed in with the old address." : ""}`
+                  : `${next} becomes their login and gets a sign-in email.`,
+                onConfirm: () => run(() => updateResident(id, { email: next }), "Login email changed"),
+                title: "Move their login?",
+              });
+            }}
+          />
+        }
+        onClose={() => setPanel(null)}
+        open={panel === "email"}
+        title="Login email"
+      >
+        <View className="gap-3 pb-2">
+          <Input
+            autoCapitalize="none"
+            hint="They log in with this. Check the spelling with them."
+            keyboardType="email-address"
+            label="Email"
+            onChangeText={(email: string) => setForm((prev) => ({ ...prev, email }))}
+            placeholder="name@gmail.com"
+            value={form.email ?? ""}
+          />
+          <EmailSuggestion onPick={(email) => setForm((prev) => ({ ...prev, email }))} value={form.email ?? ""} />
         </View>
       </Sheet>
 

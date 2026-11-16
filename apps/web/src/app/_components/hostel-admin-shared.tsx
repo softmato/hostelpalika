@@ -31,6 +31,8 @@ export type Resident = {
      */
     image: string | null;
     name: string;
+    /** False until their first sign-in — the proof the login email is right. */
+    signedIn?: boolean;
   } | null;
   bedId: string;
   demoDataLabel?: string;

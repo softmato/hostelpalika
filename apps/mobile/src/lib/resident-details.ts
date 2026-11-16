@@ -169,6 +169,7 @@ const FAMILY = [
 export function applicantProblem(draft: ApplicantDraft): string | null {
   if (!draft.firstName.trim() || !draft.lastName.trim()) return "Write the first and last name.";
   if (draft.phone.replace(/\D/g, "").length < 7) return "Write the contact number.";
+  if (!/^\S+@\S+\.\S+$/.test(draft.email.trim())) return "Write their email — it becomes their login.";
   if (draft.dateOfBirth.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(draft.dateOfBirth.trim())) {
     return "Write the date of birth as YYYY-MM-DD.";
   }

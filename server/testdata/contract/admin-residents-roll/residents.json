@@ -102,7 +102,8 @@
               "account": {
                 "email": "owner@contract.test",
                 "image": null,
-                "name": "Fixture Owner (twin)"
+                "name": "Fixture Owner (twin)",
+                "signedIn": false
               }
             },
             {
@@ -200,7 +201,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {
@@ -494,7 +496,8 @@
               "account": {
                 "email": "owner@contract.test",
                 "image": null,
-                "name": "Fixture Owner (twin)"
+                "name": "Fixture Owner (twin)",
+                "signedIn": false
               }
             },
             {
@@ -592,7 +595,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {
@@ -1224,7 +1228,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {
@@ -3230,7 +3235,8 @@
               "account": {
                 "email": "owner@contract.test",
                 "image": null,
-                "name": "Fixture Owner (twin)"
+                "name": "Fixture Owner (twin)",
+                "signedIn": false
               }
             },
             {
@@ -3328,7 +3334,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {
@@ -3968,7 +3975,8 @@
               "account": {
                 "email": "owner@contract.test",
                 "image": null,
-                "name": "Fixture Owner (twin)"
+                "name": "Fixture Owner (twin)",
+                "signedIn": false
               }
             },
             {
@@ -4066,7 +4074,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {

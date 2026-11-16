@@ -18,6 +18,7 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { releaseGuardianAccounts } from "@/modules/guardian/guardian-account";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
+import { SessionModel } from "@hostel/db/models/Session";
 import { sendEmail } from "@hostel/shared/email/sender";
 import { afterResponse } from "@/lib/after-response";
 import {
@@ -224,7 +225,7 @@ function scopedHostelFilter(principal: ApiPrincipal, requestedHostelId?: string)
 }
 
 /** The login behind a resident row, when they have activated one. */
-type ResidentAccount = { email: string; image: string | null; name: string };
+type ResidentAccount = { email: string; image: string | null; name: string; signedIn: boolean };
 
 function serializeResident(resident: ResidentRecord) {
   return {
@@ -1412,8 +1413,12 @@ async function findResidentAccounts(residents: ResidentRecord[]) {
     _id: { $in: userIds },
     isDeleted: { $ne: true },
   })
-    .select("_id email image name")
-    .lean<{ _id: Types.ObjectId; email?: string; image?: string; name?: string }[]>();
+    .select("_id email image lastLoginAt name")
+    .lean<{ _id: Types.ObjectId; email?: string; image?: string; lastLoginAt?: Date; name?: string }[]>();
+  // lastLoginAt was once only stamped by password sign-in; a session row counts too.
+  const opened = new Set(
+    ((await SessionModel.distinct("userId", { userId: { $in: userIds } })) as Types.ObjectId[]).map(String),
+  );
 
   return new Map(
     users.map((user) => [
@@ -1429,6 +1434,8 @@ async function findResidentAccounts(residents: ResidentRecord[]) {
          */
         image: user.image ?? null,
         name: user.name ?? "",
+        /** False until their first sign-in — the proof the login email is right. */
+        signedIn: Boolean(user.lastLoginAt) || opened.has(user._id.toString()),
       },
     ]),
   );
@@ -1588,13 +1595,33 @@ export async function updateResident(
     }
   }
 
+  /*
+   * A new address on a live resident is a new login. The admission form's email
+   * is what their account was opened on, so editing only the row left a typo'd
+   * login (ram@gmial.com) linked and the real person locked out for good.
+   */
+  const fromLogin = resident.userId
+    ? normalizedEmail(
+        (await UserModel.findOne({ _id: resident.userId, isDeleted: { $ne: true } }).select("email").lean<{ email?: string } | null>())?.email,
+      )
+    : "";
+  const moveLogin =
+    Boolean(nextEmail) &&
+    nextEmail !== normalizedEmail(resident.email) &&
+    (["ACTIVE", "PENDING", "SUSPENDED"] as string[]).includes(resident.status) &&
+    fromLogin !== nextEmail;
+
+  if (moveLogin) {
+    await assertLoginCanMove(resident, nextEmail as string);
+  }
+
   // Switching room type moves a unit of vacancy from one type to the other.
   // Done before the write so a full destination type aborts the whole update.
   if (input.roomType && input.roomType !== resident.roomType) {
     await moveBedBetweenRoomTypes(resident.hostelId, resident.roomType, input.roomType);
   }
 
-  const updatedResident = await ResidentModel.findOneAndUpdate(
+  let updatedResident = await ResidentModel.findOneAndUpdate(
     { _id: resident._id, isDeleted: false },
     {
       $set: {
@@ -1626,6 +1653,10 @@ export async function updateResident(
     "RESIDENT_UPDATED",
   );
 
+  if (moveLogin) {
+    updatedResident = (await relinkResidentLogin(updatedResident, principal, fromLogin ?? "")) ?? updatedResident;
+  }
+
   /*
    * And the resident, if this moved them. Reads the record as it was before the
    * write, so a bed swap within one room type is told apart from a change of
@@ -1641,6 +1672,62 @@ export async function updateResident(
   return {
     resident: serializeResident(updatedResident),
   };
+}
+
+/** Refuses a new login address that is staff, or lives at another hostel. */
+async function assertLoginCanMove(resident: ResidentRecord, email: string) {
+  const owners = await UserModel.find({ email, isDeleted: { $ne: true } })
+    .select("role")
+    .lean<{ _id: Types.ObjectId; role?: string }[]>();
+
+  if (owners.some((owner) => owner.role !== "PUBLIC" && owner.role !== "RESIDENT")) {
+    throw new ResidentServiceError("That email is a staff login. Use a different address.", "RESIDENT_EMAIL_STAFF", 409);
+  }
+
+  const live = await findLiveResidency(
+    {
+      emails: [email],
+      userIds: owners.filter((owner) => !resident.userId?.equals(owner._id)).map((owner) => owner._id),
+    },
+    resident.hostelId,
+  );
+
+  if (live && live.residentId !== resident._id.toString()) {
+    throw new ResidentServiceError(
+      liveResidencyMessage(`${resident.firstName} ${resident.lastName}`, live),
+      live.sameHostel ? "RESIDENT_ALREADY_HERE" : "RESIDENT_LIVES_ELSEWHERE",
+      409,
+    );
+  }
+}
+
+/**
+ * Moves the login to the row's new email: the old account leaves this hostel
+ * (PUBLIC again when it lives nowhere else), the new one is opened if needed,
+ * linked and sent the "you can sign in" mail. Never fails the edit.
+ */
+async function relinkResidentLogin(resident: ResidentRecord, principal: ApiPrincipal, from: string) {
+  try {
+    if (resident.userId) {
+      await ResidentModel.updateOne({ _id: resident._id, userId: resident.userId }, { $unset: { userId: "" } });
+      await releaseResidentAccount(resident.userId, resident.hostelId);
+    }
+
+    const unlinked = { ...resident, userId: undefined } as ResidentRecord;
+    const account = await openResidentLogin(resident.email as string, `${resident.firstName} ${resident.lastName}`);
+    const link = await linkResidentAccount(unlinked, resident.hostelId, principal, undefined, true, account);
+
+    await auditResidentAction(principal, resident.hostelId, resident._id, "RESIDENT_ACCOUNT_RELINKED", {
+      from,
+      linked: link.linked,
+      reason: link.reason,
+      to: resident.email,
+    });
+  } catch (error) {
+    logger.error("resident_relink_failed", { error, residentId: resident._id.toString() });
+  }
+
+  return ResidentModel.findOne({ _id: resident._id, isDeleted: false }).lean<ResidentRecord | null>();
 }
 
 export async function updateResidentStatus(

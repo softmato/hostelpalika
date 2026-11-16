@@ -218,6 +218,8 @@ type Account struct {
 	Email string  `json:"email"`
 	Image *string `json:"image"`
 	Name  string  `json:"name"`
+	// SignedIn is false until their first sign-in: the proof the login email is right.
+	SignedIn bool `json:"signedIn"`
 }
 
 // accounts is findResidentAccounts.
@@ -233,21 +235,32 @@ func (s *Service) accounts(ctx context.Context, rows []Resident) (map[bson.Objec
 		return out, nil
 	}
 	cur, err := s.DB.Collection("users").Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
-		options.Find().SetProjection(bson.D{{Key: "email", Value: 1}, {Key: "image", Value: 1}, {Key: "name", Value: 1}}))
+		options.Find().SetProjection(bson.D{{Key: "email", Value: 1}, {Key: "image", Value: 1}, {Key: "lastLoginAt", Value: 1}, {Key: "name", Value: 1}}))
 	if err != nil {
 		return nil, err
 	}
 	var users []struct {
-		ID    bson.ObjectID `bson:"_id"`
-		Email string        `bson:"email"`
-		Image *string       `bson:"image"`
-		Name  string        `bson:"name"`
+		ID        bson.ObjectID `bson:"_id"`
+		Email     string        `bson:"email"`
+		Image     *string       `bson:"image"`
+		LastLogin *time.Time    `bson:"lastLoginAt"`
+		Name      string        `bson:"name"`
 	}
 	if err := cur.All(ctx, &users); err != nil {
 		return nil, err
 	}
+	// lastLoginAt was once only stamped by password sign-in; a session row counts too.
+	var opened []bson.ObjectID
+	res := s.DB.Collection("sessions").Distinct(ctx, "userId", bson.D{{Key: "userId", Value: bson.D{{Key: "$in", Value: ids}}}})
+	if err := res.Decode(&opened); err != nil {
+		return nil, err
+	}
+	seen := map[bson.ObjectID]bool{}
+	for _, id := range opened {
+		seen[id] = true
+	}
 	for _, u := range users {
-		out[u.ID] = &Account{u.Email, u.Image, u.Name}
+		out[u.ID] = &Account{u.Email, u.Image, u.Name, u.LastLogin != nil || seen[u.ID]}
 	}
 	return out, nil
 }

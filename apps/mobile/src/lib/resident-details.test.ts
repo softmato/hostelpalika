@@ -14,11 +14,12 @@ function draft(patch: Partial<ReturnType<typeof emptyApplicantDraft>> = {}) {
 }
 
 describe("application form", () => {
-  it("needs a name and a number, nothing else", () => {
-    expect(applicantProblem(draft())).toBeNull();
-    expect(applicantProblem(draft({ lastName: " " }))).toMatch(/name/);
-    expect(applicantProblem(draft({ phone: "12" }))).toMatch(/number/);
-    expect(applicantProblem(draft({ dateOfBirth: "12/3/2004" }))).toMatch(/YYYY-MM-DD/);
+  it("needs a name, a number and the login email, nothing else", () => {
+    expect(applicantProblem(draft({ email: "ram@gmail.com" }))).toBeNull();
+    expect(applicantProblem(draft())).toMatch(/email/);
+    expect(applicantProblem(draft({ lastName: " " , email: "ram@gmail.com" }))).toMatch(/name/);
+    expect(applicantProblem(draft({ phone: "12" , email: "ram@gmail.com" }))).toMatch(/number/);
+    expect(applicantProblem(draft({ dateOfBirth: "12/3/2004" , email: "ram@gmail.com" }))).toMatch(/YYYY-MM-DD/);
   });
 
   it("leaves blank boxes out and keeps only the family who were named", () => {

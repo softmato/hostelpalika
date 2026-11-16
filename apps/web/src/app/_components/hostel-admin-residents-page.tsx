@@ -37,6 +37,7 @@ import {
   Select as FormSelect,
 } from "@/app/_components/shared-ui";
 import { ResidentRoomDialog } from "@/app/_components/resident-room-dialog";
+import { suggestEmail } from "@hostel/constants/email-typos";
 import { Glyph } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/app/_components/confirm-dialog";
@@ -1431,12 +1432,9 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                 name="phone"
                 required
               />
-              <FormInput
+              <LoginEmailInput
                 defaultValue={prefill?.resident.email ?? (fromForm?.email || undefined)}
-                hint="This email becomes their login."
-                label="Email"
-                name="email"
-                type="email"
+                required={!prefill}
               />
             </FormSection>
 
@@ -1856,15 +1854,22 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                       <dt className="text-muted-foreground">Account</dt>
                       <dd
                         className={cn(
-                          "font-medium",
+                          "text-right font-medium",
                           selectedResident.account ? "text-foreground" : "text-warning",
                         )}
                       >
                         {selectedResident.account
                           ? selectedResident.account.email || "Linked"
                           : "No login yet"}
+                        {selectedResident.account?.signedIn === false ? (
+                          <span className="block text-xs font-normal text-warning">Not signed in yet</span>
+                        ) : null}
                       </dd>
                     </div>
+                    <LoginEmailEditor
+                      onSaved={() => void residentsQuery.refreshAsync()}
+                      resident={selectedResident}
+                    />
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted-foreground">Deposit</dt>
                       <dd className="font-medium text-foreground">
@@ -2067,3 +2072,121 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
     </div>
   );
 });
+
+/**
+ * The admission form's email — it becomes their login, so a typo opens an
+ * account nobody can sign in to. "Did you mean …?" fixes the domain in one click.
+ */
+function LoginEmailInput({ defaultValue, required }: { defaultValue?: string; required: boolean }) {
+  const [value, setValue] = useState(defaultValue ?? "");
+  const fix = suggestEmail(value);
+
+  return (
+    <FormInput
+      hint={
+        fix ? (
+          <button className="text-left" onClick={() => setValue(fix)} type="button">
+            Did you mean <strong className="text-primary">{fix}</strong>?
+          </button>
+        ) : (
+          "This becomes their login. Check the spelling with them."
+        )
+      }
+      label="Email"
+      name="email"
+      onChange={(event) => setValue(event.target.value)}
+      placeholder="name@gmail.com"
+      required={required}
+      type="email"
+      value={value}
+    />
+  );
+}
+
+/**
+ * Changes the login email. The server moves their login with it: the old
+ * address loses this hostel, the new one is linked and emailed "you can sign in".
+ */
+function LoginEmailEditor({ onSaved, resident }: { onSaved: () => void; resident: Resident }) {
+  const { confirm, confirmDialog } = useConfirm();
+  const current = resident.account?.email || resident.email || "";
+  const [value, setValue] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  if (value === null) {
+    return (
+      <div className="flex justify-end">
+        <button className="text-xs font-medium text-primary" onClick={() => setValue(current)} type="button">
+          Change login email
+        </button>
+      </div>
+    );
+  }
+
+  const fix = suggestEmail(value);
+
+  const save = async () => {
+    const next = value.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(next)) {
+      toast.error({ title: "Write the full address, like name@gmail.com." });
+      return;
+    }
+    if (next === current.toLowerCase()) {
+      setValue(null);
+      return;
+    }
+    const ok = await confirm({
+      actionLabel: "Move login",
+      description: current
+        ? `${current} loses access to this hostel. ${next} becomes their login and gets a sign-in email.${resident.account?.signedIn ? " They have already signed in with the old address." : ""}`
+        : `${next} becomes their login and gets a sign-in email.`,
+      title: "Move their login?",
+    });
+    if (!ok) return;
+    setSaving(true);
+    try {
+      await browserApi(`/api/v1/hostel-admin/residents/${resident.id}`, {
+        body: JSON.stringify({ email: next }),
+        method: "PATCH",
+      });
+      toast.success({ title: "Login email changed" });
+      setValue(null);
+      onSaved();
+    } catch (error) {
+      toast.error({ title: error instanceof Error ? error.message : "Could not change the email." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-2">
+      <FormInput
+        hint={
+          fix ? (
+            <button className="text-left" onClick={() => setValue(fix)} type="button">
+              Did you mean <strong className="text-primary">{fix}</strong>?
+            </button>
+          ) : (
+            "They log in with this. Check the spelling with them."
+          )
+        }
+        label="Login email"
+        name="loginEmail"
+        onChange={(event) => setValue(event.target.value)}
+        placeholder="name@gmail.com"
+        type="email"
+        value={value}
+      />
+      <div className="flex justify-end gap-2">
+        <Button onClick={() => setValue(null)} size="sm" type="button" variant="ghost">
+          Cancel
+        </Button>
+        <Button disabled={saving} onClick={() => void save()} size="sm" type="button">
+          Save
+        </Button>
+      </div>
+      {confirmDialog}
+    </div>
+  );
+}

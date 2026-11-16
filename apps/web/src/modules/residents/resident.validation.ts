@@ -130,6 +130,10 @@ export const residentCreateSchema = z.object({
     [input.monthlyFee, input.admissionFee, input.formFee, input.depositAmount].every((value) => value === undefined) ||
     Boolean(input.feeReason),
   { message: "Say why this resident pays a different fee.", path: ["feeReason"] },
+).refine(
+  // The email becomes their login; only a scanned card brings its own account.
+  (input) => Boolean(input.userResidentId) || Boolean(input.email),
+  { message: "Write their email — it becomes their login.", path: ["email"] },
 );
 
 export const residentUpdateSchema = z.object({

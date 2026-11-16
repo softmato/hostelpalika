@@ -1586,6 +1586,8 @@ export type ResidentAccount = {
   email: string;
   image: string | null;
   name: string;
+  /** False until their first sign-in — the proof the login email is right. Absent on an older API. */
+  signedIn?: boolean;
 };
 
 /** `serializeResident` in full. `AdminResident` in `admin-api.ts` is the row. */

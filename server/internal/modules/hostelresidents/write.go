@@ -236,6 +236,19 @@ func (s *Service) Update(ctx context.Context, id, hostelID string, in UpdateIn, 
 			return nil, rerr("Someone is already registered here with the email "+nextEmail+".", "RESIDENT_EMAIL_TAKEN", http.StatusConflict)
 		}
 	}
+	// A new address on a live resident is a new login (relink.go).
+	moveLogin, fromLogin := false, ""
+	if emailChanged && isLive(r.Status) {
+		if fromLogin, err = s.accountEmail(ctx, r.UserID); err != nil {
+			return nil, err
+		}
+		if fromLogin != nextEmail {
+			if err := s.relinkCheck(ctx, r, nextEmail); err != nil {
+				return nil, err
+			}
+			moveLogin = true
+		}
+	}
 	typeChanged := in.RoomType != nil && *in.RoomType != r.RoomType
 	if typeChanged {
 		if err := s.Cap.Move(ctx, r.HostelID, r.RoomType, *in.RoomType); err != nil {
@@ -294,6 +307,14 @@ func (s *Service) Update(ctx context.Context, id, hostelID string, in UpdateIn, 
 	}
 	if err := s.auditResident(ctx, p, r.HostelID, r.ID, "RESIDENT_UPDATED", nil); err != nil {
 		return nil, err
+	}
+	if moveLogin {
+		s.relink(ctx, &up, p, fromLogin)
+		fresh, err := s.reload(ctx, up.ID)
+		if err != nil {
+			return nil, err
+		}
+		up = *fresh
 	}
 	s.roomChanged(ctx, r, &up)
 	return ordered.Map{{Key: "resident", Value: Serialize(&up)}}, nil

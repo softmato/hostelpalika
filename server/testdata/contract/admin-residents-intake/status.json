@@ -685,7 +685,8 @@
             "account": {
               "email": "hari@contract.test",
               "image": null,
-              "name": "Hari Status"
+              "name": "Hari Status",
+              "signedIn": false
             }
           }
         }

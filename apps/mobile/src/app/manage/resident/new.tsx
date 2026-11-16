@@ -854,6 +854,7 @@ export default function NewResidentScreen() {
         />
       ) : (
         <TermsStep
+          loginEmail={identity?.kind === "card" ? null : person.email}
           existing={{
             depositPaid,
             joined,
@@ -1253,6 +1254,7 @@ type ExistingForm = {
 function TermsStep({
   billingCycle,
   existing,
+  loginEmail,
   moveInDate,
   numberedRooms,
   onChangeBillingCycle,
@@ -1270,6 +1272,8 @@ function TermsStep({
 }: {
   billingCycle: BillingCycle;
   existing: ExistingForm;
+  /** The address their login opens on — said back big so a typo is caught before saving. Null on a scanned card. */
+  loginEmail: string | null;
   moveInDate: string;
   numberedRooms: Room[];
   onChangeBillingCycle: (value: BillingCycle) => void;
@@ -1308,6 +1312,12 @@ function TermsStep({
 
   return (
     <View className="gap-5 pt-1">
+      {loginEmail ? (
+        <Card className="gap-1">
+          <Text variant="caption">Login email — read it out to them</Text>
+          <Text selectable variant="subtitle">{loginEmail}</Text>
+        </Card>
+      ) : null}
       <Card padding="px-4 py-1">
         <ListRow
           right={

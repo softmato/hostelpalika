@@ -8,6 +8,7 @@
         "firstName": "New1",
         "lastName": "Person",
         "phone": "9811100001",
+        "email": "signed-out@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single"
       }
@@ -38,6 +39,7 @@
         "firstName": "New2",
         "lastName": "Person",
         "phone": "9811100002",
+        "email": "resident@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single"
       }
@@ -68,6 +70,7 @@
         "firstName": "New3",
         "lastName": "Person",
         "phone": "9811100003",
+        "email": "warden-no-grant@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single"
       }
@@ -293,6 +296,7 @@
         "firstName": "New5",
         "lastName": "Person",
         "phone": "9811100005",
+        "email": "fee-without-reason@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "monthlyFee": 1000
@@ -327,6 +331,50 @@
     "recorded": "http://localhost:3100 afd18b22"
   },
   {
+    "name": "no email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "firstName": "New5",
+        "lastName": "Person",
+        "phone": "9811100099",
+        "moveInDate": "2026-10-20",
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Write their email — it becomes their login."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write their email — it becomes their login.",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "corrected": "EM-1"
+  },
+  {
     "name": "fee negative",
     "request": {
       "method": "POST",
@@ -338,6 +386,7 @@
         "firstName": "New6",
         "lastName": "Person",
         "phone": "9811100006",
+        "email": "fee-negative@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "monthlyFee": -1,
@@ -384,6 +433,7 @@
         "firstName": "New7",
         "lastName": "Person",
         "phone": "9811100007",
+        "email": "bad-details@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "details": {
@@ -439,6 +489,7 @@
         "firstName": "New8",
         "lastName": "Person",
         "phone": "9811100008",
+        "email": "bad-photo@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "photo": {
@@ -492,6 +543,7 @@
         "firstName": "New9",
         "lastName": "Person",
         "phone": "9811100009",
+        "email": "too-many-documents@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "documents": [
@@ -563,6 +615,7 @@
         "firstName": "New10",
         "lastName": "Person",
         "phone": "9811100010",
+        "email": "unclaimable-photo@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "photo": {
@@ -597,6 +650,7 @@
         "firstName": "New11",
         "lastName": "Person",
         "phone": "9811100011",
+        "email": "outsider-hostel@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "hostelId": "6d0100000000000000000001"
@@ -628,6 +682,7 @@
         "firstName": "New12",
         "lastName": "Person",
         "phone": "9800000000",
+        "email": "duplicate-phone@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single"
       }
@@ -689,6 +744,7 @@
         "firstName": "New14",
         "lastName": "Person",
         "phone": "9811100014",
+        "email": "unknown-referral@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "referralCode": "NOSUCHCODE"
@@ -720,6 +776,7 @@
         "firstName": "New15",
         "lastName": "Person",
         "phone": "9811100015",
+        "email": "unknown-room@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "roomId": "6d01000000000000000000ee"
@@ -751,6 +808,7 @@
         "firstName": "New16",
         "lastName": "Person",
         "phone": "9811100016",
+        "email": "room-full@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "roomId": "6d010000000000000000001e"
@@ -782,6 +840,7 @@
         "firstName": "New17",
         "lastName": "Person",
         "phone": "9811100017",
+        "email": "room-type-mismatch@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Double Sharing",
         "roomId": "6d0100000000000000000021"
@@ -813,6 +872,7 @@
         "firstName": "New18",
         "lastName": "Person",
         "phone": "9811100018",
+        "email": "unknown-room-type@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Palace"
       }
@@ -843,6 +903,7 @@
         "firstName": "New19",
         "lastName": "Person",
         "phone": "9811100019",
+        "email": "minimal@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single"
       }
@@ -858,9 +919,14 @@
         "message": "Resident created",
         "data": {
           "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
             "emailed": false,
-            "linked": false,
-            "reason": "NO_EMAIL"
+            "linked": true,
+            "userId": "6afaefc9c89316897afd0add"
           },
           "admission": {
             "raised": false,
@@ -869,7 +935,7 @@
           "firstMonth": {
             "amount": 6533,
             "dueDate": "2026-11-16T00:00:00.000Z",
-            "invoiceId": "6af46acba9d7d42d0f0fc453",
+            "invoiceId": "6afaefc9c89316897afd0adb",
             "period": "2083-07",
             "raised": true,
             "referenceCode": "CON-001D-KAR83"
@@ -953,13 +1019,13 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-11T13:16:59.418Z",
+            "createdAt": "2026-11-16T11:58:00.887Z",
             "demoDataLabel": "",
             "depositAmount": 0,
-            "email": "",
+            "email": "minimal@contract.test",
             "firstName": "New19",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6af46acba9d7d42d0f0fc451",
+            "id": "6afaefc8c89316897afd0ad9",
             "isDemoData": false,
             "lastName": "Person",
             "monthlyFee": 0,
@@ -975,12 +1041,14 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-11T13:16:59.418Z"
+            "updatedAt": "2026-11-16T11:58:01.094Z",
+            "userId": "6afaefc9c89316897afd0add"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 afd18b22",
+    "corrected": "EM-1"
   },
   {
     "name": "minimal pending",
@@ -994,6 +1062,7 @@
         "firstName": "New20",
         "lastName": "Person",
         "phone": "9811100020",
+        "email": "minimal-pending@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "status": "PENDING"
@@ -1010,9 +1079,14 @@
         "message": "Resident created",
         "data": {
           "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
             "emailed": false,
-            "linked": false,
-            "reason": "NO_EMAIL"
+            "linked": true,
+            "userId": "6afaefc9c89316897afd0ae7"
           },
           "admission": {
             "raised": false,
@@ -1102,13 +1176,13 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-11T13:16:59.729Z",
+            "createdAt": "2026-11-16T11:58:01.269Z",
             "demoDataLabel": "",
             "depositAmount": 0,
-            "email": "",
+            "email": "minimal-pending@contract.test",
             "firstName": "New20",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6af46acba9d7d42d0f0fc45a",
+            "id": "6afaefc9c89316897afd0ae4",
             "isDemoData": false,
             "lastName": "Person",
             "monthlyFee": 0,
@@ -1124,12 +1198,14 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "PENDING",
-            "updatedAt": "2026-11-11T13:16:59.729Z"
+            "updatedAt": "2026-11-16T11:58:01.371Z",
+            "userId": "6afaefc9c89316897afd0ae7"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 afd18b22",
+    "corrected": "EM-1"
   },
   {
     "name": "existing account",
@@ -1490,6 +1566,7 @@
         "firstName": "New24",
         "lastName": "Person",
         "phone": "9811100024",
+        "email": "referral@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "referralCode": "refasha1",
@@ -1510,20 +1587,25 @@
         "message": "Resident created",
         "data": {
           "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
             "emailed": false,
-            "linked": false,
-            "reason": "NO_EMAIL"
+            "linked": true,
+            "userId": "6afaefcfc89316897afd0b0d"
           },
           "admission": {
             "amount": 2600,
-            "invoiceId": "6af46acca9d7d42d0f0fc482",
+            "invoiceId": "6afaefcfc89316897afd0b0a",
             "raised": true,
             "referenceCode": "CON-0001-E"
           },
           "firstMonth": {
             "amount": 6533,
             "dueDate": "2026-11-16T00:00:00.000Z",
-            "invoiceId": "6af46acca9d7d42d0f0fc483",
+            "invoiceId": "6afaefcfc89316897afd0b0b",
             "period": "2083-07",
             "raised": true,
             "referenceCode": "CON-0040-KAR83"
@@ -1601,7 +1683,7 @@
           },
           "referral": {
             "code": "REFASHA1",
-            "referralId": "6af46acca9d7d42d0f0fc480",
+            "referralId": "6afaefcec89316897afd0b08",
             "referrerResidentId": "6d0100000000000000000028"
           },
           "resident": {
@@ -1611,13 +1693,13 @@
             "billsOn": "Bills on the 1st",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-11T13:17:00.673Z",
+            "createdAt": "2026-11-16T11:58:06.905Z",
             "demoDataLabel": "",
             "depositAmount": 2000,
-            "email": "",
+            "email": "referral@contract.test",
             "firstName": "New24",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6af46acca9d7d42d0f0fc47b",
+            "id": "6afaefcec89316897afd0b03",
             "isDemoData": false,
             "lastName": "Person",
             "monthlyFee": 0,
@@ -1633,12 +1715,14 @@
             "residentType": "STUDENT",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-11T13:17:00.673Z"
+            "updatedAt": "2026-11-16T11:58:07.115Z",
+            "userId": "6afaefcfc89316897afd0b0d"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 afd18b22",
+    "corrected": "EM-1"
   },
   {
     "name": "special fee",
@@ -1652,6 +1736,7 @@
         "firstName": "New25",
         "lastName": "Person",
         "phone": "9811100025",
+        "email": "special-fee@contract.test",
         "moveInDate": "2026-10-20",
         "roomType": "Single",
         "monthlyFee": 4000,
@@ -1672,9 +1757,14 @@
         "message": "Resident created",
         "data": {
           "accountLink": {
+            "cleared": {
+              "activatedInvite": false,
+              "clearedMemberships": [],
+              "clearedRole": null
+            },
             "emailed": false,
-            "linked": false,
-            "reason": "NO_EMAIL"
+            "linked": true,
+            "userId": "6afaefcfc89316897afd0b19"
           },
           "admission": {
             "raised": false,
@@ -1683,7 +1773,7 @@
           "firstMonth": {
             "amount": 4000,
             "dueDate": "2026-11-18T00:00:00.000Z",
-            "invoiceId": "6af46acda9d7d42d0f0fc48d",
+            "invoiceId": "6afaefcfc89316897afd0b17",
             "period": "2083-07",
             "raised": true,
             "referenceCode": "CON-0056-KAR83"
@@ -1767,13 +1857,13 @@
             "billsOn": "Bills on the 3rd",
             "leavingOn": null,
             "leavingReason": null,
-            "createdAt": "2026-11-11T13:17:00.986Z",
+            "createdAt": "2026-11-16T11:58:07.242Z",
             "demoDataLabel": "",
             "depositAmount": 0,
-            "email": "",
+            "email": "special-fee@contract.test",
             "firstName": "New25",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6af46acca9d7d42d0f0fc48a",
+            "id": "6afaefcfc89316897afd0b14",
             "isDemoData": false,
             "lastName": "Person",
             "monthlyFee": 4000,
@@ -1792,12 +1882,14 @@
             "residentType": "OTHER",
             "roomType": "Single",
             "status": "ACTIVE",
-            "updatedAt": "2026-11-11T13:17:00.986Z"
+            "updatedAt": "2026-11-16T11:58:07.573Z",
+            "userId": "6afaefcfc89316897afd0b19"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 afd18b22",
+    "corrected": "EM-1"
   },
   {
     "name": "with details",
@@ -2306,13 +2398,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:01.834Z",
+              "createdAt": "2026-11-16T11:58:08.555Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
               "firstName": "New28",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acda9d7d42d0f0fc4ac",
+              "id": "6afaefd0c89316897afd0b35",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2328,7 +2420,7 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:01.882Z",
+              "updatedAt": "2026-11-16T11:58:08.555Z",
               "account": null
             },
             {
@@ -2338,13 +2430,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:01.518Z",
+              "createdAt": "2026-11-16T11:58:08.104Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
               "firstName": "New27",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acda9d7d42d0f0fc49f",
+              "id": "6afaefd0c89316897afd0b29",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2360,12 +2452,13 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:01.677Z",
+              "updatedAt": "2026-11-16T11:58:08.352Z",
               "userId": "6b00000000000000000000d5",
               "account": {
                 "email": "rolld5@contract.test",
                 "image": null,
-                "name": "Roll d5"
+                "name": "Roll d5",
+                "signedIn": false
               }
             },
             {
@@ -2375,13 +2468,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:01.206Z",
+              "createdAt": "2026-11-16T11:58:07.749Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "detailed@contract.test",
               "firstName": "New26",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acda9d7d42d0f0fc494",
+              "id": "6afaefcfc89316897afd0b1f",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2397,12 +2490,13 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:01.330Z",
-              "userId": "6af46acda9d7d42d0f0fc498",
+              "updatedAt": "2026-11-16T11:58:07.931Z",
+              "userId": "6afaefcfc89316897afd0b24",
               "account": {
                 "email": "detailed@contract.test",
                 "image": null,
-                "name": "New26 Person"
+                "name": "New26 Person",
+                "signedIn": false
               }
             },
             {
@@ -2412,13 +2506,13 @@
               "billsOn": "Bills on the 3rd",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:00.986Z",
+              "createdAt": "2026-11-16T11:58:07.242Z",
               "demoDataLabel": "",
               "depositAmount": 0,
-              "email": "",
+              "email": "special-fee@contract.test",
               "firstName": "New25",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acca9d7d42d0f0fc48a",
+              "id": "6afaefcfc89316897afd0b14",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 4000,
@@ -2437,8 +2531,14 @@
               "residentType": "OTHER",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:01.057Z",
-              "account": null
+              "updatedAt": "2026-11-16T11:58:07.573Z",
+              "userId": "6afaefcfc89316897afd0b19",
+              "account": {
+                "email": "special-fee@contract.test",
+                "image": null,
+                "name": "New25 Person",
+                "signedIn": false
+              }
             },
             {
               "admissionFee": 500,
@@ -2447,13 +2547,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:00.673Z",
+              "createdAt": "2026-11-16T11:58:06.905Z",
               "demoDataLabel": "",
               "depositAmount": 2000,
-              "email": "",
+              "email": "referral@contract.test",
               "firstName": "New24",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acca9d7d42d0f0fc47b",
+              "id": "6afaefcec89316897afd0b03",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2469,8 +2569,14 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:00.830Z",
-              "account": null
+              "updatedAt": "2026-11-16T11:58:07.115Z",
+              "userId": "6afaefcfc89316897afd0b0d",
+              "account": {
+                "email": "referral@contract.test",
+                "image": null,
+                "name": "New24 Person",
+                "signedIn": false
+              }
             },
             {
               "admissionFee": null,
@@ -2479,13 +2585,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:17:00.214Z",
+              "createdAt": "2026-11-16T11:58:06.370Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "fresh@contract.test",
               "firstName": "New22",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acca9d7d42d0f0fc46e",
+              "id": "6afaefcec89316897afd0af6",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2501,12 +2607,13 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:00.348Z",
-              "userId": "6af46acca9d7d42d0f0fc472",
+              "updatedAt": "2026-11-16T11:58:06.596Z",
+              "userId": "6afaefcec89316897afd0afc",
               "account": {
                 "email": "fresh@contract.test",
                 "image": null,
-                "name": "New22 Person"
+                "name": "New22 Person",
+                "signedIn": false
               }
             },
             {
@@ -2516,13 +2623,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:59.893Z",
+              "createdAt": "2026-11-16T11:58:05.906Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "newbie@contract.test",
               "firstName": "New21",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acba9d7d42d0f0fc462",
+              "id": "6afaefcdc89316897afd0aee",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2538,12 +2645,13 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:17:00.022Z",
+              "updatedAt": "2026-11-16T11:58:06.128Z",
               "userId": "6d010000000000000000003e",
               "account": {
                 "email": "newbie@contract.test",
                 "image": null,
-                "name": "Newbie Public"
+                "name": "Newbie Public",
+                "signedIn": false
               }
             },
             {
@@ -2553,13 +2661,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:59.729Z",
+              "createdAt": "2026-11-16T11:58:01.269Z",
               "demoDataLabel": "",
               "depositAmount": 0,
-              "email": "",
+              "email": "minimal-pending@contract.test",
               "firstName": "New20",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acba9d7d42d0f0fc45a",
+              "id": "6afaefc9c89316897afd0ae4",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2575,8 +2683,14 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "PENDING",
-              "updatedAt": "2026-11-11T13:16:59.729Z",
-              "account": null
+              "updatedAt": "2026-11-16T11:58:01.371Z",
+              "userId": "6afaefc9c89316897afd0ae7",
+              "account": {
+                "email": "minimal-pending@contract.test",
+                "image": null,
+                "name": "New20 Person",
+                "signedIn": false
+              }
             },
             {
               "admissionFee": null,
@@ -2585,13 +2699,13 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:59.418Z",
+              "createdAt": "2026-11-16T11:58:00.887Z",
               "demoDataLabel": "",
               "depositAmount": 0,
-              "email": "",
+              "email": "minimal@contract.test",
               "firstName": "New19",
               "hostelId": "6c00000000000000000000a1",
-              "id": "6af46acba9d7d42d0f0fc451",
+              "id": "6afaefc8c89316897afd0ad9",
               "isDemoData": false,
               "lastName": "Person",
               "monthlyFee": 0,
@@ -2607,8 +2721,14 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:16:59.539Z",
-              "account": null
+              "updatedAt": "2026-11-16T11:58:01.094Z",
+              "userId": "6afaefc9c89316897afd0add",
+              "account": {
+                "email": "minimal@contract.test",
+                "image": null,
+                "name": "New19 Person",
+                "signedIn": false
+              }
             },
             {
               "admissionFee": null,
@@ -2617,7 +2737,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:58.224Z",
+              "createdAt": "2026-11-16T11:58:00.011Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -2639,7 +2759,7 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "ACTIVE",
-              "updatedAt": "2026-11-11T13:16:58.224Z",
+              "updatedAt": "2026-11-16T11:58:00.011Z",
               "account": null
             },
             {
@@ -2649,7 +2769,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:58.224Z",
+              "createdAt": "2026-11-16T11:58:00.011Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "jay@contract.test",
@@ -2671,12 +2791,13 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "MOVED_OUT",
-              "updatedAt": "2026-11-11T13:16:58.224Z",
+              "updatedAt": "2026-11-16T11:58:00.011Z",
               "userId": "6d010000000000000000003d",
               "account": {
                 "email": "jay@contract.test",
                 "image": null,
-                "name": "Jay Status"
+                "name": "Jay Status",
+                "signedIn": false
               }
             },
             {
@@ -2686,7 +2807,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:58.224Z",
+              "createdAt": "2026-11-16T11:58:00.011Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -2708,7 +2829,7 @@
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "PENDING",
-              "updatedAt": "2026-11-11T13:16:58.224Z",
+              "updatedAt": "2026-11-16T11:58:00.011Z",
               "account": null
             },
             {
@@ -2718,7 +2839,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:58.224Z",
+              "createdAt": "2026-11-16T11:58:00.011Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "hari@contract.test",
@@ -2733,14 +2854,14 @@
               "roomId": null,
               "roomNumber": null,
               "moveOutDate": null,
-              "moveInDate": "2026-11-11T00:00:00.000Z",
+              "moveInDate": "2026-11-16T00:00:00.000Z",
               "phone": "9800000080",
               "photo": null,
               "referralCode": "",
               "residentType": "STUDENT",
               "roomType": "Single",
               "status": "PENDING",
-              "updatedAt": "2026-11-11T13:16:58.224Z",
+              "updatedAt": "2026-11-16T11:58:00.011Z",
               "account": null
             },
             {
@@ -2750,7 +2871,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:55.675Z",
+              "createdAt": "2026-11-16T11:57:56.916Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -2776,7 +2897,8 @@
               "account": {
                 "email": "owner@contract.test",
                 "image": null,
-                "name": "Fixture Owner (twin)"
+                "name": "Fixture Owner (twin)",
+                "signedIn": false
               }
             },
             {
@@ -2786,7 +2908,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:55.675Z",
+              "createdAt": "2026-11-16T11:57:56.916Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "invitee@contract.test",
@@ -2817,7 +2939,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-11T13:16:55.675Z",
+              "createdAt": "2026-11-16T11:57:56.916Z",
               "demoDataLabel": "",
               "depositAmount": 0,
               "email": "",
@@ -2848,7 +2970,7 @@
               "billsOn": "Bills on the 1st",
               "leavingOn": null,
               "leavingReason": null,
-              "createdAt": "2026-11-10T13:16:55.675Z",
+              "createdAt": "2026-11-15T11:57:56.916Z",
               "demoDataLabel": "",
               "depositAmount": 500000,
               "email": "resident@contract.test",
@@ -2874,7 +2996,8 @@
               "account": {
                 "email": "resident@contract.test",
                 "image": null,
-                "name": "Contract resident"
+                "name": "Contract resident",
+                "signedIn": false
               }
             },
             {
@@ -2978,7 +3101,7 @@
       }
     },
     "recorded": "http://localhost:3100 afd18b22",
-    "corrected": "P11-19"
+    "corrected": "EM-1"
   },
   {
     "name": "rooms after",

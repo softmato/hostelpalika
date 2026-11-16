@@ -799,9 +799,15 @@ func (h *Handler) create(c *gin.Context) {
 		}
 		f.Size("documents", len(items), 0, 4, "", aborted)
 	}
+	// zod runs the .refine()s below only once every field parsed.
+	clean := f.Err() == nil
 	anyFee := in.MonthlyFee != nil || in.AdmissionFee != nil || in.FormFee != nil || in.DepositAmount != nil
 	if anyFee && in.FeeReason == "" {
 		f.Is.Add("feeReason", "Say why this resident pays a different fee.")
+	}
+	// The email becomes their login; only a scanned card brings its own account.
+	if clean && in.UserResidentID == "" && (!f.Present("email") || f.Blank("email")) {
+		f.Is.Add("email", "Write their email — it becomes their login.")
 	}
 	if fail(c, f.Err()) {
 		return
