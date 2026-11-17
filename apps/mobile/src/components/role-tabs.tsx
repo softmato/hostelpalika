@@ -1,5 +1,12 @@
-import { Tabs } from "expo-router";
-import { type ComponentProps, useEffect, useRef } from "react";
+import { Tabs, useIsFocused } from "expo-router";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useContext,
+  useDeferredValue,
+  useEffect,
+  useRef,
+} from "react";
 import { type ColorValue, View } from "react-native";
 
 import { AnimatedTabBar } from "@/components/tab-bar";
@@ -9,6 +16,7 @@ import type { RoleAccentKey } from "@/constants/theme";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { usePortalWarmup } from "@/hooks/use-portal-warmup";
+import { ShownHostelContext } from "@/lib/active-hostel";
 import { prefetchCommunity } from "@/lib/community-queries";
 import { prefetchNotifications } from "@/lib/notification-queries";
 
@@ -130,6 +138,18 @@ function TabPreloader({
 }
 
 /**
+ * A branch switch reaches the tab on screen at once and the preloaded ones
+ * behind it in a deferred render. Swapping all five in one synchronous pass
+ * held the visible swap ~1 s on a budget phone (device timing, 2026-11-17).
+ */
+function SceneHostel({ children }: { children: ReactNode }) {
+  const hostel = useContext(ShownHostelContext);
+  const later = useDeferredValue(hostel);
+
+  return <ShownHostelContext value={useIsFocused() ? hostel : later}>{children}</ShownHostelContext>;
+}
+
+/**
  * The bottom tab bar for a signed-in role.
  *
  * One component for all five signed-in audiences, differing only in accent
@@ -221,6 +241,7 @@ export function RoleTabs({
        * No `freezeOnBlur`: a frozen tab came back as a blank screen until React
        * caught up on every change it had skipped (field video, 2026-10-28).
        */
+      screenLayout={({ children }) => <SceneHostel>{children}</SceneHostel>}
       screenOptions={{
         animation: "none",
         headerShown: false,

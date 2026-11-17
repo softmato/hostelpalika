@@ -1,7 +1,8 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import type { RealtimeTopic } from "@/constants/topics";
+import { ShownHostelContext } from "@/lib/active-hostel";
 import { isOfflineError, readApiError } from "@/lib/api-contract";
 import { markOfflineFailure, showSavedCopy, subscribeOnline } from "@/lib/offline-stamp";
 import {
@@ -199,13 +200,30 @@ export function useResource<T>(
    */
   const [renderedKey, setRenderedKey] = useState(cacheKey);
 
-  if (cacheKey !== renderedKey) {
+  /*
+   * The branch on screen. A switch swaps the data under mounted screens rather
+   * than rebuilding them — remounting every tab held a budget phone 3–4 s
+   * (owner, 2026-11-17) — so a changed branch is a changed key, and an answer
+   * with no copy for the new branch goes back to loading, never to the old one.
+   */
+  const hostel = useContext(ShownHostelContext);
+  const [renderedHostel, setRenderedHostel] = useState(hostel);
+
+  if (cacheKey !== renderedKey || hostel !== renderedHostel) {
     setRenderedKey(cacheKey);
+    setRenderedHostel(hostel);
 
     const cached = cacheKey ? readQuery<T>(cacheKey, { maxAgeMs, staleMs }) : null;
 
     if (cached) {
       setData(cached.data);
+    }
+
+    if (hostel !== renderedHostel) {
+      if (!cached) setData(null);
+      setLoading(!cached);
+      setError(null);
+      setSavedAt(null);
     }
   }
 
@@ -403,10 +421,17 @@ export function useResource<T>(
    * of `load` is a requery, whose spinner comes from `requerying` above.
    */
   const started = useRef(false);
+  const fetchedHostel = useRef(hostel);
 
   useEffect(() => {
     const first = !started.current;
     started.current = true;
+
+    // The old branch's answer, still in flight, must not land on the new one.
+    if (fetchedHostel.current !== hostel) {
+      fetchedHostel.current = hostel;
+      sequence.current++;
+    }
 
     /*
      * Read here rather than reusing `seed`, because this effect also runs when
@@ -434,7 +459,7 @@ export function useResource<T>(
      * revalidate must not take it away.
      */
     void run(cached ? "silent" : first ? "initial" : "requery");
-  }, [cacheKey, load, maxAgeMs, run, staleMs]);
+  }, [cacheKey, hostel, load, maxAgeMs, run, staleMs]);
 
   /*
    * Two screens on one key, kept in step.
@@ -464,7 +489,7 @@ export function useResource<T>(
         setSavedAt(null);
       }
     });
-  }, [cacheKey, maxAgeMs, staleMs]);
+  }, [cacheKey, hostel, maxAgeMs, staleMs]);
 
   const firstFocus = useRef(true);
 

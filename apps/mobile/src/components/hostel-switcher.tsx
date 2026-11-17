@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { Pressable, View } from "react-native";
 
+import { branchPhoto, photographBranch } from "@/components/branch-sweep";
 import { Glyph } from "@/components/ui/glyph";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -92,7 +93,9 @@ async function setActiveWhenOnline(id: string | null) {
     toastError("You are offline", "Switch branch when the internet is back.");
     return false;
   }
-  await setActiveHostelId(id, isOverall(id) ? undefined : warmBranch);
+  await setActiveHostelId(id, () =>
+    Promise.all([isOverall(id) ? null : warmBranch(), branchPhoto()]),
+  );
   return true;
 }
 
@@ -231,6 +234,8 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         // hostel's card now, so whichever is picked paints the moment it is.
         onPressIn={() => {
           if (warden) return;
+          // The screen as it stands, before the sheet covers it: the switch's wipe starts from this.
+          photographBranch();
           for (const row of rows) {
             const scope = scopeOf(row, rows);
             if (scope !== active) prefetchBranchHome(scope, row.id);

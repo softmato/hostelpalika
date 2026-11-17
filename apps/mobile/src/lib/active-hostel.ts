@@ -1,3 +1,5 @@
+import { createContext } from "react";
+
 import { setQueryCacheScope } from "@/lib/query-cache";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -43,6 +45,14 @@ export function getActiveHostelId() {
 export function getChosenHostelId() {
   return active;
 }
+
+/**
+ * The branch a screen's data is for — what `useResource` keys on, so a switch
+ * swaps data under mounted screens instead of rebuilding them. Provided by the
+ * admin layout, and per tab scene by `RoleTabs`: the focused tab gets a switch
+ * at once, a hidden one in a deferred render. `null` outside the admin portal.
+ */
+export const ShownHostelContext = createContext<string | null>(null);
 
 /**
  * **Overall** — every branch at once, picked in the switcher like a branch.

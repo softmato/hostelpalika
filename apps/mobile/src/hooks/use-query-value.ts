@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
+import { ShownHostelContext } from "@/lib/active-hostel";
 import { readQuery, subscribeQuery, type Query } from "@/lib/query-cache";
 
 /**
@@ -42,15 +43,19 @@ export function useQueryValue<T>(query: Query<T>): T | null {
   const [value, setValue] = useState<T | null>(() => readQuery<T>(key)?.data ?? null);
 
   const [watchedKey, setWatchedKey] = useState(key);
+  // A branch switch swaps data under mounted screens: a new branch is a new key (`useResource`).
+  const hostel = useContext(ShownHostelContext);
+  const [watchedHostel, setWatchedHostel] = useState(hostel);
 
-  if (key !== watchedKey) {
+  if (key !== watchedKey || hostel !== watchedHostel) {
     setWatchedKey(key);
+    setWatchedHostel(hostel);
     setValue(readQuery<T>(key)?.data ?? null);
   }
 
   useEffect(
     () => subscribeQuery(key, () => setValue(readQuery<T>(key)?.data ?? null)),
-    [key],
+    [key, hostel],
   );
 
   return value;

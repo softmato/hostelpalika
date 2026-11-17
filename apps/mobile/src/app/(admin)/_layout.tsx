@@ -1,10 +1,10 @@
-import { useDeferredValue, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { AdminAlertsProvider, useAdminAlerts } from "@/components/admin-alerts";
 import { BranchSweep } from "@/components/branch-sweep";
 import { RoleTabs, type TabDef } from "@/components/role-tabs";
 import { usePortalWarmup } from "@/hooks/use-portal-warmup";
-import { getActiveHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
+import { getActiveHostelId, ShownHostelContext, subscribeActiveHostel } from "@/lib/active-hostel";
 import { prefetchAdminPortal } from "@/lib/admin-queries";
 
 /**
@@ -97,26 +97,19 @@ export default function RoleLayout() {
 
   /*
    * An owner with branches works in one at a time (`lib/active-hostel.ts`).
-   * Keyed on it, so switching remounts every tab onto the new hostel: a mounted
-   * screen resets its local state and seeds from that branch's cache. Other
-   * branches remain cached for a return visit.
+   * Switching swaps the data under the mounted tabs — every `useResource`
+   * follows the branch on screen — instead of rebuilding them: a keyed remount
+   * of every tab held a budget phone 3–4 s (owner, 2026-11-17).
    */
-  /*
-   * Deferred: a store update renders synchronously, and rebuilding every tab
-   * that way held the JS thread ~3.5 s on a budget phone (device timing,
-   * 2026-11-17). Deferred, the old screens stay up and responsive while the
-   * new branch renders in the background, then swap in one go.
-   */
-  const activeHostel = useDeferredValue(
-    useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId),
-  );
+  const hostel = useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId);
 
   return (
-    <>
-      <AdminAlertsProvider key={activeHostel ?? "main"}>
-        <AdminTabs />
-      </AdminAlertsProvider>
-      <BranchSweep landed={activeHostel} />
-    </>
+    <BranchSweep>
+      <ShownHostelContext value={hostel}>
+        <AdminAlertsProvider>
+          <AdminTabs />
+        </AdminAlertsProvider>
+      </ShownHostelContext>
+    </BranchSweep>
   );
 }
