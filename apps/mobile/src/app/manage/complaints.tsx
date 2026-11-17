@@ -1,5 +1,6 @@
 import type { GlyphName } from "@hostel/constants/glyphs";
 import { useMemo, useState } from "react";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -97,6 +98,7 @@ export default function ManageComplaintsScreen() {
       ),
     );
   }, [all, filter]);
+  const firstGroups = useFirstRows(groups);
 
   const show = (row: AdminComplaint) => {
     setReply("");
@@ -180,7 +182,7 @@ export default function ManageComplaintsScreen() {
         ) : null}
 
         <Stagger className="gap-4">
-          {groups.map((group) => (
+          {firstGroups.map((group) => (
             <View className="gap-2" key={group.bucket}>
               <Text
                 className="px-0.5 font-semibold uppercase tracking-wider"

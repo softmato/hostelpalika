@@ -43,6 +43,7 @@ const SOURCES: Source[] = [
       LinksTab: "links",
       OfferTab: "offer",
       PlanPricingRow: "pricing",
+      PricingTab: "pricing",
     },
     file: "platform-config-plans-page.tsx",
     href: "/platform/config/plans",

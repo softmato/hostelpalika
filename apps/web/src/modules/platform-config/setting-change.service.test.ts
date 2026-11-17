@@ -29,6 +29,10 @@ function matches(row: Record<string, unknown>, filter: Record<string, unknown>) 
       return (actual as Date).getTime() > ((expected as { $gt: Date }).$gt).getTime();
     }
 
+    if (expected && typeof expected === "object" && "$ne" in (expected as object)) {
+      return String(actual) !== String((expected as { $ne: unknown }).$ne);
+    }
+
     return String(actual) === String(expected);
   });
 }

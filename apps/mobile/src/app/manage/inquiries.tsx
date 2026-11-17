@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -96,6 +97,7 @@ export default function ManageInquiriesScreen() {
   const rows = useMemo(() => inquiries.data ?? [], [inquiries.data]);
   const counts = useMemo(() => inquiryCounts(rows), [rows]);
   const groups = useMemo(() => groupNotifications(inquiriesIn(rows, bucket)), [bucket, rows]);
+  const firstGroups = useFirstRows(groups);
   const answered = rows.length - counts.new;
 
   const { refresh } = inquiries;
@@ -172,7 +174,7 @@ export default function ManageInquiriesScreen() {
           <EmptyCard title={bucket === "new" ? "Nothing waiting" : "Nothing here"} />
         ) : null}
 
-        {groups.map((group) => (
+        {firstGroups.map((group) => (
           <View className="gap-2" key={group.bucket}>
             <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
               {group.label}

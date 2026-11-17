@@ -2,7 +2,8 @@ import { roomTypeLabel } from "@hostel/constants/room-types";
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, View } from "react-native";
 
 import { AdminSearchBar } from "@/components/admin-search-bar";
@@ -123,7 +124,9 @@ function BranchAdminResidentsScreen() {
     topics: formsQuery.topics,
   });
 
-  const [query, setQuery] = useState("");
+  const [typed, setQuery] = useState("");
+  // Typing stays instant; the roster re-filters a beat behind the field.
+  const query = useDeferredValue(typed);
   const [segment, setSegment] = useState<RosterSegment>("active");
 
   const rows = useMemo(() => residents.data ?? [], [residents.data]);
@@ -140,6 +143,9 @@ function BranchAdminResidentsScreen() {
    * that quietly widened its own scope would leave the chosen segment lying
    * about what it is showing.
    */
+  // First dozen people until the screen has landed, then everyone.
+  const shown = useFirstRows([{ rows: visible }])[0]?.rows ?? [];
+
   const elsewhere = useMemo(
     () => (query.trim() ? searchResidents(rows, query).length : 0),
     [query, rows],
@@ -166,7 +172,7 @@ function BranchAdminResidentsScreen() {
       actions={<NotificationBell />}
       onQueryChange={setQuery}
       placeholder="Search by name, phone or room"
-      query={query}
+      query={typed}
       subtitle={subtitle}
       title="Residents"
     />
@@ -344,7 +350,7 @@ function BranchAdminResidentsScreen() {
             the Money list, from the same references.
           */
           <Stagger className="gap-3">
-            {visible.map((resident) => {
+            {shown.map((resident) => {
               const row = (
                 <CardRow
                   /*

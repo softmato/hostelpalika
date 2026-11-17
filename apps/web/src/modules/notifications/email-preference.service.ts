@@ -19,7 +19,12 @@ function normalize(email: string) {
 }
 
 function sign(email: string) {
-  const secret = process.env.JWT_ACCESS_SECRET ?? "development-email-preference-secret";
+  const secret =
+    process.env.JWT_ACCESS_SECRET ||
+    (process.env.NODE_ENV === "production" ? "" : "development-email-preference-secret");
+
+  // A public fallback in production would let anyone forge unsubscribe tokens.
+  if (!secret) throw new Error("JWT_ACCESS_SECRET is required to sign email preference links.");
 
   return createHmac("sha256", secret).update(`email-preferences:${email}`).digest("base64url");
 }

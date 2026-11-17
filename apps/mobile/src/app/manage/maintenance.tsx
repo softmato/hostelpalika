@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, Pressable, ScrollView, View } from "react-native";
 import Animated, {
   FadeIn,
@@ -254,6 +255,7 @@ export default function ManageMaintenanceScreen() {
       ),
     [visible],
   );
+  const firstGroups = useFirstRows(groups);
 
   const charges = useMemo(() => data.data?.charges ?? [], [data.data]);
 
@@ -580,7 +582,7 @@ export default function ManageMaintenanceScreen() {
           />
         ) : null}
 
-        {groups.map((group) => (
+        {firstGroups.map((group) => (
           <View className="gap-2" key={group.bucket}>
             {/* On the page, not in a card: the day is said once for the rows under it. */}
             <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
