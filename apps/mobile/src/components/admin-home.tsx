@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { formatBsDayMonth, HOSTEL_UTC_OFFSET_MINUTES } from "@hostel/calendar/bs";
 
 import {
   FLOAT_SHADOW,
@@ -292,18 +291,6 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
  * is the longest string it produces, which is what keeps it inside its half of
  * the row — `This month · September` did not fit on a 360dp phone.
  */
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-
-/**
- * `Mon · Mangsir 1` — the hostel's day (UTC+5:45), read off the clock with no
- * `Intl` time zone, which Hermes does not reliably carry.
- */
-function todayLabel(now = new Date()) {
-  const day = WEEKDAYS[new Date(now.getTime() + HOSTEL_UTC_OFFSET_MINUTES * 60_000).getUTCDay()];
-
-  return `${day} · ${formatBsDayMonth(now)}`;
-}
-
 export function HostelHero({
   balance = null,
   earnings,
@@ -411,7 +398,9 @@ export function HostelHero({
               numberOfLines={1}
               style={{ fontSize: 13, letterSpacing: 0.5 }}
             >
-              {code ?? "Every hostel you manage"}
+              {code
+                ? [code, hostel?.location.area].filter(Boolean).join(" · ")
+                : "Every hostel you manage"}
             </Text>
           </View>
         </View>
@@ -475,10 +464,6 @@ export function HostelHero({
           <Glyph color="rgba(255,255,255,0.8)" name="people" size={13} />
           <Text className="flex-1 text-white/80" numberOfLines={1} style={{ fontSize: 12 }}>
             {occupancyLine({ occupancy, residents, vacantBeds })}
-          </Text>
-          {/* Today in Bikram Sambat, as the web portal's header chip shows it. */}
-          <Text className="font-semibold text-white/90" numberOfLines={1} style={{ fontSize: 12 }}>
-            {todayLabel()}
           </Text>
         </View>
       </View>

@@ -5,6 +5,7 @@ import { Pressable, Share, View } from "react-native";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import type { AdmissionFormLink, AdmissionForms } from "@/lib/admission-form-api";
 import { adminQuery } from "@/lib/admin-queries";
@@ -16,10 +17,11 @@ import { toastSuccess } from "@/lib/toast";
  * Shown to somebody standing at the desk who has no ID card. They scan it with
  * their own phone camera, it opens in the app if they have it and in the
  * browser if not, they fill the form, and it lands on the Residents tab with a
- * bell. A white card on the black ground, the hostel's name in a green band
+ * bell. A white card on the theme's own ground, the hostel's name in a green band
  * across its top — the way the reference apps draw "My QR".
  */
 export function FormQrPage() {
+  const { colors } = useAppTheme();
   const linkQuery = adminQuery.admissionFormLink();
   const link = useResource<AdmissionFormLink>(linkQuery.load, {
     cacheKey: linkQuery.key,
@@ -47,21 +49,31 @@ export function FormQrPage() {
           </View>
 
           <View className="items-center gap-3 px-5 pb-5 pt-5">
-            {data?.qrDataUrl ? (
-              <Image
-                cachePolicy="memory-disk"
-                accessibilityLabel="QR code for the admission form"
-                source={{ uri: data.qrDataUrl }}
-                style={{ height: 220, opacity: data.enabled ? 1 : 0.3, width: 220 }}
-              />
-            ) : (
-              // The QR's own shape while it loads — or the reason it did not.
-              <View className="h-[220px] w-[220px] items-center justify-center rounded-2xl bg-neutral-100 px-4">
-                {link.error ? (
-                  <Text className="text-center text-sm text-neutral-600">{link.error}</Text>
-                ) : null}
+            {/*
+              The code sits in a black frame inside the white card: a white tile
+              (the quiet zone a scanner needs) held in near-black, so it reads as
+              one object on a light or a dark page, and the camera has a hard edge
+              to find.
+            */}
+            <View className="rounded-3xl p-2.5" style={{ backgroundColor: "#0f1a14" }}>
+              <View className="rounded-2xl bg-white p-3">
+                {data?.qrDataUrl ? (
+                  <Image
+                    cachePolicy="memory-disk"
+                    accessibilityLabel="QR code for the admission form"
+                    source={{ uri: data.qrDataUrl }}
+                    style={{ height: 200, opacity: data.enabled ? 1 : 0.3, width: 200 }}
+                  />
+                ) : (
+                  // The QR's own shape while it loads — or the reason it did not.
+                  <View className="h-[200px] w-[200px] items-center justify-center rounded-xl bg-neutral-100 px-4">
+                    {link.error ? (
+                      <Text className="text-center text-sm text-neutral-600">{link.error}</Text>
+                    ) : null}
+                  </View>
+                )}
               </View>
-            )}
+            </View>
             <Text className="text-center text-sm font-semibold text-neutral-900">
               Scan with your phone camera to fill the form
             </Text>
@@ -99,17 +111,18 @@ export function FormQrPage() {
       {waiting > 0 ? (
         <Pressable
           accessibilityRole="button"
-          className="w-full max-w-sm flex-row items-center gap-3 rounded-2xl border border-white/25 bg-white/10 px-4 py-3.5 active:opacity-70"
+          className="w-full max-w-sm flex-row items-center gap-3 rounded-2xl border px-4 py-3.5 active:opacity-70"
           onPress={() => router.push("/manage/applications")}
+          style={{ backgroundColor: colors.card, borderColor: colors.border }}
         >
-          <Glyph color="#ffffff" name="document-text" size={20} />
-          <Text className="flex-1 text-sm font-semibold text-white">
+          <Glyph color={colors.foreground} name="document-text" size={20} />
+          <Text className="flex-1 text-sm font-semibold" style={{ color: colors.foreground }}>
             {waiting === 1 ? "1 form waiting for a bed" : `${waiting} forms waiting for a bed`}
           </Text>
-          <Glyph color="rgba(255,255,255,0.7)" name="chevron-forward" size={18} />
+          <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
         </Pressable>
       ) : (
-        <Text className="text-center text-xs text-white/55">
+        <Text className="text-center text-xs" style={{ color: colors.mutedForeground }}>
           Filled forms appear on the Residents tab, and you get a notification.
         </Text>
       )}
@@ -126,15 +139,20 @@ function GlassAction({
   label: string;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2.5 active:opacity-70"
+      className="flex-row items-center gap-2 rounded-full border px-4 py-2.5 active:opacity-70"
       onPress={onPress}
+      style={{ backgroundColor: colors.card, borderColor: colors.border }}
     >
-      <Glyph color="#ffffff" name={icon} size={16} />
-      <Text className="text-sm font-semibold text-white">{label}</Text>
+      <Glyph color={colors.foreground} name={icon} size={16} />
+      <Text className="text-sm font-semibold" style={{ color: colors.foreground }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

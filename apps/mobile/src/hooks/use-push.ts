@@ -20,6 +20,7 @@ import { AppState } from "react-native";
 
 import { nightKey } from "@hostel/night/night-window";
 
+import { openInItsBranch } from "@/components/hostel-switcher";
 import { useAppSelector } from "@/hooks/redux";
 import { adoptRoleChange } from "@/lib/auth-session";
 import { openSavedFile } from "@/lib/native-downloads";
@@ -196,9 +197,9 @@ export function usePush() {
        * broken at the exact moment it just buzzed. See `lib/push-link.ts`.
        */
       // F3: a resident path on an owner's phone opens the owner's screen for the kind.
-      router.push(
-        fitRole(path, data?.category, store.getState().auth.account?.role) as never,
-      );
+      const route = fitRole(path, data?.category, store.getState().auth.account?.role);
+      // A push about another branch switches to it first, or its screen opens on the wrong hostel's data.
+      if (!openInItsBranch(data?.hostelId, route)) router.push(route as never);
     }
 
     const subscription = Notifications.addNotificationResponseReceivedListener(open);

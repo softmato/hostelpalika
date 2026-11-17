@@ -7,7 +7,7 @@ import { Linking, Pressable, View } from "react-native";
 import { ApplicantForm } from "@/components/manage/applicant-form";
 import { DetailsFacts } from "@/components/manage/details-facts";
 import { FormQrPage } from "@/components/manage/form-qr-page";
-import { IdScanner } from "@/components/manage/id-scanner";
+import { IdScanner, ScanOption } from "@/components/manage/id-scanner";
 import { RoomPicker } from "@/components/manage/room-picker";
 import { type Charges, ChargesSheet } from "@/components/manage/charges-sheet";
 import { Glyph } from "@/components/ui/glyph";
@@ -696,20 +696,15 @@ export default function NewResidentScreen() {
       <IdScanner
         busy={reading ? "Fetching their details" : null}
         extraAction={
-          <Pressable
-            accessibilityLabel="Register somebody with no ID card"
-            accessibilityRole="button"
-            className="flex-row items-center justify-center gap-2 rounded-2xl px-5 py-3 active:opacity-70"
+          <ScanOption
+            caption="No card needed"
+            icon="create"
+            label="Fill by hand"
             onPress={() => {
               setIdentity({ kind: "manual" });
               setStep("confirm");
             }}
-          >
-            <Glyph color="rgba(255,255,255,0.8)" name="create" size={16} />
-            <Text className="text-sm font-semibold text-white/80">
-              They have no card — fill it in by hand
-            </Text>
-          </Pressable>
+          />
         }
         formQr={<FormQrPage />}
         hint={scanError}

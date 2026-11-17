@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -113,7 +114,7 @@ func (h *Handler) list(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	mine := bson.D{{Key: "userId", Value: uid}}
+	mine := append(bson.D{{Key: "userId", Value: uid}}, feedScope(c, p)...)
 	unread := append(bson.D{}, append(mine, bson.E{Key: "readAt", Value: bson.D{{Key: "$exists", Value: false}}})...)
 	action := append(bson.D{}, append(mine, bson.E{Key: "actionState", Value: "PENDING"}, bson.E{Key: "kind", Value: "ACTION"})...)
 	filter := mine
@@ -159,6 +160,29 @@ func (h *Handler) list(c *gin.Context) {
 	}
 	out.Pagination = pagination.MetaOf(q, int(total))
 	httpx.OK(c, out, "Notifications loaded")
+}
+
+// OverallHostel is what the app's Overall view sends as x-hostel-id: every branch at once.
+const OverallHostel = "overall"
+
+// feedScope keeps an owner's branches apart in the bell: with several hostels, a
+// request sees the active hostel's rows plus the account-wide ones (no hostelId);
+// Overall sees all of them. Feed, both counts and read-all share it, so a badge
+// never counts a row its list does not show.
+func feedScope(c *gin.Context, p *authz.Principal) bson.D {
+	if len(p.AllHostelIDs) <= 1 || strings.EqualFold(strings.TrimSpace(c.GetHeader(authz.ActiveHostelHeader)), OverallHostel) {
+		return nil
+	}
+	ids := make([]bson.ObjectID, 0, len(p.HostelIDs))
+	for _, id := range p.HostelIDs {
+		if oid, err := bson.ObjectIDFromHex(id); err == nil {
+			ids = append(ids, oid)
+		}
+	}
+	return bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "hostelId", Value: bson.D{{Key: "$in", Value: ids}}}},
+		bson.D{{Key: "hostelId", Value: nil}},
+	}}}
 }
 
 type oneNotification struct {
@@ -252,7 +276,7 @@ func (h *Handler) readAll(c *gin.Context) {
 	}
 	now := time.Now().UTC()
 	res, err := h.db.Collection("notifications").UpdateMany(c,
-		bson.D{{Key: "readAt", Value: bson.D{{Key: "$exists", Value: false}}}, {Key: "userId", Value: uid}},
+		append(bson.D{{Key: "readAt", Value: bson.D{{Key: "$exists", Value: false}}}, {Key: "userId", Value: uid}}, feedScope(c, p)...),
 		bson.D{{Key: "$set", Value: bson.D{{Key: "readAt", Value: now}, {Key: "updatedBy", Value: uid}, {Key: "updatedAt", Value: now}}}})
 	if err != nil {
 		httpx.Fail(c, err)

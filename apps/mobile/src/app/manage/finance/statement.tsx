@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
 import { addBsMonths } from "@hostel/calendar/bs";
 import { type DownloadChoice, DownloadSheet, spanPeriods } from "@/components/manage/download-sheet";
 import { Sheet } from "@/components/ui/sheet";
@@ -22,7 +23,6 @@ import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import type { CalendarSystem } from "@/lib/calendar";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { useResource } from "@/hooks/use-resource";
 import { type AdminHostel, type AdminLedger } from "@/lib/admin-api";
 import { overallPdfPath, statementPdfPath } from "@/lib/admin-manage-api";
@@ -365,6 +365,9 @@ function CreditRow({
 }
 
 /** The resident, or the expenses screen — in the row's own branch when Overall merged it in. */
+const dayKey = (day: { key: string }) => day.key;
+const creditKey = (credit: StatementCredit) => credit.id;
+
 function openBehind(credit: StatementCredit) {
   const route = credit.debit ? "/expenses" : `/manage/resident/${credit.residentId}`;
 
@@ -433,7 +436,6 @@ export default function ManageStatementScreen() {
   const credits = useMemo(() => statementCredits(ledger.data), [ledger.data]);
   const visible = useMemo(() => filterCredits(credits, filter), [credits, filter]);
   const days = useMemo(() => groupByDay(visible), [visible]);
-  const firstDays = useFirstRows(days);
   const summary = useMemo(
     () => statementSummary(credits, dates.calendar, new Date(), filter),
     [credits, dates.calendar, filter],
@@ -814,92 +816,91 @@ export default function ManageStatementScreen() {
 
   return (
     <>
-      <Screen
-        header={header}
-        onRefresh={ledger.refresh}
-        padded={false}
-        refreshing={ledger.refreshing}
-        scroll
-      >
-        <View className="gap-5 px-5 pt-4">
-          {ledger.loading ? <SkeletonRows rows={6} /> : null}
+      <Screen header={header} ownScroll padded={false}>
+        <Sections
+          groupKey={dayKey}
+          groups={days}
+          header={
+            <View className="gap-5 pt-1">
+              {ledger.loading ? <SkeletonRows rows={6} /> : null}
 
-          {!ledger.loading && truncated ? (
-            <View className="gap-1 rounded-xl border border-warning/40 bg-warning-soft p-3">
-              <Text variant="label">Only the most recent 5,000 invoices</Text>
-              <Text variant="caption">{"Older rows hidden. The export has all."}</Text>
-            </View>
-          ) : null}
+              {!ledger.loading && truncated ? (
+                <View className="gap-1 rounded-xl border border-warning/40 bg-warning-soft p-3">
+                  <Text variant="label">Only the most recent 5,000 invoices</Text>
+                  <Text variant="caption">{"Older rows hidden. The export has all."}</Text>
+                </View>
+              ) : null}
 
-          {!ledger.loading && filterCount > 0 && visible.length > 0 ? (
-            <Text variant="muted">
-              {mixed
-                ? (() => {
-                    const totals = splitTotals(visible);
+              {!ledger.loading && filterCount > 0 && visible.length > 0 ? (
+                <Text variant="muted">
+                  {mixed
+                    ? (() => {
+                        const totals = splitTotals(visible);
 
-                    return `${formatMoney(totals.in)} in · ${formatMoney(totals.out)} out · Net ${formatMoney(
-                      totals.in - totals.out,
-                    )} · ${rangeLabel(filter, dates.calendar)}`;
-                  })()
-                : `${visible.length === 1 ? "1 payment" : `${visible.length} payments`} · ${formatMoney(
-                    visibleTotal(visible),
-                  )} · ${rangeLabel(filter, dates.calendar)}`}
-            </Text>
-          ) : null}
-
-          {!ledger.loading && visible.length === 0 ? (
-            filterCount > 0 ? (
-              <EmptyCard
-                action={<Button label="Clear filters" onPress={() => setFilter(NO_FILTER)} size="sm" variant="outline" />}
-                description="Nothing in the statement matches what you asked for."
-                title={mixed ? "Nothing here" : "No payments here"}
-              />
-            ) : (
-              <EmptyCard
-                description={
-                  mixed
-                    ? "Every payment a resident makes, and every expense you record, lands here."
-                    : "Every payment a resident makes lands here the moment it is recorded or verified."
-                }
-                title={mixed ? "Nothing has moved yet" : "Nothing has come in yet"}
-              />
-            )
-          ) : null}
-
-          {firstDays.map((day) => (
-            <View className="gap-3" key={day.key}>
-              {/*
-                The heading sits on the page, outside the cards — NOTES §5. It
-                carries the day's own total on the right, which the reference
-                does not: a statement grouped by day and silent about what each
-                day came to is making the reader add the column up.
-              */}
-              <View className="flex-row items-end justify-between gap-3">
-                <Text
-                  className="shrink font-semibold uppercase tracking-wider text-muted-foreground"
-                  numberOfLines={1}
-                  style={{ fontSize: 11 }}
-                >
-                  {day.label}
+                        return `${formatMoney(totals.in)} in · ${formatMoney(totals.out)} out · Net ${formatMoney(
+                          totals.in - totals.out,
+                        )} · ${rangeLabel(filter, dates.calendar)}`;
+                      })()
+                    : `${visible.length === 1 ? "1 payment" : `${visible.length} payments`} · ${formatMoney(
+                        visibleTotal(visible),
+                      )} · ${rangeLabel(filter, dates.calendar)}`}
                 </Text>
-                <Text className="font-amount tabular-nums text-xs font-semibold text-muted-foreground">
-                  {formatMoney(day.total)}
-                </Text>
-              </View>
+              ) : null}
 
-              {day.rows.map((credit) => (
-                <CreditRow
-                  calendar={dates.calendar}
-                  credit={credit}
-                  key={credit.id}
-                  mixed={mixed}
-                  onOpen={() => setOpen(credit)}
-                  onResident={() => openBehind(credit)}
-                />
-              ))}
+              {!ledger.loading && visible.length === 0 ? (
+                filterCount > 0 ? (
+                  <EmptyCard
+                    action={<Button label="Clear filters" onPress={() => setFilter(NO_FILTER)} size="sm" variant="outline" />}
+                    description="Nothing in the statement matches what you asked for."
+                    title={mixed ? "Nothing here" : "No payments here"}
+                  />
+                ) : (
+                  <EmptyCard
+                    description={
+                      mixed
+                        ? "Every payment a resident makes, and every expense you record, lands here."
+                        : "Every payment a resident makes lands here the moment it is recorded or verified."
+                    }
+                    title={mixed ? "Nothing has moved yet" : "Nothing has come in yet"}
+                  />
+                )
+              ) : null}
             </View>
-          ))}
-        </View>
+          }
+          onRefresh={ledger.refresh}
+          refreshing={ledger.refreshing}
+          renderHeading={(day) => (
+            /*
+              The heading sits on the page, outside the cards — NOTES §5. It
+              carries the day's own total on the right, which the reference
+              does not: a statement grouped by day and silent about what each
+              day came to is making the reader add the column up.
+            */
+            <View className="flex-row items-end justify-between gap-3">
+              <Text
+                className="shrink font-semibold uppercase tracking-wider text-muted-foreground"
+                numberOfLines={1}
+                style={{ fontSize: 11 }}
+              >
+                {day.label}
+              </Text>
+              <Text className="font-amount tabular-nums text-xs font-semibold text-muted-foreground">
+                {formatMoney(day.total)}
+              </Text>
+            </View>
+          )}
+          renderRow={(credit) => (
+            <CreditRow
+              calendar={dates.calendar}
+              credit={credit}
+              mixed={mixed}
+              onOpen={() => setOpen(credit)}
+              onResident={() => openBehind(credit)}
+            />
+          )}
+          rowGap={12}
+          rowKey={creditKey}
+        />
       </Screen>
 
       {/* --------------------------------------------------------- format */}

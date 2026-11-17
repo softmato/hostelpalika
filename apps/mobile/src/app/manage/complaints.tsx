@@ -1,6 +1,5 @@
 import type { GlyphName } from "@hostel/constants/glyphs";
 import { useMemo, useState } from "react";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -8,9 +7,10 @@ import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip, FactRow, Stagger } from "@/components/ui/layout";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Chip, FactRow } from "@/components/ui/layout";
+import { ListRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonRows } from "@/components/ui/skeleton";
@@ -56,6 +56,9 @@ const CATEGORY_ICON: Record<
   STAFF: { bg: "#007AFF", icon: "people" },
 };
 
+const bucketKey = (group: { bucket: string }) => group.bucket;
+const rowId = (row: { id: string }) => row.id;
+
 export default function ManageComplaintsScreen() {
   const dates = useDates();
   const [filter, setFilter] = useState<Filter>("open");
@@ -98,7 +101,6 @@ export default function ManageComplaintsScreen() {
       ),
     );
   }, [all, filter]);
-  const firstGroups = useFirstRows(groups);
 
   const show = (row: AdminComplaint) => {
     setReply("");
@@ -147,79 +149,65 @@ export default function ManageComplaintsScreen() {
   const isOpen = open ? OPEN.includes(open.status) : false;
 
   return (
-    <Screen
-      header={header}
-      onRefresh={list.refresh}
-      refreshing={list.refreshing}
-      scroll
-    >
-      <View className="gap-4 pt-1">
-        <Segmented
-          onChange={setFilter}
-          options={[
-            { count: counts.open, label: "Open", value: "open" },
-            { count: counts.late, label: "Late", value: "late" },
-            { count: counts.closed, label: "Closed", value: "closed" },
-            { count: counts.all, label: "All", value: "all" },
-          ]}
-          value={filter}
-        />
+    <Screen header={header} ownScroll padded={false}>
+      <Sections
+        card
+        groupKey={bucketKey}
+        groups={list.loading ? [] : groups}
+        header={
+          <View className="gap-4 pt-3">
+            <Segmented
+              onChange={setFilter}
+              options={[
+                { count: counts.open, label: "Open", value: "open" },
+                { count: counts.late, label: "Late", value: "late" },
+                { count: counts.closed, label: "Closed", value: "closed" },
+                { count: counts.all, label: "All", value: "all" },
+              ]}
+              value={filter}
+            />
 
-        {list.loading ? <SkeletonRows rows={5} /> : null}
-        {list.error ? (
-          <ErrorState message={list.error} onRetry={list.reload} />
-        ) : null}
+            {list.loading ? <SkeletonRows rows={5} /> : null}
+            {list.error ? (
+              <ErrorState message={list.error} onRetry={list.reload} />
+            ) : null}
 
-        {!list.loading && !list.error && groups.length === 0 ? (
-          <EmptyCard
-            description={
-              filter === "late"
-                ? "Everything has been answered in time."
-                : undefined
-            }
-            title="No complaints here"
-          />
-        ) : null}
+            {!list.loading && !list.error && groups.length === 0 ? (
+              <EmptyCard
+                description={
+                  filter === "late"
+                    ? "Everything has been answered in time."
+                    : undefined
+                }
+                title="No complaints here"
+              />
+            ) : null}
 
-        <Stagger className="gap-4">
-          {firstGroups.map((group) => (
-            <View className="gap-2" key={group.bucket}>
-              <Text
-                className="px-0.5 font-semibold uppercase tracking-wider"
-                variant="caption"
-              >
-                {group.label}
-              </Text>
-              <Card padding="px-4 py-1">
-                {group.rows.map((row, index) => {
-                  const look =
-                    CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
+          </View>
+        }
+        onRefresh={list.refresh}
+        refreshing={list.refreshing}
+        renderHeading={(group) => (
+          <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            {group.label}
+          </Text>
+        )}
+        renderRow={(row) => {
+          const look = CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
 
-                  return (
-                    <View key={row.id}>
-                      {index > 0 ? <RowDivider inset /> : null}
-                      <ListRow
-                        icon={look.icon}
-                        iconBgColor={look.bg}
-                        onPress={() => show(row)}
-                        right={
-                          row.isOverdue ? (
-                            <Badge label="Late" tone="danger" />
-                          ) : (
-                            <StatusPill status={row.status} />
-                          )
-                        }
-                        subtitle={`${humanizeEnum(row.category)} · ${dates.ago(row.createdAt)}`}
-                        title={row.title}
-                      />
-                    </View>
-                  );
-                })}
-              </Card>
-            </View>
-          ))}
-        </Stagger>
-      </View>
+          return (
+            <ListRow
+              icon={look.icon}
+              iconBgColor={look.bg}
+              onPress={() => show(row)}
+              right={row.isOverdue ? <Badge label="Late" tone="danger" /> : <StatusPill status={row.status} />}
+              subtitle={`${humanizeEnum(row.category)} · ${dates.ago(row.createdAt)}`}
+              title={row.title}
+            />
+          );
+        }}
+        rowKey={rowId}
+      />
 
       <Sheet
         footer={

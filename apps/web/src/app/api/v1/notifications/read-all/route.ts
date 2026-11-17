@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { requireApiPrincipal } from "@/lib/api-auth";
+import { requestsOverall, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { markAllNotificationsRead } from "@/modules/notifications/notification.service";
 
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function PATCH(request: NextRequest) {
   try {
     const principal = await requireApiPrincipal(request);
-    const result = await markAllNotificationsRead(principal);
+    const result = await markAllNotificationsRead(principal, requestsOverall(request));
 
     return successResponse(result, "Notifications marked as read");
   } catch (error) {

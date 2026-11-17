@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, Pressable, ScrollView, View } from "react-native";
 import Animated, {
   FadeIn,
@@ -23,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
 import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
 import { Sheet } from "@/components/ui/sheet";
@@ -164,6 +164,9 @@ const BLANK_NEW: NewDraft = {
  * `lib/admin-queries.ts`.
  */
 
+const bucketKey = (group: { bucket: string }) => group.bucket;
+const rowId = (row: { id: string }) => row.id;
+
 export default function ManageMaintenanceScreen() {
   const dates = useDates();
   const { colors } = useAppTheme();
@@ -255,7 +258,6 @@ export default function ManageMaintenanceScreen() {
       ),
     [visible],
   );
-  const firstGroups = useFirstRows(groups);
 
   const charges = useMemo(() => data.data?.charges ?? [], [data.data]);
 
@@ -551,54 +553,61 @@ export default function ManageMaintenanceScreen() {
           title="Maintenance"
         />
       }
-      onRefresh={data.refresh}
-      refreshing={data.refreshing}
-      scroll
+      ownScroll
+      padded={false}
     >
-      <View className="gap-4 pt-1">
-        <Segmented
-          onChange={setFilter}
-          options={[
-            { count: counts.all, label: "All", value: "all" },
-            { count: counts.open, label: "Open", value: "open" },
-            { count: counts.scheduled, label: "Booked", value: "scheduled" },
-            { count: counts.done, label: "Closed", value: "done" },
-          ]}
-          value={filter}
-        />
+      <Sections
+        floating
+        groupKey={bucketKey}
+        groups={data.loading ? [] : groups}
+        header={
+          <View className="gap-4 pt-3">
+            <Segmented
+              onChange={setFilter}
+              options={[
+                { count: counts.all, label: "All", value: "all" },
+                { count: counts.open, label: "Open", value: "open" },
+                { count: counts.scheduled, label: "Booked", value: "scheduled" },
+                { count: counts.done, label: "Closed", value: "done" },
+              ]}
+              value={filter}
+            />
 
-        {data.loading ? <SkeletonRows rows={4} /> : null}
+            {data.loading ? <SkeletonRows rows={4} /> : null}
 
-        {data.error ? <ErrorState message={data.error} onRetry={data.reload} /> : null}
+            {data.error ? <ErrorState message={data.error} onRetry={data.reload} /> : null}
 
-        {!data.loading && !data.error && visible.length === 0 ? (
-          <EmptyCard
-            description={
-              filter === "all"
-                ? "Nothing has been reported. Raise one yourself with the button below."
-                : "Nothing in this state right now."
-            }
-            title="No requests"
-          />
-        ) : null}
-
-        {firstGroups.map((group) => (
-          <View className="gap-2" key={group.bucket}>
-            {/* On the page, not in a card: the day is said once for the rows under it. */}
-            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
-              {group.label}
-            </Text>
-            {group.rows.map((request) => (
-              <RequestRow
-                key={request.id}
-                onOpen={() => openRequest(request)}
-                provider={providerFor(request.providerId)}
-                request={request}
+            {!data.loading && !data.error && visible.length === 0 ? (
+              <EmptyCard
+                description={
+                  filter === "all"
+                    ? "Nothing has been reported. Raise one yourself with the button below."
+                    : "Nothing in this state right now."
+                }
+                title="No requests"
               />
-            ))}
+            ) : null}
+
           </View>
-        ))}
-      </View>
+        }
+        onRefresh={data.refresh}
+        refreshing={data.refreshing}
+        renderHeading={(group) => (
+          /* On the page, not in a card: the day is said once for the rows under it. */
+          <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            {group.label}
+          </Text>
+        )}
+        renderRow={(request) => (
+          <RequestRow
+            onOpen={() => openRequest(request)}
+            provider={providerFor(request.providerId)}
+            request={request}
+          />
+        )}
+        rowGap={8}
+        rowKey={rowId}
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* Raise                                                              */}

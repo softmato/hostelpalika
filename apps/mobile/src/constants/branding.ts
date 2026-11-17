@@ -25,6 +25,8 @@ export const logo = {
   markLight: require("../../assets/images/logo-mark-light.png"),
   /** The full "HostelPalika" lockup. */
   wordmark: require("../../assets/images/wordmark.png"),
+  /** The same lockup for green bars: white letters, mint P. */
+  wordmarkOnGreen: require("../../assets/images/wordmark-on-green.png"),
   /** Softmato's logo, for the "Powered by" line. */
   softmato: require("../../assets/images/powered-by-softmato.png"),
 } as const;

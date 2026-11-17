@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
-import { useEffect, useRef } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { useLayoutEffect, useRef, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 
 import { Glyph } from "@/components/ui/glyph";
@@ -11,10 +11,19 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "finger", "0", "back"
 
 /**
  * Four boxes and the app's own number pad — the phone keyboard never opens for
- * a PIN. The bank apps' lock, in our green. A new `error` shakes the boxes.
+ * a PIN. The bank apps' lock, in our green. A new `error` shakes the boxes and
+ * empties them for another try; a fresh `key` empties them without one.
  *
  * A digit lands on touch-down with a haptic tick, as on a bank keypad, rather
  * than on release.
+ *
+ * ## Why the pad keeps the digits
+ *
+ * They lived in the parent — the whole lock screen — so every tap re-rendered
+ * it on the JS thread, and a budget phone felt each one. Here a tap re-renders
+ * four boxes. Parents hear each digit through `onChange` (to clear an error)
+ * and the four through `onComplete`. On Android the press tint is the native
+ * ripple, drawn the instant the finger lands even while JS is busy.
  */
 export function PinPad({
   busy = false,
@@ -22,34 +31,36 @@ export function PinPad({
   onChange,
   onComplete,
   onFingerprint,
-  value,
 }: {
   busy?: boolean;
   error?: string | null;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   onComplete: (value: string) => void;
   onFingerprint?: () => void;
-  value: string;
 }) {
   const { colors } = useAppTheme();
   const offset = useSharedValue(0);
   const shake = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
+  const [value, setValue] = useState("");
 
   /*
    * The digits as typed, ahead of React. Two quick taps both land before the
    * re-render, and a handler reading `value` built the second digit on the
-   * stale first — a dropped digit, the "stuck" pad. Reading this instead also
-   * keeps `press` free of `value`, so the key grid is not rebuilt per digit.
-   * Only a reset flows back in from the parent, and a reset is always "".
+   * stale first — a dropped digit, the "stuck" pad.
    */
-  const typed = useRef(value);
+  const typed = useRef("");
 
-  useEffect(() => {
-    if (value === "") typed.current = "";
-  }, [value]);
+  // Emptied in the same render the error arrives in, so the four filled boxes
+  // never show beside it; the ref follows before any tap can land.
+  const [seenError, setSeenError] = useState(error);
+  if (error !== seenError) {
+    setSeenError(error);
+    if (error) setValue("");
+  }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!error) return;
+    typed.current = "";
     offset.set(withSequence(
       withTiming(-10, { duration: 50 }),
       withTiming(10, { duration: 50 }),
@@ -70,9 +81,12 @@ export function PinPad({
     if (next === current) return;
     typed.current = next;
     void Haptics.selectionAsync().catch(() => {});
-    onChange(next);
+    setValue(next);
+    onChange?.(next);
     if (next.length === 4 && key !== "back") onComplete(next);
   }
+
+  const ripple = { borderless: false, color: colors.brandSoft, foreground: true };
 
   return (
     <View className="gap-4">
@@ -117,7 +131,11 @@ export function PinPad({
                   key === "back" ? "Delete" : key === "finger" ? "Use biometric" : key
                 }
                 accessibilityRole="button"
-                className="h-16 items-center justify-center rounded-2xl active:bg-brand-soft"
+                android_ripple={ripple}
+                // iOS and web have no ripple: the tint follows the press there.
+                className={`h-16 items-center justify-center overflow-hidden rounded-2xl ${
+                  Platform.OS === "android" ? "" : "active:bg-brand-soft"
+                }`}
                 disabled={busy}
                 // The biometric sheet opens on release, so a brushed key cannot pop it.
                 onPress={key === "finger" ? () => press(key) : undefined}

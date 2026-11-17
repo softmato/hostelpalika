@@ -3,10 +3,10 @@
  *
  * The server is the authority (`/auth/lock-pin/verify`, ten wrong in a row
  * blocks it). This keeps a salted PBKDF2 hash of the last PIN the server
- * accepted — after a verify or a save — in SecureStore, so an owner in a dead
- * zone can still open the app. Offline only: online, the server answers and a
- * PIN changed on another phone (a wrong answer for the PIN this copy holds)
- * deletes the copy.
+ * accepted — after a verify or a save — in SecureStore. It is checked first,
+ * online too (`matchesPin`): a match opens the app with no network wait and the
+ * server confirms behind it; a PIN changed on another phone, or a blocked one,
+ * is refused there, which deletes the copy and locks the app again.
  *
  * Offline wrong tries are limited here: five free, then a wait that doubles
  * with each further miss, held in the same record so a relaunch does not reset
@@ -46,17 +46,34 @@ type LocalPin = {
   until: number;
 };
 
-async function readRecord(): Promise<LocalPin | null> {
-  try {
-    const raw = await SecureStore.getItemAsync(KEY);
-    return raw ? (JSON.parse(raw) as LocalPin) : null;
-  } catch {
-    return null;
-  }
+/**
+ * The record, read from the Keystore once and then held in memory: a Keystore
+ * read costs a budget phone tens of milliseconds, and the unlock is the one
+ * place that must not wait. Every write goes through here, so it never drifts.
+ */
+let held: Promise<LocalPin | null> | null = null;
+
+function readRecord(): Promise<LocalPin | null> {
+  held ??= (async () => {
+    try {
+      const raw = await SecureStore.getItemAsync(KEY);
+      return raw ? (JSON.parse(raw) as LocalPin) : null;
+    } catch {
+      held = null;
+      return null;
+    }
+  })();
+  return held;
 }
 
 async function writeRecord(record: LocalPin) {
+  held = Promise.resolve(record);
   await SecureStore.setItemAsync(KEY, JSON.stringify(record)).catch(() => {});
+}
+
+/** The lock screen calls this as it opens, so the first PIN finds the record in memory. */
+export function warmPin() {
+  void readRecord();
 }
 
 async function hashPin(pin: string, salt: string, iterations: number) {
@@ -81,7 +98,23 @@ export async function rememberPin(accountId: string, pin: string) {
 }
 
 export async function forgetPin() {
+  held = Promise.resolve(null);
   await SecureStore.deleteItemAsync(KEY).catch(() => {});
+}
+
+/**
+ * Online or not: does the copy say yes to `pin`? A yes opens the app at once and
+ * the server confirms behind it (`checkLockPin`). A no counts nothing here — the
+ * caller asks the server, whose ten-try limit counts it, so a wrong guess is
+ * never free. Old-count records answer no: seconds of hashing is the lag this
+ * exists to remove.
+ */
+export async function matchesPin(accountId: string, pin: string) {
+  const record = await readRecord();
+  if (!record || record.accountId !== accountId || record.iterations !== PIN_ITERATIONS) return false;
+  if ((await hashPin(pin, record.salt, record.iterations)) !== record.hash) return false;
+  if (record.fails > 0) void writeRecord({ ...record, fails: 0, until: 0 });
+  return true;
 }
 
 /** The server refused `pin`: if this copy still accepts it, the PIN was changed elsewhere. */

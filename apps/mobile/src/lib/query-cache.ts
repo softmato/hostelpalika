@@ -62,6 +62,21 @@ let activeScope: string | null = null;
 export function setQueryCacheScope(hostelId: string | null) {
   activeScope = hostelId;
 }
+
+/**
+ * Runs `fn` with keys filed under another hostel — reads made ahead of a
+ * switch. Synchronous only: `fetchQuery` fixes its key before its first await.
+ */
+export function inQueryScope<T>(hostelId: string | null, fn: () => T): T {
+  const previous = activeScope;
+  activeScope = hostelId;
+
+  try {
+    return fn();
+  } finally {
+    activeScope = previous;
+  }
+}
 /** Keys under `account:` read the same from every branch (the branch list itself). */
 const ACCOUNT_WIDE = "account:";
 function scopedKey(key: string) {

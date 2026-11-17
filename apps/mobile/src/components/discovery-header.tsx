@@ -230,12 +230,13 @@ export function DiscoveryHeader({
             accessibilityRole="header"
             className="flex-1 flex-row"
           >
+            {/* The real lockup (the P is the HP mark), recoloured for the green
+                bar: the original's dark letters and green P vanish on it. */}
             <Image
               cachePolicy="memory-disk"
               contentFit="contain"
-              source={logo.wordmark}
+              source={logo.wordmarkOnGreen}
               style={{ aspectRatio: 1614 / 229, height: 14 }}
-              tintColor="#FFFFFF"
             />
           </View>
 

@@ -16,7 +16,7 @@ import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { applyThemePreference, useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
@@ -54,7 +54,7 @@ import {
   requestPushPermission,
 } from "@/lib/push-notifications";
 import { toastError, toastSuccess } from "@/lib/toast";
-import { setThemePreference, type ThemePreference } from "@/store/slices/uiSlice";
+import type { ThemePreference } from "@/store/slices/uiSlice";
 import { APP_NAME } from "@/constants/branding";
 import { ROLE } from "@/constants/roles";
 
@@ -162,7 +162,7 @@ export default function SettingsScreen() {
                     <ListRow
                       icon={option.icon}
                       iconBgColor={option.iconBgColor}
-                      onPress={() => crossFadeTheme(() => dispatch(setThemePreference(option.value)))}
+                      onPress={() => crossFadeTheme(() => applyThemePreference(option.value, dispatch))}
                       right={
                         <Glyph
                           color={active ? colors.primary : colors.border}

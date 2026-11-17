@@ -99,29 +99,29 @@
   */
   .dark:root,
   .dark {
-    --background: 12 10 9; /* #0c0a09 */
+    --background: 22 20 19; /* #161413 — the web's dark ground */
     --foreground: 250 250 249; /* #fafaf9 */
-    --card: 28 25 23; /* #1c1917 */
+    --card: 35 32 30; /* #23201e */
     --card-foreground: 250 250 249; /* #fafaf9 */
-    --popover: 28 25 23; /* #1c1917 */
+    --popover: 35 32 30; /* #23201e */
     --popover-foreground: 250 250 249; /* #fafaf9 */
     --primary: 18 169 93; /* #12a95d */
     --primary-foreground: 4 20 12; /* #04140c */
     --secondary: 39 39 42; /* #27272a */
     --secondary-foreground: 250 250 250; /* #fafafa */
-    --muted: 41 37 36; /* #292524 */
-    --muted-foreground: 168 162 158; /* #a8a29e */
-    --accent: 39 39 42; /* #27272a */
+    --muted: 48 43 42; /* #302b2a */
+    --muted-foreground: 166 160 155; /* #a6a09b */
+    --accent: 48 43 42; /* #302b2a */
     --accent-foreground: 250 250 250; /* #fafafa */
     --destructive: 239 68 68; /* #ef4444 */
     --destructive-foreground: 255 255 255; /* #ffffff */
     --destructive-soft: 43 15 15; /* #2b0f0f */
-    --border: 41 37 36; /* #292524 */
-    --input: 41 37 36; /* #292524 */
+    --border: 45 43 42; /* #2d2b2a — white at 10% over the ground, as on the web */
+    --input: 57 55 54; /* #393736 — white at 15% */
     --ring: 18 169 93; /* #12a95d */
 
-    --surface: 28 25 23; /* #1c1917 */
-    --surface-strong: 35 32 32; /* #232020 */
+    --surface: 41 37 36; /* #292524 */
+    --surface-strong: 41 37 36; /* #292524 */
     --warning: 245 158 11; /* #f59e0b */
     --warning-soft: 42 31 7; /* #2a1f07 */
     --success: 34 197 94; /* #22c55e */

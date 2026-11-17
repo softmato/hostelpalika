@@ -268,7 +268,6 @@ export function ConfirmDialog({
               setPinValue(value);
             }}
             onComplete={confirm}
-            value={pinValue}
           />
         ) : null
       }

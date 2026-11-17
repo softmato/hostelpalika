@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { requireApiPrincipal } from "@/lib/api-auth";
+import { requestsOverall, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
 import {
@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       undefined,
       filterBy,
       since && !Number.isNaN(since.getTime()) ? since : undefined,
+      requestsOverall(request),
     );
 
     return withEtag(request, successResponse(result, "Notifications loaded"));

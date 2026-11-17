@@ -58,6 +58,7 @@ export async function presentLiveNotification(
       data: {
         [LIVE_ECHO]: true,
         category: payload.category,
+        hostelId: payload.hostelId ?? null,
         notificationId: payload.id,
         path: notificationRoute(payload, store.getState().auth.account?.role) ?? PUSH_FALLBACK_PATH,
         urgent,

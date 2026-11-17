@@ -12,6 +12,7 @@ import Animated, {
 import { captureScreen, releaseCapture } from "react-native-view-shot";
 
 import { MOTION } from "@/constants/motion";
+import { useThemeSync } from "@/hooks/use-app-theme";
 
 /**
  * Theme cross-fade (M9): a snapshot of the frame as it is, the theme swapped
@@ -64,6 +65,8 @@ export function crossFadeTheme(apply: () => void) {
 /** The snapshot layer. Mounted once at the root, above everything but the app lock. */
 export function ThemeFadeHost() {
   const reduceMotion = useReducedMotion();
+  // The one place NativeWind's scheme is kept in step with the preference.
+  useThemeSync();
   const [shot, setShot] = useState<Shot | null>(null);
   const opacity = useSharedValue(1);
   const style = useAnimatedStyle(() => ({ opacity: opacity.get() }));

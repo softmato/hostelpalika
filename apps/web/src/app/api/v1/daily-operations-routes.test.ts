@@ -48,6 +48,7 @@ vi.mock("@/lib/api-auth", () => ({
   requireHostelStaffPrincipal: routeMocks.requireHostelStaffPrincipal,
   requirePlatformPrincipal: routeMocks.requirePlatformPrincipal,
   requireResidentPrincipal: routeMocks.requireResidentPrincipal,
+  requestsOverall: () => false,
 }));
 
 vi.mock("@/modules/complaints/complaint.service", () => ({

@@ -7,9 +7,12 @@
  * ## One list for every role
  *
  * `GET /notifications` runs `requireApiPrincipal` and filters on
- * `userId: principal.userId`, with no role branch and no hostel scope. So a
- * resident, a cook, a warden and a `PUBLIC_USER` all read their own rows through
- * this one call, and the bell is the same component everywhere.
+ * `userId: principal.userId`, with no role branch. So a resident, a cook, a
+ * warden and a `PUBLIC_USER` all read their own rows through this one call, and
+ * the bell is the same component everywhere.
+ *
+ * An owner with branches gets the active branch's rows plus the account-wide
+ * ones (`feedScope` on the server); Overall names itself to get every branch.
  *
  * ## The fields left out on purpose
  *
@@ -26,8 +29,12 @@
  * `data.answer` are read for it.
  */
 
+import { OVERALL, isOverall } from "@/lib/active-hostel";
 import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
+
+/** Overall is every branch; any other choice is left to `lib/api.ts`'s own header. */
+const scope = () => (isOverall() ? { "x-hostel-id": OVERALL } : undefined);
 
 export type NotificationFilter = "action" | "all" | "unread";
 
@@ -44,6 +51,8 @@ export type AppNotification = {
   createdAt?: string;
   /** Written by many call sites and not a stable schema — read it defensively. */
   data?: Record<string, unknown>;
+  /** The branch the row belongs to; null = account-wide. Opens there from Overall. */
+  hostelId?: string | null;
   id: string;
   isRead: boolean;
   /** An ACTION row still sitting at `PENDING`. Not the same as unread. */
@@ -61,6 +70,7 @@ export type NotificationFeed = {
 /** `since` (ISO): only rows newer than it; the counts are always whole. */
 export async function listNotifications(filter: NotificationFilter = "all", since?: string) {
   const response = await api.get<ApiEnvelope<NotificationFeed>>("/notifications", {
+    headers: scope(),
     params: since ? { filter, since } : { filter },
   });
 
@@ -73,5 +83,5 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function markAllNotificationsRead() {
-  await api.patch("/notifications/read-all");
+  await api.patch("/notifications/read-all", undefined, { headers: scope() });
 }

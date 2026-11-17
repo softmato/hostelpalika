@@ -160,7 +160,7 @@ import {
   getExistingResidents,
 } from "@/lib/existing-residents-api";
 import { nepalPeriodKey } from "@/lib/format";
-import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
+import { defineQuery, inQueryScope, prefetchQuery, type Query } from "@/lib/query-cache";
 import { getOverallLedger } from "@/lib/overall-api";
 /*
  * Imported for the `AdminTodayData` shape only. It lives in `resident-api`
@@ -188,20 +188,20 @@ export type AdminOverview = {
   report: AdminReport;
 };
 
-async function loadOverview(): Promise<AdminOverview> {
+async function loadOverview(hostelId?: string): Promise<AdminOverview> {
   const [report, hostel, periods] = await Promise.all([
-    getAdminReport(),
+    getAdminReport(hostelId),
     // A warden may be scoped to several hostels, in which case the profile read
     // needs a hostelId it has no way to choose. The numbers above still apply
     // across all of them, so the header simply loses its name.
-    getAdminHostel().catch(() => null),
+    getAdminHostel(hostelId).catch(() => null),
     /*
      * Tolerant for a different reason: `viewPayments` is a per-warden grant, so
      * this is the one read here that a legitimate user can be refused. Falling
      * back rather than failing keeps the rest of the screen — see
      * `earningsSummary`, which decides what the hero says without it.
      */
-    getAdminPeriodSummary().catch(() => null),
+    getAdminPeriodSummary(hostelId).catch(() => null),
   ]);
 
   return { hostel, periods, report };
@@ -786,6 +786,21 @@ export const adminQuery = {
 /** Warms one descriptor. Never throws, never re-asks something already fresh. */
 export function prefetchAdminQuery<T>(query: AdminQuery<T>) {
   prefetchQuery(query.key, query.load, { topics: query.topics });
+}
+
+/**
+ * Home's card for a hostel the screens are not on yet, filed under that
+ * hostel's cache scope (`null` is the main one) — so switching to it paints at
+ * once. Fresh or in-flight entries are skipped, so calling it again is free.
+ */
+export function prefetchBranchHome(scope: string | null, hostelId: string) {
+  const home = adminQuery.overview();
+  const ledger = adminQuery.ledger();
+
+  inQueryScope(scope, () => {
+    prefetchQuery(home.key, () => loadOverview(hostelId), { topics: home.topics });
+    prefetchQuery(ledger.key, () => getAdminLedger(hostelId), { topics: ledger.topics });
+  });
 }
 
 /**

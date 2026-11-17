@@ -308,16 +308,34 @@ export async function createOrUpdateBatchedNotification(input: {
 
 export type NotificationFilter = "all" | "unread" | "action";
 
+/**
+ * Keeps an owner's branches apart in the bell: with several hostels, a request
+ * sees the active hostel's rows plus the account-wide ones (no `hostelId`); the
+ * Overall view (`x-hostel-id: overall`) sees all of them. Feed, both counts and
+ * read-all share it, so a badge never counts a row its list does not show.
+ */
+function feedScope(principal: ApiPrincipal, overall: boolean) {
+  if (overall || (principal.allHostelIds?.length ?? 0) <= 1) return {};
+
+  return {
+    $or: [
+      { hostelId: { $in: principal.hostelIds.filter((id) => Types.ObjectId.isValid(id)).map((id) => new Types.ObjectId(id)) } },
+      { hostelId: null },
+    ],
+  };
+}
+
 export async function listNotifications(
   principal: ApiPrincipal,
   query: PaginationQuery = { page: 1, pageSize: MAX_PAGE_SIZE },
   filterBy: NotificationFilter = "all",
   /** Only rows created after this — the app's cached feed asks for what is new. Counts stay whole. */
   since?: Date,
+  overall = false,
 ) {
   await connectToDatabase();
 
-  const mine = { userId: normalizeObjectId(principal.userId, "user id") };
+  const mine = { userId: normalizeObjectId(principal.userId, "user id"), ...feedScope(principal, overall) };
   const unreadFilter = { ...mine, readAt: { $exists: false } };
   // "Needs action" is not "unread": an admin can read "a hostel is waiting for
   // approval" and still not have approved it, so this queue keys off
@@ -382,13 +400,14 @@ export async function markNotificationRead(
 }
 
 /** Clear the whole unread badge in one call, for the bell's "Mark all read". */
-export async function markAllNotificationsRead(principal: ApiPrincipal) {
+export async function markAllNotificationsRead(principal: ApiPrincipal, overall = false) {
   await connectToDatabase();
 
   const result = await NotificationModel.updateMany(
     {
       readAt: { $exists: false },
       userId: normalizeObjectId(principal.userId, "user id"),
+      ...feedScope(principal, overall),
     },
     { $set: { readAt: new Date(), updatedBy: principal.userId } },
   );

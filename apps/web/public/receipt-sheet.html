@@ -9,6 +9,13 @@
 #where b{text-align:right;min-width:0}
 .rhead{display:flex;gap:14px;align-items:flex-end}.rmain{flex:1;min-width:0}.rmain label{margin-top:0}.rbig{font-size:32px}.thumb{width:64px;height:84px;flex:none;border-radius:10px;border:1px solid var(--line);background:#f4f8f6;display:grid;place-content:center;overflow:hidden;color:var(--muted);font-size:11px;font-weight:700}.thumb img{width:64px;height:84px;object-fit:cover;display:block}.code{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--muted)}.code b{font-family:ui-monospace,monospace;font-weight:650;letter-spacing:.02em;color:#13201a}.code i{display:grid;flex:none}.code svg{width:20px;height:20px}.code.ok i{color:var(--brand)}.code.miss i{color:#9a5b00}.thumb svg{width:26px;height:26px}.mark svg{width:22px;height:22px}.for .fm{display:flex;align-items:center;gap:8px}.for .fm svg{width:18px;height:18px;color:var(--brand)}.pick .chev svg{width:16px;height:16px;display:block}#doneIcon svg{width:30px;height:30px}#status:empty{display:none}.solo{flex-direction:column-reverse;gap:4px}.solo #cancel{border:0;min-height:40px;color:var(--muted)}
 :root.sheet{background:transparent}.sheet body{background:#fff;border-radius:22px 22px 0 0;min-height:100vh}.sheet main::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-6px auto 16px}
+/* tidy pass: one label style, stacked "Saving to", chevron on Details */
+header{margin-bottom:14px}header>div{min-width:0}header .file{max-width:none;font-size:13px}
+label{font-size:12px;font-weight:600;letter-spacing:.02em;margin:16px 0 6px}
+#where{flex-direction:column;align-items:flex-start;gap:2px;margin:0 0 2px;padding:12px 14px}#where span{font-size:12px;font-weight:600;letter-spacing:.02em}#where b{text-align:left;font-size:15px;line-height:1.3}
+.big{font-size:36px;font-weight:700;letter-spacing:-.01em}.rbig{font-size:30px}
+summary{list-style:none;display:flex;align-items:center;gap:8px;font-weight:600;padding:12px 0 4px}summary::-webkit-details-marker{display:none}summary:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 1.8px 1.8px 0;transform:rotate(45deg);margin-top:-3px;transition:transform .15s}details[open] summary:after{transform:rotate(225deg);margin-top:3px}
+.check{font-size:13px;color:var(--muted);margin-top:10px}.actions{margin-top:20px}
 </style></head><body><main>
 <header><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20.5V4.5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v16l-3-2-3 2-3-2Z"/><path d="M9.5 8L14.5 8"/><path d="M9.5 11.5L14.5 11.5"/><path d="M9.5 15L12 15"/></svg></span><div><h1 id="title">Add receipt</h1><p id="file" class="file" hidden></p></div></header>
 <div id="scan" class="scan" aria-hidden="true"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20.5V4.5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v16l-3-2-3 2-3-2Z"/><path d="M9.5 8L14.5 8"/><path d="M9.5 11.5L14.5 11.5"/><path d="M9.5 15L12 15"/></svg></b></div>
@@ -21,7 +28,7 @@
 <div><div class="lab"><label for="methodPick">Paid by</label><span class="auto" id="methodAuto" hidden>Auto</span></div><button type="button" id="methodPick" class="pick"></button><select id="method" hidden><option value="BANK">Bank</option><option value="ESEWA">eSewa</option><option value="KHALTI">Khalti</option><option value="CASH">Cash</option></select></div></div>
 <details id="details"><summary>Details</summary><label for="what">Description</label><input id="what" maxlength="120" required>
 </details>
-<label class="check"><input type="checkbox" id="auto"><span>Don’t ask next time — read and save my shared receipts automatically</span></label>
+<label class="check"><input type="checkbox" id="auto"><span>Save shared receipts automatically next time</span></label>
 </form>
 <form id="rform" hidden>
 <div class="rhead"><div id="rthumb" class="thumb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"/><path d="M13.5 3.5V9H19"/><path d="M8.5 13L15.5 13"/><path d="M8.5 16.5L13.5 16.5"/></svg></div><div class="rmain"><label for="ramount">Amount paid · Rs.</label><input id="ramount" class="big rbig" inputmode="numeric" type="number" min="1" max="100000000" step="1" required></div></div>
@@ -171,7 +178,7 @@
       // The hostel this lands in — the branch picked in the app. Read-only here: switching is the app's job, and a warden has only their own.
       if (result.hostel) { $('whereName').textContent = [result.hostel.name, result.hostel.kind && [result.hostel.kind, result.hostel.area].filter(Boolean).join(', ')].filter(Boolean).join(' · '); $('where').hidden = false; }
       $('form').hidden = false; $('save').hidden = false; $('save').disabled = false;
-      $('status').textContent = result.fields.amount ? 'Ready to save' : 'Enter amount';
+      $('status').textContent = result.fields.amount ? '' : 'Enter amount';
       if ($('auto').checked && result.autoSaveEligible === true && $('form').checkValidity()) await save(true);
     } catch (e) {
       if (!cancelled) {

@@ -1,6 +1,7 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useDeferredValue, useMemo, useSyncExternalStore } from "react";
 
 import { AdminAlertsProvider, useAdminAlerts } from "@/components/admin-alerts";
+import { BranchSweep } from "@/components/branch-sweep";
 import { RoleTabs, type TabDef } from "@/components/role-tabs";
 import { usePortalWarmup } from "@/hooks/use-portal-warmup";
 import { getActiveHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
@@ -100,11 +101,22 @@ export default function RoleLayout() {
    * screen resets its local state and seeds from that branch's cache. Other
    * branches remain cached for a return visit.
    */
-  const activeHostel = useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId);
+  /*
+   * Deferred: a store update renders synchronously, and rebuilding every tab
+   * that way held the JS thread ~3.5 s on a budget phone (device timing,
+   * 2026-11-17). Deferred, the old screens stay up and responsive while the
+   * new branch renders in the background, then swap in one go.
+   */
+  const activeHostel = useDeferredValue(
+    useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId),
+  );
 
   return (
-    <AdminAlertsProvider key={activeHostel ?? "main"}>
-      <AdminTabs />
-    </AdminAlertsProvider>
+    <>
+      <AdminAlertsProvider key={activeHostel ?? "main"}>
+        <AdminTabs />
+      </AdminAlertsProvider>
+      <BranchSweep landed={activeHostel} />
+    </>
   );
 }

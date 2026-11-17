@@ -5,6 +5,7 @@ import {
   DEFAULT_STALE_MS,
   DEFAULT_MAX_AGE_MS,
   setQueryCacheScope,
+  inQueryScope,
   type PersistedEntry,
   peekQueryEntry,
   readSavedQuery,
@@ -370,6 +371,14 @@ describe("branch switching", () => {
 
 
 describe("per-branch cache", () => {
+  it("files a read ahead of a switch under the other branch, then restores the scope", async () => {
+    setQueryCacheScope("A");
+    await inQueryScope("B", () => fetchQuery("admin:overview", async () => "B card"));
+    expect(readQuery("admin:overview")).toBeNull();
+    setQueryCacheScope("B");
+    expect(readQuery("admin:overview")?.data).toBe("B card");
+  });
+
   it("reuses A after A -> B -> A without fetching again", async () => {
     const loadA = vi.fn(async () => "A residents");
     const loadB = vi.fn(async () => "B residents");

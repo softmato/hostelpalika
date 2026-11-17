@@ -413,3 +413,12 @@ A → B → (C, D, E need A and B) → F → G → H → I (docs last, they desc
 - ? K11 "tets / domain resend mail" on page 3 — unclear, ask the owner.
 - ⏳ K12 Date of birth: calendar field with BS / AD switch (`components/ui/birth-date-field.tsx`, conversions in `lib/birth-date.ts`, tested). `dateOfBirth` stays AD; `dateOfBirthCalendar` + `dateOfBirthAsEntered` keep the original (TS + Go details schema). ID card editor uses the same field (AD stored only). Web admission form unchanged (needs owner OK).
 - ⏳ K13 Rates: joining fees (admission, form, deposit, referral) change right away via `PATCH /hostel-admin/finance/fee-schedules/one-off-fees` (TS + Go, PARITY row added); rents still start next month by default, plus "Change from today" (`startsToday`) — raised bills keep their amount. Header now "Current rates since …". No DB test for the new server rule yet; contract fixtures not re-run (needs Docker Mongo). Web rates editor unchanged (needs owner OK).
+
+### K — handoff (2026-11-16, end of session)
+- Pushed: `3d200e8e` (this session's work, all of it). Another session pushed `6fbd83e1` on top (login email).
+- **Web: LIVE** (Vercel redeployed by hand after a flaky `/llms-full.txt` prerender fetch).
+- **Go API: NOT deployed.** CI `test` fails in `internal/router` TestContract → image/deploy skipped, so the app's Save on New rates still gets **405** (`PATCH /hostel-admin/finance/fee-schedules/one-off-fees` not live).
+  - Known diff: `admin-residents-intake/status` — "invoices of 42: same values, different key order" (two invoice rows swap order). Same on 3d200e8e and 6fbd83e1. Likely a sort tie (today = Kartik 30, month end) or fixture needing re-record.
+  - CI log hides the FAIL lines (`grep: binary file matches`); run locally: `go test -timeout 45m -run TestContract -v ./internal/router/` from PowerShell with Docker Mongo on 27018 up, nothing else using it.
+  - Fix order: find every failing contract case → fix sort/re-record fixtures (TS + Go per MISSION) → push → API PATCH should answer 401 not 405.
+- Still open from K: K3 add-resident flow, K8 public-side kick, K9 PWA offline, K10 screenshots, K11 unclear note, K12/K13 device checks.

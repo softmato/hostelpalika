@@ -1,20 +1,22 @@
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 
+import { openInItsBranch } from "@/components/hostel-switcher";
 import { AppBar } from "@/components/ui/app-bar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Glyph } from "@/components/ui/glyph";
-import { Stagger } from "@/components/ui/layout";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
+import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { useResource } from "@/hooks/use-resource";
 import {
   type NotificationTone,
@@ -226,6 +228,8 @@ export default function NotificationsScreen() {
    * different jobs, and one long mixed list made the reader sort them by eye.
    */
   const [category, setCategory] = useState<string | null>(null);
+  const [kindsOpen, setKindsOpen] = useState(false);
+  const { colors } = useAppTheme();
   const categories = useMemo(() => {
     const byLabel = new Map<string, CategoryChip>();
     for (const row of rows) {
@@ -308,7 +312,6 @@ export default function NotificationsScreen() {
    * one heading and its last under another.
    */
   const groups = useMemo(() => groupNotifications(shownRows), [shownRows]);
-  const firstGroups = useFirstRows(groups);
 
   /*
    * The app-icon badge, written from the server's count.
@@ -386,19 +389,30 @@ export default function NotificationsScreen() {
   const header = (
     <AppBar
       actions={
-        unread > 0 ? (
-          <Pressable
-            accessibilityLabel="Mark all as read"
-            accessibilityRole="button"
-            className="active:opacity-50"
-            hitSlop={8}
-            onPress={markAll}
-          >
-            <Text className="text-primary" variant="label">
-              Mark all read
-            </Text>
-          </Pressable>
-        ) : undefined
+        <View className="flex-row items-center gap-3">
+          {unread > 0 ? (
+            <Pressable
+              accessibilityLabel="Mark all as read"
+              accessibilityRole="button"
+              className="active:opacity-50"
+              hitSlop={8}
+              onPress={markAll}
+            >
+              <Text className="text-primary" variant="label">
+                Mark all read
+              </Text>
+            </Pressable>
+          ) : null}
+          {categories.length > 1 ? (
+            <IconButton
+              badge={picked ? 1 : undefined}
+              label="Show only one kind"
+              name="options"
+              onPress={() => setKindsOpen(true)}
+              size="sm"
+            />
+          ) : null}
+        </View>
       }
       onBack={() => router.back()}
       showBack
@@ -435,108 +449,87 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <Screen header={header} onRefresh={feed.refresh} refreshing={feed.refreshing} scroll>
-      <View className="gap-4 pt-1">
-        <ScrollView
-          contentContainerClassName="gap-2"
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {FILTERS.map((option) => {
-            const active = option.value === filter;
+    <Screen header={header} ownScroll padded={false}>
+      <Sections
+        card
+        groupKey={bucketKey}
+        groups={feed.loading ? [] : groups}
+        header={
+          <View className="gap-4 pt-3">
+            <Segmented
+              onChange={setFilter}
+              options={FILTERS.map((option) => ({
+                ...option,
+                count:
+                  option.value === "unread" ? unread : option.value === "action" ? feed.data?.actionCount : undefined,
+              }))}
+              value={filter}
+            />
 
-            return (
+            {picked ? (
               <Pressable
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                className={`rounded-full border px-3.5 py-2 active:opacity-70 ${
-                  active ? "border-primary bg-primary" : "border-border"
-                }`}
-                key={option.value}
-                onPress={() => setFilter(option.value)}
+                accessibilityLabel={`Showing only ${picked}. Show every kind`}
+                accessibilityRole="button"
+                className="flex-row items-center gap-1.5 self-start rounded-full bg-brand-soft px-3 py-1.5 active:opacity-70"
+                onPress={() => setCategory(null)}
               >
-                <Text
-                  className={`text-sm font-medium ${
-                    active ? "text-primary-foreground" : "text-foreground"
-                  }`}
-                >
-                  {option.value === "action" && feed.data
-                    ? `${option.label}${feed.data.actionCount > 0 ? ` (${feed.data.actionCount})` : ""}`
-                    : option.label}
-                </Text>
+                <Text className="text-sm font-medium text-primary">{picked}</Text>
+                <Glyph color={colors.primary} name="close" size={14} />
               </Pressable>
-            );
-          })}
-        </ScrollView>
+            ) : null}
 
-        {categories.length > 1 ? (
-          <ScrollView
-            contentContainerClassName="gap-2"
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {categories.map((chip) => (
-              <CategoryChipButton
-                active={chip.label === picked}
-                chip={chip}
-                key={chip.label}
-                onPress={() => setCategory(chip.label === picked ? null : chip.label)}
+            {/*
+              Skeleton rows rather than a centred spinner, per NOTES §9: the shape of
+              this list is known before its contents are, and matching it is what
+              keeps the page from jumping when the rows land. Six because that is
+              roughly a screenful at this row height.
+            */}
+            {feed.loading ? (
+              <SkeletonRows rows={6} />
+            ) : rows.length === 0 ? (
+              <EmptyState icon="notifications"
+                description={
+                  filter === "unread"
+                    ? "Everything here has been read."
+                    : filter === "action"
+                      ? "Nothing is waiting on a decision from you."
+                      : "Rent reminders, notices and alerts will show up here."
+                }
+                title="Nothing to read"
               />
-            ))}
-          </ScrollView>
-        ) : null}
-
-        {/*
-          Skeleton rows rather than a centred spinner, per NOTES §9: the shape of
-          this list is known before its contents are, and matching it is what
-          keeps the page from jumping when the rows land. Six because that is
-          roughly a screenful at this row height.
-        */}
-        {feed.loading ? (
-          <SkeletonRows rows={6} />
-        ) : rows.length === 0 ? (
-          <EmptyState icon="notifications"
-            description={
-              filter === "unread"
-                ? "Everything here has been read."
-                : filter === "action"
-                  ? "Nothing is waiting on a decision from you."
-                  : "Rent reminders, notices and alerts will show up here."
-            }
-            title="Nothing to read"
-          />
-        ) : (
-          <View className="gap-5">
-            {firstGroups.map((group, g) => (
-              <Stagger
-                className="gap-2.5"
-                // Rows above this day, its heading included, so the fade runs on down the page.
-                from={groups.slice(0, g).reduce((n, earlier) => n + earlier.rows.length + 1, 0)}
-                key={group.bucket}
-              >
-                {/*
-                  On the page, not in a card — NOTES §5. The day is stated once
-                  for the rows under it instead of once on every row.
-                */}
-                <Text
-                  className="px-0.5 font-semibold uppercase tracking-wider"
-                  variant="caption"
-                >
-                  {group.label}
-                </Text>
-
-                {group.rows.map((notification) => (
-                  <NotificationRow
-                    key={notification.id}
-                    notification={notification}
-                    onOpen={markRead}
-                  />
-                ))}
-              </Stagger>
-            ))}
+            ) : null}
           </View>
+        }
+        onRefresh={feed.refresh}
+        refreshing={feed.refreshing}
+        renderHeading={(group) => (
+          /*
+            On the page, not in a card — NOTES §5. The day is stated once
+            for the rows under it instead of once on every row.
+          */
+          <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            {group.label}
+          </Text>
         )}
-      </View>
+        renderRow={(notification) => <NotificationRow notification={notification} onOpen={markRead} />}
+        rowKey={notificationKey}
+      />
+
+      <Sheet onClose={() => setKindsOpen(false)} open={kindsOpen} title="Show only">
+        <View className="pb-2">
+          {[{ count: rows.length, icon: "notifications" as const, label: "" }, ...categories].map((chip) => (
+            <KindRow
+              chip={chip}
+              key={chip.label || "all"}
+              onPress={() => {
+                setCategory(chip.label || null);
+                setKindsOpen(false);
+              }}
+              selected={(picked ?? "") === chip.label}
+            />
+          ))}
+        </View>
+      </Sheet>
     </Screen>
   );
 }
@@ -544,37 +537,31 @@ export default function NotificationsScreen() {
 type CategoryChip = { count: number; icon: NotificationVisual["icon"]; label: string };
 
 /** One kind of notification: its glyph, its word, how many. Tap again to show every kind. */
-function CategoryChipButton({
-  active,
-  chip,
-  onPress,
-}: {
-  active: boolean;
-  chip: CategoryChip;
-  onPress: () => void;
-}) {
+/** One kind in the "Show only" sheet; the blank label is every kind. */
+function KindRow({ chip, onPress, selected }: { chip: CategoryChip; onPress: () => void; selected: boolean }) {
   const { colors } = useAppTheme();
+  const label = chip.label || "Everything";
 
   return (
     <Pressable
-      accessibilityLabel={`${chip.label}, ${chip.count}`}
+      accessibilityLabel={`${label}, ${chip.count}`}
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      className={`flex-row items-center gap-1.5 rounded-xl px-3 py-2 active:opacity-70 ${
-        active ? "bg-primary" : "bg-muted"
-      }`}
+      accessibilityState={{ selected }}
+      className="flex-row items-center gap-3 py-3 active:opacity-70"
       onPress={onPress}
     >
-      <Glyph
-        color={active ? colors.primaryForeground : colors.foreground}
-        name={chip.icon}
-        size={15}
-      />
-      <Text
-        className={`text-sm font-medium ${active ? "text-primary-foreground" : "text-foreground"}`}
-      >
-        {`${chip.label} ${chip.count}`}
+      <View className="h-9 w-9 items-center justify-center rounded-xl bg-muted">
+        <Glyph color={colors.foreground} name={chip.icon} size={17} />
+      </View>
+      <Text className={`flex-1 ${selected ? "font-semibold" : ""}`} variant="body">
+        {label}
       </Text>
+      <Text className="tabular-nums" variant="caption">
+        {chip.count}
+      </Text>
+      <View className="w-5 items-end">
+        {selected ? <Glyph color={colors.primary} name="checkmark" size={18} /> : null}
+      </View>
     </Pressable>
   );
 }
@@ -602,6 +589,9 @@ function CategoryChipButton({
  * The dot that used to say "unread" is gone with it: ground, weight and edge all
  * say it already, and it was the fourth. Screen readers get the word itself.
  */
+const bucketKey = (group: { bucket: string }) => group.bucket;
+const notificationKey = (row: AppNotification) => row.id;
+
 function NotificationRow({
   notification,
   onOpen,
@@ -629,7 +619,7 @@ function NotificationRow({
    * unread row that is *also* urgent keeps the red: it is the more important of
    * the two things to know, and the tinted ground still says unread.
    */
-  const edge = urgent ? colors.destructive : unread ? colors.primary : "transparent";
+  const tone = urgent ? "danger" : visual.tone;
 
   return (
     <Pressable
@@ -643,76 +633,46 @@ function NotificationRow({
         const route = notificationRoute(notification, role);
 
         if (route) {
-          router.push(route as never);
+          if (!openInItsBranch(notification.hostelId, route)) router.push(route as never);
           return;
         }
 
         setExpanded((value) => !value);
       }}
     >
-      <View
-        className={`flex-row overflow-hidden rounded-2xl border ${
-          unread ? "border-transparent bg-brand-soft" : "border-border bg-card"
-        }`}
-      >
-        {/*
-          Always drawn, transparent when there is nothing to say — so a read row
-          and an unread one align on the same left edge and the list does not
-          shift by four points as rows are opened.
-        */}
-        <View style={{ backgroundColor: edge, width: 4 }} />
+      <View className="flex-row gap-3 py-3">
+        <View className={`h-10 w-10 items-center justify-center rounded-xl ${TILE_TONES[tone]}`}>
+          <Glyph color={colors[TILE_GLYPH[tone]]} name={visual.icon} size={19} />
+        </View>
 
-        <View className="flex-1 flex-row gap-3 p-3">
-          <View
-            className={`h-10 w-10 items-center justify-center rounded-xl ${
-              unread ? "bg-card" : TILE_TONES[visual.tone]
-            }`}
-          >
-            <Glyph
-              color={colors[TILE_GLYPH[visual.tone]]}
-              name={visual.icon}
-              size={19}
-            />
+        <View className="flex-1 gap-0.5">
+          {/* The age on the title's line, hard right — the reference's row anatomy. */}
+          <View className="flex-row items-center gap-2">
+            <Text
+              className={`flex-1 ${unread ? "font-semibold" : ""}`}
+              numberOfLines={expanded ? undefined : 1}
+              variant="label"
+            >
+              {notification.title}
+            </Text>
+            <Text variant="caption">{dates.ago(notification.createdAt)}</Text>
           </View>
 
-          <View className="flex-1 gap-1">
-            <View className="flex-row items-start gap-2">
-              <Text
-                className={`flex-1 ${unread ? "font-semibold" : ""}`}
-                numberOfLines={expanded ? undefined : 1}
-                variant="subtitle"
-              >
-                {notification.title}
-              </Text>
-
-              {/*
-                The age, on the title's line and hard right — the reference's own
-                row anatomy. `dates.ago` falls back to a date past a week, which
-                is the point at which "23 days ago" stops being an answer.
-              */}
-              <Text variant="caption">{dates.ago(notification.createdAt)}</Text>
-            </View>
-
-            {/* F2: icon by kind, title, one line, time. The kind is the icon; no label badge. */}
-            <Text numberOfLines={expanded ? undefined : 1} variant="muted">
+          <View className="flex-row items-start gap-2">
+            <Text className="flex-1" numberOfLines={expanded ? undefined : 2} variant="muted">
               {notification.body}
             </Text>
-
-            {notification.needsAction && !isNight ? (
-              <Badge label="Needs you" tone="warning" />
-            ) : null}
-
-            {/*
-              Only once the row is open, and only as a sentence. The action itself
-              is a web endpoint this app deliberately does not fire — saying where
-              it can be done beats a button that posts blind.
-            */}
-            {isNight ? <NightPromptAnswer notification={notification} /> : null}
-
-            {expanded && notification.needsAction && !isNight ? (
-              <Text variant="caption">{"Waiting on a decision."}</Text>
-            ) : null}
+            {/* Unread is a dot, not a tinted card: the words stay the loudest thing. */}
+            {unread ? <View className="mt-1.5 h-2 w-2 rounded-full bg-primary" /> : null}
           </View>
+
+          {notification.needsAction && !isNight ? (
+            <Text className="pt-0.5 font-semibold text-warning" variant="caption">
+              {expanded ? "Needs you · waiting on a decision" : "Needs you"}
+            </Text>
+          ) : null}
+
+          {isNight ? <NightPromptAnswer notification={notification} /> : null}
         </View>
       </View>
     </Pressable>

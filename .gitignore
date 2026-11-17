@@ -84,3 +84,6 @@ fixtures/evidence-golden/*
 .agents/
 skills-lock.json
 
+
+# stray Go test binaries
+/bin/

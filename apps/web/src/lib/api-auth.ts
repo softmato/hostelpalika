@@ -302,6 +302,11 @@ async function narrowToLiveHostels(
  */
 export const ACTIVE_HOSTEL_HEADER = "x-hostel-id";
 
+/** The app's Overall view names every branch at once; only the bell reads it (`feedScope`). */
+export function requestsOverall(request: NextRequest) {
+  return request.headers.get(ACTIVE_HOSTEL_HEADER)?.trim().toLowerCase() === "overall";
+}
+
 /**
  * Staff with more than one hostel — an owner and their branches — work in one
  * at a time. The client names it in {@link ACTIVE_HOSTEL_HEADER}; without it

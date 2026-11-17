@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { Pressable, View } from "react-native";
 
 import { Glyph } from "@/components/ui/glyph";
@@ -12,15 +12,17 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import {
   getActiveHostelId,
+  getChosenHostelId,
   isOverall,
   OVERALL,
   setActiveHostelId,
   subscribeActiveHostel,
 } from "@/lib/active-hostel";
 import { type BranchName, getBranchesSummary, getBranchNames } from "@/lib/admin-api";
-import { adminQuery } from "@/lib/admin-queries";
+import { adminQuery, prefetchBranchHome } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { absoluteMediaUrl } from "@/lib/media";
+import { fetchQuery, inQueryScope, readQuery } from "@/lib/query-cache";
 import { serverAnswers } from "@/lib/server-reachable";
 import { toastError } from "@/lib/toast";
 import type { GlyphName } from "@hostel/constants/glyphs";
@@ -85,12 +87,38 @@ export function useBranchesLock(): string | null | undefined {
  * with the switcher gone and no way back (owner, 2026-11-16).
  */
 async function setActiveWhenOnline(id: string | null) {
-  if (!(await serverAnswers())) {
+  // A cached card paints offline too, so only an empty branch waits on the health read.
+  if (!homeCached(id) && !(await serverAnswers())) {
     toastError("You are offline", "Switch branch when the internet is back.");
     return false;
   }
-  await setActiveHostelId(id);
+  await setActiveHostelId(id, isOverall(id) ? undefined : warmBranch);
   return true;
+}
+
+function homeCached(id: string | null) {
+  return !isOverall(id) && inQueryScope(id, () => readQuery(adminQuery.overview().key) !== null);
+}
+
+/** Past this, a slow line lands on Home's skeleton rather than on a switcher that seems to do nothing. */
+const WARM_CAP_MS = 2500;
+
+/**
+ * Runs once requests point at the new branch. Normally a no-op: the chip's
+ * press-in already filed the card's two reads (`prefetchBranchHome`), so the
+ * switch lands at once. Waits only for whatever of them is still missing.
+ */
+function warmBranch() {
+  const home = adminQuery.overview();
+  const ledger = adminQuery.ledger();
+
+  return Promise.race([
+    Promise.all([
+      readQuery(home.key) ? null : fetchQuery(home.key, home.load, home.topics),
+      readQuery(ledger.key) ? null : fetchQuery(ledger.key, ledger.load, ledger.topics),
+    ]),
+    new Promise((resolve) => setTimeout(resolve, WARM_CAP_MS)),
+  ]);
 }
 
 /** Switch into one branch, then open the screen there — every write from Overall starts this way. */
@@ -106,7 +134,12 @@ export function openInBranch(branch: { id: string; isBranch: boolean }, route: s
  * Switching remounts screens with the selected branch's cached answers.
  */
 async function switchTo(row: BranchName, rows: BranchName[]) {
-  await setActiveWhenOnline(row.id === rows[0]?.id && !row.isBranch ? null : row.id);
+  await setActiveWhenOnline(scopeOf(row, rows));
+}
+
+/** The main hostel works under no id; a branch under its own. */
+function scopeOf(row: BranchName, rows: BranchName[]) {
+  return row.id === rows[0]?.id && !row.isBranch ? null : row.id;
 }
 
 function currentRow(rows: BranchName[], active: string | null) {
@@ -126,9 +159,17 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
     cacheKey: subscriptionQuery.key,
     topics: subscriptionQuery.topics,
   });
-  const active = useActiveHostel();
+  // The pick, ahead of the screens while its Home loads (`setActiveHostelId`).
+  const active = useSyncExternalStore(subscribeActiveHostel, getChosenHostelId, getChosenHostelId);
+  const switching = active !== useActiveHostel();
   const lock = useBranchesLock();
   const [open, setOpen] = useState(false);
+  /*
+   * The pick runs once the sheet is fully down. Switching while it slid away
+   * rebuilt every tab under it, so the sheet froze open for seconds and the
+   * swap played behind it (device timing, 2026-11-17).
+   */
+  const afterClose = useRef<(() => void) | null>(null);
   const rows = branches.data?.hostels ?? [];
   const overall = !warden && isOverall(active);
 
@@ -179,13 +220,23 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         }
         accessibilityRole="button"
         accessibilityHint={warden ? "Lists the hostel's branches" : "Choose a hostel or manage your branches"}
-        accessibilityState={{ expanded: open }}
+        accessibilityState={{ busy: switching, expanded: open }}
         className={
           compact
             ? "min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full border border-border bg-card px-2 active:bg-muted"
             : "flex-row items-center gap-2 self-start rounded-full border border-border bg-card px-3.5 py-2 active:bg-muted"
         }
         onPress={() => setOpen(true)}
+        // A finger on the chip is the earliest sign of a switch: file every other
+        // hostel's card now, so whichever is picked paints the moment it is.
+        onPressIn={() => {
+          if (warden) return;
+          for (const row of rows) {
+            const scope = scopeOf(row, rows);
+            if (scope !== active) prefetchBranchHome(scope, row.id);
+          }
+        }}
+        style={switching ? { opacity: 0.55 } : undefined}
       >
         {headerImage ? (
           <Image
@@ -213,7 +264,17 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         <Glyph color={colors.mutedForeground} name="chevron-down" size={14} />
       </Pressable>
 
-      <Sheet bare onClose={() => setOpen(false)} open={open} title={warden ? "Branches" : "Switch hostel"}>
+      <Sheet
+        bare
+        onClose={() => {
+          setOpen(false);
+          const run = afterClose.current;
+          afterClose.current = null;
+          run?.();
+        }}
+        open={open}
+        title={warden ? "Branches" : "Switch hostel"}
+      >
         <View className="gap-4 px-4 pb-10 pt-4">
           <View className="gap-1.5">
             <Text className="px-1" variant="label">
@@ -230,8 +291,9 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                       label={row.name}
                       leading={tile(row.isBranch ? "branch" : "hostel", selected, cover(row))}
                       onPress={() => {
+                        afterClose.current =
+                          !selected && !warden ? () => void switchTo(row, rows) : null;
                         setOpen(false);
-                        if (!selected && !warden) void switchTo(row, rows);
                       }}
                       selected={selected}
                       subtitle={[
@@ -251,8 +313,8 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                 label="Overall"
                 leading={tile("overall", overall)}
                 onPress={() => {
+                  afterClose.current = overall ? null : () => void setActiveWhenOnline(OVERALL);
                   setOpen(false);
-                  if (!overall) void setActiveWhenOnline(OVERALL);
                 }}
                 selected={overall}
                 subtitle={`All ${rows.length} branches together`}
@@ -278,4 +340,20 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
       </Sheet>
     </View>
   );
+}
+
+/**
+ * A push, live banner or Overall bell row about one branch opens in that branch. True when it took over the tap
+ * (switching first, then routing); false when the account has one hostel, the
+ * push names none, or the app is already there — the caller routes as usual.
+ */
+export function openInItsBranch(hostelId: unknown, route: string) {
+  if (typeof hostelId !== "string") return false;
+  const read = (key: string) =>
+    readQuery<{ hostels: BranchName[] }>(key, { maxAgeMs: Number.POSITIVE_INFINITY })?.data.hostels;
+  const rows = read(BRANCHES_KEY) ?? read(BRANCH_NAMES_KEY) ?? [];
+  const row = rows.find((candidate) => candidate.id === hostelId);
+  if (rows.length < 2 || !row || scopeOf(row, rows) === getChosenHostelId()) return false;
+  openInBranch(row, route);
+  return true;
 }

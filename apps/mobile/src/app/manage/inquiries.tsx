@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -7,9 +6,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { ListRow } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
@@ -78,6 +78,9 @@ const SEGMENTS: { bucket: InquiryBucket; label: string }[] = [
   { bucket: "done", label: "Done" },
 ];
 
+const bucketKey = (group: { bucket: string }) => group.bucket;
+const rowId = (row: { id: string }) => row.id;
+
 export default function ManageInquiriesScreen() {
   const dates = useDates();
 
@@ -97,7 +100,6 @@ export default function ManageInquiriesScreen() {
   const rows = useMemo(() => inquiries.data ?? [], [inquiries.data]);
   const counts = useMemo(() => inquiryCounts(rows), [rows]);
   const groups = useMemo(() => groupNotifications(inquiriesIn(rows, bucket)), [bucket, rows]);
-  const firstGroups = useFirstRows(groups);
   const answered = rows.length - counts.new;
 
   const { refresh } = inquiries;
@@ -141,69 +143,67 @@ export default function ManageInquiriesScreen() {
   }
 
   return (
-    <Screen
-      header={header}
-      onRefresh={inquiries.refresh}
-      refreshing={inquiries.refreshing}
-      scroll
-    >
-      <View className="gap-4 pt-1">
-        {rows.length > 0 ? (
-          <Card>
-            <Meter
-              label={`${answered} of ${rows.length} leads picked up`}
-              percent={Math.round((answered / rows.length) * 100)}
+    <Screen header={header} ownScroll padded={false}>
+      <Sections
+        card
+        groupKey={bucketKey}
+        groups={inquiries.loading ? [] : groups}
+        header={
+          <View className="gap-4 pt-3">
+            {rows.length > 0 ? (
+              <Card>
+                <Meter
+                  label={`${answered} of ${rows.length} leads picked up`}
+                  percent={Math.round((answered / rows.length) * 100)}
+                />
+              </Card>
+            ) : null}
+
+            <Segmented
+              onChange={setBucket}
+              options={SEGMENTS.map((segment) => ({
+                count: counts[segment.bucket],
+                label: segment.label,
+                value: segment.bucket,
+              }))}
+              value={bucket}
             />
-          </Card>
-        ) : null}
 
-        <Segmented
-          onChange={setBucket}
-          options={SEGMENTS.map((segment) => ({
-            count: counts[segment.bucket],
-            label: segment.label,
-            value: segment.bucket,
-          }))}
-          value={bucket}
-        />
+            {/* Skeletons, not a spinner — NOTES §9. */}
+            {inquiries.loading ? <SkeletonRows rows={4} /> : null}
 
-        {/* Skeletons, not a spinner — NOTES §9. */}
-        {inquiries.loading ? <SkeletonRows rows={4} /> : null}
+            {!inquiries.loading && groups.length === 0 ? (
+              <EmptyCard title={bucket === "new" ? "Nothing waiting" : "Nothing here"} />
+            ) : null}
 
-        {!inquiries.loading && groups.length === 0 ? (
-          <EmptyCard title={bucket === "new" ? "Nothing waiting" : "Nothing here"} />
-        ) : null}
-
-        {firstGroups.map((group) => (
-          <View className="gap-2" key={group.bucket}>
-            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
-              {group.label}
-            </Text>
-            <Card padding="px-4 py-1">
-              {group.rows.map((inquiry, index) => (
-                <View key={inquiry.id}>
-                  {index > 0 ? <RowDivider inset /> : null}
-                  <ListRow
-                    left={<Avatar name={inquiry.name} size="sm" />}
-                    onPress={() => setOpen(inquiry)}
-                    right={<StatusPill status={inquiry.status} />}
-                    subtitle={
-                      [
-                        inquiry.preferredRoomType ? humanizeEnum(inquiry.preferredRoomType) : null,
-                        inquiry.budgetRange || null,
-                        inquiry.createdAt ? dates.ago(inquiry.createdAt) : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ") || undefined
-                    }
-                    title={inquiry.name || "Someone"}
-                  />
-                </View>
-              ))}
-            </Card>
           </View>
-        ))}
-      </View>
+        }
+        onRefresh={inquiries.refresh}
+        refreshing={inquiries.refreshing}
+        renderHeading={(group) => (
+          <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            {group.label}
+          </Text>
+        )}
+        renderRow={(inquiry) => (
+          <ListRow
+            left={<Avatar name={inquiry.name} size="sm" />}
+            onPress={() => setOpen(inquiry)}
+            right={<StatusPill status={inquiry.status} />}
+            subtitle={
+              [
+                inquiry.preferredRoomType ? humanizeEnum(inquiry.preferredRoomType) : null,
+                inquiry.budgetRange || null,
+                inquiry.createdAt ? dates.ago(inquiry.createdAt) : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || undefined
+            }
+            title={inquiry.name || "Someone"}
+          />
+        )}
+        rowKey={rowId}
+      />
 
       <Sheet onClose={() => setOpen(null)} open={open !== null} title={open?.name || "Lead"}>
         {open ? (

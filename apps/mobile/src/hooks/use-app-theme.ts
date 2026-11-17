@@ -6,7 +6,7 @@ import { systemColorScheme } from "react-native-css-interop/dist/runtime/native/
 
 import { type ColorScheme, palette } from "@/constants/theme";
 import { useAppSelector } from "@/hooks/redux";
-import type { ThemePreference } from "@/store/slices/uiSlice";
+import { setThemePreference, type ThemePreference } from "@/store/slices/uiSlice";
 
 function resolveScheme(preference: ThemePreference, device: string | null | undefined): ColorScheme {
   if (preference !== "system") return preference;
@@ -46,8 +46,33 @@ export function primeColorScheme(preference: ThemePreference) {
 export function useAppTheme() {
   const preference = useAppSelector((state) => state.ui.themePreference);
   const deviceScheme = useDeviceColorScheme();
-  const { colorScheme: current, setColorScheme } = useColorScheme();
+  /*
+   * Straight from the preference, with no NativeWind subscription and no effect.
+   * This hook runs in a few hundred components at once; it used to call
+   * `setColorScheme` from an effect in every one of them, so a single theme
+   * switch fired that call a few hundred times and every call re-notified
+   * NativeWind — about two seconds of work, behind a frozen snapshot. The one
+   * sync now lives in `useThemeSync`, and `applyThemePreference` flips NativeWind
+   * in the same batch as the preference so the two never disagree.
+   */
+  const scheme = resolveScheme(preference, deviceScheme);
 
+  return {
+    colors: palette[scheme],
+    isDark: scheme === "dark",
+    scheme,
+  };
+}
+
+/**
+ * Keeps NativeWind's scheme equal to the resolved one. Mount it **once**, at the
+ * root. It only matters for changes nobody called `applyThemePreference` for —
+ * the phone's own dark-mode switch while the preference is "system".
+ */
+export function useThemeSync() {
+  const preference = useAppSelector((state) => state.ui.themePreference);
+  const deviceScheme = useDeviceColorScheme();
+  const { colorScheme: current, setColorScheme } = useColorScheme();
   const resolved = resolveScheme(preference, deviceScheme);
 
   useEffect(() => {
@@ -55,12 +80,13 @@ export function useAppTheme() {
       setColorScheme(resolved);
     }
   }, [current, resolved, setColorScheme]);
+}
 
-  const scheme: ColorScheme = current === "dark" ? "dark" : "light";
-
-  return {
-    colors: palette[scheme],
-    isDark: scheme === "dark",
-    scheme,
-  };
+/** Change the theme: NativeWind first, then the preference, in one batch. */
+export function applyThemePreference(
+  preference: ThemePreference,
+  dispatch: (action: ReturnType<typeof setThemePreference>) => unknown,
+) {
+  primeColorScheme(preference);
+  dispatch(setThemePreference(preference));
 }

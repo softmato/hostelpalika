@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { type ReactNode, useState } from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { Keyframe, ReduceMotion } from "react-native-reanimated";
 
@@ -334,7 +334,7 @@ const HERO_INSET = 14;
 
 const HERO_RADIUS = 18;
 
-const HERO_PAD = { paddingBottom: 18, paddingHorizontal: 16, paddingTop: 20 } as const;
+const HERO_PAD = { paddingBottom: 18, paddingHorizontal: 16, paddingTop: 16 } as const;
 
 /**
  * The gaps, and why they are this big.
@@ -414,6 +414,8 @@ function HeroOrnament() {
  */
 export function PortalHeroCard({
   children,
+  /** Plays on the content, not the paint — the admin card's branch swap. */
+  entering,
   /**
    * A second register, on a themed surface, inside the same corners.
    *
@@ -436,6 +438,7 @@ export function PortalHeroCard({
   photoUrl,
 }: {
   children: ReactNode;
+  entering?: ComponentProps<typeof Animated.View>["entering"];
   footer?: ReactNode;
   photoUrl: string | null;
 }) {
@@ -487,7 +490,9 @@ export function PortalHeroCard({
           <HeroOrnament />
         )}
 
-        <View style={[HERO_PAD, { gap: HERO_BLOCK_GAP }]}>{children}</View>
+        <Animated.View entering={entering} style={[HERO_PAD, { gap: HERO_BLOCK_GAP }]}>
+          {children}
+        </Animated.View>
 
         {footer ? <View className="bg-card">{footer}</View> : null}
       </LinearGradient>
@@ -581,13 +586,14 @@ export function PortalBrandHeader({
   /** Omitted, and the eye hidden, when there is no live listing to open. */
   onHostelPage?: () => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const insets = useSystemInsets();
 
   return (
     <View className="bg-background" style={{ paddingTop: insets.top }}>
       <View className="min-h-14 flex-row items-center gap-2.5 px-5 pb-2 pt-1">
-        <Image cachePolicy="memory-disk" contentFit="contain" source={logo.mark} style={{ height: MARK, width: MARK }} />
+        {/* markLight has a white H: the plain mark's dark H vanishes on a dark page. */}
+        <Image cachePolicy="memory-disk" contentFit="contain" source={isDark ? logo.markLight : logo.mark} style={{ height: MARK, width: MARK }} />
 
         <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="min-w-0 flex-1">
           <Text numberOfLines={1} adjustsFontSizeToFit={compactBrand} minimumFontScale={0.6} style={{ fontSize: compactBrand ? 18 : WORDMARK, fontWeight: "800", letterSpacing: -0.4 }}>

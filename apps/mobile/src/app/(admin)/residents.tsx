@@ -3,7 +3,6 @@ import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { router } from "expo-router";
 import { useDeferredValue, useMemo, useState } from "react";
-import { useFirstRows } from "@/hooks/use-first-rows";
 import { Linking, View } from "react-native";
 
 import { AdminSearchBar } from "@/components/admin-search-bar";
@@ -13,9 +12,9 @@ import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
-import { Stagger } from "@/components/ui/layout";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
+import { Sections } from "@/components/ui/sections";
 import { Segmented } from "@/components/ui/segmented";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -143,8 +142,7 @@ function BranchAdminResidentsScreen() {
    * that quietly widened its own scope would leave the chosen segment lying
    * about what it is showing.
    */
-  // First dozen people until the screen has landed, then everyone.
-  const shown = useFirstRows([{ rows: visible }])[0]?.rows ?? [];
+  const groups = useMemo(() => [{ rows: visible }], [visible]);
 
   const elsewhere = useMemo(
     () => (query.trim() ? searchResidents(rows, query).length : 0),
@@ -291,143 +289,153 @@ function BranchAdminResidentsScreen() {
       }
       header={header}
       insideTabs
-      onRefresh={() => {
-        residents.refresh();
-        join.refresh();
-        admissionForms.refresh();
-      }}
-      refreshing={residents.refreshing}
-      scroll
+      ownScroll
+      padded={false}
     >
-      <View className="gap-4 pt-1">
-        {formsEntry}
-        {waitingEntry}
-        {roster.total === 0 ? existingEntry : null}
+      <Sections
+        floating
+        insideTabs
+        footer={
+          <View className="gap-4 pt-4">
+            {/*
+              People who were already living here before the hostel joined come in
+              through their own list — the joining flow would charge them an
+              admission fee. Up top while the roster is empty, which is exactly when
+              a new hostel needs it; at the foot once it is not.
+            */}
+            {roster.total > 0 ? existingEntry : null}
 
-        <Segmented
-          onChange={setSegment}
-          options={[
-            { count: roster.active, label: "Living here", value: "active" },
-            { count: roster.pending, label: "To move in", value: "pending" },
-            { count: roster.total, label: "Everyone", value: "all" },
-          ]}
-          value={segment}
-        />
+            <Text className="px-1" variant="caption">{"Tap to open · swipe left to call"}</Text>
+          </View>
+        }
+        groupKey={allKey}
+        groups={visible.length === 0 ? [] : groups}
+        header={
+          <View className="gap-4 pb-4 pt-3">
+            {formsEntry}
+            {waitingEntry}
+            {roster.total === 0 ? existingEntry : null}
 
-        {visible.length === 0 ? (
-          <Card className="gap-3">
-            <EmptyState
-              compact
-              description={
-                query && elsewhere > 0
-                  ? `Nobody here matches “${query.trim()}”, but ${
-                      elsewhere === 1 ? "one record does" : `${elsewhere} records do`
-                    } under Everyone.`
-                  : query
-                    ? "No resident matches that. Try a name, a phone number or a room type."
-                    : "Nobody is in this list yet."
-              }
-              title={query ? "No match in this list" : "Nobody to show"}
+            <Segmented
+              onChange={setSegment}
+              options={[
+                { count: roster.active, label: "Living here", value: "active" },
+                { count: roster.pending, label: "To move in", value: "pending" },
+                { count: roster.total, label: "Everyone", value: "all" },
+              ]}
+              value={segment}
             />
 
-            {query && elsewhere > 0 && segment !== "all" ? (
-              <Button
-                label="Search everyone"
-                onPress={() => setSegment("all")}
-                size="sm"
-                variant="outline"
-              />
-            ) : null}
-          </Card>
-        ) : (
-          /*
-            One card per person, not one card of rows.
-
-            A roster is a list of *people*, and people are the case where the
-            gap between cards earns its space: it is a stronger break than a
-            hairline, so a thumb scrolling forty rows lands on one person at a
-            time instead of reading down a table. The same change was made to
-            the Money list, from the same references.
-          */
-          <Stagger className="gap-3">
-            {shown.map((resident) => {
-              const row = (
-                <CardRow
-                  /*
-                   * A face per row — their own card photo, the same picture the
-                   * dossier and their own header show. Anyone who has not
-                   * uploaded one falls back to the initial circle, whose colour
-                   * is derived from the name, and that is what makes two
-                   * adjacent rows of a forty-person roster tell themselves
-                   * apart at a glance.
-                   */
-                  left={
-                    <PersonAvatar
-                      image={resident.account?.image ?? resident.photo}
-                      name={`${resident.firstName} ${resident.lastName}`.trim()}
-                      size="md"
-                    />
+            {visible.length === 0 ? (
+              <Card className="gap-3">
+                <EmptyState
+                  compact
+                  description={
+                    query && elsewhere > 0
+                      ? `Nobody here matches “${query.trim()}”, but ${
+                          elsewhere === 1 ? "one record does" : `${elsewhere} records do`
+                        } under Everyone.`
+                      : query
+                        ? "No resident matches that. Try a name, a phone number or a room type."
+                        : "Nobody is in this list yet."
                   }
-                  /*
-                   * The row opens the record; calling is the swipe, and is also
-                   * one tap inside. Calling used to be the row's only action,
-                   * which meant a resident with no phone rendered identically to
-                   * one with a phone and silently did nothing when tapped — the
-                   * same trap §11.6 found on the Money screen.
-                   */
-                  onPress={() => router.push(`/manage/resident/${resident.id}`)}
-                  /*
-                    Touch-down starts the record's six requests, so the tap lands
-                    on a screen that is already loading rather than one that
-                    begins to. Only the row actually pressed — warming forty
-                    would be the request storm, not the fix.
-                  */
-                  onPressIn={() => prefetchAdminResident(resident.id)}
-                  right={
-                    // `shrink-0`: a long name is the thing allowed to truncate,
-                    // not the status, which is the only word on the row saying
-                    // whether this person is actually here.
-                    <View className="shrink-0">
-                      <StatusPill status={resident.status} />
-                    </View>
-                  }
-                  subtitle={[
-                    resident.roomNumber ? `Room ${resident.roomNumber}` : roomTypeLabel(resident.roomType),
-                    resident.phone,
-                    `Since ${dates.date(resident.moveInDate)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  title={`${resident.firstName} ${resident.lastName}`.trim()}
+                  title={query ? "No match in this list" : "Nobody to show"}
                 />
-              );
 
-              return resident.phone ? (
-                <SwipeRow
-                  actionIcon="call"
-                  actionLabel="Call"
-                  key={resident.id}
-                  onAction={() => void Linking.openURL(`tel:${resident.phone}`)}
-                >
-                  {row}
-                </SwipeRow>
-              ) : (
-                <View key={resident.id}>{row}</View>
-              );
-            })}
-          </Stagger>
-        )}
+                {query && elsewhere > 0 && segment !== "all" ? (
+                  <Button
+                    label="Search everyone"
+                    onPress={() => setSegment("all")}
+                    size="sm"
+                    variant="outline"
+                  />
+                ) : null}
+              </Card>
+            ) : null}
+          </View>
+        }
+        onRefresh={() => {
+          residents.refresh();
+          join.refresh();
+          admissionForms.refresh();
+        }}
+        refreshing={residents.refreshing}
+        renderRow={(resident) => {
+          /*
+           * One card per person, not one card of rows.
+           *
+           * A roster is a list of *people*, and people are the case where the
+           * gap between cards earns its space: it is a stronger break than a
+           * hairline, so a thumb scrolling forty rows lands on one person at a
+           * time instead of reading down a table. The same change was made to
+           * the Money list, from the same references.
+           */
+          const row = (
+            <CardRow
+              /*
+               * A face per row — their own card photo, the same picture the
+               * dossier and their own header show. Anyone who has not
+               * uploaded one falls back to the initial circle, whose colour
+               * is derived from the name, and that is what makes two
+               * adjacent rows of a forty-person roster tell themselves
+               * apart at a glance.
+               */
+              left={
+                <PersonAvatar
+                  image={resident.account?.image ?? resident.photo}
+                  name={`${resident.firstName} ${resident.lastName}`.trim()}
+                  size="md"
+                />
+              }
+              /*
+               * The row opens the record; calling is the swipe, and is also
+               * one tap inside. Calling used to be the row's only action,
+               * which meant a resident with no phone rendered identically to
+               * one with a phone and silently did nothing when tapped — the
+               * same trap §11.6 found on the Money screen.
+               */
+              onPress={() => router.push(`/manage/resident/${resident.id}`)}
+              /*
+                Touch-down starts the record's six requests, so the tap lands
+                on a screen that is already loading rather than one that
+                begins to. Only the row actually pressed — warming forty
+                would be the request storm, not the fix.
+              */
+              onPressIn={() => prefetchAdminResident(resident.id)}
+              right={
+                // `shrink-0`: a long name is the thing allowed to truncate,
+                // not the status, which is the only word on the row saying
+                // whether this person is actually here.
+                <View className="shrink-0">
+                  <StatusPill status={resident.status} />
+                </View>
+              }
+              subtitle={[
+                resident.roomNumber ? `Room ${resident.roomNumber}` : roomTypeLabel(resident.roomType),
+                resident.phone,
+                `Since ${dates.date(resident.moveInDate)}`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              title={`${resident.firstName} ${resident.lastName}`.trim()}
+            />
+          );
 
-        {/*
-          People who were already living here before the hostel joined come in
-          through their own list — the joining flow would charge them an
-          admission fee. Up top while the roster is empty, which is exactly when
-          a new hostel needs it; at the foot once it is not.
-        */}
-        {roster.total > 0 ? existingEntry : null}
-
-        <Text className="px-1" variant="caption">{"Tap to open · swipe left to call"}</Text>
-      </View>
+          return resident.phone ? (
+            <SwipeRow
+              actionIcon="call"
+              actionLabel="Call"
+                onAction={() => void Linking.openURL(`tel:${resident.phone}`)}
+            >
+              {row}
+            </SwipeRow>
+          ) : (
+            <View>{row}</View>
+          );
+        }}
+        rowGap={12}
+        rowKey={residentId}
+      />
     </Screen>
   );
 }
@@ -436,6 +444,9 @@ function BranchAdminResidentsScreen() {
  * With Overall picked in the switcher this tab answers for every branch at
  * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
  */
+const allKey = () => "all";
+const residentId = (resident: { id: string }) => resident.id;
+
 export default function AdminResidentsScreen() {
   return useIsOverall() ? <OverallTabScreen tab="people" /> : <BranchAdminResidentsScreen />;
 }

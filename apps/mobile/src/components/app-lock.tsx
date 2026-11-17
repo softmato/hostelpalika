@@ -51,6 +51,7 @@ import {
   LOCK_GRACE_MS,
   lockAfterAway,
   lockApp,
+  lockRefusal,
   type LockPinProof,
   maskEmail,
   onAppStateChange,
@@ -65,6 +66,7 @@ import {
 import type { ApiUser } from "@/lib/auth-api";
 import { isCompleteOtpCode, normalizeOtpCode } from "@/lib/auth-form";
 import { endSession } from "@/lib/auth-session";
+import { warmPin } from "@/lib/offline-pin";
 import { toastError, toastInfo, toastSuccess } from "@/lib/toast";
 import { persistor, store } from "@/store";
 import { setAccount, setBiometricUserId } from "@/store/slices/authSlice";
@@ -237,13 +239,11 @@ function NewPinSteps({
   onPin: (pin: string) => void;
 }) {
   const [first, setFirst] = useState<string | null>(null);
-  const [value, setValue] = useState("");
   const [mismatch, setMismatch] = useState<string | null>(null);
 
   function complete(pin: string) {
     // A beat, so the fourth box is seen filling before the pad clears.
     setTimeout(() => {
-      setValue("");
       if (first === null) {
         setFirst(pin);
       } else if (pin !== first) {
@@ -266,15 +266,13 @@ function NewPinSteps({
         }
         title={first === null ? "Choose a PIN" : "Enter it again"}
       />
+      {/* A new key per step, so the pad comes up empty for "Enter it again". */}
       <PinPad
         busy={busy}
         error={mismatch ?? error}
-        onChange={(next) => {
-          setValue(next);
-          setMismatch(null);
-        }}
+        key={first === null ? "first" : "again"}
+        onChange={() => setMismatch(null)}
         onComplete={complete}
-        value={value}
       />
     </View>
   );
@@ -359,10 +357,11 @@ function LockScreen({ account }: { account: ApiUser }) {
   // Mounted once the splash is gone, so the entrance plays where it can be seen.
   const [revealed, setRevealed] = useState(!coldStart);
 
-  // The PIN side.
-  const [mode, setMode] = useState<"pin" | "recover" | "new">("pin");
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
+  // The PIN side. Opened again because the server took back the phone's unlock:
+  // say why, and a blocked PIN goes straight to the reset.
+  const [refusal] = useState(lockRefusal);
+  const [mode, setMode] = useState<"pin" | "recover" | "new">(refusal?.blocked ? "recover" : "pin");
+  const [pinError, setPinError] = useState<string | null>(refusal?.message ?? null);
   const [checking, setChecking] = useState(false);
   const [proof, setProof] = useState<LockPinProof>({});
   const fingerChanged = useRef(false);
@@ -372,6 +371,7 @@ function LockScreen({ account }: { account: ApiUser }) {
   // After a long trip away the native guard's cover is over the window; it
   // comes off once this has painted beneath it, in the same background.
   useEffect(() => {
+    warmPin();
     if (!lockGuard) return;
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => void lockGuard.removeCover().catch(() => {}));
@@ -457,7 +457,6 @@ function LockScreen({ account }: { account: ApiUser }) {
       unlockApp();
       await rearmIfChanged();
     } catch (caught) {
-      setPin("");
       setChecking(false);
       const failure = pinFailure(caught);
       if (failure.blocked) {
@@ -570,13 +569,9 @@ function LockScreen({ account }: { account: ApiUser }) {
                   <PinPad
                     busy={checking}
                     error={pinError}
-                    onChange={(next) => {
-                      setPin(next);
-                      setPinError(null);
-                    }}
+                    onChange={() => setPinError(null)}
                     onComplete={(value) => void submitPin(value)}
                     onFingerprint={fingerOnPhone ? () => void tryFingerprint() : undefined}
-                    value={pin}
                   />
                   <Pressable
                     accessibilityRole="button"
@@ -982,7 +977,6 @@ function PinProofSheet({
   const dispatch = useAppDispatch();
   const account = useAppSelector((state) => state.auth.account);
   const [step, setStep] = useState<"current" | "recover" | "new">("current");
-  const [pin, setPin] = useState("");
   const [proof, setProof] = useState<LockPinProof>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1012,7 +1006,6 @@ function PinProofSheet({
       setProof({ currentPin: value });
       setStep("new");
     } catch (caught) {
-      setPin("");
       const failure = pinFailure(caught);
       if (failure.blocked) setStep("recover");
       setError(failure.message);
@@ -1066,12 +1059,8 @@ function PinProofSheet({
             <PinPad
               busy={busy}
               error={error}
-              onChange={(next) => {
-                setPin(next);
-                setError(null);
-              }}
+              onChange={() => setError(null)}
               onComplete={(value) => void onCurrent(value)}
-              value={pin}
             />
             <Pressable
               accessibilityRole="button"

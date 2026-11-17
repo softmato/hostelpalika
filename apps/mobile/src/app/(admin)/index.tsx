@@ -353,9 +353,11 @@ function BranchAdminHomeScreen() {
         refreshing={overview.refreshing || alerts.refreshing}
         scroll
       >
-        <View className="px-5 pt-3 empty:hidden">
-          <PlanLimitBanner usage={planUsage} />
-        </View>
+        {planUsage?.overLimit && planUsage.readOnlyFrom ? (
+          <View className="px-5 pt-3">
+            <PlanLimitBanner usage={planUsage} />
+          </View>
+        ) : null}
 
         <HostelHero
           balance={balance}

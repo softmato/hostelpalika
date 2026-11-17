@@ -51,9 +51,9 @@ import * as SecureStore from "expo-secure-store";
 // The name alone — `constants/branding` also pulls in the logo images.
 import { PLATFORM_NAME as APP_NAME } from "@hostel/brand/brand";
 import { api } from "@/lib/api";
-import { type ApiEnvelope, isOfflineError, readApiError, unwrap } from "@/lib/api-contract";
+import { type ApiEnvelope, isOfflineError, readApiError, readApiErrorCode, unwrap } from "@/lib/api-contract";
 import { formatTime } from "@/lib/format";
-import { checkPinOffline, forgetIfStale, forgetPin, rememberPin } from "@/lib/offline-pin";
+import { checkPinOffline, forgetIfStale, forgetPin, matchesPin, rememberPin } from "@/lib/offline-pin";
 import { store } from "@/store";
 import type { ApiUser } from "@/lib/auth-api";
 import { ROLE } from "@/constants/roles";
@@ -88,6 +88,7 @@ export function isLocked() {
 }
 
 export function unlockApp() {
+  refusal = null;
   emit(false);
 }
 
@@ -275,12 +276,42 @@ function accountId() {
   return store.getState().auth.account?.id ?? null;
 }
 
+/** Why the server took back an unlock the phone's copy gave — read by the lock screen. */
+let refusal: { blocked: boolean; message: string } | null = null;
+
+export function lockRefusal() {
+  return refusal;
+}
+
+/** Behind a phone-side match. Offline or a server fault: the copy stands. A refusal locks again. */
+async function confirmPin(id: string, pin: string) {
+  try {
+    unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
+  } catch (caught) {
+    const code = readApiErrorCode(caught);
+    if (code !== "LOCK_PIN_INCORRECT" && code !== "LOCK_PIN_BLOCKED") return;
+    await forgetPin();
+    if (accountId() !== id) return;
+    refusal =
+      code === "LOCK_PIN_BLOCKED"
+        ? { blocked: true, message: readApiError(caught, "Too many wrong PINs.") }
+        : { blocked: false, message: "Your PIN was changed on another device. Enter the new one." };
+    lockApp();
+  }
+}
+
 /**
- * Checks the PIN with the server; 10 wrong in a row blocks it until it is reset.
- * With no network it checks the copy `lib/offline-pin` keeps, with its own limit.
+ * The phone's copy first (`lib/offline-pin`): a match opens the app now and the
+ * server confirms behind it. No match, or no copy, and the server decides — 10
+ * wrong in a row blocks it until it is reset. With no network the copy decides,
+ * with its own limit.
  */
 export async function checkLockPin(pin: string) {
   const id = accountId();
+  if (id && (await matchesPin(id, pin))) {
+    void confirmPin(id, pin);
+    return;
+  }
   try {
     unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
   } catch (caught) {

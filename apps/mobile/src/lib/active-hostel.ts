@@ -15,7 +15,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const KEY = "hostelpalika.activeHostelId";
 
+/** Where requests and the cache point: moves the moment a hostel is picked. */
 let active: string | null = null;
+/** What the screens are on: follows `active` once the new hostel's Home is cached. */
+let shown: string | null = null;
 let loaded: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
@@ -24,6 +27,7 @@ export function loadActiveHostel() {
   loaded ??= AsyncStorage.getItem(KEY)
     .then((value) => {
       active = value;
+      shown = value;
       setQueryCacheScope(value);
     })
     .catch(() => undefined);
@@ -32,6 +36,11 @@ export function loadActiveHostel() {
 }
 
 export function getActiveHostelId() {
+  return shown;
+}
+
+/** The hostel picked in the switcher — ahead of `getActiveHostelId` while its Home loads. */
+export function getChosenHostelId() {
   return active;
 }
 
@@ -62,9 +71,16 @@ export function subscribeActiveHostel(listener: () => void) {
   };
 }
 
-/** Pass `null` to go back to the main hostel — and on sign-out, so the next account starts clean. */
+/**
+ * Pass `null` to go back to the main hostel — and on sign-out, so the next account starts clean.
+ *
+ * With `warm`, requests and the cache point at the new hostel first and the
+ * screens stay on the old one until `warm` settles. Remounting straight away
+ * left Home blank while a branch with nothing cached loaded (owner, 2026-11-16).
+ */
 export async function setActiveHostelId(
   id: string | null,
+  warm?: () => Promise<unknown>,
 ) {
   await loadActiveHostel();
 
@@ -72,6 +88,16 @@ export async function setActiveHostelId(
 
   active = id;
   setQueryCacheScope(id);
+
+  if (warm) {
+    // The switcher shows the pick straight away; the screens wait.
+    listeners.forEach((listener) => listener());
+    await warm().catch(() => undefined);
+    // A later pick overtook this one.
+    if (active !== id) return;
+  }
+
+  shown = id;
   listeners.forEach((listener) => listener());
 
   await (

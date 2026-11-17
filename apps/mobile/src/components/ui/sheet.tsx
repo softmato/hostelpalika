@@ -5,7 +5,7 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { Component, type ReactNode, useCallback, useEffect, useRef } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
+import { BackHandler, Pressable, useWindowDimensions, View } from "react-native";
 import {
   KeyboardAwareScrollView,
   type KeyboardAwareScrollViewProps,
@@ -231,6 +231,20 @@ export function Sheet({
    * `dismiss()` above — so this is the one place that can say the sheet is
    * really down before `onClose` flips the caller's boolean.
    */
+  // Android back closes the sheet first, like any system sheet, instead of
+  // leaving the screen under it. Later listeners run first, so this beats the
+  // navigator's, and the top sheet of a stack wins.
+  useEffect(() => {
+    if (!open) return;
+
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      ref.current?.dismiss();
+      return true;
+    });
+
+    return () => sub.remove();
+  }, [open]);
+
   const handleDismiss = useCallback(() => {
     presented.current = false;
     onClose();

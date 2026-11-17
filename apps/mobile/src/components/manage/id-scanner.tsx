@@ -1,6 +1,8 @@
+import { BlurView } from "expo-blur";
 import { useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
+import { setStatusBarStyle } from "expo-status-bar";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,6 +30,7 @@ import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 import {
   formatResidentIdInput,
@@ -86,6 +89,124 @@ export type ScannerTone = "brand" | "neutral";
 
 /** Close, the page tabs and the torch sit in this band; the pages start under it. */
 const TOP_BAR = 44;
+
+/** A softly blurred, slightly darkened strip of the camera feed. */
+function BlurPanel({ style }: { style: object }) {
+  return (
+    <BlurView
+      experimentalBlurMethod="dimezisBlurView"
+      intensity={BLUR}
+      pointerEvents="none"
+      style={[{ position: "absolute" }, style]}
+      tint="dark"
+    />
+  );
+}
+
+/** How long the camera stays bound after a swipe to Form QR. */
+const CAMERA_GRACE_MS = 8_000;
+
+/** Blur strength outside the scan frame. Low on purpose: context, not a wall. */
+const BLUR = 22;
+/** The scan frame's corner radius — `rounded-3xl` on the frame itself. */
+const FRAME_RADIUS = 24;
+/** Dim over the four corner patches, matched by eye to the blurred panels. */
+const PATCH_DIM = "rgba(0,0,0,0.1)";
+
+/**
+ * Fills the square corner of the clear hole that falls outside its rounded edge,
+ * so the clear area is rounded like the brackets. A square R×R clip holding a
+ * ring whose inner edge is a circle of radius R centred on the corner's arc.
+ */
+function CornerPatch({
+  corner,
+  hole,
+}: {
+  corner: "bl" | "br" | "tl" | "tr";
+  hole: { h: number; w: number; x: number; y: number };
+}) {
+  const r = FRAME_RADIUS;
+  const right = corner === "tr" || corner === "br";
+  const bottom = corner === "bl" || corner === "br";
+  // Arc centre inside the clip: the clip's inner corner.
+  const cx = right ? 0 : r;
+  const cy = bottom ? 0 : r;
+
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        height: r,
+        left: right ? hole.x + hole.w - r : hole.x,
+        overflow: "hidden",
+        position: "absolute",
+        top: bottom ? hole.y + hole.h - r : hole.y,
+        width: r,
+      }}
+    >
+      <View
+        style={{
+          borderColor: PATCH_DIM,
+          borderRadius: r * 2,
+          borderWidth: r,
+          height: r * 4,
+          left: cx - r * 2,
+          position: "absolute",
+          top: cy - r * 2,
+          width: r * 4,
+        }}
+      />
+    </View>
+  );
+}
+
+/**
+ * One way in under the camera. "Type the ID" and "fill it in by hand" are the
+ * same size, weight and shape on purpose: the second used to be a faint text
+ * link, which taught people that scanning or typing were the real ways in.
+ */
+export function ScanOption({
+  caption,
+  icon,
+  label,
+  onPress,
+}: {
+  caption: string;
+  icon: GlyphName;
+  label: string;
+  onPress: () => void;
+}) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      className="flex-row items-center gap-3 rounded-2xl px-4 py-3 active:opacity-80"
+      onPress={onPress}
+      style={{ backgroundColor: colors.card }}
+    >
+      <View
+        className="h-11 w-11 items-center justify-center rounded-xl"
+        style={{ backgroundColor: colors.brandSoft }}
+      >
+        <Glyph color={colors.primary} name={icon} size={22} />
+      </View>
+      <View className="min-w-0 flex-1 items-center gap-0.5">
+        <Text className="text-center text-base font-bold" style={{ color: colors.foreground }}>
+          {label}
+        </Text>
+        <Text className="text-center text-xs" style={{ color: colors.mutedForeground }}>
+          {caption}
+        </Text>
+      </View>
+      {/* Same width as the icon tile, so the text sits dead centre in the box. */}
+      <View className="h-11 w-11 items-center justify-center">
+        <Glyph color={colors.mutedForeground} name="chevron-forward" size={16} />
+      </View>
+    </Pressable>
+  );
+}
 
 export function IdScanner({
   busy,
@@ -148,11 +269,55 @@ export function IdScanner({
   // The pages take the screen's own height, measured: the window's counts the system bars differently per phone.
   const [height, setHeight] = useState(window.height);
 
+  /*
+   * Where the scan frame sits, relative to the root view. Everything outside it
+   * is blurred, so only the part of the feed the camera reads is sharp.
+   */
+  const [hole, setHole] = useState<{ h: number; w: number; x: number; y: number } | null>(null);
+  const rootRef = useRef<View>(null);
+  const frameRef = useRef<View>(null);
+
+  const measureHole = useCallback(() => {
+    rootRef.current?.measureInWindow((rx, ry) => {
+      frameRef.current?.measureInWindow((x, y, w, h) => {
+        if (w > 0 && h > 0) {
+          setHole({ h, w, x: x - rx, y: y - ry });
+        }
+      });
+    });
+  }, []);
+
   const handled = useRef(false);
   const pager = useRef<Animated.ScrollView>(null);
   const offset = useSharedValue(0);
   const pageNow = useSharedValue(0);
+  const awayNow = useSharedValue(false);
   const width = window.width;
+
+  /*
+   * True the moment the pager leaves Scan ID, false only once it is back and
+   * still. The blur panels watch this: they re-capture the whole screen every
+   * frame, which made the swipe stutter, so they are off while it moves.
+   */
+  const [away, setAway] = useState(false);
+
+  /*
+   * The camera outlives the swipe. Unbinding it the instant Form QR is half in
+   * view meant a swipe back re-bound it from cold — a black screen for the
+   * second CameraX takes to come up. It now stays bound for a few seconds, which
+   * covers any quick back-and-forth, and only then pauses to save the battery.
+   */
+  const [cameraOn, setCameraOn] = useState(true);
+
+  useEffect(() => {
+    if (page === 0) {
+      setCameraOn(true);
+      return;
+    }
+
+    const timer = setTimeout(() => setCameraOn(false), CAMERA_GRACE_MS);
+    return () => clearTimeout(timer);
+  }, [page]);
 
   const turnTo = useCallback((next: number) => {
     setPage(next);
@@ -166,6 +331,14 @@ export function IdScanner({
   const onPagerScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       offset.value = event.contentOffset.x;
+
+      const leaving = event.contentOffset.x > 2;
+
+      if (leaving !== awayNow.value) {
+        awayNow.value = leaving;
+        runOnJS(setAway)(leaving);
+      }
+
       // Flips at halfway, so the camera is already starting while a swipe back settles.
       const next = event.contentOffset.x > width / 2 ? 1 : 0;
 
@@ -178,14 +351,28 @@ export function IdScanner({
 
   const goTo = (next: number) => pager.current?.scrollTo({ animated: true, x: next * width, y: 0 });
 
+  const { colors, isDark } = useAppTheme();
+
+  // Light clock over the camera; on a light Form QR page the clock goes dark.
+  useEffect(() => {
+    if (focused) {
+      setStatusBarStyle(page === 1 && !isDark ? "dark" : "light");
+    }
+  }, [focused, isDark, page]);
+
   useFocusEffect(
     useCallback(() => {
       handled.current = false;
       setLocalHint(null);
       setFocused(true);
+      // The camera is always dark behind the clock, in either theme.
+      setStatusBarStyle("light");
 
-      return () => setFocused(false);
-    }, []),
+      return () => {
+        setFocused(false);
+        setStatusBarStyle(isDark ? "light" : "dark");
+      };
+    }, [isDark]),
   );
 
   /*
@@ -209,7 +396,8 @@ export function IdScanner({
   }
 
   function onScan(data: string) {
-    if (handled.current) {
+    // The camera stays warm under Form QR; a code seen from there is not a scan.
+    if (handled.current || page !== 0) {
       return;
     }
 
@@ -249,11 +437,29 @@ export function IdScanner({
       */}
       {permission?.granted ? (
         <QrCamera
-          active={focused && page === 0}
+          active={focused && cameraOn}
           onCode={onScan}
           style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
           torch={torch}
         />
+      ) : null}
+
+      {/*
+        Four blurred panels around the scan frame leave the frame itself clear.
+        One blur with a hole cut out of it would need a mask the native view does
+        not give us; four rectangles do the same job with plain layout.
+      */}
+      {permission?.granted && hole && !away ? (
+        <>
+          <BlurPanel style={{ height: hole.y, left: 0, right: 0, top: 0 }} />
+          <BlurPanel style={{ bottom: 0, left: 0, right: 0, top: hole.y + hole.h }} />
+          <BlurPanel style={{ height: hole.h, left: 0, top: hole.y, width: hole.x }} />
+          <BlurPanel style={{ height: hole.h, left: hole.x + hole.w, right: 0, top: hole.y }} />
+          <CornerPatch corner="tl" hole={hole} />
+          <CornerPatch corner="tr" hole={hole} />
+          <CornerPatch corner="bl" hole={hole} />
+          <CornerPatch corner="br" hole={hole} />
+        </>
       ) : null}
     </>
   );
@@ -295,13 +501,15 @@ export function IdScanner({
         </View>
 
         <View className="items-center gap-5 px-5">
-          <ScanWindow
-            busy={busy ?? null}
-            live={Boolean(permission?.granted)}
-            message={hint ?? localHint}
-            size={windowSize}
-            tone={tone}
-          />
+          <View collapsable={false} onLayout={measureHole} ref={frameRef}>
+            <ScanWindow
+              busy={busy ?? null}
+              live={Boolean(permission?.granted)}
+              message={hint ?? localHint}
+              size={windowSize}
+              tone={tone}
+            />
+          </View>
 
           {permission && !permission.granted ? (
             <View className="w-full max-w-sm items-center gap-3 rounded-3xl bg-white/10 px-5 py-6">
@@ -344,40 +552,36 @@ export function IdScanner({
             refused months ago with "don't ask again", and an ID read out over
             the phone all end here — and it is ten characters to type.
           */}
-          <Pressable
-            accessibilityLabel="Type the resident ID instead"
-            accessibilityRole="button"
-            className="flex-row items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-5 py-4 active:opacity-70"
-            onPress={() => {
-              setTypedError(null);
-              setManualOpen(true);
-            }}
-          >
-            <Glyph color="#ffffff" name="keypad" size={18} />
-            <Text className="text-base font-semibold text-white">
-              Type the ID instead
-            </Text>
-          </Pressable>
-
-          {extraAction}
-
-          <View className="flex-row items-start justify-center gap-2">
-            <Glyph
-              color="rgba(255,255,255,0.55)"
-              name="lock-closed"
-              size={13}
-              style={{ marginTop: 2 }}
+          <View className="gap-3">
+            <ScanOption
+              caption="Printed under the QR"
+              icon="keypad"
+              label="Type the ID"
+              onPress={() => {
+                setTypedError(null);
+                setManualOpen(true);
+              }}
             />
-            <Text className="text-xs text-white/55">
-              The camera only reads the code. Nothing is recorded or uploaded.
-            </Text>
+            {extraAction}
+          </View>
+          <View className="flex-row items-center justify-center gap-1.5">
+            <Glyph color="rgba(255,255,255,0.75)" name="lock-closed" size={13} />
+            <Text className="text-xs text-white/75">Only the code is read. Nothing is saved.</Text>
           </View>
         </View>
       </View>
   );
 
   return (
-    <View className="flex-1 bg-black" onLayout={(event) => setHeight(event.nativeEvent.layout.height)}>
+    <View
+      className="flex-1 bg-black"
+      collapsable={false}
+      onLayout={(event) => {
+        setHeight(event.nativeEvent.layout.height);
+        measureHole();
+      }}
+      ref={rootRef}
+    >
       {camera}
 
       {formQr ? (
@@ -396,8 +600,7 @@ export function IdScanner({
           {scannerPage}
           {/* Opaque, so it slides over the camera rather than the feed showing through. */}
           <View
-            className="bg-black"
-            style={{ height, paddingBottom: insets.bottom + 24, paddingTop: insets.top + 8 + TOP_BAR + 16, width }}
+            style={{ backgroundColor: colors.background, height, paddingBottom: insets.bottom + 24, paddingTop: insets.top + 8 + TOP_BAR + 16, width }}
           >
             {formQr}
           </View>
@@ -471,10 +674,12 @@ export function IdScanner({
         `bg-background` would paint a white band across the top of a black screen
         in light mode.
       */}
-      <View
-        className="absolute inset-x-0 top-0 bg-black/35"
-        style={{ height: insets.top, pointerEvents: "none" }}
-      />
+      {page === 0 ? (
+        <View
+          className="absolute inset-x-0 top-0 bg-black/35"
+          style={{ height: insets.top, pointerEvents: "none" }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -500,15 +705,20 @@ function PageTabs({
   page: number;
   pageWidth: number;
 }) {
+  const { colors } = useAppTheme();
   const thumb = useAnimatedStyle(() => ({
     transform: [{ translateX: interpolate(offset.value, [0, pageWidth], [0, TAB_WIDTH], "clamp") }],
   }));
+  // Explicit colours, not classes: the thumb and its label must always be a pair.
+  // Green in both themes — the brand chip.
+  const thumbColor = colors.primary;
+  const activeText = colors.primaryForeground;
 
   return (
-    <View accessibilityRole="tablist" className="flex-row rounded-full bg-black/45 p-1">
+    <View accessibilityRole="tablist" className="flex-row rounded-full bg-black/55 p-1">
       <Animated.View
-        className="absolute bottom-1 left-1 top-1 rounded-full bg-white"
-        style={[{ width: TAB_WIDTH }, thumb]}
+        className="absolute bottom-1 left-1 top-1 rounded-full"
+        style={[{ backgroundColor: thumbColor, width: TAB_WIDTH }, thumb]}
       />
       {labels.map((label, index) => (
         <Pressable
@@ -521,7 +731,12 @@ function PageTabs({
           onPress={() => onPress(index)}
           style={{ width: TAB_WIDTH }}
         >
-          <Text className={`text-sm font-semibold ${page === index ? "text-black" : "text-white"}`}>{label}</Text>
+          <Text
+            className="text-sm font-semibold"
+            style={{ color: page === index ? activeText : "#ffffff" }}
+          >
+            {label}
+          </Text>
         </Pressable>
       ))}
     </View>
@@ -540,18 +755,22 @@ function GlassButton({
   label: string;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+  const onColor = colors.primaryForeground;
+
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       className={`h-11 w-11 items-center justify-center rounded-full active:opacity-70 ${
-        active ? "bg-white" : "bg-black/45"
+        active ? "" : "bg-black/55"
       }`}
       hitSlop={8}
       onPress={onPress}
+      style={active ? { backgroundColor: colors.primary } : undefined}
     >
-      <Glyph color={active ? "#000000" : "#ffffff"} name={icon} size={20} variant={active ? "solid" : "line"} />
+      <Glyph color={active ? onColor : "#ffffff"} name={icon} size={20} variant={active ? "solid" : "line"} />
     </Pressable>
   );
 }
@@ -632,7 +851,15 @@ function ScanWindow({
   return (
     <View style={{ height: size, width: size }}>
       {/* Clipped, so the bar cannot travel out past the brackets. */}
-      <View className="overflow-hidden rounded-3xl" style={{ height: size, width: size }}>
+      <View
+        className="overflow-hidden rounded-3xl"
+        style={{
+          borderColor: "rgba(255,255,255,0.5)",
+          borderWidth: 1.5,
+          height: size,
+          width: size,
+        }}
+      >
         {live && !busy ? (
           <Animated.View
             className="absolute inset-x-2 h-0.5 rounded-full bg-primary"

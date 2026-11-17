@@ -57,9 +57,19 @@ export type AdminReport = {
   vacantBeds: number;
 };
 
-export async function getAdminReport() {
+/**
+ * A read for one named hostel instead of the active one — Home's card for a
+ * branch, filed before the owner switches to it (`prefetchBranchHome`). The
+ * explicit header wins over the interceptor's; the server still authorises it.
+ */
+function forHostel(hostelId?: string) {
+  return hostelId ? { headers: { "x-hostel-id": hostelId } } : undefined;
+}
+
+export async function getAdminReport(hostelId?: string) {
   const response = await api.get<ApiEnvelope<{ report: AdminReport }>>(
     "/hostel-admin/reports/dashboard",
+    forHostel(hostelId),
   );
 
   return unwrap(response).report;
@@ -255,9 +265,10 @@ export async function getAdminSubscription() {
  * app may not take payment for the plan. See `components/subscription-due.tsx`.
  */
 
-export async function getAdminHostel() {
+export async function getAdminHostel(hostelId?: string) {
   const response = await api.get<ApiEnvelope<{ hostel: AdminHostel }>>(
     "/hostel-admin/profile",
+    forHostel(hostelId),
   );
 
   return unwrap(response).hostel;
@@ -312,9 +323,10 @@ export type AdminPeriodSummary = {
  * Behind `viewPayments`, so a warden without the grant gets a 403 — call it
  * tolerantly and let the screen fall back to the report's monthly figures.
  */
-export async function getAdminPeriodSummary() {
+export async function getAdminPeriodSummary(hostelId?: string) {
   const response = await api.get<ApiEnvelope<AdminPeriodSummary>>(
     "/hostel-admin/finance/invoices/periods",
+    forHostel(hostelId),
   );
 
   return unwrap(response);
@@ -717,9 +729,10 @@ export type AdminLedger = {
  *
  * **Reads never bill.** Same rule as the matrix, so this is safe on focus.
  */
-export async function getAdminLedger() {
+export async function getAdminLedger(hostelId?: string) {
   const response = await api.get<ApiEnvelope<AdminLedger>>(
     "/hostel-admin/finance/invoices/ledger",
+    forHostel(hostelId),
   );
 
   return unwrap(response);

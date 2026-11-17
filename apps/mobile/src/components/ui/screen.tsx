@@ -70,7 +70,7 @@ const MIN_BOTTOM_PAD = 16;
  * the gap above and below it. Without this the last card sits behind the button
  * at the end of a scroll and cannot be read.
  */
-const FLOATING_CLEARANCE = 56 + 20;
+export const FLOATING_CLEARANCE = 56 + 20;
 
 /**
  * This page's scroll offset, for the `AppBar` in its `header` — the large title
@@ -175,6 +175,12 @@ type ScreenProps = {
    * bar's height and connects scrolling to its hide/show animation.
    */
   insideTabs?: boolean;
+  /**
+   * Draws the body in the first render too. For a remount with no transition to
+   * free up — a branch switch: the old screen then stays until the new one is
+   * whole, instead of an empty body while it renders.
+   */
+  bodyAtOnce?: boolean;
   onRefresh?: () => void;
   /**
    * The child brings its own scroller — see `useOwnScroll`. The bottom edge is
@@ -196,6 +202,7 @@ type ScreenProps = {
 
 export function Screen({
   bleedTop = false,
+  bodyAtOnce = false,
   children,
   className = "",
   contentClassName = "",
@@ -279,7 +286,7 @@ export function Screen({
    * native animation runs. The header still mounts at once, because the card
    * grow (M8) measures it.
    */
-  const [bodyReady, setBodyReady] = useState(false);
+  const [bodyReady, setBodyReady] = useState(bodyAtOnce);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setBodyReady(true));

@@ -17,12 +17,11 @@ import { ListRow } from "@/components/ui/list-row";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { applyThemePreference, useAppTheme } from "@/hooks/use-app-theme";
 import { useLockEnabled } from "@/components/app-lock";
 import { canOfferLock } from "@/lib/app-lock";
 import { endSession } from "@/lib/auth-session";
 import { openConfirm } from "@/lib/confirm";
-import { setThemePreference } from "@/store/slices/uiSlice";
 import { KycFrost } from "@/components/kyc-frost";
 import { crossFadeTheme } from "@/components/theme-fade";
 
@@ -219,7 +218,7 @@ export function AppRows({
     <MenuGroup>
       <MenuRow
         icon={dark ? "moon" : "sunny"}
-        onPress={() => crossFadeTheme(() => dispatch(setThemePreference(dark ? "light" : "dark")))}
+        onPress={() => crossFadeTheme(() => applyThemePreference(dark ? "light" : "dark", dispatch))}
         title="Dark mode"
         tone="neutral"
         value={dark ? "On" : "Off"}

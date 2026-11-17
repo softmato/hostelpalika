@@ -62,6 +62,8 @@ export type RealtimeConfig = {
 /** `serializeNotification`'s shape, as broadcast on `notification:new`. */
 export type RealtimeNotification = {
   actionUrl?: string;
+  /** The branch the row belongs to; absent = account-wide. */
+  hostelId?: string | null;
   body: string;
   category: string;
   createdAt?: string;
