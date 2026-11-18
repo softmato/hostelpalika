@@ -214,6 +214,22 @@ func (a *Admin) staffStore(c *gin.Context, every bool) (*storeActor, error) {
 	return a.resolveStore(c, p, every)
 }
 
+// billParts reads a bill's money. The bill total as printed (`amount`) wins over
+// the line prices: with every line priced, the gap is the bill's discount or VAT
+// and the typed discount/tax are ignored; with some unpriced, the gap belongs to
+// those lines (the client split it before Save). Without a total, the total is
+// the lines − discount + tax. TS: createStockEntry.
+func billParts(amount, discount, tax *float64, subtotal float64, allPriced bool) (gross, disc, tx float64) {
+	if amount == nil {
+		return subtotal, zeroOr(discount), zeroOr(tax)
+	}
+	gap := 0.0
+	if allPriced {
+		gap = *amount - subtotal
+	}
+	return *amount - gap, math.Max(0, -gap), math.Max(0, gap)
+}
+
 // billMoney is billMoney: a nil answer means no prices at all.
 func billMoney(e *entry) (paid, total float64, ok bool) {
 	var fromLines float64
@@ -1288,20 +1304,21 @@ func (a *Admin) createEntry(ctx context.Context, s *storeActor, in *entryIn) (or
 	}
 	var total, paid *float64
 	var expenseID *bson.ObjectID
+	var billDiscount, billTax float64
 	if in.kind == "BUY" {
 		var subtotal float64
+		allPriced := true
 		for _, m := range order {
 			if m.amount != nil {
 				subtotal += *m.amount
 			} else if m.rate != nil {
 				subtotal += jsRound(*m.rate * m.qty)
+			} else {
+				allPriced = false
 			}
 		}
-		gross := subtotal
-		if gross <= 0 {
-			gross = zeroOr(in.amount)
-		}
-		discount, tax := zeroOr(in.discount), zeroOr(in.tax)
+		gross, discount, tax := billParts(in.amount, in.discount, in.tax, subtotal, allPriced)
+		billDiscount, billTax = discount, tax
 		if gross > 0 || discount > 0 || tax > 0 {
 			if !s.rights.CanSpend {
 				return nil, false, fail(403, "CAPABILITY_DENIED", "Your account cannot add prices. Leave the prices empty, or ask the owner to turn on Add expenses.")
@@ -1369,7 +1386,7 @@ func (a *Admin) createEntry(ctx context.Context, s *storeActor, in *entryIn) (or
 		amountVal, expenseVal = *paid, *expenseID
 	}
 	if in.kind == "BUY" && total != nil {
-		discount, tax = zeroOr(in.discount), zeroOr(in.tax)
+		discount, tax = billDiscount, billTax
 	}
 	if to != "" {
 		toID, _ := bson.ObjectIDFromHex(to)

@@ -263,7 +263,7 @@ export type ActionTile = {
  * keeps all three in step — and it is why the count is `ACTION_COLUMNS` here
  * whatever length the list happens to be.
  */
-export function ActionTiles({ tiles }: { tiles: readonly ActionTile[] }) {
+export function ActionTiles({ bare = false, tiles }: { /** Tiles straight on the page, no card around them. */ bare?: boolean; tiles: readonly ActionTile[] }) {
   const rows: ActionTile[][] = [];
 
   for (let index = 0; index < tiles.length; index += ACTION_COLUMNS) {
@@ -271,7 +271,7 @@ export function ActionTiles({ tiles }: { tiles: readonly ActionTile[] }) {
   }
 
   return (
-    <View className={`gap-5 ${ACTION_CARD}`} style={FLOAT_SHADOW}>
+    <View className={bare ? "gap-5" : `gap-5 ${ACTION_CARD}`} style={bare ? undefined : FLOAT_SHADOW}>
       {rows.map((row) => (
         <ActionRow key={row[0].key}>
           {row.map((tile) => (

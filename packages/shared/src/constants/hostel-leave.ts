@@ -13,7 +13,7 @@ export const HOSTEL_LEAVE_SECTIONS = [
   { key: "deposits", label: "Deposits", description: "Security deposits taken and refunded." },
   { key: "khata", label: "Khata", description: "Items residents took on account." },
   { key: "expenses", label: "Expenses", description: "Money the hostel spent." },
-  { key: "stock", label: "Stock", description: "Stock bought, used, moved and counted, one line per item." },
+  { key: "stock", label: "Inventory", description: "Items bought, used, moved and counted, one line per item." },
   { key: "food", label: "Food menu", description: "The weekly menu and meal times." },
   { key: "complaints", label: "Complaints", description: "Complaints from residents and your replies." },
   { key: "repairs", label: "Repairs", description: "Repair and maintenance jobs." },

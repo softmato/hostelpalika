@@ -110,6 +110,8 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   // Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md).
   // Money in and out by day — the app's Finance → Statement (docs/PORTAL_POLISH_2026_10.md).
   statement: () => <HostelAdminStatementPageContent />,
+  inventory: () => <HostelAdminStockPageContent />,
+  // The old address, kept so bookmarks and pushes from before the rename still open it.
   stock: () => <HostelAdminStockPageContent />,
   transactions: () => <HostelAdminTransactionsPageContent />,
   wardens: () => <HostelAdminWardensPage />,

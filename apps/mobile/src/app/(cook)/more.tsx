@@ -108,7 +108,7 @@ export default function CookMoreScreen() {
         <MenuGroups>
           {kitchen.data?.stockEnabled ? (
             <MenuGroup>
-              <MenuRow icon="cube" onPress={() => router.push("/kitchen-stock")} title="Kitchen stock" />
+              <MenuRow icon="cube" onPress={() => router.push("/kitchen-stock")} title="Kitchen inventory" />
             </MenuGroup>
           ) : null}
 

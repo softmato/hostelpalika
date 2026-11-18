@@ -69,7 +69,7 @@ export default function StockReportsScreen() {
       await downloadToDevice({
         extension: format,
         fileName: `stock-report-${span}`,
-        label: "Stock report",
+        label: "Inventory report",
         mimeType: format === "pdf" ? "application/pdf" : "text/csv",
         url: reportFileUrl(span, format),
       });
@@ -82,7 +82,7 @@ export default function StockReportsScreen() {
 
   const header = (
     <View className="bg-background">
-      <AppBar accent centerTitle showBack straddle={STRADDLE} subtitle={report?.scope ?? here?.name ?? "All buildings"} title="Stock report" />
+      <AppBar accent centerTitle showBack straddle={STRADDLE} subtitle={report?.scope ?? here?.name ?? "All buildings"} title="Inventory report" />
       <View className="px-5" style={{ marginTop: -STRADDLE }}>
         <View className="rounded-2xl border border-border bg-card p-4" style={FLOAT_SHADOW}>
           {!report?.totals ? (
@@ -203,7 +203,7 @@ export default function StockReportsScreen() {
         onDownload={(choice) => void download(choice)}
         open={sheetOpen}
         spans={["1", "3", "12"]}
-        title="Download stock report"
+        title="Download inventory report"
       />
     </Screen>
   );

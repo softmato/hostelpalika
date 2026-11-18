@@ -24,7 +24,9 @@ export {
   billStatus,
   formatPackQty,
   formatQty,
+  guessStockKind,
   roundQty,
+  splitBill,
   STOCK_BILL_STATUS_LABELS,
   STOCK_ENTRY_LABELS,
   STOCK_ITEM_NAME_MAX,
@@ -241,6 +243,7 @@ export function stockQuery(period: string | null): Query<StockLoad> {
 }
 
 export type NewStockEntry = {
+  /** BUY: the bill total as printed; it wins over the line prices. */
   amount?: number;
   billNo?: string;
   clientRequestId: string;
@@ -548,18 +551,6 @@ export const STOCK_STARTERS: { name: string; unit: StockUnit }[] = [
   { name: "Milk", unit: "LITRE" },
   { name: "Eggs", unit: "PIECE" },
 ];
-
-/**
- * Used the day it comes, read from the name: green vegetables, meat, fish, milk,
- * fruit, bread. Everything else is kept in the store. Adding stock never asks
- * which — the person standing with the sack should only have to say what it is.
- */
-const DAILY_WORDS =
-  /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|tomato|golbheda|chilli|chili|khursani|chicken|kukhura|fish|machha|meat|masu|mutton|khasi|buff|pork|milk|dudh|curd|dahi|paneer|fruit|banana|apple|orange|suntala|bread|pauroti/i;
-
-export function guessStockKind(name: string): StockKind {
-  return DAILY_WORDS.test(name) ? "DAILY" : "STORE";
-}
 
 /** The item already called this — any case, any spacing — switched off ones included. */
 export function findStockItem<T extends { name: string }>(items: readonly T[], name: string): T | null {

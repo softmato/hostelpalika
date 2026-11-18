@@ -14,7 +14,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "hostel admin refused",
@@ -34,7 +34,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "collection qr",
@@ -59,7 +59,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "setup fee",
@@ -82,7 +82,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "email bad",
@@ -116,7 +116,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "email hostel",
@@ -140,7 +140,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "email free",
@@ -164,7 +164,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "email other role",
@@ -188,7 +188,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "email public",
@@ -212,7 +212,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "summary",
@@ -243,7 +243,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "hostels",
@@ -293,7 +293,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "hostels other agent",
@@ -315,7 +315,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "wallet",
@@ -374,7 +374,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "wallet empty",
@@ -409,7 +409,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "existing filed",
@@ -432,8 +432,8 @@
         "data": {
           "check": null,
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -471,7 +471,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "existing not filed",
@@ -491,7 +491,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "existing bad id",
@@ -511,7 +511,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "existing superadmin",
@@ -534,8 +534,8 @@
         "data": {
           "check": null,
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -573,7 +573,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "existing template",
@@ -588,6 +588,6 @@
       "status": 200,
       "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     },
-    "recorded": "http://localhost:3100 f8ca9022"
+    "recorded": "http://localhost:3100"
   }
 ]

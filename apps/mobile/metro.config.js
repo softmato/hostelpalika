@@ -35,6 +35,7 @@ const WEB_STAND_INS = {
   "@/components/map-explorer": "map-explorer.tsx",
   "@/lib/offline-route": "offline-route.ts",
   "@/components/qr-camera": "qr-camera.tsx",
+  "@/components/ui/pressable-scale": "pressable-scale.tsx",
   "@/lib/documents": "documents.ts",
   "@/lib/google-auth": "google-auth.ts",
   "@/lib/push-notifications": "push-notifications.ts",

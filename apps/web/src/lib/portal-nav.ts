@@ -689,7 +689,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Wardens",
       },
       {
-        description: "Kitchen cooks: who may post meals ready, enter stock used and add expenses.",
+        description: "Kitchen cooks: who may post meals ready, enter what was used and add expenses.",
         href: "/hostel-admin/cooks",
         icon: "food",
         keywords: ["cook", "cooks", "kitchen", "chef", "meal", "fingerprint"],
@@ -865,10 +865,10 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
       },
       {
         description: "Rice, daal, vegetables — what was bought, what went to each branch, what is left.",
-        href: "/hostel-admin/stock",
+        href: "/hostel-admin/inventory",
         icon: "clipboard",
-        keywords: ["stock", "inventory", "rice", "daal", "vegetables", "store", "godown", "send", "count"],
-        label: "Stock",
+        keywords: ["inventory", "stock", "rice", "daal", "vegetables", "store", "godown", "bill", "supplier", "send", "count"],
+        label: "Inventory",
       },
       {
         description: "Who is in tonight, manual overrides, and absence follow-up.",

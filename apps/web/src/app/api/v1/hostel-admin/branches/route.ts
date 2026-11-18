@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     return successResponse(
       await requestBranch(await mainHostelOf(principal.hostelIds[0]), input, principal),
-      "Branch sent for approval",
+      "Branch added",
       { status: 201 },
     );
   } catch (error) {

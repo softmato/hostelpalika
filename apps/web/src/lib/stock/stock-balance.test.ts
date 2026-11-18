@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { splitBill } from "@hostel/shared/expenses/stock";
+
 import { emptyAtPlace, type FoldEntry, foldStock, reportFigures, supplierLedger, type UsageEntry, usageRows } from "@/lib/stock/stock-balance";
 
 const MAIN = "main";
@@ -230,5 +232,32 @@ describe("reportFigures", () => {
     const figures = reportFigures([veg], "DAILY", null, 3, 31);
 
     expect([figures.left, figures.nextQty, figures.nextValue]).toEqual([null, 93, null]);
+  });
+});
+
+describe("splitBill", () => {
+  it("keeps typed prices and gives the one unpriced line what is left", () => {
+    expect(splitBill(3000, [{ amount: 2500, weight: null }, { amount: null, weight: null }])).toEqual([2500, 500]);
+  });
+
+  it("splits by usual cost, in whole rupees that add up exactly", () => {
+    const shares = splitBill(1000, [
+      { amount: null, weight: 50 * 80 },
+      { amount: null, weight: 5 * 200 },
+      { amount: null, weight: 1 * 20 },
+    ]);
+
+    expect(shares.reduce((sum, share) => sum! + share!, 0)).toBe(1000);
+    expect(shares).toEqual([797, 199, 4]);
+  });
+
+  it("splits equally when one unpriced item has no usual cost", () => {
+    expect(splitBill(100, [{ amount: null, weight: 40 }, { amount: null, weight: null }, { amount: null, weight: 5 }])).toEqual([34, 33, 33]);
+  });
+
+  it("leaves lines unpriced with no total or nothing left over", () => {
+    expect(splitBill(null, [{ amount: null, weight: 1 }])).toEqual([null]);
+    expect(splitBill(500, [{ amount: 500, weight: null }, { amount: null, weight: 1 }])).toEqual([500, null]);
+    expect(splitBill(900, [{ amount: 1000, weight: null }])).toEqual([1000]);
   });
 });

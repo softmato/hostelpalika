@@ -1,12 +1,21 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useRef, useState, useSyncExternalStore } from "react";
-import { Pressable, View } from "react-native";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useFrameCallback,
+  useSharedValue,
+} from "react-native-reanimated";
 
 import { branchPhoto, photographBranch } from "@/components/branch-sweep";
 import { Glyph } from "@/components/ui/glyph";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
+import { Toggle } from "@/components/ui/toggle";
 import { ROLE } from "@/constants/roles";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -40,6 +49,27 @@ import type { GlyphName } from "@hostel/constants/glyphs";
 // Account-wide: after a switch the list must still be there offline, or the
 // switcher hides and there is no way back to the other branch.
 const BRANCHES_KEY = "account:admin:branches";
+
+/**
+ * The owner's choice to show the branch label on the chip, from the sheet's own
+ * switch. Per phone, remembered; on until switched off.
+ */
+const LABEL_KEY = "switcher:show-label";
+let showLabel = true;
+const labelListeners = new Set<() => void>();
+const readShowLabel = () => showLabel;
+function subscribeShowLabel(listener: () => void) {
+  labelListeners.add(listener);
+  return () => void labelListeners.delete(listener);
+}
+function setShowLabel(next: boolean) {
+  showLabel = next;
+  labelListeners.forEach((listener) => listener());
+  AsyncStorage.setItem(LABEL_KEY, next ? "1" : "0").catch(() => null);
+}
+AsyncStorage.getItem(LABEL_KEY)
+  .then((saved) => saved === "0" && setShowLabel(false))
+  .catch(() => null);
 const BRANCH_NAMES_KEY = "account:admin:branch-names";
 
 function useBranches(warden: boolean) {
@@ -153,7 +183,72 @@ function currentRow(rows: BranchName[], active: string | null) {
   );
 }
 
-export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
+/**
+ * "Switched" slides in from the chip's left edge, holds, then slides out to the
+ * right, as a pill over the chip's own content. Transform only: the chip never
+ * resizes, so nothing re-lays out per frame. Frame-stepped like the wipe, with
+ * each step capped, so the stall of mounting the new branch pauses it instead
+ * of skipping it. Unmounts itself when done.
+ */
+const SWITCHED_MS = 1500;
+/** The share of the run spent sliding in, and again sliding out. */
+const SLIDE = 420 / SWITCHED_MS;
+const MAX_STEP = 1000 / 30;
+/** Material standard ease: gentle start, soft landing. */
+const ease = Easing.bezierFn(0.4, 0, 0.2, 1);
+
+function SwitchedLabel({
+  at,
+  background,
+  color,
+  onDone,
+}: {
+  at: number;
+  background: string;
+  color: string;
+  onDone: (at: number) => void;
+}) {
+  const t = useSharedValue(0);
+  const width = useSharedValue(0);
+
+  useFrameCallback(({ timeSincePreviousFrame }) => {
+    if (t.value >= 1) return;
+    t.value = Math.min(t.value + Math.min(timeSincePreviousFrame ?? 0, MAX_STEP) / SWITCHED_MS, 1);
+    if (t.value >= 1) runOnJS(onDone)(at);
+  });
+
+  const style = useAnimatedStyle(() => {
+    const p = t.value;
+    const x = p < SLIDE ? ease(p / SLIDE) - 1 : p > 1 - SLIDE ? ease((p - 1 + SLIDE) / SLIDE) : 0;
+
+    return { opacity: width.value ? 1 : 0, transform: [{ translateX: x * width.value }] };
+  });
+
+  return (
+    <Animated.View
+      onLayout={(event) => width.set(event.nativeEvent.layout.width)}
+      pointerEvents="none"
+      style={[
+        StyleSheet.absoluteFill,
+        { alignItems: "center", backgroundColor: background, justifyContent: "center" },
+        style,
+      ]}
+    >
+      <Text className="font-semibold" numberOfLines={1} style={{ color, fontSize: 13 }} variant={null}>
+        Switched
+      </Text>
+    </Animated.View>
+  );
+}
+
+export function HostelSwitcher({
+  compact = false,
+  label = true,
+}: {
+  compact?: boolean;
+  /** Adds a small tag beside the chip: the branch's own label, else "Main" / "Branch". */
+  label?: boolean;
+}) {
   const { colors } = useAppTheme();
   const warden = useAppSelector((state) => state.auth.account?.role) === ROLE.WARDEN;
   const branches = useBranches(warden);
@@ -167,6 +262,8 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const switching = active !== useActiveHostel();
   const lock = useBranchesLock();
   const [open, setOpen] = useState(false);
+  const [switchedAt, setSwitchedAt] = useState(0);
+  const shownId = useRef<string | null | undefined>(undefined);
   /*
    * The pick runs once the sheet is fully down. Switching while it slid away
    * rebuilt every tab under it, so the sheet froze open for seconds and the
@@ -175,6 +272,14 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const afterClose = useRef<(() => void) | null>(null);
   const rows = branches.data?.hostels ?? [];
   const overall = !warden && isOverall(active);
+  const shown = useActiveHostel();
+  const labelOn = useSyncExternalStore(subscribeShowLabel, readShowLabel, readShowLabel);
+
+  useEffect(() => {
+    // Skip the first paint; every later change of branch plays the label once.
+    if (shownId.current !== undefined && shownId.current !== shown) setSwitchedAt(Date.now());
+    shownId.current = shown;
+  }, [shown]);
 
   // Still shown in Overall whatever the plan says, so the way out never disappears.
   // A warden's hostel with no branches has nothing to show.
@@ -226,16 +331,14 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         accessibilityState={{ busy: switching, expanded: open }}
         className={
           compact
-            ? "min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full border border-border bg-card px-2 active:bg-muted"
-            : "flex-row items-center gap-2 self-start rounded-full border border-border bg-card px-3.5 py-2 active:bg-muted"
+            ? "min-h-11 min-w-11 flex-row items-center justify-center gap-1 overflow-hidden rounded-full border border-border bg-card px-2 active:bg-muted"
+            : "flex-row items-center gap-2 self-start overflow-hidden rounded-full border border-border bg-card px-3.5 py-2 active:bg-muted"
         }
         onPress={() => setOpen(true)}
         // A finger on the chip is the earliest sign of a switch: file every other
         // hostel's card now, so whichever is picked paints the moment it is.
         onPressIn={() => {
           if (warden) return;
-          // The screen as it stands, before the sheet covers it: the switch's wipe starts from this.
-          photographBranch();
           for (const row of rows) {
             const scope = scopeOf(row, rows);
             if (scope !== active) prefetchBranchHome(scope, row.id);
@@ -266,7 +369,27 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
             {overall ? "Overall" : current?.name}
           </Text>
         )}
+        {label && labelOn && (overall || current) ? (
+          <Text
+            className="max-w-[84px] font-semibold text-muted-foreground"
+            numberOfLines={1}
+            style={{ fontSize: 11 }}
+            variant={null}
+          >
+            {overall ? "All" : current?.branchLabel || (current?.isBranch ? "Branch" : "Main")}
+          </Text>
+        ) : null}
         <Glyph color={colors.mutedForeground} name="chevron-down" size={14} />
+        {/* Last, so it paints over everything in the chip, the chevron too. */}
+        {switchedAt ? (
+          <SwitchedLabel
+            at={switchedAt}
+            background={colors.card}
+            color={colors.primary}
+            key={switchedAt}
+            onDone={(at) => setSwitchedAt((now) => (now === at ? 0 : now))}
+          />
+        ) : null}
       </Pressable>
 
       <Sheet
@@ -277,6 +400,10 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
           afterClose.current = null;
           run?.();
         }}
+        // The wipe's photo of the screen, taken once the sheet has settled: on the
+        // press-in it rasterised the screen on the UI thread as the sheet set off,
+        // and the sheet opened late. The sheet is portalled, so it is not in the photo.
+        onOpen={warden ? undefined : photographBranch}
         open={open}
         title={warden ? "Branches" : "Switch hostel"}
       >
@@ -302,7 +429,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                       }}
                       selected={selected}
                       subtitle={[
-                        row.isBranch ? "Branch" : "Main hostel",
+                        row.branchLabel || (row.isBranch ? "Branch" : "Main hostel"),
                         [row.area, row.city].filter(Boolean).join(", "),
                       ].filter(Boolean).join(" · ")}
                       trailing={mark(selected)}
@@ -324,6 +451,17 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                 selected={overall}
                 subtitle={`All ${rows.length} branches together`}
                 trailing={mark(overall)}
+              />
+            </View>
+          ) : null}
+          {label ? (
+            <View className="overflow-hidden rounded-2xl bg-card">
+              <SheetRow
+                label="Show label"
+                leading={tile("pricetag", false)}
+                onPress={() => setShowLabel(!labelOn)}
+                subtitle="Main or the branch label, beside the name"
+                trailing={<Toggle accessibilityLabel="Show label" onChange={setShowLabel} value={labelOn} />}
               />
             </View>
           ) : null}

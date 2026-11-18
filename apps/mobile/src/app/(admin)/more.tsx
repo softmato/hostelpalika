@@ -47,7 +47,7 @@ type ManageRow = {
 const MANAGE_GROUPS: ManageRow[][] = [
   [
     { href: "/manage/finance/statement", icon: "receipt", title: "Statement" },
-    { href: "/stock", icon: "cube", title: "Stock", tone: "warning" },
+    { href: "/stock", icon: "cube", title: "Inventory", tone: "warning" },
     { href: "/manage/finance", icon: "cash", title: "Finance settings" },
     { href: "/manage/finance/khata", icon: "book", title: "Khata" },
     { href: "/expenses", icon: "wallet", title: "Expenses" },

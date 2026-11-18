@@ -258,7 +258,7 @@ describe("notificationRoute", () => {
   });
 
   it("expands a row nothing in the app can open", () => {
-    expect(notificationRoute({ actionUrl: "/platform/hostel-leaves?request=1" })).toBeNull();
+    expect(notificationRoute({ actionUrl: "/platform/config/seo" })).toBeNull();
     expect(notificationRoute({ actionUrl: "https://evil.example" })).toBeNull();
     expect(notificationRoute({})).toBeNull();
   });
@@ -269,6 +269,9 @@ describe("platform bells open the native platform screens", () => {
     expect(resolvePushPath("/platform/hostels")).toBe("/(platform)/approvals");
     expect(resolvePushPath("/platform/store/orders")).toBe("/manage/platform/store-orders");
     expect(notificationRoute({ actionUrl: "/platform/listing-flags" })).toBe("/manage/platform/listing-flags");
+    expect(notificationRoute({ actionUrl: "/platform/hostel-leaves?request=1" })).toBe("/manage/platform/hostel-leaves");
+    expect(resolvePushPath("/platform/account-deletions")).toBe("/manage/platform/account-deletions");
+    expect(resolvePushPath("/platform/bookings")).toBe("/manage/platform/bookings");
   });
 });
 

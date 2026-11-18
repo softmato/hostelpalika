@@ -3,16 +3,13 @@ import { useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { AdminSearchBar } from "@/components/admin-search-bar";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Quiet, Rows, type Tint, TintRow } from "@/components/platform-ui";
 import { Chip } from "@/components/ui/layout";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
-import { EmptyCard, ErrorState } from "@/components/ui/states";
+import { ErrorState } from "@/components/ui/states";
 import { useResource } from "@/hooks/use-resource";
 import {
-  hostelStatusTone,
   isAwaitingReview,
   listPlatformHostels,
   type PlatformHostel,
@@ -41,18 +38,19 @@ type FilterKey = (typeof FILTERS)[number]["key"];
 const loadLive = () => listPlatformHostels(false);
 const loadArchived = () => listPlatformHostels(true);
 
+const STATUS_TINT: Record<string, Tint> = { APPROVED: "brand", PENDING_APPROVAL: "warning", PUBLISHED: "success", REJECTED: "danger", SUSPENDED: "danger" };
+
 function HostelRow({ hostel }: { hostel: PlatformHostel }) {
-  const badge = hostel.suspension
-    ? { label: hostel.suspension.stage === "SUSPENDED" ? "Suspended" : "Notice", tone: "danger" as const }
-    : { label: statusLabel(hostel.status), tone: hostelStatusTone(hostel.status) };
+  const suspended = Boolean(hostel.suspension);
 
   return (
-    <ListRow
+    <TintRow
       icon="hostel"
       onPress={() => router.push(`/manage/platform/hostel/${hostel.id}`)}
-      right={<Badge label={badge.label} tone={badge.tone} />}
       subtitle={[hostel.location.area, hostel.owner?.name].filter(Boolean).join(" · ") || undefined}
       title={hostel.name}
+      tone={suspended ? "danger" : (STATUS_TINT[hostel.status] ?? "neutral")}
+      value={suspended ? (hostel.suspension!.stage === "SUSPENDED" ? "Suspended" : "Notice") : hostel.status === "PUBLISHED" ? "Live" : statusLabel(hostel.status)}
     />
   );
 }
@@ -107,19 +105,15 @@ export default function PlatformHostelsScreen() {
         ) : source.error ? (
           <ErrorState message={source.error} onRetry={source.reload} />
         ) : rows.length === 0 ? (
-          <EmptyCard
-            description={search ? "Try another name, area or phone." : filter === "review" ? "No hostel is waiting on a decision." : "No hostel in this list."}
-            title={search ? "No match" : "Nothing here"}
-          />
+          <Quiet tone={search || filter !== "review" ? "neutral" : "success"}>
+            {search ? "No match. Try another name, area or phone." : filter === "review" ? "No hostel is waiting on a decision." : "No hostel in this list."}
+          </Quiet>
         ) : (
-          <Card padding="px-4 py-1">
-            {rows.map((hostel, index) => (
-              <View key={hostel.id}>
-                {index > 0 ? <RowDivider /> : null}
-                <HostelRow hostel={hostel} />
-              </View>
+          <Rows>
+            {rows.map((hostel) => (
+              <HostelRow hostel={hostel} key={hostel.id} />
             ))}
-          </Card>
+          </Rows>
         )}
       </View>
     </Screen>

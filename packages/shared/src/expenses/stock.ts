@@ -97,6 +97,18 @@ export const STOCK_WASTE_LABELS: Record<StockWasteReason, string> = {
   SPOILED: "Spoiled",
 };
 
+/**
+ * Used the day it comes, read from the name: green vegetables, meat, fish, milk,
+ * fruit, bread. Everything else is kept in the store. Adding stock never asks
+ * which — the person standing with the sack should only have to say what it is.
+ */
+const DAILY_WORDS =
+  /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|tomato|golbheda|chilli|chili|khursani|chicken|kukhura|fish|machha|meat|masu|mutton|khasi|buff|pork|milk|dudh|curd|dahi|paneer|fruit|banana|apple|orange|suntala|bread|pauroti/i;
+
+export function guessStockKind(name: string): StockKind {
+  return DAILY_WORDS.test(name) ? "DAILY" : "STORE";
+}
+
 /** A bill is paid, part paid or not paid — read from its total and what was paid on it. */
 export type StockBillStatus = "DUE" | "PAID" | "PARTIAL";
 
@@ -110,6 +122,45 @@ export function billStatus(total: number, paid: number): StockBillStatus {
   if (paid >= total) return "PAID";
 
   return paid > 0 ? "PARTIAL" : "DUE";
+}
+
+/**
+ * What each line of a bill cost, when the bill total is known but not every
+ * item's price.
+ *
+ * Typed prices stay as typed. What the bill total leaves over is shared by the
+ * lines with no price, in proportion to `weight` (quantity × the item's usual
+ * cost); when any of them has no usual cost yet, equally. Whole rupees, and the
+ * shares always add up to exactly what was left over. A line with no price gets
+ * `null` when there is no total, or nothing is left over for it.
+ *
+ * ponytail: a new item with no usual cost gets an equal share — an estimate the
+ * Buy screen shows before Save; typing that item's price makes it exact.
+ */
+export function splitBill(total: number | null, lines: readonly { amount: number | null; weight: number | null }[]) {
+  const amounts = lines.map((line) => line.amount);
+  const open = lines.flatMap((line, index) => (line.amount === null ? [index] : []));
+  const left = total === null ? 0 : total - lines.reduce((sum, line) => sum + (line.amount ?? 0), 0);
+
+  if (open.length === 0 || left <= 0) return amounts;
+
+  const weighted = open.every((index) => (lines[index]!.weight ?? 0) > 0);
+  const weights = open.map((index) => (weighted ? lines[index]!.weight! : 1));
+  const sum = weights.reduce((total, weight) => total + weight, 0);
+  const exact = weights.map((weight) => (left * weight) / sum);
+  const shares = exact.map(Math.floor);
+  // Largest remainder: the rupees lost to rounding go to the lines that lost most.
+  const order = exact.map((value, index) => ({ index, rest: value - shares[index]! })).sort((a, b) => b.rest - a.rest);
+
+  const lost = left - shares.reduce((total, share) => total + share, 0);
+
+  for (let index = 0; index < lost; index += 1) shares[order[index]!.index]! += 1;
+
+  open.forEach((line, index) => {
+    amounts[line] = shares[index]!;
+  });
+
+  return amounts;
 }
 
 export const STOCK_SUPPLIER_NAME_MAX = 60;

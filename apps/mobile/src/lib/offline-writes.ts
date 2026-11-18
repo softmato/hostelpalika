@@ -38,7 +38,7 @@ const SEND: { [K in Kind]: (payload: Writes[K]) => Promise<unknown> } = {
 const LABEL: Record<Kind, string> = {
   complaint: "Complaint",
   expense: "Expense",
-  stock: "Stock",
+  stock: "Inventory",
 };
 
 /**

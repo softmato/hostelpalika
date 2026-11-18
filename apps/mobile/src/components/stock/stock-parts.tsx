@@ -919,12 +919,15 @@ export function MoneyInput({
   hint,
   label,
   onChangeText,
+  placeholder = "0",
   value,
 }: {
   error?: string | null;
   hint?: string;
   label?: string;
   onChangeText: (value: string) => void;
+  /** Shown while blank — the figure a blank box will mean. */
+  placeholder?: string;
   value: string;
 }) {
   return (
@@ -936,7 +939,7 @@ export function MoneyInput({
       label={label}
       leading={<Text variant="muted">Rs</Text>}
       onChangeText={(next) => onChangeText(groupDigits(next))}
-      placeholder="0"
+      placeholder={placeholder}
       selectTextOnFocus
       value={value}
     />
@@ -1145,7 +1148,7 @@ export function NoStockAccess() {
   return (
     <Card className="gap-1">
       <Text variant="label">You cannot handle stock yet</Text>
-      <Text variant="muted">Ask the hostel owner to turn on “Stock” for you.</Text>
+      <Text variant="muted">Ask the hostel owner to turn on “Inventory” for you.</Text>
     </Card>
   );
 }

@@ -11,6 +11,7 @@ type WorkspaceHostel = {
   /** Branches this hostel's plan includes — 0 on every plan but Max. */
   branchCap: number;
   /** First exterior photo — the hostel's face in the switcher. */
+  branchLabel: string;
   coverUrl: string | null;
   id: string;
   /** A branch of a Max hostel — labelled so in the switcher. */

@@ -168,6 +168,8 @@ export function hasClaimInReview(state: AdminSubscription | null) {
 export type AdminBranchRow = {
   area?: string;
   city?: string;
+  /** The short key the owner gave a branch ("Block B"); empty for the main hostel. */
+  branchLabel?: string;
   beds: number;
   collected: number;
   /** First exterior photo, relative or absolute — resolve with `absoluteMediaUrl`. */
@@ -193,6 +195,7 @@ export type AdminBranches = {
   };
   branches: {
     area: string;
+    branchLabel?: string;
     city: string;
     /** First exterior photo — resolve with `absoluteMediaUrl`. */
     coverUrl?: string | null;
@@ -207,6 +210,7 @@ export type AdminBranches = {
     slug: string;
     status: string;
     area: string;
+    branchLabel?: string;
     city: string;
     coverUrl?: string | null;
     panNumber: string | null;
@@ -216,6 +220,16 @@ export type AdminBranches = {
 export async function getBranches() {
   const response = await api.get<ApiEnvelope<AdminBranches>>(
     "/hostel-admin/branches",
+  );
+
+  return unwrap(response);
+}
+
+/** Renames the short key ("Block B") a hostel in the owner's group goes by. */
+export async function setBranchLabel(branchId: string, branchLabel: string) {
+  const response = await api.patch<ApiEnvelope<{ branchLabel: string }>>(
+    `/hostel-admin/branches/${branchId}`,
+    { branchLabel },
   );
 
   return unwrap(response);
@@ -240,7 +254,7 @@ export async function getBranchesSummary() {
 }
 
 /** One hostel in the switcher — all it needs, and all a warden is sent. */
-export type BranchName = Pick<AdminBranchRow, "area" | "city" | "coverUrl" | "id" | "isBranch" | "name">;
+export type BranchName = Pick<AdminBranchRow, "area" | "branchLabel" | "city" | "coverUrl" | "id" | "isBranch" | "name">;
 
 /** The warden's hostel group by name; `current` is the one they work in. */
 export async function getBranchNames() {

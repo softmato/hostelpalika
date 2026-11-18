@@ -4,6 +4,7 @@ import { downloadFile, downloadTable, type TableFormat } from "@/lib/downloads/d
 
 import {
   AlertTriangle,
+  Archive,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -12,6 +13,7 @@ import {
   Package,
   PackagePlus,
   Plus,
+  Search,
   Send,
   Store,
   Trash2,
@@ -32,20 +34,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { browserApi } from "@/lib/browser-api";
 import { addBsMonths, formatBsDate, formatBsPeriod } from "@/lib/hostel-day";
 import { usePortalResource } from "@/lib/portal-query";
 import { uploadFile } from "@/lib/uploads/uploader";
 import { cn } from "@/lib/utils";
+import { toast } from "@/stores/toast-store";
 import {
+  EXPENSE_CATEGORY_LABELS,
   EXPENSE_PAID_BY,
   EXPENSE_PAID_BY_LABELS,
+  type ExpenseCategoryKey,
   type ExpensePaidBy,
 } from "@hostel/shared/expenses/categories";
 import { parseAmountInput, parseBsDayInput, toBsDayInput, todayKey } from "@hostel/shared/expenses/input";
 import {
   formatPackQty,
   formatQty,
+  guessStockKind,
+  splitBill,
   STOCK_BILL_STATUS_LABELS,
   STOCK_ENTRY_LABELS,
   STOCK_ITEM_NAME_MAX,
@@ -63,25 +71,30 @@ import {
 } from "@hostel/shared/expenses/stock";
 
 import type { StockEntryRow, StockHome, StockItemRow, StockReport, StockUsage, StockUsageRange } from "@/lib/stock/stock.types";
-import type { StockReportRange } from "@/lib/stock/stock.validation";
+import { STOCK_EXPENSE_CATEGORIES, type StockReportRange } from "@/lib/stock/stock.validation";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
 import { MoreMenu } from "./hostel-admin-page-ui";
 import { MetricCard, PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
 
 /**
- * Stock on the web (docs/INVENTORY_PLAN.md) — the owner's desk view of the
- * app's Stock screen. Same API, so a warden here sees only their own building.
+ * Inventory on the web (docs/INVENTORY_PLAN.md) — the owner's desk view of the
+ * app's Inventory screen. Same API, so a warden here sees only their own building.
  *
- * Every movement — Bought, Used, Wasted, Send, Count, Opening — shares one
- * dialog: pick the building, write a number beside each item that moved, save.
- * A Bought is a bill: supplier, prices, what was paid; the rest is owed to the
- * supplier and shows under Suppliers. Dates are Bikram Sambat.
+ * What needs a click (counts to approve, goods arriving) sits on top; the rest
+ * is one tab each: Items, Activity, Suppliers, Used, Reports.
+ *
+ * Every movement — Buy, Use, Waste, Send, Count, Opening — shares one dialog:
+ * find an item, write how much, save. A Buy is a bill: item prices are
+ * optional, the bill total is what counts, and whatever was not paid is owed to
+ * the supplier. Dates are Bikram Sambat.
  */
 
 const ENDPOINT = "/api/v1/hostel-admin/stock";
 
-const KIND_LABEL: Record<StockEntryKind, string> = STOCK_ENTRY_LABELS;
+const KIND_LABEL: Record<StockEntryKind, string> = { ...STOCK_ENTRY_LABELS, BUY: "Buy" };
+
+const field = "h-9 w-full rounded-md border border-border bg-background px-3 text-sm";
 
 function errorText(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -93,6 +106,19 @@ function newRequestId() {
 
 function placeName(home: StockHome, id: string | null) {
   return home.places.find((place) => place.id === id)?.name ?? "Hostel";
+}
+
+function categoryLabel(category: string) {
+  return EXPENSE_CATEGORY_LABELS[category as ExpenseCategoryKey] ?? "Other";
+}
+
+/** `null` blank, `false` not whole rupees, else the number. */
+function readRupees(text: string): number | false | null {
+  if (!text.trim()) return null;
+
+  const value = parseAmountInput(text);
+
+  return value === null ? false : value;
 }
 
 function summary(entry: StockEntryRow) {
@@ -113,15 +139,15 @@ function summary(entry: StockEntryRow) {
 
 function entryTitle(entry: StockEntryRow) {
   if (entry.kind === "SEND") return `${entry.hostelName} → ${entry.toHostelName ?? ""}`;
-  if (entry.kind === "BUY" && entry.supplier) {
-    return `Bought · ${entry.supplier}${entry.bill?.billNo ? ` · bill ${entry.bill.billNo}` : ""}`;
+  if (entry.kind === "BUY") {
+    return `Bought${entry.supplier ? ` · ${entry.supplier}` : ""}${entry.bill?.billNo ? ` · bill ${entry.bill.billNo}` : ""}`;
   }
   if (entry.kind === "USE" && entry.useFor) return `Used · ${STOCK_USE_FOR_LABELS[entry.useFor]} · ${entry.hostelName}`;
   if (entry.kind === "WASTE" && entry.wasteReason) {
     return `Wasted · ${STOCK_WASTE_LABELS[entry.wasteReason]} · ${entry.hostelName}`;
   }
 
-  return `${KIND_LABEL[entry.kind]} · ${entry.hostelName}`;
+  return `${STOCK_ENTRY_LABELS[entry.kind]} · ${entry.hostelName}`;
 }
 
 /** The items table as a CSV or a PDF, in the screen's period. */
@@ -131,7 +157,7 @@ function exportStock(home: StockHome, format: TableFormat) {
 
   void downloadTable(
     format,
-    `stock-${home.period}`,
+    `inventory-${home.period}`,
     [
       { key: "name", label: "Item" },
       { key: "category", label: "Category" },
@@ -151,7 +177,7 @@ function exportStock(home: StockHome, format: TableFormat) {
       .map((item) => ({
         adjusted: sumOf(item, (at) => at.adjusted),
         avgCost: item.avgCost ?? "",
-        category: item.category,
+        category: categoryLabel(item.category),
         closing: sumOf(item, (at) => at.closing),
         in: sumOf(item, (at) => at.in),
         name: item.name,
@@ -162,7 +188,7 @@ function exportStock(home: StockHome, format: TableFormat) {
         value: item.value ?? "",
         wasted: sumOf(item, (at) => at.wasted),
       })),
-    { period: home.period, title: "Stock" },
+    { period: home.period, title: "Inventory" },
   );
 }
 
@@ -193,18 +219,72 @@ function StatusPill({ entry }: { entry: StockEntryRow }) {
   return label ? <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", tone)}>{label}</span> : null;
 }
 
+/** A small "why" box under a row, for Cancel and Turn down. */
+function ReasonBox({
+  action,
+  onBack,
+  onConfirm,
+  placeholder,
+}: {
+  action: string;
+  onBack: () => void;
+  onConfirm: (reason: string) => Promise<void>;
+  placeholder: string;
+}) {
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <form
+      className="flex flex-wrap items-center gap-2"
+      onSubmit={async (event) => {
+        event.preventDefault();
+
+        if (reason.trim().length < 3) {
+          toast.error("Write why — a few words.");
+          return;
+        }
+
+        setBusy(true);
+
+        try {
+          await onConfirm(reason.trim());
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <input
+        autoFocus
+        className={cn(field, "min-w-56 flex-1")}
+        maxLength={300}
+        onChange={(event) => setReason(event.target.value)}
+        placeholder={placeholder}
+        value={reason}
+      />
+      <Button disabled={busy} size="sm" type="submit" variant="destructive">
+        {action}
+      </Button>
+      <Button onClick={onBack} size="sm" type="button" variant="ghost">
+        Back
+      </Button>
+    </form>
+  );
+}
+
 export const HostelAdminStockPageContent = memo(function HostelAdminStockPageContent() {
   const [period, setPeriod] = useState<string | null>(null);
   const url = period ? `${ENDPOINT}?period=${period}` : ENDPOINT;
-  const resource = usePortalResource<StockHome>(url, { errorMessage: "Could not load stock." });
+  const resource = usePortalResource<StockHome>(url, { errorMessage: "Could not load the inventory." });
   const home = resource.data ?? null;
 
   const [entryMode, setEntryMode] = useState<StockEntryKind | null>(null);
   const [itemDialog, setItemDialog] = useState<StockItemRow | "new" | null>(null);
   const [receiving, setReceiving] = useState<StockEntryRow | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const [message, setMessage] = useState("");
+  const [tab, setTab] = useState("items");
+  const [query, setQuery] = useState("");
+  const [lowOnly, setLowOnly] = useState(false);
 
   const atCurrent = !home || home.period === home.currentPeriod;
   const step = (delta: number) => {
@@ -218,6 +298,12 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
   const items = useMemo(() => (home?.items ?? []).filter((item) => item.active), [home]);
   const places = useMemo(() => (home?.places ?? []).filter((place) => place.mine), [home]);
   const low = items.filter((item) => item.at.some((at) => at.low)).length;
+  const typed = query.trim().toLowerCase();
+  const shownItems = items.filter(
+    (item) =>
+      (!lowOnly || item.at.some((at) => at.low)) &&
+      (!typed || item.name.toLowerCase().includes(typed) || categoryLabel(item.category).toLowerCase().includes(typed)),
+  );
   const days = useMemo(() => {
     const map = new Map<string, StockEntryRow[]>();
 
@@ -233,30 +319,21 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
   const approve = async (id: string) => {
     try {
       await browserApi(`${ENDPOINT}/entries/${id}/approve`, { body: "{}", method: "POST" });
-      setMessage("Count approved. The book now matches the shelf.");
+      toast.success("Count approved. The book now matches the shelf.");
       await refresh();
     } catch (error) {
-      setMessage(errorText(error, "Could not approve it."));
+      toast.error(errorText(error, "Could not approve it."));
     }
   };
 
-  const cancel = async (id: string) => {
-    if (cancelReason.trim().length < 3) {
-      setMessage("Write why you are cancelling it — a few words.");
-      return;
-    }
-
+  const cancel = async (id: string, reason: string) => {
     try {
-      await browserApi(`${ENDPOINT}/entries/${id}/cancel`, {
-        body: JSON.stringify({ reason: cancelReason.trim() }),
-        method: "POST",
-      });
+      await browserApi(`${ENDPOINT}/entries/${id}/cancel`, { body: JSON.stringify({ reason }), method: "POST" });
       setCancelId(null);
-      setCancelReason("");
-      setMessage("Cancelled.");
+      toast.success("Cancelled. It stays in Activity, crossed out.");
       await refresh();
     } catch (error) {
-      setMessage(errorText(error, "Could not cancel it."));
+      toast.error(errorText(error, "Could not cancel it."));
     }
   };
 
@@ -278,19 +355,19 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {monthSwitcher}
-            <Button className="h-9 rounded-xl" disabled={!home} onClick={() => setEntryMode("BUY")} variant="outline">
-              <PackagePlus />
-              Bought
+            <Button className="h-9 rounded-xl" disabled={!home} onClick={() => setEntryMode("USE")} variant="outline">
+              <UtensilsCrossed />
+              Use
             </Button>
             <Button
               className="h-9 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90"
               disabled={!home}
-              onClick={() => setEntryMode("USE")}
+              onClick={() => setEntryMode("BUY")}
             >
-              <UtensilsCrossed />
-              Use
+              <PackagePlus />
+              Buy
             </Button>
-            <MoreMenu label="More stock actions">
+            <MoreMenu label="More inventory actions">
               <DropdownMenuItem disabled={!home} onSelect={() => setEntryMode("WASTE")}>
                 <Trash2 className="size-4" />
                 Waste
@@ -305,6 +382,12 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                 <ClipboardList className="size-4" />
                 Stock check
               </DropdownMenuItem>
+              {home?.owner ? (
+                <DropdownMenuItem onSelect={() => setEntryMode("OPENING")}>
+                  <Archive className="size-4" />
+                  Opening stock
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled={!home} onSelect={() => setItemDialog("new")}>
                 <Plus className="size-4" />
@@ -321,12 +404,10 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
             </MoreMenu>
           </div>
         }
-        breadcrumb={["Operations", "Stock"]}
-        description="What is left, what it is worth, and what you owe."
-        title="Stock"
+        breadcrumb={["Operations", "Inventory"]}
+        description="What is in the store, what it is worth, and what you owe."
+        title="Inventory"
       />
-
-      {message ? <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-[13.5px]">{message}</div> : null}
 
       {resource.state === "error" ? (
         <SectionCard>
@@ -338,7 +419,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
 
       {home ? (
         <>
-          <div className={cn("grid gap-3", home.money ? "sm:grid-cols-4" : "sm:grid-cols-2")}>
+          <div className={cn("grid gap-3", home.money ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2")}>
             {home.money ? (
               <>
                 <MetricCard
@@ -349,17 +430,18 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                   value={currency(home.summary.stockValue ?? 0)}
                 />
                 <MetricCard
+                  icon={Store}
+                  label="You owe suppliers"
+                  note={(home.summary.dueTotal ?? 0) > 0 ? "See Suppliers to pay" : "Nothing owed"}
+                  tone={(home.summary.dueTotal ?? 0) > 0 ? "amber" : "green"}
+                  value={currency(home.summary.dueTotal ?? 0)}
+                />
+                <MetricCard
                   icon={Users}
                   label="Per student per day"
                   note={`Used, wasted and missing · ${home.summary.residents} students`}
                   tone="teal"
                   value={home.summary.costPerResidentDay === null ? "—" : currency(home.summary.costPerResidentDay)}
-                />
-                <MetricCard
-                  icon={Store}
-                  label="You owe suppliers"
-                  tone={(home.summary.dueTotal ?? 0) > 0 ? "amber" : "green"}
-                  value={currency(home.summary.dueTotal ?? 0)}
                 />
               </>
             ) : (
@@ -371,7 +453,13 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                 value={home.waiting.length + home.sentWaiting.length}
               />
             )}
-            <MetricCard icon={AlertTriangle} label="Running low" tone={low > 0 ? "amber" : "green"} value={low} />
+            <MetricCard
+              icon={AlertTriangle}
+              label="Running low"
+              note={low > 0 ? "Buy these soon" : "Nothing low"}
+              tone={low > 0 ? "amber" : "green"}
+              value={low}
+            />
           </div>
 
           {home.toApprove.length > 0 ? (
@@ -395,20 +483,12 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                       </Button>
                     </div>
                     {cancelId === entry.id ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <input
-                          className="h-9 min-w-56 flex-1 rounded-md border border-border bg-background px-3 text-sm"
-                          onChange={(event) => setCancelReason(event.target.value)}
-                          placeholder="Why turn it down?"
-                          value={cancelReason}
-                        />
-                        <Button onClick={() => void cancel(entry.id)} size="sm" variant="destructive">
-                          Turn down
-                        </Button>
-                        <Button onClick={() => setCancelId(null)} size="sm" variant="ghost">
-                          Back
-                        </Button>
-                      </div>
+                      <ReasonBox
+                        action="Turn down"
+                        onBack={() => setCancelId(null)}
+                        onConfirm={(reason) => cancel(entry.id, reason)}
+                        placeholder="Why turn it down?"
+                      />
                     ) : null}
                   </li>
                 ))}
@@ -417,7 +497,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
           ) : null}
 
           {home.waiting.length > 0 ? (
-            <SectionCard description="Check it came, then tap Got it." icon={Truck} title="Coming to you">
+            <SectionCard description="Check it came, then click Got it." icon={Truck} title="Coming to you">
               <ul className="divide-y divide-border">
                 {home.waiting.map((entry) => (
                   <li className="flex items-center gap-3 py-3" key={entry.id}>
@@ -434,157 +514,202 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
             </SectionCard>
           ) : null}
 
-          {/* Store items show what is left; daily items show what came in this month. */}
-          <SectionCard icon={Package} title="Items">
-            {items.length === 0 ? (
-              <EmptyState label="No items yet. Add Rice, Daal, Vegetables…" />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="py-2 pr-3 font-medium">Item</th>
-                      {places.map((place) => (
-                        <th className="py-2 pr-3 text-right font-medium" key={place.id}>
-                          {place.name}
-                        </th>
-                      ))}
-                      <th className="py-2 pr-3 text-right font-medium">Used this month</th>
-                      {home.money ? <th className="py-2 text-right font-medium">Value</th> : null}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {items.map((item) => (
-                      <tr
-                        className={cn("align-top", home.owner && "cursor-pointer hover:bg-muted/40")}
-                        key={item.id}
-                        onClick={home.owner ? () => setItemDialog(item) : undefined}
-                      >
-                        <td className="py-2.5 pr-3">
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.kind === "DAILY" ? "Daily" : "Store"}
-                            {item.avgCost !== null ? ` · ${currency(item.avgCost)}/${STOCK_UNIT_LABELS[item.unit].one}` : ""}
-                          </p>
-                        </td>
-                        {places.map((place) => {
-                          const at = item.at.find((row) => row.hostelId === place.id);
+          <Tabs onValueChange={setTab} value={tab}>
+            <TabsList className="flex-wrap" variant="line">
+              <TabsTrigger value="items">Items · {items.length}</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
+              <TabsTrigger value="used">Used</TabsTrigger>
+              {home.money ? <TabsTrigger value="reports">Reports</TabsTrigger> : null}
+            </TabsList>
 
-                          if (!at) return <td key={place.id} />;
-
-                          return (
-                            <td className="py-2.5 pr-3 text-right" key={place.id}>
-                              <p className={cn("font-semibold", at.low && "text-amber-600 dark:text-amber-400")}>
-                                {formatQty(item.kind === "DAILY" ? at.in : at.left, item.unit)}
-                              </p>
+            {/* Store items show what is left; daily items show what came in this month. */}
+            <TabsContent value="items">
+              <SectionCard
+                actions={
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="relative">
+                      <span className="sr-only">Find an item</span>
+                      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        className={cn(field, "w-56 pl-8")}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder="Find an item"
+                        value={query}
+                      />
+                    </label>
+                    <Button
+                      aria-pressed={lowOnly}
+                      onClick={() => setLowOnly((value) => !value)}
+                      size="sm"
+                      variant={lowOnly ? "default" : "outline"}
+                    >
+                      Running low
+                    </Button>
+                  </div>
+                }
+                icon={Package}
+                title="Items"
+              >
+                {items.length === 0 ? (
+                  <EmptyState label="No items yet. Click Buy when goods come — new names become items as you type them." />
+                ) : shownItems.length === 0 ? (
+                  <EmptyState label={lowOnly ? "Nothing is running low." : "Nothing called that."} />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="py-2 pr-3 font-medium">Item</th>
+                          {places.map((place) => (
+                            <th className="py-2 pr-3 text-right font-medium" key={place.id}>
+                              {place.name}
+                            </th>
+                          ))}
+                          <th className="py-2 pr-3 text-right font-medium">Used this month</th>
+                          {home.money ? <th className="py-2 text-right font-medium">Value</th> : null}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {shownItems.map((item) => (
+                          <tr
+                            className={cn("align-top", home.owner && "cursor-pointer hover:bg-muted/40")}
+                            key={item.id}
+                            onClick={home.owner ? () => setItemDialog(item) : undefined}
+                          >
+                            <td className="py-2.5 pr-3">
+                              <p className="font-medium">{item.name}</p>
                               <p className="text-xs text-muted-foreground">
-                                {item.kind === "DAILY"
-                                  ? "came in"
-                                  : at.onWay > 0
-                                    ? `+${formatQty(at.onWay, item.unit)} on the way`
-                                    : at.countedAt
-                                      ? `counted ${formatBsDate(new Date(at.countedAt))}`
-                                      : "not counted"}
+                                {item.kind === "DAILY" ? "Daily" : "Store"} · {categoryLabel(item.category)}
+                                {item.avgCost !== null ? ` · ${currency(item.avgCost)}/${STOCK_UNIT_LABELS[item.unit].one}` : ""}
                               </p>
                             </td>
-                          );
-                        })}
-                        <td className="py-2.5 pr-3 text-right">
-                          {formatQty(item.at.reduce((sum, at) => sum + at.used, 0), item.unit)}
-                          {item.at.some((at) => at.wasted > 0) ? (
-                            <p className="text-xs text-destructive">
-                              {formatQty(item.at.reduce((sum, at) => sum + at.wasted, 0), item.unit)} wasted
-                            </p>
-                          ) : null}
-                          {item.at.some((at) => at.short > 0) ? (
-                            <p className="text-xs text-destructive">
-                              {formatQty(item.at.reduce((sum, at) => sum + at.short, 0), item.unit)} short
-                            </p>
-                          ) : null}
-                        </td>
-                        {home.money ? (
-                          <td className="py-2.5 text-right font-medium">{item.value ? currency(item.value) : "—"}</td>
-                        ) : null}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </SectionCard>
+                            {places.map((place) => {
+                              const at = item.at.find((row) => row.hostelId === place.id);
 
-          <SectionCard title="This month">
-            {days.length === 0 ? (
-              <EmptyState label={atCurrent ? "Nothing yet. Click Bought when goods come in." : "Nothing was entered in this month."} />
-            ) : (
-              <div className="space-y-5">
-                {days.map(([day, entries]) => (
-                  <div className="space-y-2" key={day}>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {formatBsDate(new Date(`${day}T00:00:00Z`))}
-                    </p>
-                    <ul className="divide-y divide-border rounded-xl border border-border">
-                      {entries.map((entry) => (
-                        <li className="space-y-2 px-4 py-3" key={entry.id}>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <div className="min-w-0 flex-1">
-                              <p className={cn("font-medium", entry.status === "CANCELLED" && "line-through opacity-60")}>
-                                {entryTitle(entry)}
-                              </p>
-                              <p className="text-sm text-muted-foreground">{summary(entry)}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {entry.mine ? "You" : entry.recordedByName}
-                                {entry.receivedByName ? ` · Got it: ${entry.receivedByName}` : ""}
-                                {shortText(entry) ? ` · ${shortText(entry)}` : ""}
-                                {entry.cancelReason ? ` · ${entry.cancelReason}` : ""}
-                              </p>
-                            </div>
-                            <StatusPill entry={entry} />
-                            {entry.bill?.total ? <span className="font-semibold">{currency(entry.bill.total)}</span> : null}
-                            {entry.canCancel && cancelId !== entry.id ? (
-                              <Button onClick={() => setCancelId(entry.id)} size="sm" variant="ghost">
-                                Cancel
-                              </Button>
+                              if (!at) return <td key={place.id} />;
+
+                              return (
+                                <td className="py-2.5 pr-3 text-right" key={place.id}>
+                                  <p className={cn("font-semibold tabular-nums", at.low && "text-amber-600 dark:text-amber-400")}>
+                                    {formatQty(item.kind === "DAILY" ? at.in : at.left, item.unit)}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {item.kind === "DAILY"
+                                      ? "came in"
+                                      : at.low
+                                        ? "running low"
+                                        : at.onWay > 0
+                                          ? `+${formatQty(at.onWay, item.unit)} on the way`
+                                          : at.countedAt
+                                            ? `counted ${formatBsDate(new Date(at.countedAt))}`
+                                            : "not counted"}
+                                  </p>
+                                </td>
+                              );
+                            })}
+                            <td className="py-2.5 pr-3 text-right tabular-nums">
+                              {formatQty(item.at.reduce((sum, at) => sum + at.used, 0), item.unit)}
+                              {item.at.some((at) => at.wasted > 0) ? (
+                                <p className="text-xs text-destructive">
+                                  {formatQty(item.at.reduce((sum, at) => sum + at.wasted, 0), item.unit)} wasted
+                                </p>
+                              ) : null}
+                              {item.at.some((at) => at.short > 0) ? (
+                                <p className="text-xs text-destructive">
+                                  {formatQty(item.at.reduce((sum, at) => sum + at.short, 0), item.unit)} short
+                                </p>
+                              ) : null}
+                            </td>
+                            {home.money ? (
+                              <td className="py-2.5 text-right font-medium tabular-nums">{item.value ? currency(item.value) : "—"}</td>
                             ) : null}
-                          </div>
-                          {cancelId === entry.id ? (
-                            <div className="flex flex-wrap items-center gap-2">
-                              <input
-                                className="h-9 min-w-56 flex-1 rounded-md border border-border bg-background px-3 text-sm"
-                                onChange={(event) => setCancelReason(event.target.value)}
-                                placeholder="Why cancel it?"
-                                value={cancelReason}
-                              />
-                              <Button onClick={() => void cancel(entry.id)} size="sm" variant="destructive">
-                                Cancel entry
-                              </Button>
-                              <Button onClick={() => setCancelId(null)} size="sm" variant="ghost">
-                                Back
-                              </Button>
-                            </div>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
+                )}
+              </SectionCard>
+            </TabsContent>
 
-          <UsageCard />
+            <TabsContent value="activity">
+              <SectionCard title={formatBsPeriod(home.period)}>
+                {days.length === 0 ? (
+                  <EmptyState label={atCurrent ? "Nothing yet. Click Buy when goods come in." : "Nothing was entered in this month."} />
+                ) : (
+                  <div className="space-y-5">
+                    {days.map(([day, entries]) => (
+                      <div className="space-y-2" key={day}>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {formatBsDate(new Date(`${day}T00:00:00Z`))}
+                        </p>
+                        <ul className="divide-y divide-border rounded-xl border border-border">
+                          {entries.map((entry) => (
+                            <li className="space-y-2 px-4 py-3" key={entry.id}>
+                              <div className="flex flex-wrap items-center gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <p className={cn("font-medium", entry.status === "CANCELLED" && "line-through opacity-60")}>
+                                    {entryTitle(entry)}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">{summary(entry)}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {entry.mine ? "You" : entry.recordedByName}
+                                    {entry.receivedByName ? ` · Got it: ${entry.receivedByName}` : ""}
+                                    {shortText(entry) ? ` · ${shortText(entry)}` : ""}
+                                    {entry.bill?.due ? ` · ${currency(entry.bill.due)} owed` : ""}
+                                    {entry.cancelReason ? ` · ${entry.cancelReason}` : ""}
+                                  </p>
+                                </div>
+                                <StatusPill entry={entry} />
+                                {entry.bill?.total ? <span className="font-semibold tabular-nums">{currency(entry.bill.total)}</span> : null}
+                                {entry.canCancel && cancelId !== entry.id ? (
+                                  <Button onClick={() => setCancelId(entry.id)} size="sm" variant="ghost">
+                                    Cancel
+                                  </Button>
+                                ) : null}
+                              </div>
+                              {cancelId === entry.id ? (
+                                <ReasonBox
+                                  action="Cancel entry"
+                                  onBack={() => setCancelId(null)}
+                                  onConfirm={(reason) => cancel(entry.id, reason)}
+                                  placeholder="Why cancel it?"
+                                />
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </SectionCard>
+            </TabsContent>
 
-          {home.money ? <ReportCard /> : null}
+            <TabsContent value="suppliers">
+              <SuppliersCard home={home} onChanged={refresh} onMessage={(text) => toast.success(text)} />
+            </TabsContent>
 
-          <SuppliersCard home={home} onChanged={refresh} onMessage={setMessage} />
+            <TabsContent value="used">
+              <UsageCard />
+            </TabsContent>
+
+            {home.money ? (
+              <TabsContent value="reports">
+                <ReportCard />
+              </TabsContent>
+            ) : null}
+          </Tabs>
 
           <EntryDialog
             home={home}
             mode={entryMode}
             onClose={() => setEntryMode(null)}
+            onItemAdded={refresh}
             onSaved={async (text) => {
               setEntryMode(null);
-              setMessage(text);
+              toast.success(text);
               await refresh();
             }}
           />
@@ -593,7 +718,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
             onClose={() => setItemDialog(null)}
             onSaved={async (text) => {
               setItemDialog(null);
-              setMessage(text);
+              toast.success(text);
               await refresh();
             }}
           />
@@ -602,7 +727,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
             onClose={() => setReceiving(null)}
             onSaved={async () => {
               setReceiving(null);
-              setMessage("Got it — added to your store.");
+              toast.success("Got it — added to your store.");
               await refresh();
             }}
           />
@@ -612,17 +737,21 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
   );
 });
 
-/* ----------------------------------------------------- Bought · Send · Count */
+/* ----------------------------------------------------- Buy · Use · Send · Count */
+
+type Payment = "all" | "none" | "part";
 
 function EntryDialog({
   home,
   mode,
   onClose,
+  onItemAdded,
   onSaved,
 }: {
   home: StockHome;
   mode: StockEntryKind | null;
   onClose: () => void;
+  onItemAdded: () => Promise<void>;
   onSaved: (message: string) => Promise<void>;
 }) {
   const mine = home.places.filter((place) => place.mine);
@@ -632,10 +761,13 @@ function EntryDialog({
   const [toHostelId, setToHostelId] = useState<string>("");
   const [qty, setQty] = useState<Record<string, string>>({});
   const [price, setPrice] = useState<Record<string, string>>({});
+  const [find, setFind] = useState("");
+  const [newUnit, setNewUnit] = useState<StockUnit>("KG");
+  const [adding, setAdding] = useState(false);
   const [supplierId, setSupplierId] = useState("");
   const [billNo, setBillNo] = useState("");
-  const [discountText, setDiscountText] = useState("");
-  const [taxText, setTaxText] = useState("");
+  const [totalText, setTotalText] = useState("");
+  const [payment, setPayment] = useState<Payment>("all");
   const [paidText, setPaidText] = useState("");
   const [useFor, setUseFor] = useState<StockUseFor>("KITCHEN");
   const [wasteReason, setWasteReason] = useState<StockWasteReason>("SPOILED");
@@ -661,13 +793,15 @@ function EntryDialog({
       setToHostelId(home.places.find((place) => place.id !== from)?.id ?? "");
       setQty({});
       setPrice({});
+      setFind("");
       setSupplierId("");
       setBillNo("");
-      setDiscountText("");
-      setTaxText("");
+      setTotalText("");
+      setPayment("all");
       setPaidText("");
       setUseFor("KITCHEN");
       setWasteReason("SPOILED");
+      setPaidBy("CASH");
       setBsDate(toBsDayInput(todayKey()));
       setNote("");
       setPhotoAssetId(null);
@@ -677,71 +811,142 @@ function EntryDialog({
   }
 
   const storeOnly = kind === "COUNT" || kind === "USE" || kind === "WASTE";
+  const incoming = kind === "BUY" || kind === "OPENING";
   const items = home.items.filter((item) => item.active && (!storeOnly || item.kind === "STORE"));
-  const showMoney = (kind === "BUY" || kind === "OPENING") && home.canSpend;
+  const showMoney = incoming && home.canSpend;
   const isBill = kind === "BUY" && home.canSpend;
-  const rupees = (text: string) => (text.trim() ? parseAmountInput(text) : 0);
-  const subtotal = showMoney ? items.reduce((sum, item) => sum + (rupees(price[item.id] ?? "") ?? 0), 0) : 0;
-  const discount = rupees(discountText);
-  const tax = rupees(taxText);
-  const total = Math.max(0, subtotal - (discount ?? 0) + (tax ?? 0));
-  const paid = paidText.trim() ? parseAmountInput(paidText) : total;
-  const amount = isBill && total > 0 ? Math.min(paid ?? 0, total) : 0;
+  const qtyOf = (item: StockItemRow) => {
+    const value = Number((qty[item.id] ?? "").replace(",", "."));
+
+    return (qty[item.id] ?? "").trim() && Number.isFinite(value) ? value : null;
+  };
+  const leftHere = (item: StockItemRow) => item.at.find((row) => row.hostelId === hostelId)?.left ?? 0;
+
+  /* The lines: every item with a number in its box, in the order of the list. */
+  const picked = items.filter((item) => (qty[item.id] ?? "").trim() !== "");
+  const wanted = find.trim().toLowerCase();
+  const others = items.filter((item) => !picked.includes(item) && (!wanted || item.name.toLowerCase().includes(wanted)));
+  const exact = items.some((item) => item.name.toLowerCase() === wanted) || home.items.some((item) => item.name.toLowerCase() === wanted);
+
+  /* The money: typed prices, the bill total, and what the total leaves over for the rest. */
+  const typedPrices = picked.map((item) => (showMoney ? readRupees(price[item.id] ?? "") || null : null));
+  const badPrice = showMoney && picked.some((item) => readRupees(price[item.id] ?? "") === false);
+  const itemsSum = typedPrices.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+  const unpriced = picked.filter((_, index) => typedPrices[index] === null);
+  const billTyped = isBill ? readRupees(totalText) : null;
+  const billTotal = typeof billTyped === "number" ? billTyped : null;
+  const weights = picked.map((item) => {
+    const count = qtyOf(item);
+
+    return item.avgCost && count ? count * item.avgCost : null;
+  });
+  const amounts = splitBill(
+    billTotal,
+    picked.map((_, index) => ({ amount: typedPrices[index]!, weight: weights[index]! })),
+  );
+  const shareOf = new Map(picked.map((item, index) => [item.id, typedPrices[index] === null ? amounts[index] : null]));
+  const total = billTotal ?? itemsSum;
+  const gap = billTotal !== null && unpriced.length === 0 ? billTotal - itemsSum : 0;
+  const pricesOver = billTotal !== null && unpriced.length > 0 && itemsSum > billTotal;
+  const paidPart = readRupees(paidText);
+  const paid = !isBill ? 0 : payment === "all" ? total : payment === "none" ? 0 : Math.min(paidPart || 0, total);
+  const due = total - paid;
+  const shared = billTotal !== null && unpriced.length > 0 && billTotal > itemsSum;
+  const totalHint = pricesOver
+    ? "Less than the item prices — check them."
+    : gap < 0
+      ? `Items add up to ${currency(itemsSum)} · ${currency(-gap)} discount`
+      : gap > 0
+        ? `Items add up to ${currency(itemsSum)} · ${currency(gap)} VAT or extra`
+        : shared
+          ? `${currency(billTotal - itemsSum)} shared by ${unpriced.map((item) => item.name).join(", ")}${
+              unpriced.length < 2 ? "" : weights.every((weight, index) => typedPrices[index] !== null || (weight ?? 0) > 0) ? " by their usual price" : " equally"
+            }`
+          : billTotal === null && itemsSum > 0
+            ? "Blank means the items' prices added up."
+            : "Type the bill total, or a price on each item — or both.";
+
   const kinds: StockEntryKind[] = [
-    "USE",
     "BUY",
+    "USE",
     "WASTE",
     ...(home.places.length > 1 ? (["SEND"] as const) : []),
     "COUNT",
     ...(home.owner ? (["OPENING"] as const) : []),
   ];
 
-  const save = async () => {
-    const lines = items
-      .filter((item) => (qty[item.id] ?? "").trim() !== "")
-      .map((item) => {
-        const count = Number((qty[item.id] ?? "").replace(",", "."));
-        const value = showMoney ? (rupees(price[item.id] ?? "") ?? 0) : 0;
+  /** A name that is not an item yet becomes one, kept in the store or used daily as its name says. */
+  const addItem = async () => {
+    const name = find.trim();
 
-        return {
-          itemId: item.id,
-          qty: count,
-          ...(value > 0 && kind === "BUY" ? { amount: value } : {}),
-          ...(value > 0 && kind === "OPENING" && count > 0 ? { rate: value / count } : {}),
-        };
+    if (!name) return;
+
+    setAdding(true);
+    setError("");
+
+    try {
+      const item = await browserApi<{ id: string }>(`${ENDPOINT}/items`, {
+        body: JSON.stringify({ kind: guessStockKind(name), name, unit: newUnit }),
+        method: "POST",
       });
+
+      await onItemAdded();
+      setQty((prev) => ({ ...prev, [item.id]: prev[item.id] ?? "1" }));
+      setFind("");
+    } catch (addError) {
+      setError(errorText(addError, "Could not add that item."));
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const save = async () => {
     const day = parseBsDayInput(bsDate);
 
-    if (lines.length === 0) return setError("Write how much of at least one item.");
-    if (lines.some((line) => !Number.isFinite(line.qty) || line.qty < 0 || (kind !== "COUNT" && line.qty === 0))) {
+    if (picked.length === 0) return setError("Write how much of at least one item.");
+    if (picked.some((item) => qtyOf(item) === null || qtyOf(item)! < 0 || (kind !== "COUNT" && qtyOf(item) === 0))) {
       return setError("Check the numbers.");
     }
     if (!day) return setError("Write the Nepali date like 2083-06-15.");
     if (kind === "SEND" && (!toHostelId || toHostelId === hostelId)) return setError("Pick where it goes.");
-    if (showMoney && items.some((item) => rupees(price[item.id] ?? "") === null)) return setError("Prices are whole rupees.");
-    if (discount === null || tax === null || paid === null) return setError("Check the discount, VAT and paid amounts.");
-    if (isBill && total > 0 && amount < total && !supplierId) return setError("Pick the supplier who is owed the rest.");
-    if (isBill && amount > 0 && home.proofRequired && !photoAssetId) return setError("Add a photo of the bill.");
+    if (badPrice || billTyped === false) return setError("Prices are whole rupees.");
+    if (pricesOver) return setError("The item prices add up to more than the bill total.");
+    if (isBill && total > 0 && payment === "part" && !paidPart) return setError("Write how much was paid.");
+    if (isBill && due > 0 && !supplierId) return setError("Pick the supplier who is owed the rest.");
+    if (isBill && paid > 0 && home.proofRequired && !photoAssetId) return setError("Add a photo of the bill.");
+
+    const lines = picked.map((item, index) => {
+      const count = qtyOf(item)!;
+      const value = showMoney ? (amounts[index] ?? 0) : 0;
+
+      return {
+        itemId: item.id,
+        qty: count,
+        ...(value > 0 && kind === "BUY" ? { amount: value } : {}),
+        ...(value > 0 && kind === "OPENING" && count > 0 ? { rate: value / count } : {}),
+      };
+    });
 
     setSaving(true);
     setError("");
 
     try {
+      // The gap goes as discount / VAT rather than as the total, so a server from before the bill total reads it the same.
       await browserApi(ENDPOINT, {
         body: JSON.stringify({
           billNo: kind === "BUY" ? billNo.trim() || undefined : undefined,
           clientRequestId: requestId,
-          discount: isBill && discount ? discount : undefined,
+          discount: isBill && gap < 0 ? -gap : undefined,
           hostelId,
           kind,
           lines,
           note: note.trim() || undefined,
           on: day,
-          paid: isBill && total > 0 ? amount : undefined,
-          paidBy: isBill && amount ? paidBy : undefined,
+          paid: isBill && total > 0 ? paid : undefined,
+          paidBy: isBill && paid > 0 ? paidBy : undefined,
           photoAssetId: kind === "BUY" ? (photoAssetId ?? undefined) : undefined,
           supplierId: kind === "BUY" && supplierId ? supplierId : undefined,
-          tax: isBill && tax ? tax : undefined,
+          tax: isBill && gap > 0 ? gap : undefined,
           toHostelId: kind === "SEND" ? toHostelId : undefined,
           useFor: kind === "USE" ? useFor : undefined,
           wasteReason: kind === "WASTE" ? wasteReason : undefined,
@@ -755,11 +960,11 @@ function EntryDialog({
             ? home.canApprove
               ? "Count saved."
               : "Count saved. If it differs from the book, the owner approves it."
-            : kind === "BUY" && total > amount
-              ? `Bill saved. ${currency(total - amount)} owed to the supplier.`
-              : kind === "BUY" && amount
+            : kind === "BUY" && due > 0
+              ? `Bill saved. ${currency(due)} owed to ${home.suppliers.find((supplier) => supplier.id === supplierId)?.name ?? "the supplier"}.`
+              : kind === "BUY" && paid > 0
                 ? "Bill saved, and the paid amount added to Expenses."
-                : `${KIND_LABEL[kind]} saved.`,
+                : `${STOCK_ENTRY_LABELS[kind]} saved.`,
       );
     } catch (saveError) {
       setError(errorText(saveError, "Not saved. Try again."));
@@ -768,16 +973,57 @@ function EntryDialog({
     }
   };
 
-  const select = "h-9 rounded-md border border-border bg-background px-3 text-sm";
+  const row = (item: StockItemRow) => {
+    const share = shareOf.get(item.id) ?? null;
+    const count = qtyOf(item);
+    const money = readRupees(price[item.id] ?? "") || share;
+    const at = item.at.find((place) => place.hostelId === hostelId);
+
+    return (
+      <li className="flex items-center gap-3 px-3 py-2" key={item.id}>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{item.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {item.kind === "STORE" && at && !incoming
+              ? `${kind === "COUNT" ? "Book says" : "Left"} ${formatQty(leftHere(item), item.unit)}`
+              : showMoney && money && count
+                ? `${share !== null && !(price[item.id] ?? "").trim() ? "≈ " : ""}${currency(Math.round((money / count) * 100) / 100)}/${STOCK_UNIT_LABELS[item.unit].one}`
+                : item.kind === "DAILY"
+                  ? "Daily"
+                  : "Store"}
+          </p>
+        </div>
+        <input
+          aria-label={`${item.name} quantity`}
+          className="h-9 w-24 rounded-md border border-border bg-background px-3 text-right text-sm font-semibold tabular-nums"
+          inputMode="decimal"
+          onChange={(event) => setQty((prev) => ({ ...prev, [item.id]: event.target.value }))}
+          placeholder="0"
+          value={qty[item.id] ?? ""}
+        />
+        <span className="w-14 text-xs text-muted-foreground">{STOCK_UNIT_LABELS[item.unit].many}</span>
+        {showMoney ? (
+          <input
+            aria-label={`${item.name} ${kind === "OPENING" ? "value" : "amount"}`}
+            className="h-9 w-28 rounded-md border border-border bg-background px-3 text-right text-sm tabular-nums"
+            inputMode="numeric"
+            onChange={(event) => setPrice((prev) => ({ ...prev, [item.id]: event.target.value }))}
+            placeholder={share !== null ? String(share) : kind === "OPENING" ? "Value Rs" : "Rs"}
+            value={price[item.id] ?? ""}
+          />
+        ) : null}
+      </li>
+    );
+  };
 
   return (
     <Dialog onOpenChange={(next) => (next ? undefined : onClose())} open={mode !== null}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{KIND_LABEL[kind]}</DialogTitle>
           <DialogDescription>
             {kind === "BUY"
-              ? "A bill: goods that came in, what they cost, and what was paid."
+              ? "Goods that came in. Item prices are optional — the bill total is what counts."
               : kind === "USE"
                 ? "Goods taken out of the store — for the kitchen, staff or a student."
                 : kind === "WASTE"
@@ -791,11 +1037,11 @@ function EntryDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+          <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-muted p-1">
             {kinds.map((option) => (
               <button
                 className={cn(
-                  "flex-1 rounded-md px-3 py-1.5 text-sm font-medium",
+                  "flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium",
                   kind === option ? "bg-background shadow-sm" : "text-muted-foreground",
                 )}
                 key={option}
@@ -809,10 +1055,8 @@ function EntryDialog({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm">
-              <span className="font-medium">
-                {kind === "BUY" || kind === "OPENING" ? "Where did it come?" : kind === "SEND" ? "From" : "Where?"}
-              </span>
-              <select className={cn(select, "w-full")} onChange={(event) => setHostelId(event.target.value)} value={hostelId}>
+              <span className="font-medium">{incoming ? "Where did it come?" : kind === "SEND" ? "From" : "Where?"}</span>
+              <select className={field} onChange={(event) => setHostelId(event.target.value)} value={hostelId}>
                 {mine.map((place) => (
                   <option key={place.id} value={place.id}>
                     {place.name}
@@ -823,7 +1067,7 @@ function EntryDialog({
             {kind === "SEND" ? (
               <label className="space-y-1 text-sm">
                 <span className="font-medium">To</span>
-                <select className={cn(select, "w-full")} onChange={(event) => setToHostelId(event.target.value)} value={toHostelId}>
+                <select className={field} onChange={(event) => setToHostelId(event.target.value)} value={toHostelId}>
                   {home.places
                     .filter((place) => place.id !== hostelId)
                     .map((place) => (
@@ -833,156 +1077,201 @@ function EntryDialog({
                     ))}
                 </select>
               </label>
-            ) : kind === "USE" || kind === "WASTE" ? (
+            ) : kind === "USE" ? (
               <label className="space-y-1 text-sm">
-                <span className="font-medium">{kind === "USE" ? "For" : "Why?"}</span>
-                {kind === "USE" ? (
-                  <select className={cn(select, "w-full")} onChange={(event) => setUseFor(event.target.value as StockUseFor)} value={useFor}>
-                    {STOCK_USE_FOR.map((value) => (
-                      <option key={value} value={value}>
-                        {STOCK_USE_FOR_LABELS[value]}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <select
-                    className={cn(select, "w-full")}
-                    onChange={(event) => setWasteReason(event.target.value as StockWasteReason)}
-                    value={wasteReason}
-                  >
-                    {STOCK_WASTE_REASONS.map((value) => (
-                      <option key={value} value={value}>
-                        {STOCK_WASTE_LABELS[value]}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <span className="font-medium">For</span>
+                <select className={field} onChange={(event) => setUseFor(event.target.value as StockUseFor)} value={useFor}>
+                  {STOCK_USE_FOR.map((value) => (
+                    <option key={value} value={value}>
+                      {STOCK_USE_FOR_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : kind === "WASTE" ? (
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Why?</span>
+                <select
+                  className={field}
+                  onChange={(event) => setWasteReason(event.target.value as StockWasteReason)}
+                  value={wasteReason}
+                >
+                  {STOCK_WASTE_REASONS.map((value) => (
+                    <option key={value} value={value}>
+                      {STOCK_WASTE_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
               </label>
             ) : kind === "BUY" ? (
               <label className="space-y-1 text-sm">
                 <span className="font-medium">Supplier</span>
-                <select className={cn(select, "w-full")} onChange={(event) => setSupplierId(event.target.value)} value={supplierId}>
+                <select className={field} onChange={(event) => setSupplierId(event.target.value)} value={supplierId}>
                   <option value="">No supplier</option>
                   {home.suppliers
                     .filter((supplier) => supplier.active)
                     .map((supplier) => (
                       <option key={supplier.id} value={supplier.id}>
                         {supplier.name}
+                        {supplier.due ? ` · ${currency(supplier.due)} owed` : ""}
                       </option>
                     ))}
                 </select>
               </label>
             ) : null}
+            {kind === "BUY" ? (
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Bill no. (optional)</span>
+                <input className={field} maxLength={40} onChange={(event) => setBillNo(event.target.value)} value={billNo} />
+              </label>
+            ) : null}
+            <label className="space-y-1 text-sm">
+              <span className="font-medium">Nepali date</span>
+              <input className={field} onChange={(event) => setBsDate(event.target.value)} placeholder="2083-06-15" value={bsDate} />
+            </label>
           </div>
 
-          {items.length === 0 ? (
-            <EmptyState label={kind === "COUNT" ? "No store items to count." : "Add an item first."} />
-          ) : (
-            <ul className="divide-y divide-border rounded-xl border border-border">
-              {items.map((item) => {
-                const at = item.at.find((row) => row.hostelId === hostelId);
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="relative flex-1">
+                <span className="sr-only">Find an item</span>
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  className={cn(field, "pl-8")}
+                  onChange={(event) => setFind(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && others.length === 1) {
+                      event.preventDefault();
+                      setQty((prev) => ({ ...prev, [others[0]!.id]: prev[others[0]!.id] || "1" }));
+                      setFind("");
+                    }
+                  }}
+                  placeholder={incoming ? "Find an item, or type a new one" : "Find an item"}
+                  value={find}
+                />
+              </label>
+              <span className="whitespace-nowrap text-xs text-muted-foreground">
+                {picked.length} item{picked.length === 1 ? "" : "s"}
+              </span>
+            </div>
 
-                return (
-                  <li className="flex items-center gap-3 px-3 py-2" key={item.id}>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.kind === "STORE" && at && kind !== "BUY"
-                          ? `${kind === "COUNT" ? "Book says" : "Left"} ${formatQty(at.left, item.unit)}`
-                          : item.kind === "DAILY"
-                            ? "Daily"
-                            : "Store"}
-                      </p>
-                    </div>
-                    <input
-                      aria-label={`${item.name} quantity`}
-                      className="h-9 w-24 rounded-md border border-border bg-background px-3 text-right text-sm font-semibold"
-                      inputMode="decimal"
-                      onChange={(event) => setQty((prev) => ({ ...prev, [item.id]: event.target.value }))}
-                      placeholder="0"
-                      value={qty[item.id] ?? ""}
-                    />
-                    <span className="w-14 text-xs text-muted-foreground">{STOCK_UNIT_LABELS[item.unit].many}</span>
-                    {showMoney ? (
-                      <input
-                        aria-label={`${item.name} ${kind === "OPENING" ? "value" : "price"}`}
-                        className="h-9 w-28 rounded-md border border-border bg-background px-3 text-right text-sm"
-                        inputMode="numeric"
-                        onChange={(event) => setPrice((prev) => ({ ...prev, [item.id]: event.target.value }))}
-                        placeholder={kind === "OPENING" ? "Value Rs" : "Price Rs"}
-                        value={price[item.id] ?? ""}
-                      />
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+            {incoming && wanted && !exact ? (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-sm">
+                <span className="min-w-0 flex-1">
+                  Add <span className="font-semibold">{find.trim()}</span> as a new {guessStockKind(find) === "DAILY" ? "daily" : "store"} item, counted in
+                </span>
+                <select
+                  aria-label="Counted in"
+                  className="h-8 rounded-md border border-border bg-background px-2 text-sm"
+                  onChange={(event) => setNewUnit(event.target.value as StockUnit)}
+                  value={newUnit}
+                >
+                  {STOCK_UNITS.map((value) => (
+                    <option key={value} value={value}>
+                      {STOCK_UNIT_LABELS[value].many}
+                    </option>
+                  ))}
+                </select>
+                <Button disabled={adding || find.trim().length > STOCK_ITEM_NAME_MAX} onClick={() => void addItem()} size="sm" type="button">
+                  {adding ? "Adding…" : "Add"}
+                </Button>
+              </div>
+            ) : null}
 
-          {kind === "BUY" ? (
-            <div className="space-y-3 rounded-xl border border-border p-3">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <label className="space-y-1 text-sm">
-                  <span className="font-medium">Bill no.</span>
-                  <input
-                    className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                    maxLength={40}
-                    onChange={(event) => setBillNo(event.target.value)}
-                    value={billNo}
-                  />
-                </label>
-                {isBill ? (
-                  <>
-                    <label className="space-y-1 text-sm">
-                      <span className="font-medium">Discount</span>
-                      <input
-                        className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        inputMode="numeric"
-                        onChange={(event) => setDiscountText(event.target.value)}
-                        placeholder="Rs 0"
-                        value={discountText}
-                      />
-                    </label>
-                    <label className="space-y-1 text-sm">
-                      <span className="font-medium">VAT / tax</span>
-                      <input
-                        className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        inputMode="numeric"
-                        onChange={(event) => setTaxText(event.target.value)}
-                        placeholder="Rs 0"
-                        value={taxText}
-                      />
-                    </label>
-                  </>
+            {items.length === 0 && !incoming ? (
+              <EmptyState label={kind === "COUNT" ? "No store items to count." : "Add an item first."} />
+            ) : (
+              <div className="max-h-[42vh] overflow-y-auto rounded-xl border border-border">
+                {picked.length > 0 ? <ul className="divide-y divide-border bg-muted/30">{picked.map(row)}</ul> : null}
+                {picked.length > 0 && others.length > 0 ? <div className="h-px bg-border" /> : null}
+                {others.length > 0 ? <ul className="divide-y divide-border">{others.map(row)}</ul> : null}
+                {picked.length === 0 && others.length === 0 ? (
+                  <p className="px-3 py-4 text-sm text-muted-foreground">{wanted ? "Nothing called that." : "No items yet — type a name above."}</p>
                 ) : null}
               </div>
-              {isBill && total > 0 ? (
-                <div className="flex flex-wrap items-end gap-3">
-                  <p className="text-sm">
-                    Bill total <span className="font-semibold">{currency(total)}</span>
-                  </p>
-                  <label className="space-y-1 text-sm">
-                    <span className="block font-medium">Paid now</span>
-                    <input
-                      className="h-9 w-32 rounded-md border border-border bg-background px-3 text-sm"
-                      inputMode="numeric"
-                      onChange={(event) => setPaidText(event.target.value)}
-                      placeholder={`${total} (all)`}
-                      value={paidText}
-                    />
-                  </label>
-                  {amount > 0 ? (
-                    <select className={select} onChange={(event) => setPaidBy(event.target.value as ExpensePaidBy)} value={paidBy}>
-                      {EXPENSE_PAID_BY.map((value) => (
-                        <option key={value} value={value}>
-                          {EXPENSE_PAID_BY_LABELS[value]}
-                        </option>
+            )}
+          </div>
+
+          {isBill ? (
+            <div className="space-y-3 rounded-xl border border-border p-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium">Bill total</span>
+                  <input
+                    className={cn(field, "text-right font-semibold tabular-nums", (billTyped === false || pricesOver) && "border-destructive")}
+                    inputMode="numeric"
+                    onChange={(event) => setTotalText(event.target.value)}
+                    placeholder={itemsSum > 0 ? String(itemsSum) : "Rs 0"}
+                    value={totalText}
+                  />
+                  <span className={cn("block text-xs", pricesOver ? "text-destructive" : "text-muted-foreground")}>{totalHint}</span>
+                </label>
+                {total > 0 ? (
+                  <div className="space-y-1 text-sm">
+                    <span className="font-medium">Paid</span>
+                    <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+                      {(
+                        [
+                          ["all", "Paid all"],
+                          ["part", "Part"],
+                          ["none", "Not paid"],
+                        ] as const
+                      ).map(([value, label]) => (
+                        <button
+                          className={cn(
+                            "flex-1 rounded-md px-2 py-1 text-sm font-medium",
+                            payment === value ? "bg-background shadow-sm" : "text-muted-foreground",
+                          )}
+                          key={value}
+                          onClick={() => setPayment(value)}
+                          type="button"
+                        >
+                          {label}
+                        </button>
                       ))}
-                    </select>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {total > 0 ? (
+                <div className="flex flex-wrap items-end gap-3">
+                  {payment === "part" ? (
+                    <label className="space-y-1 text-sm">
+                      <span className="block font-medium">Paid now</span>
+                      <input
+                        className="h-9 w-36 rounded-md border border-border bg-background px-3 text-right text-sm tabular-nums"
+                        inputMode="numeric"
+                        onChange={(event) => setPaidText(event.target.value)}
+                        placeholder="Rs"
+                        value={paidText}
+                      />
+                    </label>
                   ) : null}
-                  {total > amount ? <p className="text-sm text-amber-700 dark:text-amber-400">{currency(total - amount)} owed</p> : null}
+                  {paid > 0 ? (
+                    <label className="space-y-1 text-sm">
+                      <span className="block font-medium">Paid by</span>
+                      <select
+                        className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+                        onChange={(event) => setPaidBy(event.target.value as ExpensePaidBy)}
+                        value={paidBy}
+                      >
+                        {EXPENSE_PAID_BY.map((value) => (
+                          <option key={value} value={value}>
+                            {EXPENSE_PAID_BY_LABELS[value]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  {due > 0 ? (
+                    <p className="ml-auto rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      {currency(due)} owed{supplierId ? ` to ${home.suppliers.find((supplier) => supplier.id === supplierId)?.name ?? "them"}` : " — pick the supplier"}
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
+
               <div className="flex flex-wrap items-center gap-2">
                 <label className="text-sm">
                   <span className="sr-only">Bill photo</span>
@@ -1013,32 +1302,16 @@ function EntryDialog({
                   />
                 </label>
                 <span className="text-xs text-muted-foreground">
-                  {uploading ? "Adding photo…" : photoAssetId ? "Photo added" : home.proofRequired && amount > 0 ? "Photo needed" : "Photo optional"}
+                  {uploading ? "Adding photo…" : photoAssetId ? "Photo added" : home.proofRequired && paid > 0 ? "Photo needed" : "Photo optional"}
                 </span>
               </div>
             </div>
           ) : null}
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 text-sm">
-              <span className="font-medium">Nepali date</span>
-              <input
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                onChange={(event) => setBsDate(event.target.value)}
-                placeholder="2083-06-15"
-                value={bsDate}
-              />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="font-medium">{kind === "COUNT" ? "Why different? (needed if it is)" : "Note (optional)"}</span>
-              <input
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                maxLength={200}
-                onChange={(event) => setNote(event.target.value)}
-                value={note}
-              />
-            </label>
-          </div>
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium">{kind === "COUNT" ? "Why different? (needed if it is)" : "Note (optional)"}</span>
+            <input className={field} maxLength={200} onChange={(event) => setNote(event.target.value)} value={note} />
+          </label>
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
@@ -1047,8 +1320,8 @@ function EntryDialog({
           <Button onClick={onClose} variant="ghost">
             Close
           </Button>
-          <Button disabled={saving || uploading} onClick={() => void save()}>
-            {saving ? "Saving…" : "Save"}
+          <Button disabled={saving || uploading || adding} onClick={() => void save()}>
+            {saving ? "Saving…" : isBill && total > 0 ? `Save bill · ${currency(total)}` : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1155,7 +1428,10 @@ function ItemDialog({
   const [name, setName] = useState("");
   const [kind, setKind] = useState<StockKind>("STORE");
   const [unit, setUnit] = useState<StockUnit>("KG");
+  const [category, setCategory] = useState<string>("GROCERIES");
   const [lowAt, setLowAt] = useState("");
+  const [packUnit, setPackUnit] = useState<StockUnit | "">("");
+  const [packSize, setPackSize] = useState("");
   const [active, setActive] = useState(true);
   const [seen, setSeen] = useState<typeof item>(null);
   const [error, setError] = useState("");
@@ -1166,21 +1442,34 @@ function ItemDialog({
     setName(editing?.name ?? "");
     setKind(editing?.kind ?? "STORE");
     setUnit(editing?.unit ?? "KG");
+    setCategory(editing?.category ?? "GROCERIES");
     setLowAt(editing?.lowAt != null ? String(editing.lowAt) : "");
+    setPackUnit(editing?.packUnit ?? "");
+    setPackSize(editing?.packSize != null ? String(editing.packSize) : "");
     setActive(editing?.active ?? true);
     setError("");
   }
 
   const save = async () => {
     const low = lowAt.trim() ? Number(lowAt) : null;
+    const size = packSize.trim() ? Number(packSize) : null;
 
     if (!name.trim()) return setError("Name it, like Rice.");
     if (low !== null && (!Number.isFinite(low) || low < 0)) return setError("Check the low mark.");
+    if (packUnit && (size === null || !Number.isFinite(size) || size <= 0)) return setError("Write how many are in one pack.");
 
     setSaving(true);
 
     try {
-      const body = { kind, lowAt: kind === "STORE" ? low : null, name: name.trim(), unit };
+      const body = {
+        category,
+        kind,
+        lowAt: kind === "STORE" ? low : null,
+        name: name.trim(),
+        packSize: packUnit ? size : null,
+        packUnit: packUnit || null,
+        unit,
+      };
 
       await browserApi(editing ? `${ENDPOINT}/items/${editing.id}` : `${ENDPOINT}/items`, {
         body: JSON.stringify(editing ? { ...body, active } : body),
@@ -1194,8 +1483,6 @@ function ItemDialog({
     }
   };
 
-  const select = "h-9 w-full rounded-md border border-border bg-background px-3 text-sm";
-
   return (
     <Dialog onOpenChange={(next) => (next ? undefined : onClose())} open={item !== null}>
       <DialogContent className="sm:max-w-md">
@@ -1206,19 +1493,28 @@ function ItemDialog({
         <div className="space-y-3">
           <label className="block space-y-1 text-sm">
             <span className="font-medium">Item</span>
-            <input className={select} maxLength={STOCK_ITEM_NAME_MAX} onChange={(event) => setName(event.target.value)} placeholder="e.g. Rice" value={name} />
+            <input
+              className={field}
+              maxLength={STOCK_ITEM_NAME_MAX}
+              onChange={(event) => {
+                setName(event.target.value);
+                if (!editing) setKind(guessStockKind(event.target.value));
+              }}
+              placeholder="e.g. Rice"
+              value={name}
+            />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="space-y-1 text-sm">
               <span className="font-medium">Kind</span>
-              <select className={select} onChange={(event) => setKind(event.target.value as StockKind)} value={kind}>
+              <select className={field} onChange={(event) => setKind(event.target.value as StockKind)} value={kind}>
                 <option value="STORE">Store · long use</option>
                 <option value="DAILY">Daily · used same day</option>
               </select>
             </label>
             <label className="space-y-1 text-sm">
               <span className="font-medium">Counted in</span>
-              <select className={select} onChange={(event) => setUnit(event.target.value as StockUnit)} value={unit}>
+              <select className={field} onChange={(event) => setUnit(event.target.value as StockUnit)} value={unit}>
                 {STOCK_UNITS.map((value) => (
                   <option key={value} value={value}>
                     {STOCK_UNIT_LABELS[value].many}
@@ -1226,13 +1522,44 @@ function ItemDialog({
                 ))}
               </select>
             </label>
-          </div>
-          {kind === "STORE" ? (
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Running low below (optional)</span>
-              <input className={select} inputMode="decimal" onChange={(event) => setLowAt(event.target.value)} placeholder="e.g. 10" value={lowAt} />
+            <label className="space-y-1 text-sm">
+              <span className="font-medium">Expense group</span>
+              <select className={field} onChange={(event) => setCategory(event.target.value)} value={category}>
+                {STOCK_EXPENSE_CATEGORIES.map((value) => (
+                  <option key={value} value={value}>
+                    {categoryLabel(value)}
+                  </option>
+                ))}
+              </select>
             </label>
-          ) : null}
+            {kind === "STORE" ? (
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Running low below</span>
+                <input className={field} inputMode="decimal" onChange={(event) => setLowAt(event.target.value)} placeholder="Optional" value={lowAt} />
+              </label>
+            ) : null}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="space-y-1 text-sm">
+              <span className="font-medium">Bought in packs</span>
+              <select className={field} onChange={(event) => setPackUnit(event.target.value as StockUnit | "")} value={packUnit}>
+                <option value="">No</option>
+                {STOCK_UNITS.filter((value) => value !== unit).map((value) => (
+                  <option key={value} value={value}>
+                    {STOCK_UNIT_LABELS[value].many}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {packUnit ? (
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">
+                  1 {STOCK_UNIT_LABELS[packUnit].one} = ? {STOCK_UNIT_LABELS[unit].many}
+                </span>
+                <input className={field} inputMode="decimal" onChange={(event) => setPackSize(event.target.value)} placeholder="e.g. 25" value={packSize} />
+              </label>
+            ) : null}
+          </div>
           {editing ? (
             <label className="flex items-center gap-2 text-sm">
               <input checked={active} onChange={(event) => setActive(event.target.checked)} type="checkbox" />
@@ -1607,7 +1934,7 @@ function UsageCard() {
           <LoadingRows />
         )
       ) : rows.length === 0 ? (
-        <EmptyState label="Nothing used yet. When the cook taps Kitchen stock, or you click Use, it shows here." />
+        <EmptyState label="Nothing used yet. When the cook taps Kitchen inventory, or you click Use, it shows here." />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -1675,7 +2002,7 @@ function ReportCard() {
   const save = (format: TableFormat) =>
     void downloadFile({
       fileName: `stock-report-${range}.${format}`,
-      label: "Stock report",
+      label: "Inventory report",
       url: `${ENDPOINT}/report?range=${range}&format=${format}`,
     });
 
@@ -1714,7 +2041,7 @@ function ReportCard() {
           : "Bought, used and left per item."
       }
       icon={BarChart3}
-      title="Stock report"
+      title="Inventory report"
     >
       {!report || report.range !== range ? (
         resource.state === "error" ? <p className="text-sm text-muted-foreground">{resource.message}</p> : <LoadingRows />

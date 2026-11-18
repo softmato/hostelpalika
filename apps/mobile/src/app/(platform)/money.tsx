@@ -6,12 +6,11 @@ import { Pressable, View } from "react-native";
 import { NotificationBell } from "@/components/notification-bell";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
-import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FactRow, Grid, StatTile } from "@/components/ui/layout";
-import { CardRow } from "@/components/ui/list-row";
+import { Figures, Quiet, Rows, Section, TintRow } from "@/components/platform-ui";
+import { FactRow } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
-import { SkeletonRows, SkeletonTiles } from "@/components/ui/skeleton";
+import { SkeletonRows } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useDates } from "@/hooks/use-dates";
@@ -22,6 +21,8 @@ import { fileAssetUrl } from "@/lib/finance-api";
 import { formatMoney } from "@/lib/format";
 import {
   checkFieldCash,
+  listBookingPayments,
+  listBookingTransfers,
   type FieldCash,
   getPlanLedger,
   listFieldCash,
@@ -43,9 +44,12 @@ export default function PlatformMoneyScreen() {
   const ledger = useResource(getPlanLedger, { cacheKey: "platform:plan-ledger" });
   const claims = useResource(listPlanClaims, { cacheKey: "platform:plan-claims" });
   const cash = useResource(listFieldCash, { cacheKey: "platform:field-cash" });
+  const bookingPayments = useResource(listBookingPayments, { cacheKey: "platform:bookings:payments" });
+  const transfers = useResource(listBookingTransfers, { cacheKey: "platform:bookings:transfers" });
   const totals = ledger.data?.totals;
+  const bookingWork = (bookingPayments.data?.length ?? 0) + (transfers.data?.length ?? 0);
 
-  const refresh = () => [ledger, claims, cash].forEach((resource) => resource.refresh());
+  const refresh = () => [ledger, claims, cash, bookingPayments, transfers].forEach((resource) => resource.refresh());
   const reviewed = () => {
     claims.refresh();
     ledger.refresh();
@@ -60,56 +64,67 @@ export default function PlatformMoneyScreen() {
       refreshing={ledger.refreshing || claims.refreshing}
       scroll
     >
-      <View className="gap-5 pt-4">
-        {ledger.loading ? (
-          <SkeletonTiles columns={2} />
-        ) : totals ? (
-          <Grid maxColumns={2}>
-            {[
-              <StatTile icon="cash" key="in" label="Collected" tone="success" value={formatMoney(totals.collected)} />,
-              <StatTile icon="alert-circle" key="out" label="Outstanding" tone={totals.outstanding > 0 ? "warning" : "success"} value={formatMoney(totals.outstanding)} />,
-              <StatTile icon="receipt" key="billed" label="Billed" value={formatMoney(totals.billed)} />,
-              <StatTile icon="hostel" key="plans" label="Active plans" value={String(totals.activePlans)} />,
-            ]}
-          </Grid>
+      <View className="gap-7 pt-5">
+        {ledger.error && !totals ? (
+          <Quiet icon="alert-circle" tone="danger">
+            {ledger.error}
+          </Quiet>
         ) : (
-          <Card>
-            <Text variant="muted">{ledger.error ?? "Plan billing could not be loaded."}</Text>
-          </Card>
+          <View className="gap-4">
+            <Figures
+              items={[
+                { label: "Collected", loading: ledger.loading, tone: "success", value: totals ? formatMoney(totals.collected) : null },
+                { label: "Outstanding", loading: ledger.loading, tone: totals?.outstanding ? "warning" : undefined, value: totals ? formatMoney(totals.outstanding) : null },
+              ]}
+            />
+            <Figures
+              items={[
+                { label: "Billed", loading: ledger.loading, value: totals ? formatMoney(totals.billed) : null },
+                { label: "Active plans", loading: ledger.loading, value: totals?.activePlans },
+              ]}
+            />
+          </View>
         )}
 
-        <View>
-          <SectionHeader subtitle="Confirming records the payment, issues the receipt and clears the due" title={`Payment proofs${claims.data?.length ? ` · ${claims.data.length}` : ""}`} />
+        <Section count={claims.data?.length} title="Plan payment proofs">
           {claims.loading ? (
             <SkeletonRows rows={2} />
           ) : !claims.data?.length ? (
-            <Card>
-              <Text variant="muted">{claims.error ?? "No hostel is waiting on a payment check."}</Text>
-            </Card>
+            <Quiet>{claims.error ?? "No hostel is waiting on a payment check."}</Quiet>
           ) : (
-            <View className="gap-3">
+            <Rows inset={false}>
               {claims.data.map((claim) => (
                 <ClaimCard claim={claim} key={claim.id} onReviewed={reviewed} />
               ))}
-            </View>
+            </Rows>
           )}
-        </View>
+        </Section>
 
         {cash.data?.length ? (
-          <View>
-            <SectionHeader subtitle="Filed by the field team, waiting on Softmato" title={`Field cash · ${cash.data.length}`} />
-            <View className="gap-3">
+          <Section count={cash.data.length} title="Field cash to confirm">
+            <Rows inset={false}>
               {cash.data.map((row) => (
                 <CashCard key={row.id} onChecked={cash.refresh} row={row} />
               ))}
-            </View>
-          </View>
+            </Rows>
+          </Section>
         ) : null}
 
-        <View className="gap-3">
-          <CardRow icon="receipt" onPress={() => router.push("/manage/platform/plan-billing")} subtitle="Every plan invoice and payment" title="Plan billing" />
-          <CardRow icon="cart" onPress={() => router.push("/manage/platform/store-orders")} subtitle="Confirm, pack, ship, deliver" title="Store orders" />
-        </View>
+        <Section title="More money">
+          <Rows>
+            <TintRow
+              count={bookingWork || undefined}
+              icon="bed"
+              onPress={() => router.push("/manage/platform/bookings")}
+              subtitle="Booking screenshots, refunds, payouts"
+              title="Bookings"
+              tone={bookingWork ? "warning" : "brand"}
+            />
+            <TintRow icon="receipt" onPress={() => router.push("/manage/platform/plan-billing")} subtitle="Every plan invoice and payment" title="Plan billing" />
+            <TintRow icon="cart" onPress={() => router.push("/manage/platform/store-orders")} subtitle="Confirm, pack, ship, deliver" title="Store orders" />
+            <TintRow icon="briefcase" onPress={() => router.push("/manage/platform/team")} subtitle="Agents, cash held, what is owed" title="Field team" />
+          </Rows>
+        </Section>
       </View>
     </Screen>
   );
@@ -135,10 +150,10 @@ function ClaimCard({ claim, onReviewed }: { claim: PlanClaim; onReviewed: () => 
   }
 
   return (
-    <Card className="gap-3">
+    <View className="gap-3 py-4">
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className="text-base font-bold" numberOfLines={1}>
+          <Text className="text-base font-semibold" numberOfLines={1}>
             {claim.hostelName}
           </Text>
           <Text numberOfLines={1} variant="muted">
@@ -153,7 +168,7 @@ function ClaimCard({ claim, onReviewed }: { claim: PlanClaim; onReviewed: () => 
           accessibilityHint="Opens the screenshot full screen"
           accessibilityLabel="Payment screenshot"
           accessibilityRole="imagebutton"
-          className="overflow-hidden rounded-xl border border-border active:opacity-80"
+          className="overflow-hidden rounded-2xl active:opacity-80"
           onPress={() => openAssetViewer([{ assetId: claim.proofAssetId!, title: claim.hostelName }])}
         >
           <Image
@@ -202,7 +217,7 @@ function ClaimCard({ claim, onReviewed }: { claim: PlanClaim; onReviewed: () => 
           )}
         </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -224,7 +239,7 @@ function CashCard({ onChecked, row }: { onChecked: () => void; row: FieldCash })
   }
 
   return (
-    <Card className="gap-2">
+    <View className="gap-2 py-4">
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
           <Text className="font-semibold" numberOfLines={1}>
@@ -239,6 +254,6 @@ function CashCard({ onChecked, row }: { onChecked: () => void; row: FieldCash })
       <FactRow label="Invoice" value={row.invoiceNumber} />
       <FactRow label="Softmato no." value={row.transactionNo ?? "Not filed yet"} />
       <Button disabled={busy} label="Check now" loading={busy} onPress={() => void check()} size="sm" variant="outline" />
-    </Card>
+    </View>
   );
 }

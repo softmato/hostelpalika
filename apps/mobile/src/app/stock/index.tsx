@@ -84,7 +84,7 @@ export default function StockScreen() {
         showBack
         straddle={denied ? 0 : STRADDLE}
         subtitle={overall ? "All buildings" : here?.name}
-        title="Stock"
+        title="Inventory"
       />
       {denied ? null : (
         <View className="px-5" style={{ marginTop: -STRADDLE }}>
@@ -105,9 +105,18 @@ export default function StockScreen() {
                     <View className="w-px bg-border" />
                   </>
                 ) : null}
-                <Figure label="Items">
-                  <Text variant="subtitle">{items.length}</Text>
-                </Figure>
+                {/* Someone who sees money opens this for what is owed; everyone else for the count. */}
+                {home.money ? (
+                  <Figure label="You owe">
+                    <Text className={(home.summary.dueTotal ?? 0) > 0 ? "text-warning" : undefined} variant="subtitle">
+                      {formatMoney(home.summary.dueTotal ?? 0)}
+                    </Text>
+                  </Figure>
+                ) : (
+                  <Figure label="Items">
+                    <Text variant="subtitle">{items.length}</Text>
+                  </Figure>
+                )}
                 <View className="w-px bg-border" />
                 <Figure label="Running low">
                   <Text className={low.length > 0 ? "text-destructive" : undefined} variant="subtitle">
@@ -181,7 +190,7 @@ export default function StockScreen() {
                     ? "Tap Buy when goods come, or Opening to enter what is already on the shelf."
                     : "Tap Buy when goods come."
               }
-              title="No stock yet"
+              title="No items yet"
             />
           ) : null}
 

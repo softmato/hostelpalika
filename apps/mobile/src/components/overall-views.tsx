@@ -374,7 +374,7 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
 
       <View className="gap-6 px-5 pt-6">
         <View>
-          <SectionHeader title="Money & stock" />
+          <SectionHeader title="Money & inventory" />
           <WaitingActions
             onExpenses={() => open("/expenses")}
             onFinance={() => open("/manage/finance")}

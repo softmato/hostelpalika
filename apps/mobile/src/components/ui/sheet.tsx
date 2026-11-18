@@ -87,6 +87,8 @@ type SheetProps = {
   children: ReactNode;
   /** Pinned under the scrolling content — an Apply button, usually. */
   footer?: ReactNode;
+  /** Runs once the sheet has finished opening — for work that must not race its animation. */
+  onOpen?: () => void;
   /** Let short option lists use their content height instead of the usual floor. */
   fitContent?: boolean;
   /**
@@ -196,6 +198,7 @@ export function Sheet({
   fitContent = false,
   height,
   onClose,
+  onOpen,
   open,
   tall = false,
   title,
@@ -297,6 +300,7 @@ export function Sheet({
       keyboardBlurBehavior="none"
       enablePanDownToClose
       handleIndicatorStyle={{ backgroundColor: colors.border }}
+      onChange={onOpen ? (index) => index >= 0 && onOpen() : undefined}
       onDismiss={handleDismiss}
       ref={ref}
       snapPoints={height === undefined ? undefined : [`${Math.round(height * 100)}%`]}

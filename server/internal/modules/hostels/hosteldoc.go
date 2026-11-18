@@ -21,7 +21,7 @@ func obj(key string, in ...spec) spec { return spec{key: key, nested: in} }
 
 var hostelSpec = []spec{
 	plain("name"), plain("slug"), plain("referencePrefix"), plain("description"), plain("ownerId"),
-	dflt("parentHostelId", nil),
+	dflt("parentHostelId", nil), plain("branchLabel"),
 	obj("location", dflt("area", ""), dflt("city", "Kathmandu"), plain("province"), plain("address"), plain("lat"), plain("lng"),
 		dflt("locationSource", "GEOCODED"), plain("landmark"), plain("mapLink")),
 	obj("contact", plain("phone"), plain("email"), plain("alternatePhone")),

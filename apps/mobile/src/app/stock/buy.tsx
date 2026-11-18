@@ -18,7 +18,7 @@ import {
 } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Stagger } from "@/components/ui/layout";
@@ -31,7 +31,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
-import { groupDigits, newClientRequestId, parseAmountInput, todayKey } from "@/lib/expenses";
+import { groupDigits, newClientRequestId, todayKey } from "@/lib/expenses";
 import { expenseQuery } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
 import { invalidateQuery } from "@/lib/query-cache";
@@ -40,6 +40,7 @@ import {
   addStockItem,
   findStockItem,
   guessStockKind,
+  splitBill,
   STOCK_STARTERS,
   STOCK_ITEM_NAME_MAX,
   STOCK_UNIT_LABELS,
@@ -53,9 +54,15 @@ import { toastError, toastSuccess } from "@/lib/toast";
  * Buy — a bill, on one screen (docs/INVENTORY_PLAN.md).
  *
  * Top to bottom in the order the paper bill is read: **who** it is from, the
- * **lines** (what, how much, what it cost — per kg or per sack, as the bill
- * says), the **total** with any discount or VAT, and **how much was paid**.
- * Whatever was not paid is owed to the supplier and shows on their page.
+ * **lines** (what, how much, and — if the bill shows it — what each cost), the
+ * **bill total**, and **how much was paid**. Whatever was not paid is owed to
+ * the supplier and shows on their page.
+ *
+ * Prices are optional; the bill total is the one figure that matters. Type only
+ * the total and it is shared by the items by their usual price (`splitBill`),
+ * shown in each blank box before Save. Type every price and leave the total
+ * blank, and the total is their sum. Type both, and the gap is the bill's
+ * discount or VAT.
  *
  * Each line is what a person can say standing next to the sack. An item the
  * hostel already has is one tap on its chip; a new name becomes an item on
@@ -94,9 +101,7 @@ export default function AddStockScreen() {
   const [day, setDay] = useState(() => todayKey());
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [billNo, setBillNo] = useState("");
-  const [extras, setExtras] = useState(false);
-  const [discount, setDiscount] = useState("");
-  const [tax, setTax] = useState("");
+  const [totalText, setTotalText] = useState("");
   const [payment, setPayment] = useState<Payment>("all");
   const [paidText, setPaidText] = useState("");
   const bill = useBillPhoto();
@@ -116,11 +121,21 @@ export default function AddStockScreen() {
 
   const known = (line: Line) => findStockItem(allItems, line.name);
   const qtyOf = (line: Line) => readQty(line.qty);
-  const priceOf = (line: Line) => (line.price.trim() ? parseAmountInput(line.price) : 0);
+  /** Typed price, `null` blank, `false` not whole rupees. */
+  const priceOf = (line: Line) => readRupees(line.price);
+  /** How big a line usually is in money: quantity in the item's unit × its average cost. */
+  const weightOf = (line: Line) => {
+    const item = known(line);
+    const qty = qtyOf(line);
+
+    if (!item?.avgCost || typeof qty !== "number") return null;
+
+    return (line.inPacks && item.packSize ? qty * item.packSize : qty) * item.avgCost;
+  };
 
   const errorsOf = (line: Line) => ({
     name: line.name.trim() ? null : "Write the name",
-    price: priceOf(line) === null ? "Whole rupees" : null,
+    price: priceOf(line) === false ? "Whole rupees" : null,
     qty: (() => {
       const qty = qtyOf(line);
       return qty === null || qty === false || qty <= 0 ? "How much?" : null;
@@ -128,14 +143,37 @@ export default function AddStockScreen() {
   });
 
   const priced = home?.canSpend === true;
-  const subtotal = priced ? lines.reduce((sum, line) => sum + (priceOf(line) ?? 0), 0) : 0;
-  const discountValue = readRupees(discount);
-  const taxValue = readRupees(tax);
-  const total = Math.max(0, subtotal - (discountValue || 0) + (taxValue || 0));
+  const typedPrices = lines.map((line) => (priced ? priceOf(line) || null : null));
+  const itemsSum = typedPrices.reduce<number>((sum, price) => sum + (price ?? 0), 0);
+  const unpriced = lines.filter((_, index) => typedPrices[index] === null);
+  const billTyped = !opening && priced ? readRupees(totalText) : null;
+  const billTotal = typeof billTyped === "number" ? billTyped : null;
+  // Every line's money: typed, or its share of what the bill total leaves over.
+  const amounts = splitBill(
+    billTotal,
+    lines.map((line, index) => ({ amount: typedPrices[index]!, weight: weightOf(line) })),
+  );
+  const total = billTotal ?? itemsSum;
+  const gap = billTotal !== null && unpriced.length === 0 ? billTotal - itemsSum : 0;
+  const pricesOver = billTotal !== null && unpriced.length > 0 && itemsSum > billTotal;
   const paidPart = readRupees(paidText);
   const paid = opening ? 0 : payment === "all" ? total : payment === "none" ? 0 : Math.min(paidPart || 0, total);
   const due = total - paid;
   const money = !opening && priced && total > 0;
+  const shared = billTotal !== null && unpriced.length > 0 && billTotal > itemsSum;
+  const totalHint = pricesOver
+    ? undefined
+    : gap < 0
+      ? `Items add up to ${formatMoney(itemsSum)} · ${formatMoney(-gap)} discount`
+      : gap > 0
+        ? `Items add up to ${formatMoney(itemsSum)} · ${formatMoney(gap)} VAT or extra`
+        : shared
+          ? `${formatMoney(billTotal - itemsSum)} shared by ${unpriced.map((line) => line.name.trim() || "the new item").join(", ")}${
+              unpriced.length < 2 ? "" : unpriced.every((line) => (weightOf(line) ?? 0) > 0) ? " by their usual price" : " equally"
+            }`
+          : itemsSum > 0 || billTotal !== null
+            ? undefined
+            : "Type the bill total, or a price on each item";
   const photoNeeded = money && paid > 0 && home?.proofRequired === true;
   const supplierName = home?.suppliers.find((supplier) => supplier.id === supplierId)?.name ?? null;
   const supplierMissing = money && due > 0 && !supplierId;
@@ -153,8 +191,13 @@ export default function AddStockScreen() {
       return;
     }
 
-    if (discountValue === false || taxValue === false || (payment === "part" && !paidPart)) {
-      toastError("Not saved yet", payment === "part" && !paidPart ? "Write how much was paid." : "Whole rupees only.");
+    if (billTyped === false || (money && payment === "part" && !paidPart)) {
+      toastError("Not saved yet", billTyped === false ? "The bill total is whole rupees." : "Write how much was paid.");
+      return;
+    }
+
+    if (pricesOver) {
+      toastError("Check the prices", "The item prices add up to more than the bill total.");
       return;
     }
 
@@ -173,7 +216,7 @@ export default function AddStockScreen() {
     try {
       const out: { amount?: number; itemId: string; packQty?: number; qty: number }[] = [];
 
-      for (const line of lines) {
+      for (const [index, line] of lines.entries()) {
         const name = line.name.trim();
         const lower = name.toLowerCase();
         const item = known(line);
@@ -186,7 +229,7 @@ export default function AddStockScreen() {
         }
 
         const qty = qtyOf(line) as number;
-        const price = priced ? (priceOf(line) ?? 0) : 0;
+        const price = priced ? (amounts[index] ?? 0) : 0;
         const packs = line.inPacks && item?.packUnit && item.packSize ? qty : null;
 
         // The server merges two lines of the same item, and works packs out to kg.
@@ -198,10 +241,11 @@ export default function AddStockScreen() {
         });
       }
 
+      // Sent as discount / VAT rather than as the total, so a server from before the bill total reads it the same.
       await addStockEntry({
         billNo: opening ? undefined : billNo.trim() || undefined,
         clientRequestId: requestId.current,
-        discount: money && discountValue ? discountValue : undefined,
+        discount: money && gap < 0 ? -gap : undefined,
         hostelId: here.id,
         kind: opening ? "OPENING" : "BUY",
         lines: opening
@@ -211,7 +255,7 @@ export default function AddStockScreen() {
         paid: money ? paid : undefined,
         photoAssetId: opening ? undefined : (bill.photo?.assetId ?? undefined),
         supplierId: opening ? undefined : (supplierId ?? undefined),
-        tax: money && taxValue ? taxValue : undefined,
+        tax: money && gap > 0 ? gap : undefined,
       });
 
       toastSuccess(
@@ -309,83 +353,79 @@ export default function AddStockScreen() {
             </Card>
           )}
 
-          {lines.map((line) => (
-            <LineCard
-              errors={tried ? errorsOf(line) : null}
-              item={known(line)}
-              key={line.key}
-              line={line}
-              onChange={(change) => update(line.key, change)}
-              onPickUnit={() => setUnitFor(line.key)}
-              onRemove={
-                lines.length > 1 ? () => setLines((prev) => prev.filter((entry) => entry.key !== line.key)) : undefined
-              }
-              picks={quickPicks.filter((item) => !lines.some((other) => findStockItem([item], other.name)))}
-              priced={priced}
-              priceLabel={opening ? "Value" : "Price"}
+          <View className="gap-3">
+            <SectionHeader
+              subtitle={priced && !opening ? "Amounts are optional — the bill total is enough" : undefined}
+              title={`Items · ${lines.length}`}
             />
-          ))}
+            {lines.map((line, index) => (
+              <LineCard
+                errors={tried ? errorsOf(line) : null}
+                item={known(line)}
+                key={line.key}
+                line={line}
+                onChange={(change) => update(line.key, change)}
+                onPickUnit={() => setUnitFor(line.key)}
+                onRemove={
+                  lines.length > 1 ? () => setLines((prev) => prev.filter((entry) => entry.key !== line.key)) : undefined
+                }
+                picks={quickPicks.filter((item) => !lines.some((other) => findStockItem([item], other.name)))}
+                priced={priced}
+                priceLabel={opening ? "Value" : "Amount"}
+                share={typedPrices[index] === null ? amounts[index]! : null}
+              />
+            ))}
+            <Button label="Add another item" onPress={() => setLines((prev) => [...prev, blankLine()])} variant="outline" />
+          </View>
 
-          <Button
-            label="Add another item"
-            onPress={() => setLines((prev) => [...prev, blankLine()])}
-            variant="outline"
-          />
-
-          {money ? (
-            <Card className="gap-4">
-              <TotalRow label="Items" value={formatMoney(subtotal)} />
-              {extras ? (
-                <View className="flex-row gap-3">
-                  <View className="flex-1">
-                    <MoneyInput error={discountValue === false ? "Whole rupees" : null} label="Discount" onChangeText={setDiscount} value={discount} />
-                  </View>
-                  <View className="flex-1">
-                    <MoneyInput error={taxValue === false ? "Whole rupees" : null} label="VAT / tax" onChangeText={setTax} value={tax} />
-                  </View>
-                </View>
-              ) : (
-                <Pressable accessibilityRole="button" className="active:opacity-70" onPress={() => setExtras(true)}>
-                  <Text className="font-semibold text-primary" variant="label">
-                    + Discount or VAT
-                  </Text>
-                </Pressable>
-              )}
-              <View className="h-px bg-border" />
-              <TotalRow bold label="Bill total" value={formatMoney(total)} />
-
-              <View className="gap-2">
-                <Text variant="caption">Paid</Text>
-                <Segmented
-                  onChange={setPayment}
-                  options={[
-                    { label: "Paid all", value: "all" as const },
-                    { label: "Part", value: "part" as const },
-                    { label: "Not paid", value: "none" as const },
-                  ]}
-                  value={payment}
+          {!opening && priced ? (
+            <View>
+              <SectionHeader title="Bill" />
+              <Card className="gap-4">
+                <MoneyInput
+                  error={billTyped === false ? "Whole rupees" : pricesOver ? "Less than the item prices" : null}
+                  hint={totalHint}
+                  label="Bill total"
+                  onChangeText={setTotalText}
+                  placeholder={itemsSum > 0 ? groupDigits(String(itemsSum)) : "0"}
+                  value={totalText}
                 />
-                {payment === "part" ? (
-                  <MoneyInput
-                    error={tried && !paidPart ? "How much was paid?" : null}
-                    label="Paid now"
-                    onChangeText={setPaidText}
-                    value={paidText}
-                  />
-                ) : null}
-              </View>
 
-              {due > 0 ? (
-                <View className="flex-row items-center justify-between rounded-xl bg-warning-soft px-3 py-2.5">
-                  <Text className="text-warning" variant="label">
-                    {supplierName ? `Owed to ${supplierName}` : "Still owed"}
-                  </Text>
-                  <Text className="font-amount tabular-nums text-warning" variant="subtitle">
-                    {formatMoney(due)}
-                  </Text>
-                </View>
-              ) : null}
-            </Card>
+                {total > 0 ? (
+                  <View className="gap-2">
+                    <Text variant="caption">Paid</Text>
+                    <Segmented
+                      onChange={setPayment}
+                      options={[
+                        { label: "Paid all", value: "all" as const },
+                        { label: "Part", value: "part" as const },
+                        { label: "Not paid", value: "none" as const },
+                      ]}
+                      value={payment}
+                    />
+                    {payment === "part" ? (
+                      <MoneyInput
+                        error={tried && !paidPart ? "How much was paid?" : null}
+                        label="Paid now"
+                        onChangeText={setPaidText}
+                        value={paidText}
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
+
+                {due > 0 ? (
+                  <View className="flex-row items-center justify-between rounded-xl bg-warning-soft px-3 py-2.5">
+                    <Text className="text-warning" variant="label">
+                      {supplierName ? `Owed to ${supplierName}` : "Still owed"}
+                    </Text>
+                    <Text className="font-amount tabular-nums text-warning" variant="subtitle">
+                      {formatMoney(due)}
+                    </Text>
+                  </View>
+                ) : null}
+              </Card>
+            </View>
           ) : null}
 
           {opening ? null : (
@@ -447,6 +487,7 @@ function LineCard({
   picks,
   priceLabel,
   priced,
+  share,
 }: {
   errors: { name: string | null; price: string | null; qty: string | null } | null;
   item: StockItem | null;
@@ -457,6 +498,8 @@ function LineCard({
   picks: StockItem[];
   priceLabel: string;
   priced: boolean;
+  /** This line's part of the bill total, when its own box is blank. */
+  share: number | null;
 }) {
   const { colors } = useAppTheme();
   const unit = item?.unit ?? line.unit;
@@ -473,6 +516,13 @@ function LineCard({
       unit: starter.unit,
     })),
   ];
+  const qty = readQty(line.qty);
+  const base = typeof qty === "number" && qty > 0 ? (inPacks && pack ? qty * pack.size : qty) : null;
+  const money = readRupees(line.price) || share;
+  const rate =
+    money && base
+      ? `${share !== null && !line.price.trim() ? "≈ " : ""}${formatMoney(Math.round((money / base) * 100) / 100)} / ${STOCK_UNIT_LABELS[unit].one}`
+      : undefined;
   const chips = item ? [] : typed ? offered.filter((pick) => pick.name.toLowerCase().includes(typed)).slice(0, 6) : offered;
 
   return (
@@ -556,14 +606,12 @@ function LineCard({
         </View>
         {priced ? (
           <View className="flex-1">
-            <Input
+            <MoneyInput
               error={errors?.price}
-              inputMode="numeric"
-              keyboardType="number-pad"
+              hint={rate}
               label={priceLabel}
-              leading={<Text variant="muted">Rs</Text>}
-              onChangeText={(price) => onChange({ price: groupDigits(price) })}
-              placeholder="0"
+              onChangeText={(price) => onChange({ price })}
+              placeholder={share !== null ? groupDigits(String(share)) : "Optional"}
               value={line.price}
             />
           </View>
@@ -576,14 +624,5 @@ function LineCard({
         </Text>
       ) : null}
     </Card>
-  );
-}
-
-function TotalRow({ bold = false, label, value }: { bold?: boolean; label: string; value: string }) {
-  return (
-    <View className="flex-row items-center justify-between">
-      <Text variant={bold ? "subtitle" : "muted"}>{label}</Text>
-      <Text variant={bold ? "title" : "label"}>{value}</Text>
-    </View>
   );
 }

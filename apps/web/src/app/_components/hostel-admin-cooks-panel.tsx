@@ -432,7 +432,7 @@ const COOK_PERMISSIONS = [
   {
     description: "Rice, daal, oil taken from the store. The cook never sees prices.",
     key: "stock",
-    label: "Cook enters stock used",
+    label: "Cook enters what was used",
     url: "/api/v1/hostel-admin/stock/cook",
   },
   {

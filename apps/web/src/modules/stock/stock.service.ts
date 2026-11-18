@@ -990,6 +990,8 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
   const supplier = input.kind === "BUY" ? supplierDoc?.name ?? (input.supplier?.trim() || undefined) : undefined;
   let total: number | null = null;
   let paid: number | null = null;
+  let billDiscount = 0;
+  let billTax = 0;
   let expenseId: Types.ObjectId | null = null;
 
   if (input.kind === "BUY") {
@@ -997,9 +999,16 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       (sum, line) => sum + (line.amount ?? (line.rate !== null ? Math.round(line.rate * line.qty) : 0)),
       0,
     );
-    const gross = subtotal > 0 ? subtotal : (input.amount ?? 0);
-    const discount = input.discount ?? 0;
-    const tax = input.tax ?? 0;
+    /*
+     * The bill total as printed wins over the item prices. When every item has
+     * a price, the gap between them is the bill's discount or VAT; otherwise
+     * it belongs to the unpriced items, which the Buy screen split before Save.
+     */
+    const allPriced = [...merged.values()].every((line) => line.amount !== null || line.rate !== null);
+    const gap = input.amount !== undefined && allPriced ? input.amount - subtotal : 0;
+    const gross = input.amount !== undefined ? input.amount - gap : subtotal;
+    const discount = input.amount !== undefined ? Math.max(0, -gap) : (input.discount ?? 0);
+    const tax = input.amount !== undefined ? Math.max(0, gap) : (input.tax ?? 0);
 
     if (gross > 0 || discount > 0 || tax > 0) {
       if (!actor.rights.canSpend) {
@@ -1014,6 +1023,8 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
 
       total = gross - discount + tax;
       paid = Math.min(input.paid ?? total, total);
+      billDiscount = discount;
+      billTax = tax;
 
       if (paid < total && !supplierDoc) {
         throw new StockError("Pick the supplier you still owe.", "SUPPLIER_REQUIRED", 422);
@@ -1056,7 +1067,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
         : {}),
       billNo: input.kind === "BUY" ? input.billNo : undefined,
       clientRequestId: input.clientRequestId ?? null,
-      discount: input.kind === "BUY" && total !== null ? (input.discount ?? 0) : 0,
+      discount: billDiscount,
       expenseId,
       groupHostelId: actor.groupId,
       hostelId: new Types.ObjectId(hostelId),
@@ -1072,7 +1083,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       status,
       supplier,
       supplierId: supplierDoc?._id ?? null,
-      tax: input.kind === "BUY" && total !== null ? (input.tax ?? 0) : 0,
+      tax: billTax,
       toHostelId: toHostelId ? new Types.ObjectId(toHostelId) : null,
       total,
       useFor: input.kind === "USE" ? (input.useFor ?? "KITCHEN") : null,

@@ -128,7 +128,7 @@ const CATEGORY_VISUALS: Record<string, NotificationVisual> = {
    */
   SOS: { icon: "warning", label: "SOS", tone: "danger" },
   /** Stock sent between buildings, and Got it. The Stock door's cube. */
-  STOCK: { icon: "cube", label: "Stock", tone: "warning" },
+  STOCK: { icon: "cube", label: "Inventory", tone: "warning" },
   STORE_ORDER: { icon: "bag-handle", label: "Order", tone: "brand" },
   URGENT: { icon: "alert-circle", label: "Urgent", tone: "danger" },
 };

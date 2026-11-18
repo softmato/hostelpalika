@@ -338,3 +338,10 @@ Four read-only audits before Phase 11 (auth/tenancy, edge input, rate limit + Re
 | Status | Id | Sev | Finding | Go | TS |
 |---|---|---|---|---|---|
 | ☑ | NB-1 | Medium | An owner with branches saw every branch's notifications in every branch: a receipt shared into a branch filed its "Receipt saved" row with that branch's `hostelId`, but `GET /notifications`, its unread/action counts and `PATCH /notifications/read-all` filtered on `userId` only, so the row also sat in the main hostel's bell and badge | `feedScope` (`notifications/inbox.go`): staff holding more than one hostel see the active hostel's rows plus account-wide ones (`hostelId` null); `x-hostel-id: overall` (the app's Overall view) sees all; list, both counts and read-all share it. Producers checked: every row without `hostelId` goes to a resident, platform staff or a provider | Same `feedScope` in `notification.service.ts`, `requestsOverall` in `api-auth.ts`; the app sends `overall` from `notifications-api.ts` |
+
+## Inventory bill total (2026-11-17)
+
+| Status | Id | Sev | Finding | Go | TS |
+|---|---|---|---|---|---|
+| ☑ | INV-1 | Medium | `POST /hostel-admin/stock` (BUY) silently dropped the bill total (`amount`) whenever any line had a price: a bill typed as "Rice Rs 2,500 + Oil (no price), total Rs 3,000" was saved as Rs 2,500, so the supplier's due, the expense and the stock value were all short | `billParts` in `modules/stock/admin.go`: the total as printed wins; with every line priced the gap is stored as `discount`/`tax`, otherwise it belongs to the unpriced lines (clients split it with `splitBill` before Save); table test `billparts_test.go` | Same rule in `createStockEntry`; `splitBill` in `packages/shared/src/expenses/stock.ts` with vitest cases |
+

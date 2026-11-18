@@ -132,7 +132,7 @@ export default function ManageCookScreen() {
 
       try {
         await setCookStock(enabled);
-        toastSuccess(enabled ? "The cook can enter stock used" : "The cook can no longer enter stock");
+        toastSuccess(enabled ? "The cook can enter what was used" : "The cook can no longer enter what was used");
       } catch (error) {
         setData((current) => (current ? { ...current, stockEnabled: !enabled } : current));
         toastError("Could not change it", readApiError(error));
@@ -387,11 +387,11 @@ export default function ManageCookScreen() {
               <Glyph color={colors.primary} name="cube" size={19} />
             </View>
             <View className="flex-1">
-              <Text variant="label">Cook enters stock used</Text>
+              <Text variant="label">Cook enters what was used</Text>
               <Text variant="caption">{"From the store · prices hidden"}</Text>
             </View>
             <Toggle
-              accessibilityLabel="Cook enters stock used"
+              accessibilityLabel="Cook enters what was used"
               disabled={savingStock}
               onChange={(on) => void toggleCookStock(on)}
               value={roster.data?.stockEnabled !== false}

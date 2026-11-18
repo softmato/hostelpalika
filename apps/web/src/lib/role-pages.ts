@@ -92,8 +92,8 @@ export const ROLE_PAGES: RolePage[] = [
         title: "Food, notices and complaints",
       },
       {
-        body: "Add what you spent for the hostel with a photo of the bill, and keep the stock book — bought, used, wasted — for your building.",
-        title: "Expenses and stock",
+        body: "Add what you spent for the hostel with a photo of the bill, and keep the inventory — bought, used, wasted — for your building.",
+        title: "Expenses and inventory",
       },
     ],
     faq: [

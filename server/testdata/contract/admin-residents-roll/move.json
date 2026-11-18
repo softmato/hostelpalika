@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in resident",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in warden no grant",
@@ -63,7 +63,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in bad id",
@@ -86,7 +86,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in unknown",
@@ -109,7 +109,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in outsiders",
@@ -132,7 +132,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in outsider hostel",
@@ -155,7 +155,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in none yet",
@@ -197,7 +197,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save signed out",
@@ -218,7 +218,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save warden no grant",
@@ -242,7 +242,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save bad",
@@ -330,7 +330,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save too many",
@@ -392,7 +392,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save outsiders",
@@ -416,7 +416,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save empty",
@@ -440,11 +440,11 @@
         "data": {
           "checklist": {
             "bedCondition": "",
-            "completedAt": "2026-11-16T12:42:02.346Z",
+            "completedAt": "2026-11-18T12:19:34.253Z",
             "depositAmount": 0,
             "documentsCollected": [],
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1af8ebf47510467b0b",
+            "id": "6afd97d6c39dfc05d44ac5b5",
             "itemsProvided": [],
             "residentId": "6d0100000000000000000028",
             "roomCondition": "",
@@ -471,7 +471,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in get after empty",
@@ -494,11 +494,11 @@
         "data": {
           "checklist": {
             "bedCondition": "",
-            "completedAt": "2026-11-16T12:42:02.346Z",
+            "completedAt": "2026-11-18T12:19:34.253Z",
             "depositAmount": 0,
             "documentsCollected": [],
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1af8ebf47510467b0b",
+            "id": "6afd97d6c39dfc05d44ac5b5",
             "itemsProvided": [],
             "residentId": "6d0100000000000000000028",
             "roomCondition": "",
@@ -525,7 +525,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save",
@@ -565,14 +565,14 @@
         "data": {
           "checklist": {
             "bedCondition": "Good",
-            "completedAt": "2026-11-16T12:42:02.583Z",
+            "completedAt": "2026-11-18T12:19:34.394Z",
             "depositAmount": 3000.5,
             "documentsCollected": [
               "Citizenship",
               "ID card"
             ],
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1af8ebf47510467b0b",
+            "id": "6afd97d6c39dfc05d44ac5b5",
             "itemsProvided": [
               "Mattress",
               "Pillow"
@@ -604,7 +604,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in save again",
@@ -633,11 +633,11 @@
         "data": {
           "checklist": {
             "bedCondition": "Good",
-            "completedAt": "2026-11-16T12:42:02.714Z",
+            "completedAt": "2026-11-18T12:19:34.483Z",
             "depositAmount": 0,
             "documentsCollected": [],
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1af8ebf47510467b0b",
+            "id": "6afd97d6c39dfc05d44ac5b5",
             "itemsProvided": [
               "Mattress"
             ],
@@ -666,7 +666,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "in get after",
@@ -689,11 +689,11 @@
         "data": {
           "checklist": {
             "bedCondition": "Good",
-            "completedAt": "2026-11-16T12:42:02.714Z",
+            "completedAt": "2026-11-18T12:19:34.483Z",
             "depositAmount": 0,
             "documentsCollected": [],
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1af8ebf47510467b0b",
+            "id": "6afd97d6c39dfc05d44ac5b5",
             "itemsProvided": [
               "Mattress"
             ],
@@ -722,7 +722,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out signed out",
@@ -742,7 +742,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out warden no grant",
@@ -765,7 +765,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out bad id",
@@ -788,7 +788,7 @@
         "errorCode": "INVALID_OBJECT_ID"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out unknown",
@@ -811,7 +811,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out outsiders",
@@ -834,7 +834,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out preview",
@@ -894,7 +894,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out preview first day",
@@ -954,7 +954,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out preview late",
@@ -1014,7 +1014,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out preview moved out",
@@ -1066,7 +1066,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save signed out",
@@ -1087,7 +1087,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save warden no grant",
@@ -1111,7 +1111,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save bad",
@@ -1191,7 +1191,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save partial too much",
@@ -1218,7 +1218,7 @@
         "errorCode": "REFUND_OVER_DEPOSIT"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save before move in",
@@ -1244,7 +1244,7 @@
         "errorCode": "MOVE_OUT_BEFORE_MOVE_IN"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save write off without cash grant",
@@ -1271,7 +1271,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save outsiders",
@@ -1295,7 +1295,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save",
@@ -1323,13 +1323,13 @@
         "message": "Move-out checklist saved",
         "data": {
           "checklist": {
-            "completedAt": "2026-11-16T12:42:04.187Z",
+            "completedAt": "2026-11-18T12:19:43.085Z",
             "damageNotes": "Scratched",
             "depositRefundAmount": 0,
             "depositRefundDecision": "APPROVED",
             "finalReceiptAssetId": "",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1cf8ebf47510467b0e",
+            "id": "6afd97dfc39dfc05d44ac5b8",
             "itemReturnNotes": "All back",
             "pendingFeeAmount": 355,
             "residentId": "6d010000000000000000002a"
@@ -1355,7 +1355,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out get after",
@@ -1377,13 +1377,13 @@
         "message": "Move-out checklist loaded",
         "data": {
           "checklist": {
-            "completedAt": "2026-11-16T12:42:04.187Z",
+            "completedAt": "2026-11-18T12:19:43.085Z",
             "damageNotes": "Scratched",
             "depositRefundAmount": 0,
             "depositRefundDecision": "APPROVED",
             "finalReceiptAssetId": "",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1cf8ebf47510467b0e",
+            "id": "6afd97dfc39dfc05d44ac5b8",
             "itemReturnNotes": "All back",
             "pendingFeeAmount": 355,
             "residentId": "6d010000000000000000002a"
@@ -1405,12 +1405,12 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-16T12:42:04.200Z"
+            "updatedAt": "2026-11-18T12:19:43.097Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "rooms after",
@@ -1563,7 +1563,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save again",
@@ -1589,13 +1589,13 @@
         "message": "Move-out checklist saved",
         "data": {
           "checklist": {
-            "completedAt": "2026-11-16T12:42:04.515Z",
+            "completedAt": "2026-11-18T12:19:43.970Z",
             "damageNotes": "Scratched",
             "depositRefundAmount": 0,
             "depositRefundDecision": "FORFEITED",
             "finalReceiptAssetId": "",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1cf8ebf47510467b0e",
+            "id": "6afd97dfc39dfc05d44ac5b8",
             "itemReturnNotes": "All back",
             "pendingFeeAmount": 355,
             "residentId": "6d010000000000000000002a"
@@ -1615,13 +1615,13 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-16T12:42:04.200Z"
+            "updatedAt": "2026-11-18T12:19:43.097Z"
           },
           "writtenOff": 0
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out save till day",
@@ -1648,13 +1648,13 @@
         "message": "Move-out checklist saved",
         "data": {
           "checklist": {
-            "completedAt": "2026-11-16T12:42:04.850Z",
+            "completedAt": "2026-11-18T12:19:44.380Z",
             "damageNotes": "",
             "depositRefundAmount": 0,
             "depositRefundDecision": "PENDING",
             "finalReceiptAssetId": "",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1cf8ebf47510467b11",
+            "id": "6afd97e0c39dfc05d44ac5bb",
             "itemReturnNotes": "",
             "pendingFeeAmount": 500355,
             "residentId": "6d0100000000000000000028"
@@ -1680,7 +1680,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "invoice 40 after",
@@ -1701,42 +1701,8 @@
         "success": true,
         "message": "Invoices",
         "data": {
-          "month": "2083-07",
+          "month": "2083-08",
           "rows": [
-            {
-              "displayStatus": "OVERDUE",
-              "notBilled": null,
-              "payment": {
-                "dueAmount": 355,
-                "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6afafa1c9a35879ef7c7996e",
-                "month": "2083-07",
-                "paidAmount": 0,
-                "status": "OVERDUE",
-                "fineWaived": false,
-                "lines": [
-                  {
-                    "amount": 1333,
-                    "basis": "MANUAL",
-                    "description": "Monthly rent — Kartik 2083 BS"
-                  },
-                  {
-                    "amount": -978,
-                    "basis": "CREDIT",
-                    "description": "Moved out Kartik 8, 2083 BS — 22 days not charged"
-                  }
-                ]
-              },
-              "resident": {
-                "fullName": "Asha Rai",
-                "id": "6d0100000000000000000028",
-                "image": null,
-                "moveInDate": "2026-09-30T06:00:00.000Z",
-                "phone": "9800000000",
-                "roomNumber": "102",
-                "roomType": "Double Sharing"
-              }
-            },
             {
               "displayStatus": "NOT_BILLED",
               "notBilled": {
@@ -1752,40 +1718,6 @@
                 "phone": "9800000010",
                 "roomNumber": "101",
                 "roomType": "Single"
-              }
-            },
-            {
-              "displayStatus": "OVERDUE",
-              "notBilled": null,
-              "payment": {
-                "dueAmount": 355,
-                "dueDate": "2026-11-16T00:00:00.000Z",
-                "id": "6afafa1b9a35879ef7c79965",
-                "month": "2083-07",
-                "paidAmount": 0,
-                "status": "OVERDUE",
-                "fineWaived": false,
-                "lines": [
-                  {
-                    "amount": 1333,
-                    "basis": "MANUAL",
-                    "description": "Monthly rent — Kartik 2083 BS"
-                  },
-                  {
-                    "amount": -978,
-                    "basis": "CREDIT",
-                    "description": "Moved out Kartik 8, 2083 BS — 22 days not charged"
-                  }
-                ]
-              },
-              "resident": {
-                "fullName": "Chandra Gurung",
-                "id": "6d010000000000000000002a",
-                "image": null,
-                "moveInDate": "2026-09-30T06:00:00.000Z",
-                "phone": "9800000020",
-                "roomNumber": null,
-                "roomType": "Double Sharing"
               }
             },
             {
@@ -1876,9 +1808,9 @@
           ],
           "totals": {
             "collected": 0,
-            "due": 710,
+            "due": 0,
             "notBilled": 6,
-            "overdue": 2,
+            "overdue": 0,
             "paid": 0,
             "partial": 0,
             "unpaid": 0
@@ -1886,7 +1818,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff signed out",
@@ -1907,7 +1839,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff warden no cash",
@@ -1931,7 +1863,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff bad reason",
@@ -1971,7 +1903,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff still here",
@@ -1995,7 +1927,7 @@
         "errorCode": "RESIDENT_STILL_HERE"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff outsiders",
@@ -2019,7 +1951,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff unknown",
@@ -2043,7 +1975,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff",
@@ -2071,7 +2003,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "writeoff again",
@@ -2096,7 +2028,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "out get after writeoff",
@@ -2118,13 +2050,13 @@
         "message": "Move-out checklist loaded",
         "data": {
           "checklist": {
-            "completedAt": "2026-11-16T12:42:04.850Z",
+            "completedAt": "2026-11-18T12:19:44.380Z",
             "damageNotes": "",
             "depositRefundAmount": 0,
             "depositRefundDecision": "PENDING",
             "finalReceiptAssetId": "",
             "hostelId": "6c00000000000000000000a1",
-            "id": "6afafa1cf8ebf47510467b11",
+            "id": "6afd97e0c39dfc05d44ac5bb",
             "itemReturnNotes": "",
             "pendingFeeAmount": 0,
             "residentId": "6d0100000000000000000028"
@@ -2146,12 +2078,12 @@
             "residentType": "STUDENT",
             "roomType": "Double Sharing",
             "status": "MOVED_OUT",
-            "updatedAt": "2026-11-16T12:42:04.862Z"
+            "updatedAt": "2026-11-18T12:19:44.392Z"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "move events after",
@@ -2178,7 +2110,7 @@
               "residentName": "Asha Rai",
               "residentStatus": "MOVED_OUT",
               "roomType": "Double Sharing",
-              "date": "2026-11-16T12:42:04.850Z",
+              "date": "2026-11-18T12:19:44.380Z",
               "type": "MOVE_OUT"
             },
             {
@@ -2186,7 +2118,7 @@
               "residentName": "Chandra Gurung",
               "residentStatus": "MOVED_OUT",
               "roomType": "Double Sharing",
-              "date": "2026-11-16T12:42:04.515Z",
+              "date": "2026-11-18T12:19:43.970Z",
               "type": "MOVE_OUT"
             },
             {
@@ -2297,6 +2229,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 6fbd83e1"
+    "recorded": "http://localhost:3100"
   }
 ]

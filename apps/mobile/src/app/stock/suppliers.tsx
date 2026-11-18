@@ -280,7 +280,7 @@ function NewSupplierSheet({
         {canSetDue ? (
           <MoneyInput
             error={dueValue === false ? "Whole rupees" : null}
-            hint="What you owed them before you started using Stock."
+            hint="What you owed them before you started using Inventory."
             label="Already owed (optional)"
             onChangeText={setDue}
             value={due}

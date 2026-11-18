@@ -684,12 +684,12 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "Stock records what you bought, what you used, and what is left. It works for the main hostel and for each branch. You can also order supplies from the store and pay when they arrive.",
+          "Inventory records what you bought, what you used, and what is left. It works for the main hostel and for each branch. You can also order supplies from the store and pay when they arrive.",
         ],
         id: "stock",
-        shot: pic("stock", "Stock: what you have, what is running low."),
+        shot: pic("stock", "Inventory: what you have, what is running low."),
         summary: "Know what you have and what is running low.",
-        title: "Stock",
+        title: "Inventory",
       },
     ],
     intro: "Your daily work. The owner decides what you can see.",

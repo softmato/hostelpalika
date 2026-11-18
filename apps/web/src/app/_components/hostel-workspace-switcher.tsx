@@ -26,7 +26,7 @@ export function HostelWorkspaceSwitcher({
   /** Why "Manage branches" is closed here (`branchesLock`) — a toast instead of a dead page. */
   branchesLock?: string | null;
   current: string;
-  hostels: Array<{ coverUrl?: string | null; isBranch: boolean; name: string; slug: string }>;
+  hostels: Array<{ branchLabel?: string; coverUrl?: string | null; isBranch: boolean; name: string; slug: string }>;
   /** The owner of several hostels: offer "Overall", every branch at once. */
   overall?: boolean;
 }) {
@@ -62,6 +62,11 @@ export function HostelWorkspaceSwitcher({
           <span className="block max-w-[7rem] truncate text-xs font-semibold md:max-w-[11rem]">
             {switching ? "Switching…" : selected?.name ?? current}
           </span>
+          {!switching && !inOverall ? (
+            <span className="max-w-[6rem] truncate text-[11px] font-semibold text-muted-foreground">
+              {(selected as { branchLabel?: string } | undefined)?.branchLabel || (selected?.isBranch ? "Branch" : "Main")}
+            </span>
+          ) : null}
           <Glyph className="size-3.5 shrink-0 text-muted-foreground" name="chevron-down" />
         </button>
       </DropdownMenuTrigger>
@@ -107,7 +112,7 @@ export function HostelWorkspaceSwitcher({
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{hostel.name}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {hostel.isBranch ? "Branch" : "Main hostel"}
+                  {hostel.branchLabel || (hostel.isBranch ? "Branch" : "Main hostel")}
                 </span>
               </span>
               {active ? <Glyph className="size-4 text-brand-teal" name="checkmark" strokeWidth={2} /> : null}

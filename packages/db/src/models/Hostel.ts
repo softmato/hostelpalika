@@ -24,6 +24,8 @@ const hostelSchema = new Schema(
     // Set on a branch: the Max hostel it belongs to. A branch has no plan of
     // its own — billing, plan limits and suspension are its main hostel's.
     parentHostelId: { default: null, ref: "Hostel", type: Schema.Types.ObjectId },
+    // Set on a branch: the short key its owner tells it apart by ("Block B").
+    branchLabel: { type: String, trim: true, maxlength: 40 },
     location: {
       // Required everywhere but the quick sign-up, which files a name only and
       // fills the address in KYC (docs/QUICK_SIGNUP_KYC_TRIAL.md). Such a

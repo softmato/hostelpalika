@@ -62,8 +62,9 @@ export const updateStockItemSchema = z
 export const createStockEntrySchema = z
   .object({
     /**
-     * BUY, older app builds: the bill's total, all paid. Newer builds send a
-     * price per line (`lines[].amount`), `discount`, `tax` and `paid`.
+     * BUY: the bill total as printed. It wins over the line prices: with every
+     * line priced, the gap is stored as `discount` or `tax` (those two inputs
+     * are then ignored). Without it the total is the lines − discount + tax.
      */
     amount: z.number().int("Whole rupees.").positive().max(EXPENSE_AMOUNT_MAX).optional(),
     /** BUY: the bill's own number, as printed. */

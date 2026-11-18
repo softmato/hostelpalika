@@ -154,9 +154,18 @@ const REWRITES: { prefix: string; to: string }[] = [
   { prefix: "/hostel-admin/inquiries", to: "/manage/inquiries" },
   /*
    * The superadmin's bells (`/platform/*` links), each to the app's own screen
-   * since the platform shell went native (owner, 2026-11-09). Pages with no
-   * native screen yet (hostel leaves, bookings, providers) still expand.
+   * since the platform shell went native (owner, 2026-11-09; the owner queues
+   * — leaves, bookings, providers, deletions, feedback — 2026-11-17).
    */
+  { prefix: "/platform/hostel-leaves", to: "/manage/platform/hostel-leaves" },
+  { prefix: "/platform/bookings", to: "/manage/platform/bookings" },
+  { prefix: "/platform/service-providers", to: "/manage/platform/providers" },
+  { prefix: "/platform/account-deletions", to: "/manage/platform/account-deletions" },
+  { prefix: "/platform/feedback", to: "/manage/platform/feedback" },
+  { prefix: "/platform/reviews", to: "/manage/platform/reviews" },
+  { prefix: "/platform/complaints", to: "/manage/platform/complaints" },
+  { prefix: "/platform/audit-logs", to: "/manage/platform/audit-log" },
+  { prefix: "/platform/team", to: "/manage/platform/team" },
   { prefix: "/platform/hostels", to: "/(platform)/approvals" },
   { prefix: "/platform/listings", to: "/(platform)/approvals" },
   { prefix: "/platform/store/orders", to: "/manage/platform/store-orders" },
@@ -174,6 +183,7 @@ const REWRITES: { prefix: string; to: string }[] = [
   { prefix: "/hostel-admin/complaints", to: "/manage/complaints" },
   { prefix: "/hostel-admin/food", to: "/manage/food" },
   // "Stock on the way" / "Stock received" — the website's stock page, the app's own.
+  { prefix: "/hostel-admin/inventory", to: "/stock" },
   { prefix: "/hostel-admin/stock", to: "/stock" },
   { prefix: "/hostel-admin/bookings", to: "/manage/bookings" },
   /*

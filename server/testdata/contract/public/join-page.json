@@ -25,7 +25,7 @@
         "errorCode": "JOIN_LINK_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "signed out",
@@ -52,8 +52,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -76,7 +76,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "padded token",
@@ -103,8 +103,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -127,7 +127,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "card ready",
@@ -155,8 +155,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -188,7 +188,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "no card",
@@ -216,8 +216,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -249,7 +249,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "private card",
@@ -277,8 +277,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -310,7 +310,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "lives elsewhere",
@@ -338,8 +338,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -374,7 +374,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "lives here",
@@ -402,8 +402,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -438,7 +438,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "sent back",
@@ -466,8 +466,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -506,11 +506,16 @@
                   "amount": 15000,
                   "label": "Kartik 2083",
                   "period": "2083-07"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
               "partPaid": 0,
-              "total": 90000
+              "total": 105000
             },
             "cardId": "HPR-CARD",
             "decidedAt": "2026-10-01T04:15:00.000Z",
@@ -526,7 +531,7 @@
             "problems": [],
             "rejectReason": "Photo is blurry",
             "rent": 15000,
-            "rentLabel": "6 months due (Jestha to Kartik)",
+            "rentLabel": "7 months due (Jestha to Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 1,
@@ -557,7 +562,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "being added",
@@ -585,8 +590,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -625,14 +630,19 @@
                   "amount": 15000,
                   "label": "Kartik 2083",
                   "period": "2083-07"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
               "partPaid": 0,
-              "total": 90000
+              "total": 105000
             },
             "cardId": "HPR-CARD",
-            "decidedAt": "2026-10-30T04:20:52.753Z",
+            "decidedAt": "2026-11-18T12:19:50.781Z",
             "depositPaid": 0,
             "email": "person@contract.test",
             "fullName": "Some Person",
@@ -645,7 +655,7 @@
             "problems": [],
             "rejectReason": "",
             "rent": 15000,
-            "rentLabel": "6 months due (Jestha to Kartik)",
+            "rentLabel": "7 months due (Jestha to Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 1,
@@ -676,7 +686,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "paused link",
@@ -703,8 +713,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -723,7 +733,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "full link, no rooms",
@@ -751,8 +761,8 @@
         "message": "Join link loaded",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -780,7 +790,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "hostel gone",
@@ -808,7 +818,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "unknown account",
@@ -837,6 +847,6 @@
         "errorCode": "USER_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   }
 ]

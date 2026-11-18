@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list warden no grant",
@@ -40,7 +40,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list resident",
@@ -63,7 +63,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list bad id",
@@ -86,7 +86,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list unknown",
@@ -109,7 +109,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list outsiders",
@@ -132,7 +132,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list outsider hostel",
@@ -155,7 +155,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list empty",
@@ -186,7 +186,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add while off",
@@ -213,7 +213,7 @@
         "errorCode": "LEAVE_OFF"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "rules on food",
@@ -256,7 +256,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add signed out",
@@ -280,7 +280,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add warden no grant",
@@ -307,7 +307,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add empty",
@@ -352,7 +352,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add bad dates",
@@ -408,7 +408,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add reversed",
@@ -435,7 +435,7 @@
         "errorCode": "LEAVE_DATES"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add crosses month",
@@ -462,7 +462,7 @@
         "errorCode": "LEAVE_CROSSES_MONTH"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add too short",
@@ -489,7 +489,7 @@
         "errorCode": "LEAVE_TOO_SHORT"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add unknown",
@@ -516,7 +516,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add bad id",
@@ -543,7 +543,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add outsider hostel",
@@ -571,7 +571,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add",
@@ -602,7 +602,7 @@
               "amount": 600,
               "days": 6,
               "from": "2026-10-25",
-              "id": "6ae8a8c95e205a5564095f0c",
+              "id": "6afd97c07cae8e2a7798ca62",
               "label": "Kartik 8–13",
               "mode": "FOOD",
               "note": "Home for Tihar",
@@ -621,7 +621,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add overlap",
@@ -648,7 +648,7 @@
         "errorCode": "LEAVE_OVERLAP"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add second",
@@ -678,7 +678,7 @@
               "amount": 500,
               "days": 5,
               "from": "2026-11-01",
-              "id": "6ae8a8c95e205a5564095f0d",
+              "id": "6afd97c07cae8e2a7798ca63",
               "label": "Kartik 15–19",
               "mode": "FOOD",
               "note": null,
@@ -691,7 +691,7 @@
               "amount": 600,
               "days": 6,
               "from": "2026-10-25",
-              "id": "6ae8a8c95e205a5564095f0c",
+              "id": "6afd97c07cae8e2a7798ca62",
               "label": "Kartik 8–13",
               "mode": "FOOD",
               "note": "Home for Tihar",
@@ -710,7 +710,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "rules full day",
@@ -753,7 +753,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "full day not billed",
@@ -780,7 +780,7 @@
         "errorCode": "LEAVE_MONTH_NOT_BILLED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "full day billed",
@@ -807,7 +807,7 @@
         "errorCode": "LEAVE_MONTH_NOT_BILLED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list",
@@ -836,7 +836,7 @@
               "amount": 500,
               "days": 5,
               "from": "2026-11-01",
-              "id": "6ae8a8c95e205a5564095f0d",
+              "id": "6afd97c07cae8e2a7798ca63",
               "label": "Kartik 15–19",
               "mode": "FOOD",
               "note": null,
@@ -849,7 +849,7 @@
               "amount": 600,
               "days": 6,
               "from": "2026-10-25",
-              "id": "6ae8a8c95e205a5564095f0c",
+              "id": "6afd97c07cae8e2a7798ca62",
               "label": "Kartik 8–13",
               "mode": "FOOD",
               "note": "Home for Tihar",
@@ -868,7 +868,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel",
@@ -894,7 +894,7 @@
               "amount": 600,
               "days": 6,
               "from": "2026-10-25",
-              "id": "6ae8a8c95e205a5564095f0c",
+              "id": "6afd97c07cae8e2a7798ca62",
               "label": "Kartik 8–13",
               "mode": "FOOD",
               "note": "Home for Tihar",
@@ -913,7 +913,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel again",
@@ -936,7 +936,7 @@
         "errorCode": "LEAVE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list after cancel",
@@ -962,7 +962,7 @@
               "amount": 600,
               "days": 6,
               "from": "2026-10-25",
-              "id": "6ae8a8c95e205a5564095f0c",
+              "id": "6afd97c07cae8e2a7798ca62",
               "label": "Kartik 8–13",
               "mode": "FOOD",
               "note": "Home for Tihar",
@@ -981,7 +981,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel signed out",
@@ -1001,7 +1001,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel warden no grant",
@@ -1024,7 +1024,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel bad leave",
@@ -1047,7 +1047,7 @@
         "errorCode": "LEAVE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel unknown leave",
@@ -1070,7 +1070,7 @@
         "errorCode": "LEAVE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "cancel unknown resident",
@@ -1093,6 +1093,6 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 x"
+    "recorded": "http://localhost:3100"
   }
 ]

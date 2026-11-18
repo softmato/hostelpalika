@@ -48,6 +48,7 @@ func (h *Handler) workspaces(c *gin.Context) {
 	}
 	type row struct {
 		ID     bson.ObjectID  `bson:"_id"`
+		Label  string         `bson:"branchLabel"`
 		Name   string         `bson:"name"`
 		Parent *bson.ObjectID `bson:"parentHostelId"`
 		Photos bson.Raw       `bson:"photos"`
@@ -56,7 +57,7 @@ func (h *Handler) workspaces(c *gin.Context) {
 	var rows []row
 	if len(oids) > 0 {
 		cur, err := h.DB.Collection("hostels").Find(c, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: oids}}}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
-			options.Find().SetProjection(bson.D{{Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}, {Key: "slug", Value: 1}}))
+			options.Find().SetProjection(bson.D{{Key: "branchLabel", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1}, {Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}, {Key: "slug", Value: 1}}))
 		if err == nil {
 			err = cur.All(c, &rows)
 		}
@@ -95,7 +96,7 @@ func (h *Handler) workspaces(c *gin.Context) {
 			}
 		}
 		listed = listed || r.Slug == slug
-		out = append(out, ordered.Map{{Key: "branchCap", Value: branchCap}, {Key: "coverUrl", Value: cover}, {Key: "id", Value: r.ID.Hex()},
+		out = append(out, ordered.Map{{Key: "branchCap", Value: branchCap}, {Key: "branchLabel", Value: r.Label}, {Key: "coverUrl", Value: cover}, {Key: "id", Value: r.ID.Hex()},
 			{Key: "isBranch", Value: r.Parent != nil}, {Key: "name", Value: r.Name}, {Key: "slug", Value: r.Slug}})
 	}
 	held := false

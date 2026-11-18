@@ -9,6 +9,7 @@ export type WorkspaceHostel = {
   /** Branches this hostel's plan includes — 0 on every plan but Max. */
   branchCap: number;
   /** First exterior photo — the hostel's face in the switcher. */
+  branchLabel: string;
   coverUrl: string | null;
   id: string;
   /** A branch of a Max hostel — labelled so in the switcher. */
@@ -33,15 +34,16 @@ export async function listWorkspaces(principal: ApiPrincipal, slug: string | nul
   ];
   const rows = hostelIds.length
     ? await HostelModel.find({ _id: { $in: hostelIds }, isDeleted: { $ne: true } })
-        .select("name parentHostelId photos.kind photos.url slug")
+        .select("branchLabel name parentHostelId photos.kind photos.url slug")
         .lean<
-          Array<{ _id: { toString(): string }; name: string; parentHostelId?: unknown; photos?: HostelPhoto[]; slug: string }>
+          Array<{ _id: { toString(): string }; branchLabel?: string; name: string; parentHostelId?: unknown; photos?: HostelPhoto[]; slug: string }>
         >()
     : [];
   const order = new Map(hostelIds.map((id, index) => [id, index]));
   const hostels: WorkspaceHostel[] = await Promise.all(
     rows
       .map((hostel) => ({
+        branchLabel: hostel.branchLabel ?? "",
         coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
         id: hostel._id.toString(),
         isBranch: Boolean(hostel.parentHostelId),

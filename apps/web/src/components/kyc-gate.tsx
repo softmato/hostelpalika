@@ -40,6 +40,7 @@ const FROZEN = [
   "/hostel-admin/reports",
   "/hostel-admin/residents",
   "/hostel-admin/statement",
+  "/hostel-admin/inventory",
   "/hostel-admin/stock",
   "/hostel-admin/transactions",
   "/hostel-admin/wardens",

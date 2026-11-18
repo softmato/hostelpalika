@@ -501,7 +501,7 @@ function BranchAdminHomeScreen() {
               — a third path to the same places, sitting on the heading of a row
               that is already nothing but paths, was chrome.
             */}
-            <SectionHeader title="Money & stock" />
+            <SectionHeader title="Money & inventory" />
 
             <DeniedNotice denied={alerts.data?.denied ?? []} />
 

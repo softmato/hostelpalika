@@ -4,25 +4,17 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
 import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { connectToDatabase } from "@/lib/db";
-import { claimRegistrationDocuments } from "@/lib/registration-documents";
-import { Role } from "@/lib/roles";
 import { countBranches } from "@/modules/billing/billing-hostel";
-import { panKey } from "@/modules/billing/free-months";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
-import { registrationShortStays } from "@/modules/bookings/short-stay-settings.service";
-import { hostelNameKey } from "@/modules/hostels/hostel-name-key";
 import type { BranchRequestInput } from "@/lib/hostels/hostel-branch.validation";
 export { branchRequestSchema, type BranchRequestInput } from "@/lib/hostels/hostel-branch.validation";
-import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { collectionTotals } from "@/modules/finance/ledger-read.service";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { HostelModel } from "@hostel/db/models/Hostel";
-import { HostelApplicationModel } from "@hostel/db/models/HostelApplication";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
-import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { currentBsPeriod } from "@hostel/shared/calendar/bs";
@@ -81,11 +73,12 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
   const main = await resolveOwnedHostel(mainHostelId, principal.userId);
   const [branches, allowance, mainPan] = await Promise.all([
     HostelModel.find({ isDeleted: { $ne: true }, parentHostelId: main._id })
-      .select("name slug status location.area location.city photos.kind photos.url createdAt")
+      .select("branchLabel name slug status location.area location.city photos.kind photos.url createdAt")
       .sort({ createdAt: 1 })
       .lean<
         Array<{
           _id: Types.ObjectId;
+          branchLabel?: string;
           createdAt?: Date;
           location?: { area?: string; city?: string };
           name: string;
@@ -96,8 +89,9 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
       >(),
     getBranchAllowance(mainHostelId),
     HostelModel.findById(main._id)
-      .select("panNumber location photos.kind photos.url")
+      .select("branchLabel panNumber location photos.kind photos.url")
       .lean<{
+        branchLabel?: string;
         panNumber?: string;
         location?: { area?: string; city?: string };
         photos?: HostelPhoto[];
@@ -108,6 +102,7 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
     allowance,
     branches: branches.map((branch) => ({
       area: branch.location?.area ?? "",
+      branchLabel: branch.branchLabel ?? "",
       city: branch.location?.city ?? "",
       coverUrl: resolveHostelPhotos(branch.photos, "EXTERIOR")[0]?.url ?? null,
       createdAt: branch.createdAt?.toISOString() ?? null,
@@ -122,6 +117,7 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
       slug: main.slug ?? "",
       status: main.status ?? "",
       area: mainPan?.location?.area ?? "",
+      branchLabel: mainPan?.branchLabel ?? "",
       city: mainPan?.location?.city ?? "",
       coverUrl: resolveHostelPhotos(mainPan?.photos, "EXTERIOR")[0]?.url ?? null,
       panNumber: mainPan?.panNumber ?? null,
@@ -130,6 +126,19 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
 }
 
 /** Owner-only read, including branches whose registration is still pending. */
+/** Renames the short key a hostel in this group goes by ("Block B"). */
+export async function setBranchLabel(mainHostelId: string, branchId: string, label: string, principal: ApiPrincipal) {
+  await connectToDatabase();
+  const main = await resolveOwnedHostel(mainHostelId, principal.userId);
+  if (!Types.ObjectId.isValid(branchId)) throw new BranchError("Branch not found.", "HOSTEL_NOT_FOUND", 404);
+  const done = await HostelModel.updateOne(
+    { _id: new Types.ObjectId(branchId), isDeleted: { $ne: true }, $or: [{ _id: main._id }, { parentHostelId: main._id }] },
+    { $set: { branchLabel: label, updatedBy: principal.userId } },
+  );
+  if (!done.matchedCount) throw new BranchError("Branch not found.", "HOSTEL_NOT_FOUND", 404);
+  return { branchLabel: label };
+}
+
 export async function getBranchDetails(mainHostelId: string, branchId: string, principal: ApiPrincipal) {
   await connectToDatabase();
   const main = await resolveOwnedHostel(mainHostelId, principal.userId);
@@ -171,6 +180,13 @@ export async function getBranchDetails(mainHostelId: string, branchId: string, p
   };
 }
 
+/**
+ * A branch starts the way a quick sign-up does: its name and label, then the
+ * branch's own KYC carries the rest — location, rooms, documents, payout and
+ * the signed agreement. It stays DRAFT, unlisted and KYC-locked until a
+ * superadmin approves that KYC. It rides the main hostel's plan, so it has no
+ * trial of its own.
+ */
 export async function requestBranch(
   mainHostelId: string,
   input: BranchRequestInput,
@@ -181,16 +197,14 @@ export async function requestBranch(
   // Only the owner of the main hostel — not its wardens or cooks.
   const owned = await resolveOwnedHostel(mainHostelId, principal.userId);
   const main = await HostelModel.findById(owned._id)
-    .select("contact name ownerId panNumber parentHostelId slug suspension")
+    .select("contact name ownerId parentHostelId suspension")
     .lean<{
       _id: Types.ObjectId;
-      contact?: { phone?: string };
+      contact?: { email?: string; phone?: string };
       suspension?: Record<string, unknown> | null;
       name: string;
       ownerId: Types.ObjectId;
-      panNumber?: string;
       parentHostelId?: Types.ObjectId | null;
-      slug: string;
     } | null>();
 
   if (!main) {
@@ -227,157 +241,27 @@ export async function requestBranch(
     );
   }
 
-  const key = hostelNameKey(input.name);
-  const neighbours = await HostelModel.find({
-    isDeleted: { $ne: true },
-    "location.area": new RegExp(
-      `^${input.location.area.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-      "i",
-    ),
-    "location.city": new RegExp(
-      `^${input.location.city.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-      "i",
-    ),
-  })
-    .select("name")
-    .lean<Array<{ name?: string }>>();
-
-  if (key && neighbours.some((hostel) => hostelNameKey(hostel.name ?? "") === key)) {
-    throw new BranchError(
-      `A hostel with this name is already listed in ${input.location.area}. Give the branch a name that tells them apart.`,
-      "HOSTEL_ALREADY_LISTED",
-    );
-  }
-
-  const shortStays = await registrationShortStays(input);
-  const uploadedDocuments = await claimRegistrationDocuments(
-    input.documents,
-    main.ownerId,
-  );
-  // Reuse only this owner's approved documents, never a client-supplied hostel or asset ID.
-  const sharedDocuments = input.reuseDocuments
-    ? await HostelDocumentModel.find({
-        hostelId: main._id,
-        ownerId: main.ownerId,
-        isDeleted: { $ne: true },
-        status: "APPROVED",
-      })
-        .select("documentType fileAssetId")
-        .lean<Array<{ documentType: string; fileAssetId: Types.ObjectId }>>()
-    : [];
-  const documents = [
-    ...sharedDocuments.filter(
-      (document) =>
-        !uploadedDocuments.some(
-          (uploaded) => uploaded.documentType === document.documentType,
-        ),
-    ),
-    ...uploadedDocuments,
-  ];
   const branch = await HostelModel.create({
     // A branch rides its main hostel's plan, so it starts on the same suspension
     // clock — `startHostelSuspension` only copies onto branches that exist then.
     ...(main.suspension ? { suspension: main.suspension } : {}),
-    capacitySummary: input.roomConfigurations.length
-      ? {
-          totalRooms: input.roomConfigurations.reduce((sum, room) => sum + room.rooms, 0),
-          totalBeds: input.roomConfigurations.reduce(
-            (sum, room) => sum + room.rooms * room.bedsPerRoom,
-            0,
-          ),
-          vacantBeds: input.roomConfigurations.reduce(
-            (sum, room) => sum + room.vacantBeds,
-            0,
-          ),
-        }
-      : {
-          ...input.capacitySummary,
-          ...(input.totalCapacity !== undefined
-            ? { totalBeds: input.totalCapacity }
-            : {}),
-        },
-    contact: { ...input.contact, alternatePhone: input.alternatePhone },
+    branchLabel: input.branchLabel,
+    // The main hostel's phone and email to start from; the KYC can change them.
+    contact: { email: main.contact?.email, phone: main.contact?.phone },
     createdBy: principal.userId,
-    description: input.description,
-    facilities: input.facilities,
-    food: input.food,
-    hostelType: input.hostelType,
-    location: { ...input.location, landmark: input.landmark, mapLink: input.mapLink },
+    kyc: { required: true, status: "DRAFT" },
     name: input.name,
     ownerId: main.ownerId,
-    panNumber: panKey(input.reuseDocuments ? main.panNumber : input.panNumber),
     parentHostelId: main._id,
-    photos: input.photos,
-    pricing: input.pricing,
-    securityDeposit: input.securityDeposit,
-    roomConfigurations: input.roomConfigurations.map((room) => ({
-      ...room,
-      securityDeposit: room.securityDeposit ?? input.securityDeposit,
-    })),
-    roomTypes: input.roomTypes,
-    rules: input.rules,
-    shortStays,
-    totalFloors: input.totalFloors,
-    yearEstablished: input.yearEstablished,
-    slug: await uniqueBranchSlug(input.name, input.location.area),
-    status: "PENDING_APPROVAL",
+    slug: await uniqueBranchSlug(input.name, ""),
+    status: "DRAFT",
     updatedBy: principal.userId,
-    verificationStatus: "PENDING",
+    verificationStatus: "UNVERIFIED",
   });
 
-  await HostelApplicationModel.create({
-    applicantId: main.ownerId,
-    hostelId: branch._id,
-    notes: input.notes,
-    snapshot: {
-      cookCount: input.cookCount,
-      totalCapacity: input.totalCapacity,
-      totalFloors: input.totalFloors,
-      yearEstablished: input.yearEstablished,
-      reuseDocuments: input.reuseDocuments,
-      contact: input.contact,
-      documents,
-      location: input.location,
-      name: input.name,
-      parentHostelId: main._id,
-      pricing: input.pricing,
-      securityDeposit: input.securityDeposit,
-      roomConfigurations: input.roomConfigurations,
-    },
-    source: "BRANCH",
-    status: "PENDING",
-    submittedBy: principal.userId,
-  });
-
-  await HostelVerificationModel.create({
-    createdBy: principal.userId,
-    hostelId: branch._id,
-    status: "PENDING",
-    updatedBy: principal.userId,
-  });
-
-  if (documents.length > 0) {
-    await HostelDocumentModel.insertMany(
-      documents.map((document) => ({
-        createdBy: principal.userId,
-        documentType: document.documentType,
-        fileAssetId: document.fileAssetId,
-        hostelId: branch._id,
-        ownerId: main.ownerId,
-        status: "PENDING",
-        updatedBy: principal.userId,
-      })),
-    );
-  }
-
-  const { setHostelPayoutAccount } =
-    await import("@/modules/bookings/payout-account.service");
-
-  if (input.payoutAccount)
-    await setHostelPayoutAccount(branch._id.toString(), input.payoutAccount, {
-      source: "REGISTRATION",
-      userId: principal.userId,
-    });
+  // The owner works in the branch from now on — its KYC is done from inside it —
+  // so it joins their hostels here, not at approval. The token heals at refresh.
+  await UserModel.updateOne({ _id: main.ownerId }, { $addToSet: { hostelIds: branch._id } });
 
   await AuditLogModel.create({
     action: "HOSTEL_BRANCH_REQUESTED",
@@ -385,49 +269,10 @@ export async function requestBranch(
     entityId: branch._id.toString(),
     entityType: "Hostel",
     hostelId: branch._id,
-    metadata: { mainHostelId: main._id.toString(), panNumber: panKey(input.panNumber) },
+    metadata: { mainHostelId: main._id.toString() },
   });
 
-  await notifyPlatformOfBranch({
-    branchName: input.name,
-    branchPhone: input.contact?.phone ?? "",
-    mainName: main.name,
-  });
-
-  return {
-    branch: { id: branch._id.toString(), name: input.name, status: "PENDING_APPROVAL" },
-  };
-}
-
-/**
- * A bell to every superadmin, with no one-tap Approve: a branch is approved
- * only after somebody has rung it, so the bell says whom to call and opens the
- * queue.
- */
-async function notifyPlatformOfBranch(input: {
-  branchName: string;
-  branchPhone: string;
-  mainName: string;
-}) {
-  const staff = await UserModel.find({
-    isDeleted: { $ne: true },
-    role: Role.SUPERADMIN,
-    status: "ACTIVE",
-  })
-    .select("_id")
-    .lean<Array<{ _id: Types.ObjectId }>>();
-
-  await Promise.all(
-    staff.map((member) =>
-      createInAppNotification({
-        actionUrl: "/platform/hostels",
-        body: `${input.branchName}, a branch of ${input.mainName}. Call ${input.branchPhone || "the branch"} before approving.`,
-        category: "HOSTEL_APPROVAL",
-        title: "Branch waiting for a call",
-        userId: member._id.toString(),
-      }).catch(() => undefined),
-    ),
-  );
+  return { branch: { id: branch._id.toString(), name: input.name, status: "DRAFT" } };
 }
 
 /**
@@ -453,10 +298,11 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
     _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
     isDeleted: { $ne: true },
   })
-    .select("capacitySummary location.area location.city name parentHostelId photos.kind photos.url slug status")
+    .select("branchLabel capacitySummary location.area location.city name parentHostelId photos.kind photos.url slug status")
     .lean<
       Array<{
         _id: Types.ObjectId;
+        branchLabel?: string;
         capacitySummary?: { totalBeds?: number; vacantBeds?: number };
         location?: { area?: string; city?: string };
         name: string;
@@ -491,6 +337,7 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
       return {
         area: hostel.location?.area ?? "",
         city: hostel.location?.city ?? "",
+        branchLabel: hostel.branchLabel ?? "",
         beds,
         collected: money.paidAmount,
         /** First exterior photo — the branch's face in the app's switcher. */
@@ -546,11 +393,12 @@ export async function getBranchNames(principal: ApiPrincipal) {
     $or: [{ _id: { $in: groups } }, { parentHostelId: { $in: groups } }],
     isDeleted: { $ne: true },
   })
-    .select("location.area location.city name parentHostelId photos.kind photos.url")
+    .select("branchLabel location.area location.city name parentHostelId photos.kind photos.url")
     .sort({ _id: 1 })
     .lean<
       Array<{
         _id: Types.ObjectId;
+        branchLabel?: string;
         location?: { area?: string; city?: string };
         name: string;
         parentHostelId?: Types.ObjectId | null;
@@ -565,6 +413,7 @@ export async function getBranchNames(principal: ApiPrincipal) {
       .map((hostel) => ({
         area: hostel.location?.area ?? "",
         city: hostel.location?.city ?? "",
+        branchLabel: hostel.branchLabel ?? "",
         coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
         id: hostel._id.toString(),
         isBranch: Boolean(hostel.parentHostelId),

@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "geocode not team",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "geocode nothing to look up",
@@ -77,7 +77,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "geocode bad values",
@@ -135,7 +135,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "geocode only lat",
@@ -172,7 +172,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put signed out",
@@ -195,7 +195,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put not filed",
@@ -231,7 +231,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put bad id",
@@ -267,7 +267,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put no rows",
@@ -305,7 +305,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put bad row",
@@ -361,7 +361,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put rows",
@@ -423,7 +423,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de47",
+                "id": "6afd97fe7cae8e2a7798ca88",
                 "problems": [
                   {
                     "field": "roomType",
@@ -439,7 +439,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de48",
+                "id": "6afd97fe7cae8e2a7798ca89",
                 "problems": [
                   {
                     "field": "fullName",
@@ -459,7 +459,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de49",
+                "id": "6afd97fe7cae8e2a7798ca8a",
                 "problems": [
                   {
                     "field": "roomType",
@@ -477,8 +477,8 @@
             "withProblems": 3
           },
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -486,14 +486,14 @@
           },
           "lastAdded": null,
           "list": {
-            "id": "6aeb2c3137ebc2e9fc47de46",
+            "id": "6afd97fe7cae8e2a7798ca87",
             "rows": [
               {
                 "depositPaid": 500,
                 "email": "team1@contract.test",
                 "fullName": "Team Person1 Last",
-                "id": "6aeb2c3137ebc2e9fc47de47",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca88",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -507,8 +507,8 @@
                 "depositPaid": 500,
                 "email": "team2@contract.test",
                 "fullName": "Mononym",
-                "id": "6aeb2c3137ebc2e9fc47de48",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca89",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -522,8 +522,8 @@
                 "depositPaid": 500,
                 "email": "team3@contract.test",
                 "fullName": "Team Person3 Last",
-                "id": "6aeb2c3137ebc2e9fc47de49",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca8a",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -534,7 +534,7 @@
                 "roomType": "Palace"
               }
             ],
-            "updatedAt": "2026-11-04T12:59:29.058Z"
+            "updatedAt": "2026-11-18T12:20:14.634Z"
           },
           "numberedRooms": [
             {
@@ -566,7 +566,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list after put",
@@ -597,7 +597,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de47",
+                "id": "6afd97fe7cae8e2a7798ca88",
                 "problems": [
                   {
                     "field": "roomType",
@@ -613,7 +613,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de48",
+                "id": "6afd97fe7cae8e2a7798ca89",
                 "problems": [
                   {
                     "field": "fullName",
@@ -633,7 +633,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de49",
+                "id": "6afd97fe7cae8e2a7798ca8a",
                 "problems": [
                   {
                     "field": "roomType",
@@ -651,8 +651,8 @@
             "withProblems": 3
           },
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -660,14 +660,14 @@
           },
           "lastAdded": null,
           "list": {
-            "id": "6aeb2c3137ebc2e9fc47de46",
+            "id": "6afd97fe7cae8e2a7798ca87",
             "rows": [
               {
                 "depositPaid": 500,
                 "email": "team1@contract.test",
                 "fullName": "Team Person1 Last",
-                "id": "6aeb2c3137ebc2e9fc47de47",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca88",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -681,8 +681,8 @@
                 "depositPaid": 500,
                 "email": "team2@contract.test",
                 "fullName": "Mononym",
-                "id": "6aeb2c3137ebc2e9fc47de48",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca89",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -696,8 +696,8 @@
                 "depositPaid": 500,
                 "email": "team3@contract.test",
                 "fullName": "Team Person3 Last",
-                "id": "6aeb2c3137ebc2e9fc47de49",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd97fe7cae8e2a7798ca8a",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -708,7 +708,7 @@
                 "roomType": "Palace"
               }
             ],
-            "updatedAt": "2026-11-04T12:59:29.058Z"
+            "updatedAt": "2026-11-18T12:20:14.634Z"
           },
           "numberedRooms": [
             {
@@ -740,7 +740,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add with problems",
@@ -773,7 +773,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de47",
+                "id": "6afd97fe7cae8e2a7798ca88",
                 "problems": [
                   {
                     "field": "roomType",
@@ -789,7 +789,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de48",
+                "id": "6afd97fe7cae8e2a7798ca89",
                 "problems": [
                   {
                     "field": "fullName",
@@ -809,7 +809,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de49",
+                "id": "6afd97fe7cae8e2a7798ca8a",
                 "problems": [
                   {
                     "field": "roomType",
@@ -829,7 +829,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "file empty",
@@ -869,7 +869,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "file not a sheet",
@@ -895,7 +895,7 @@
         "errorCode": "EXISTING_RESIDENTS_FILE_UNREADABLE"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "file csv",
@@ -933,7 +933,7 @@
                 {
                   "added": false,
                   "bills": null,
-                  "id": "6aeb2c3137ebc2e9fc47de47",
+                  "id": "6afd97fe7cae8e2a7798ca88",
                   "problems": [
                     {
                       "field": "roomType",
@@ -949,7 +949,7 @@
                 {
                   "added": false,
                   "bills": null,
-                  "id": "6aeb2c3137ebc2e9fc47de48",
+                  "id": "6afd97fe7cae8e2a7798ca89",
                   "problems": [
                     {
                       "field": "fullName",
@@ -969,7 +969,7 @@
                 {
                   "added": false,
                   "bills": null,
-                  "id": "6aeb2c3137ebc2e9fc47de49",
+                  "id": "6afd97fe7cae8e2a7798ca8a",
                   "problems": [
                     {
                       "field": "roomType",
@@ -985,7 +985,7 @@
                 {
                   "added": false,
                   "bills": null,
-                  "id": "6aeb2c3137ebc2e9fc47de4d",
+                  "id": "6afd98087cae8e2a7798ca8e",
                   "problems": [
                     {
                       "field": "roomType",
@@ -1007,8 +1007,8 @@
               "withProblems": 4
             },
             "currentMonth": {
-              "label": "Kartik 2083",
-              "period": "2083-07"
+              "label": "Mangsir 2083",
+              "period": "2083-08"
             },
             "hostel": {
               "id": "6c00000000000000000000a1",
@@ -1016,14 +1016,14 @@
             },
             "lastAdded": null,
             "list": {
-              "id": "6aeb2c3137ebc2e9fc47de46",
+              "id": "6afd97fe7cae8e2a7798ca87",
               "rows": [
                 {
                   "depositPaid": 500,
                   "email": "team1@contract.test",
                   "fullName": "Team Person1 Last",
-                  "id": "6aeb2c3137ebc2e9fc47de47",
-                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "id": "6afd97fe7cae8e2a7798ca88",
+                  "joinedDate": "2026-11-17T00:00:00.000Z",
                   "monthlyRent": null,
                   "oldDues": 0,
                   "paidTill": "2084-06",
@@ -1037,8 +1037,8 @@
                   "depositPaid": 500,
                   "email": "team2@contract.test",
                   "fullName": "Mononym",
-                  "id": "6aeb2c3137ebc2e9fc47de48",
-                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "id": "6afd97fe7cae8e2a7798ca89",
+                  "joinedDate": "2026-11-17T00:00:00.000Z",
                   "monthlyRent": null,
                   "oldDues": 0,
                   "paidTill": "2084-06",
@@ -1052,8 +1052,8 @@
                   "depositPaid": 500,
                   "email": "team3@contract.test",
                   "fullName": "Team Person3 Last",
-                  "id": "6aeb2c3137ebc2e9fc47de49",
-                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "id": "6afd97fe7cae8e2a7798ca8a",
+                  "joinedDate": "2026-11-17T00:00:00.000Z",
                   "monthlyRent": null,
                   "oldDues": 0,
                   "paidTill": "2084-06",
@@ -1067,8 +1067,8 @@
                   "depositPaid": 300,
                   "email": "",
                   "fullName": "Csv Team Person",
-                  "id": "6aeb2c3137ebc2e9fc47de4d",
-                  "joinedDate": "2026-10-18T00:00:00.000Z",
+                  "id": "6afd98087cae8e2a7798ca8e",
+                  "joinedDate": "2026-11-17T00:00:00.000Z",
                   "monthlyRent": null,
                   "oldDues": 0,
                   "paidTill": "2084-09",
@@ -1079,7 +1079,7 @@
                   "roomType": "Single"
                 }
               ],
-              "updatedAt": "2026-11-04T12:59:29.506Z"
+              "updatedAt": "2026-11-18T12:20:24.484Z"
             },
             "numberedRooms": [
               {
@@ -1112,7 +1112,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "file not filed",
@@ -1139,7 +1139,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "put fixed",
@@ -1192,7 +1192,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "id": "6afd98087cae8e2a7798ca8f",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1208,7 +1208,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "id": "6afd98087cae8e2a7798ca90",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1226,8 +1226,8 @@
             "withProblems": 2
           },
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -1235,14 +1235,14 @@
           },
           "lastAdded": null,
           "list": {
-            "id": "6aeb2c3137ebc2e9fc47de46",
+            "id": "6afd97fe7cae8e2a7798ca87",
             "rows": [
               {
                 "depositPaid": 500,
                 "email": "team1@contract.test",
                 "fullName": "Team Person1 Last",
-                "id": "6aeb2c3137ebc2e9fc47de4e",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd98087cae8e2a7798ca8f",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -1256,8 +1256,8 @@
                 "depositPaid": 500,
                 "email": "team2@contract.test",
                 "fullName": "Team Person2 Last",
-                "id": "6aeb2c3137ebc2e9fc47de4f",
-                "joinedDate": "2026-10-18T00:00:00.000Z",
+                "id": "6afd98087cae8e2a7798ca90",
+                "joinedDate": "2026-11-17T00:00:00.000Z",
                 "monthlyRent": null,
                 "oldDues": 0,
                 "paidTill": "2084-06",
@@ -1268,7 +1268,7 @@
                 "roomType": "Single"
               }
             ],
-            "updatedAt": "2026-11-04T12:59:29.705Z"
+            "updatedAt": "2026-11-18T12:20:24.634Z"
           },
           "numberedRooms": [
             {
@@ -1300,7 +1300,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add superadmin",
@@ -1333,7 +1333,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "id": "6afd98087cae8e2a7798ca8f",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1349,7 +1349,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "id": "6afd98087cae8e2a7798ca90",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1369,7 +1369,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add",
@@ -1402,7 +1402,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "id": "6afd98087cae8e2a7798ca8f",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1418,7 +1418,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "id": "6afd98087cae8e2a7798ca90",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1438,7 +1438,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "add again",
@@ -1471,7 +1471,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4e",
+                "id": "6afd98087cae8e2a7798ca8f",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1487,7 +1487,7 @@
               {
                 "added": false,
                 "bills": null,
-                "id": "6aeb2c3137ebc2e9fc47de4f",
+                "id": "6afd98087cae8e2a7798ca90",
                 "problems": [
                   {
                     "field": "roomType",
@@ -1507,7 +1507,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "clear not filed",
@@ -1530,7 +1530,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "clear",
@@ -1553,8 +1553,8 @@
         "data": {
           "check": null,
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -1592,7 +1592,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "clear again",
@@ -1615,8 +1615,8 @@
         "data": {
           "check": null,
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -1654,7 +1654,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list after clear",
@@ -1677,8 +1677,8 @@
         "data": {
           "check": null,
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "id": "6c00000000000000000000a1",
@@ -1716,6 +1716,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   }
 ]

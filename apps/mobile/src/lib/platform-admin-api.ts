@@ -385,3 +385,256 @@ export const getSiteFlags = async () => {
 /** A section is replaced whole (`siteConfigSectionSchemas[section]`). */
 export const saveSiteSection = (section: "announcement" | "features", value: Announcement | FeatureFlags) =>
   send<unknown>("put", `/platform/site-config/${section}`, value);
+
+/* -------------------------------------------------------------------------- */
+/* Bookings: screenshots to check, refunds and payouts to send (superadmin)  */
+/* -------------------------------------------------------------------------- */
+
+export type BookingPaymentToCheck = {
+  amount: number;
+  bookingCode: string;
+  bookingId: string;
+  checkBy: string;
+  guest: { email: string; name: string; phone: string };
+  hostelName: string;
+  id: string;
+  note: string | null;
+  proofAssetId: string;
+  reference: string | null;
+  roomType: string;
+  submittedAt: string;
+};
+
+export type BookingTransfer = {
+  amount: number;
+  blocked: "NO_PAYOUT_ACCOUNT" | "PAYOUT_ACCOUNT_NOT_VERIFIED" | null;
+  bookingCode: string;
+  destination: { bankName: string; holderName: string; maskedNumber: string; methodLabel: string } | null;
+  dueSince: string | null;
+  guestName: string;
+  hostelName: string;
+  id: string;
+  kind: "PAYOUT" | "REFUND";
+  roomType: string;
+};
+
+export type RevealedAccount = { bankName: string; branch: string; holderName: string; methodLabel: string; number: string };
+
+export const listBookingPayments = async () => (await get<{ payments: BookingPaymentToCheck[] }>("/platform/bookings/payments")).payments;
+
+/** `{ approve: false, note }` — the note is what the person reads. */
+export const reviewBookingPayment = (id: string, approve: boolean, note?: string) =>
+  send<unknown>("post", `/platform/bookings/payments/${id}`, approve ? { approve } : { approve, note: note?.trim() });
+
+export const listBookingTransfers = async () => (await get<{ transfers: BookingTransfer[] }>("/platform/bookings/transfers")).transfers;
+
+/** The full account number — audited server-side and never cached. */
+export const revealTransferAccount = async (id: string) =>
+  (await send<{ account: RevealedAccount }>("post", `/platform/bookings/transfers/${id}/reveal`)).account;
+
+export const markTransferSent = (id: string, transactionId: string, note?: string) =>
+  send<unknown>("post", `/platform/bookings/transfers/${id}/sent`, { note: note?.trim() || undefined, transactionId: transactionId.trim() });
+
+/* -------------------------------------------------------------------------- */
+/* Account deletions + hostel leaves (superadmin)                             */
+/* -------------------------------------------------------------------------- */
+
+export type DeletionRequest = {
+  hostelIds: string[];
+  id: string;
+  reason: string;
+  requestedAt: string;
+  requestedEmail: string;
+  requestedName?: string;
+  requestedRole: string;
+  reviewNote?: string;
+  reviewStatus?: "APPROVED" | "PENDING" | "REJECTED";
+  reviewedAt?: string;
+  scheduledDeletionAt?: string;
+};
+
+export const listAccountDeletions = (status?: "PENDING") =>
+  get<{ pendingCount: number; requests: DeletionRequest[] }>(`/platform/account-deletions?pageSize=100${status ? `&reviewStatus=${status}` : ""}`);
+
+export const reviewAccountDeletion = (id: string, decision: "APPROVED" | "REJECTED", note?: string) =>
+  send<unknown>("post", `/platform/account-deletions/${id}/review`, { decision, note: note?.trim() || undefined });
+
+export type LeaveStatus = "APPROVED" | "CANCELLED" | "PENDING" | "RECLAIMED" | "REJECTED";
+
+export type HostelLeave = {
+  branchCount: number;
+  exportSentTo: string | null;
+  holdDays: number;
+  holdUntil: string | null;
+  hostelName: string;
+  id: string;
+  ownerEmail: string | null;
+  ownerName: string | null;
+  reason: string;
+  requestedAt: string;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  status: LeaveStatus;
+};
+
+export type HostelLeaveDetail = {
+  blockers: { code: string; message: string }[];
+  branches: { id: string; name: string }[];
+  request: HostelLeave;
+};
+
+export const listHostelLeaves = async (status: "ALL" | "APPROVED" | "PENDING") =>
+  (await get<{ requests: HostelLeave[] }>(`/platform/hostel-leaves?status=${status}`)).requests;
+
+export const getHostelLeave = (id: string) => get<HostelLeaveDetail>(`/platform/hostel-leaves/${id}`);
+
+/** Emails the ticked sections to the owner, then takes the hostel off for its hold. */
+export const approveHostelLeave = (id: string, sections: string[], note?: string) =>
+  send<unknown>("post", `/platform/hostel-leaves/${id}/approve`, { note: note?.trim() || undefined, sections });
+
+export const rejectHostelLeave = (id: string, note: string) =>
+  send<unknown>("post", `/platform/hostel-leaves/${id}/reject`, { note: note.trim() });
+
+/* -------------------------------------------------------------------------- */
+/* Service providers                                                          */
+/* -------------------------------------------------------------------------- */
+
+export type ProviderStatus = "APPROVED" | "HIDDEN" | "INACTIVE" | "PENDING_APPROVAL" | "REJECTED";
+
+export type PlatformProvider = {
+  area: string;
+  availability: string;
+  categories?: string[];
+  category: string;
+  city?: string;
+  createdAt?: string;
+  description: string;
+  email?: string;
+  experience: string;
+  fullName: string;
+  id: string;
+  phone: string;
+  status: ProviderStatus;
+};
+
+export const listProviders = async (status?: ProviderStatus) =>
+  (await get<{ providers: PlatformProvider[] }>(`/platform/service-providers?pageSize=100${status ? `&status=${status}` : ""}`)).providers;
+
+export const moderateProvider = (id: string, action: "approve" | "hide" | "reject", reason?: string) =>
+  send<unknown>("patch", `/platform/service-providers/${id}/${action}`, reason ? { reason: reason.trim() } : {});
+
+/* -------------------------------------------------------------------------- */
+/* Inbox: feedback, reviews, complaints, audit log                            */
+/* -------------------------------------------------------------------------- */
+
+export type FeedbackStatus = "DONE" | "NEW" | "SEEN";
+
+export type FeedbackItem = {
+  appVersion: string | null;
+  createdAt: string;
+  hostel: string | null;
+  id: string;
+  kind: "BUG" | "FEEDBACK" | "IMPROVEMENT";
+  message: string;
+  page: string | null;
+  platform: string;
+  role: string | null;
+  screenshots: { id: string; video: boolean }[];
+  sender: { email: string | null; name: string; phone: string | null };
+  status: FeedbackStatus;
+};
+
+export const listFeedback = (status?: FeedbackStatus) =>
+  get<{ counts: Record<string, number>; items: FeedbackItem[] }>(`/platform/feedback${status ? `?status=${status}` : ""}`);
+
+export const setFeedbackStatus = (id: string, status: FeedbackStatus) => send<unknown>("patch", `/platform/feedback/${id}`, { status });
+
+export type PlatformReview = {
+  comment: string;
+  createdAt?: string;
+  hostelId: string;
+  id: string;
+  overallRating: number;
+  status: "HIDDEN" | "VISIBLE";
+};
+
+export const listPlatformReviews = async () => (await get<{ reviews: PlatformReview[] }>("/platform/reviews?pageSize=100")).reviews;
+
+export const setReviewHidden = (id: string, hidden: boolean) => send<unknown>("patch", `/platform/reviews/${id}/${hidden ? "hide" : "unhide"}`, {});
+
+export type PlatformComplaint = {
+  category: string;
+  createdAt: string | null;
+  hostelId: string;
+  hostelName: string;
+  id: string;
+  isAnonymous: boolean;
+  isOverdue: boolean;
+  resolvedAt: string | null;
+  slaDueAt: string | null;
+  status: string;
+  title: string;
+};
+
+export const listPlatformComplaints = () =>
+  get<{ complaints: PlatformComplaint[]; statusCounts: Record<string, number>; total: number }>("/platform/complaints?pageSize=100");
+
+export type AuditEntry = {
+  action: string;
+  actorLabel: string;
+  createdAt: string | null;
+  entityType: string;
+  hostelLabel: string | null;
+  id: string;
+  ipAddress: string | null;
+};
+
+export const listAuditLog = async () => (await get<{ logs: AuditEntry[] }>("/platform/audit-logs?limit=150")).logs;
+
+/* -------------------------------------------------------------------------- */
+/* Field team                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export type TeamMember = {
+  cashCollected: number;
+  deletable: boolean;
+  email: string;
+  hostelsRegistered: number;
+  id: string;
+  joinedAt: string | null;
+  lastLoginAt: string | null;
+  name: string;
+  phone: string;
+  status: string;
+};
+
+export type TeamInvite = { email: string; expired: boolean; expiresAt: string; id: string; invitedAt: string | null; name: string };
+
+export type TeamRegistration = {
+  agentName: string;
+  cashCollected: number;
+  hostelId: string;
+  hostelName: string;
+  invoiceNumber: string;
+  onlineCollected: number;
+  outstanding: number;
+  paid: number;
+  planName: string;
+  price: number;
+  registeredAt: string | null;
+};
+
+export const getTeam = () => get<{ invites: TeamInvite[]; members: TeamMember[]; registrations: TeamRegistration[] }>("/platform/team");
+
+export const setTeamMemberActive = (id: string, active: boolean) =>
+  send<unknown>("patch", `/platform/team/members/${id}`, { action: active ? "REINSTATE" : "SUSPEND" });
+
+export const inviteTeamMember = async (email: string, name: string) =>
+  (
+    await send<{ results: { delivered: boolean; email: string; error: string | null; sent: boolean }[] }>("post", "/platform/admins/invites", {
+      invitations: [{ email: email.trim(), name: name.trim() || undefined }],
+      role: "PLATFORM_AGENT",
+    })
+  ).results[0];
+
+export const cancelTeamInvite = (id: string) => send<unknown>("delete", `/platform/admins/invites/${id}`);

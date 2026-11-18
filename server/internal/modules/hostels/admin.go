@@ -62,6 +62,7 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	g.GET("/branches/summary", admin, httpx.ETag(), a.branchSummary)
 	g.GET("/branches/names", authz.Use(a.Guards.RequireHostelStaff), httpx.ETag(), a.branchNames)
 	g.GET("/branches/:branchId", admin, httpx.ETag(), a.branchDetails)
+	g.PATCH("/branches/:branchId", admin, a.branchLabelPatch)
 	g.GET("/kyc", admin, httpx.ETag(), a.kycGet)
 	g.POST("/kyc", admin, a.kycAddDocuments)
 	g.DELETE("/kyc", admin, a.kycRemoveDocument)

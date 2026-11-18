@@ -111,7 +111,7 @@ export function AdminHomeHeader({
   return (
     <PortalBrandHeader
       compactBrand
-      actions={<HostelSwitcher compact />}
+      actions={<HostelSwitcher compact label />}
       hostelPageLabel="See your listing as visitors do"
       onHostelPage={onPreview}
     />
@@ -234,7 +234,7 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
  * | EBL | here |
  * | --- | --- |
  * | `SAVINGS GENERAL` | the hostel's name |
- * | `08500501204444` | `hostelCode` — `HH-6F2A9C41` — and the area |
+ * | `08500501204444` | `hostelCode` — `HH-6F2A9C41` |
  * | `NPR 52.43` | everything collected, ever |
  * | `SIDDHANT YADAV` | residents, free beds, how full |
  * | `Actual` / `Available Balance` | `In Bhadra` / `Still due` |
@@ -399,7 +399,7 @@ export function HostelHero({
               style={{ fontSize: 13, letterSpacing: 0.5 }}
             >
               {code
-                ? [code, hostel?.location.area].filter(Boolean).join(" · ")
+                ? code
                 : "Every hostel you manage"}
             </Text>
           </View>
@@ -913,7 +913,7 @@ export function WaitingActions({
 
   // Every one of these is money or stock: all frozen until the KYC is approved.
   return (
-    <KycFrost frozen={locked} label="Money and stock" radius={24}>
+    <KycFrost frozen={locked} label="Money and inventory" radius={24}>
     <ActionCard>
       {/*
         The ledger, wearing the glyph and the tone the Manage grid's tile wore
@@ -927,7 +927,7 @@ export function WaitingActions({
         onPress={onStatement}
         tone="success"
       />
-      <ActionCell glyph={colors.warning} icon="cube" label="Stock" onPress={onStock} tone="warning" />
+      <ActionCell glyph={colors.warning} icon="cube" label="Inventory" onPress={onStock} tone="warning" />
       <ActionCell glyph={colors.success} icon="cash" label="Finance" onPress={onFinance} tone="success" />
       <ActionCell glyph={colors.success} icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
     </ActionCard>

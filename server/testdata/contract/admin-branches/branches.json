@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list warden",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list",
@@ -70,6 +70,7 @@
           "branches": [
             {
               "area": "Baneshwor",
+              "branchLabel": "",
               "city": "Kathmandu",
               "coverUrl": "https://cdn.contract.test/main-hostel-baneshwor.jpg",
               "createdAt": "2026-09-01T06:00:00.000Z",
@@ -85,6 +86,7 @@
             "slug": "main-hostel",
             "status": "ACTIVE",
             "area": "Thamel",
+            "branchLabel": "",
             "city": "Kathmandu",
             "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
             "panNumber": "600111222"
@@ -92,7 +94,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list from the branch",
@@ -122,6 +124,7 @@
           "branches": [
             {
               "area": "Baneshwor",
+              "branchLabel": "",
               "city": "Kathmandu",
               "coverUrl": "https://cdn.contract.test/main-hostel-baneshwor.jpg",
               "createdAt": "2026-09-01T06:00:00.000Z",
@@ -137,6 +140,7 @@
             "slug": "main-hostel",
             "status": "ACTIVE",
             "area": "Thamel",
+            "branchLabel": "",
             "city": "Kathmandu",
             "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
             "panNumber": "600111222"
@@ -144,7 +148,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "names",
@@ -170,6 +174,7 @@
             {
               "area": "Thamel",
               "city": "Kathmandu",
+              "branchLabel": "",
               "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
               "id": "6d1100000000000000000002",
               "isBranch": false,
@@ -178,6 +183,7 @@
             {
               "area": "Baneshwor",
               "city": "Kathmandu",
+              "branchLabel": "",
               "coverUrl": "https://cdn.contract.test/main-hostel-baneshwor.jpg",
               "id": "6d1100000000000000000003",
               "isBranch": true,
@@ -187,7 +193,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "names from the branch",
@@ -213,6 +219,7 @@
             {
               "area": "Thamel",
               "city": "Kathmandu",
+              "branchLabel": "",
               "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
               "id": "6d1100000000000000000002",
               "isBranch": false,
@@ -221,6 +228,7 @@
             {
               "area": "Baneshwor",
               "city": "Kathmandu",
+              "branchLabel": "",
               "coverUrl": "https://cdn.contract.test/main-hostel-baneshwor.jpg",
               "id": "6d1100000000000000000003",
               "isBranch": true,
@@ -230,7 +238,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "summary",
@@ -255,6 +263,7 @@
             {
               "area": "Thamel",
               "city": "Kathmandu",
+              "branchLabel": "",
               "beds": 0,
               "collected": 0,
               "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
@@ -269,11 +278,11 @@
               "status": "ACTIVE"
             }
           ],
-          "period": "2083-07"
+          "period": "2083-08"
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "details",
@@ -352,7 +361,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "details bad id",
@@ -375,7 +384,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "details not a branch",
@@ -398,7 +407,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "details the main itself",
@@ -477,7 +486,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "request invalid",
@@ -504,37 +513,30 @@
         "details": {
           "formErrors": [],
           "fieldErrors": {
-            "contact": [
-              "Invalid input: expected object, received undefined"
-            ],
-            "location": [
-              "Invalid input: expected object, received undefined"
-            ],
             "name": [
               "Too small: expected string to have \u003e=2 characters"
+            ],
+            "branchLabel": [
+              "Invalid input: expected string, received undefined"
             ]
           },
           "issues": [
             {
-              "message": "Invalid input: expected object, received undefined",
-              "path": "contact"
-            },
-            {
-              "message": "Invalid input: expected object, received undefined",
-              "path": "location"
-            },
-            {
               "message": "Too small: expected string to have \u003e=2 characters",
               "path": "name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "branchLabel"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
-    "name": "request mismatched capacity",
+    "name": "request no label",
     "request": {
       "method": "POST",
       "path": "/api/v1/hostel-admin/branches",
@@ -542,26 +544,7 @@
         "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d1100000000000000000002}}"
       },
       "body": {
-        "name": "Main Hostel Koteshwor",
-        "contact": {
-          "phone": "9800000171"
-        },
-        "location": {
-          "area": "Koteshwor",
-          "city": "Kathmandu"
-        },
-        "hostelType": "BOYS",
-        "roomConfigurations": [
-          {
-            "roomType": "Double",
-            "rooms": 4,
-            "bedsPerRoom": 2,
-            "vacantBeds": 3,
-            "monthlyRent": 9000,
-            "mealInclusion": "Included"
-          }
-        ],
-        "totalCapacity": 9
+        "name": "Main Hostel Koteshwor"
       }
     },
     "masks": [
@@ -577,20 +560,20 @@
         "details": {
           "formErrors": [],
           "fieldErrors": {
-            "totalCapacity": [
-              "Total capacity is 9 beds, but your room counts give 8 beds (4 × 2 for Double). Set total capacity to 8, or correct the room counts."
+            "branchLabel": [
+              "Invalid input: expected string, received undefined"
             ]
           },
           "issues": [
             {
-              "message": "Total capacity is 9 beds, but your room counts give 8 beds (4 × 2 for Double). Set total capacity to 8, or correct the room counts.",
-              "path": "totalCapacity"
+              "message": "Invalid input: expected string, received undefined",
+              "path": "branchLabel"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "request",
@@ -602,25 +585,7 @@
       },
       "body": {
         "name": "Main Hostel Koteshwor",
-        "contact": {
-          "phone": "9800000171"
-        },
-        "location": {
-          "area": "Koteshwor",
-          "city": "Kathmandu"
-        },
-        "hostelType": "BOYS",
-        "roomConfigurations": [
-          {
-            "roomType": "Double",
-            "rooms": 4,
-            "bedsPerRoom": 2,
-            "vacantBeds": 3,
-            "monthlyRent": 9000,
-            "mealInclusion": "Included"
-          }
-        ],
-        "totalCapacity": 8
+        "branchLabel": "Block B"
       }
     },
     "masks": [
@@ -634,17 +599,17 @@
       "contentType": "application/json",
       "body": {
         "success": true,
-        "message": "Branch sent for approval",
+        "message": "Branch added",
         "data": {
           "branch": {
-            "id": "6aeb2c8337ebc2e9fc47de50",
+            "id": "6afd95187cae8e2a7798c9b5",
             "name": "Main Hostel Koteshwor",
-            "status": "PENDING_APPROVAL"
+            "status": "DRAFT"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "details new branch",
@@ -669,15 +634,11 @@
             "arrivalGuide": null,
             "archivedAt": null,
             "archiveReason": "",
-            "capacitySummary": {
-              "totalRooms": 4,
-              "totalBeds": 8,
-              "vacantBeds": 3
-            },
+            "capacitySummary": {},
             "contact": {
-              "phone": "9800000171"
+              "phone": "9800000170"
             },
-            "createdAt": "2026-11-04T13:00:51.336Z",
+            "createdAt": "2026-11-18T12:07:52.915Z",
             "demoDataLabel": "",
             "description": "",
             "facilities": [],
@@ -685,13 +646,13 @@
               "hasVeg": true,
               "hasNonVeg": true
             },
-            "hostelType": "BOYS",
-            "id": "6aeb2c8337ebc2e9fc47de50",
+            "hostelType": "CO_LIVING",
+            "id": "6afd95187cae8e2a7798c9b5",
             "isArchived": false,
             "isDemoData": false,
             "purgeScheduledAt": null,
             "location": {
-              "area": "Koteshwor",
+              "area": "",
               "city": "Kathmandu",
               "locationSource": "GEOCODED"
             },
@@ -704,25 +665,20 @@
             "pricing": {
               "currency": "NPR"
             },
-            "roomConfigurations": [
-              {
-                "roomType": "Double",
-                "rooms": 4,
-                "bedsPerRoom": 2,
-                "vacantBeds": 3,
-                "monthlyRent": 9000,
-                "mealInclusion": "Included"
-              }
-            ],
+            "roomConfigurations": [],
             "roomTypes": [],
             "rules": [],
-            "slug": "main-hostel-koteshwor-koteshwor",
-            "status": "PENDING_APPROVAL",
+            "slug": "main-hostel-koteshwor",
+            "status": "DRAFT",
             "suspension": null,
-            "kyc": null,
+            "kyc": {
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null
+            },
             "totalFloors": 0,
-            "updatedAt": "2026-11-04T13:00:51.336Z",
-            "verificationStatus": "PENDING",
+            "updatedAt": "2026-11-18T12:07:52.915Z",
+            "verificationStatus": "UNVERIFIED",
             "yearEstablished": "",
             "shortStays": {
               "enabled": false,
@@ -739,7 +695,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "list after request",
@@ -769,6 +725,7 @@
           "branches": [
             {
               "area": "Baneshwor",
+              "branchLabel": "",
               "city": "Kathmandu",
               "coverUrl": "https://cdn.contract.test/main-hostel-baneshwor.jpg",
               "createdAt": "2026-09-01T06:00:00.000Z",
@@ -778,14 +735,15 @@
               "status": "ACTIVE"
             },
             {
-              "area": "Koteshwor",
+              "area": "",
+              "branchLabel": "Block B",
               "city": "Kathmandu",
               "coverUrl": null,
-              "createdAt": "2026-11-04T13:00:51.336Z",
-              "id": "6aeb2c8337ebc2e9fc47de50",
+              "createdAt": "2026-11-18T12:07:52.915Z",
+              "id": "6afd95187cae8e2a7798c9b5",
               "name": "Main Hostel Koteshwor",
-              "slug": "main-hostel-koteshwor-koteshwor",
-              "status": "PENDING_APPROVAL"
+              "slug": "main-hostel-koteshwor",
+              "status": "DRAFT"
             }
           ],
           "main": {
@@ -794,6 +752,7 @@
             "slug": "main-hostel",
             "status": "ACTIVE",
             "area": "Thamel",
+            "branchLabel": "",
             "city": "Kathmandu",
             "coverUrl": "https://cdn.contract.test/main-hostel.jpg",
             "panNumber": "600111222"
@@ -801,10 +760,10 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
-    "name": "request same name",
+    "name": "request again",
     "request": {
       "method": "POST",
       "path": "/api/v1/hostel-admin/branches",
@@ -813,40 +772,28 @@
       },
       "body": {
         "name": "Main Hostel Koteshwor",
-        "contact": {
-          "phone": "9800000171"
-        },
-        "location": {
-          "area": "Koteshwor",
-          "city": "Kathmandu"
-        },
-        "hostelType": "BOYS",
-        "roomConfigurations": [
-          {
-            "roomType": "Double",
-            "rooms": 4,
-            "bedsPerRoom": 2,
-            "vacantBeds": 3,
-            "monthlyRent": 9000,
-            "mealInclusion": "Included"
-          }
-        ],
-        "totalCapacity": 8
+        "branchLabel": "Block C"
       }
     },
     "masks": [
       "**dates"
     ],
     "response": {
-      "status": 409,
+      "status": 201,
       "contentType": "application/json",
       "body": {
-        "success": false,
-        "message": "A hostel with this name is already listed in Koteshwor. Give the branch a name that tells them apart.",
-        "errorCode": "HOSTEL_ALREADY_LISTED"
+        "success": true,
+        "message": "Branch added",
+        "data": {
+          "branch": {
+            "id": "6afd95197cae8e2a7798c9b7",
+            "name": "Main Hostel Koteshwor",
+            "status": "DRAFT"
+          }
+        }
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "request other hostel scope",
@@ -858,25 +805,7 @@
       },
       "body": {
         "name": "Elsewhere Branch",
-        "contact": {
-          "phone": "9800000171"
-        },
-        "location": {
-          "area": "Koteshwor",
-          "city": "Kathmandu"
-        },
-        "hostelType": "BOYS",
-        "roomConfigurations": [
-          {
-            "roomType": "Double",
-            "rooms": 4,
-            "bedsPerRoom": 2,
-            "vacantBeds": 3,
-            "monthlyRent": 9000,
-            "mealInclusion": "Included"
-          }
-        ],
-        "totalCapacity": 8
+        "branchLabel": "Block E"
       }
     },
     "masks": [
@@ -891,6 +820,6 @@
         "errorCode": "NOT_HOSTEL_OWNER"
       }
     },
-    "recorded": "http://localhost:3100 2bcde4d2"
+    "recorded": "http://localhost:3100"
   }
 ]

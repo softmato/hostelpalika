@@ -29,7 +29,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "not json",
@@ -60,7 +60,7 @@
         "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625",
+    "recorded": "http://localhost:3100",
     "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
@@ -112,7 +112,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "wrong types",
@@ -157,13 +157,13 @@
               "Invalid input: expected date, received Date"
             ],
             "note": [
-              "Too big: expected string to have <=300 characters"
+              "Too big: expected string to have \u003c=300 characters"
             ],
             "paidTill": [
               "Choose if this month's rent is paid."
             ],
             "partPaid": [
-              "Too small: expected number to be >=0"
+              "Too small: expected number to be \u003e=0"
             ],
             "roomType": [
               "Choose your room type."
@@ -179,7 +179,7 @@
               "path": "joinedDate"
             },
             {
-              "message": "Too big: expected string to have <=300 characters",
+              "message": "Too big: expected string to have \u003c=300 characters",
               "path": "note"
             },
             {
@@ -187,7 +187,7 @@
               "path": "paidTill"
             },
             {
-              "message": "Too small: expected number to be >=0",
+              "message": "Too small: expected number to be \u003e=0",
               "path": "partPaid"
             },
             {
@@ -198,7 +198,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "paisa",
@@ -246,7 +246,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "unknown link",
@@ -279,7 +279,7 @@
         "errorCode": "JOIN_LINK_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "no card",
@@ -312,7 +312,7 @@
         "errorCode": "JOIN_NEEDS_CARD"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "private card",
@@ -345,7 +345,7 @@
         "errorCode": "JOIN_CARD_PRIVATE"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "lives elsewhere",
@@ -378,7 +378,7 @@
         "errorCode": "JOIN_LIVES_SOMEWHERE"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "already a resident here",
@@ -411,7 +411,7 @@
         "errorCode": "JOIN_LIVES_SOMEWHERE"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "room not on the list",
@@ -447,7 +447,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "one-word name",
@@ -483,7 +483,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "phone already used here",
@@ -519,7 +519,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "too far back",
@@ -556,7 +556,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "too far ahead",
@@ -593,7 +593,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "part paid too large",
@@ -624,14 +624,14 @@
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Part paid must be less than Kartik 2083 rent (Rs 15000). If it is all paid, choose one month fewer.",
+        "message": "Part paid must be less than Mangsir 2083 rent (Rs 15000). If it is all paid, choose one month fewer.",
         "errorCode": "JOIN_REQUEST_INVALID",
         "details": {
           "field": "partPaid"
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "joined in the future",
@@ -669,7 +669,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "part paid with nothing due",
@@ -707,7 +707,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "sent",
@@ -741,8 +741,8 @@
         "message": "Request sent",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -754,8 +754,8 @@
               "months": [
                 {
                   "amount": 15000,
-                  "label": "Kartik 2083",
-                  "period": "2083-07"
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
@@ -767,20 +767,20 @@
             "depositPaid": 500,
             "email": "joiner@contract.test",
             "fullName": "Joy Joiner",
-            "id": "6ae41b2ac4cb64601682f871",
+            "id": "6afd97f57cae8e2a7798ca83",
             "joinedDate": null,
             "note": "hello",
-            "paidTill": "2083-06",
+            "paidTill": "2083-07",
             "partPaid": 0,
             "phone": "9811111111",
             "problems": [],
             "rejectReason": "",
             "rent": 15000,
-            "rentLabel": "1 month due (Kartik)",
+            "rentLabel": "1 month due (Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 1,
-            "sentAt": "2026-10-30T04:20:58.909Z",
+            "sentAt": "2026-11-18T12:20:05.567Z",
             "status": "PENDING"
           },
           "roomTypes": [
@@ -807,7 +807,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "sent again while waiting",
@@ -839,8 +839,8 @@
         "message": "Request sent",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -852,13 +852,13 @@
               "months": [
                 {
                   "amount": 15000,
-                  "label": "Aswin 2083",
-                  "period": "2083-06"
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
                 },
                 {
                   "amount": 15000,
-                  "label": "Kartik 2083",
-                  "period": "2083-07"
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
@@ -870,20 +870,20 @@
             "depositPaid": 0,
             "email": "joiner@contract.test",
             "fullName": "Joy Joiner",
-            "id": "6ae41b2ac4cb64601682f871",
+            "id": "6afd97f57cae8e2a7798ca83",
             "joinedDate": null,
             "note": "",
-            "paidTill": "2083-05",
+            "paidTill": "2083-06",
             "partPaid": 0,
             "phone": "9811111111",
             "problems": [],
             "rejectReason": "",
             "rent": 15000,
-            "rentLabel": "2 months due (Aswin to Kartik)",
+            "rentLabel": "2 months due (Kartik to Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 1,
-            "sentAt": "2026-10-30T04:20:59.091Z",
+            "sentAt": "2026-11-18T12:20:05.699Z",
             "status": "PENDING"
           },
           "roomTypes": [
@@ -910,7 +910,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "fixing a sent-back request",
@@ -942,8 +942,8 @@
         "message": "Request sent",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -955,8 +955,8 @@
               "months": [
                 {
                   "amount": 15000,
-                  "label": "Kartik 2083",
-                  "period": "2083-07"
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
@@ -971,17 +971,17 @@
             "id": "6c00000000000000000000c0",
             "joinedDate": null,
             "note": "",
-            "paidTill": "2083-06",
+            "paidTill": "2083-07",
             "partPaid": 0,
             "phone": "9811111116",
             "problems": [],
             "rejectReason": "",
             "rent": 15000,
-            "rentLabel": "1 month due (Kartik)",
+            "rentLabel": "1 month due (Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 2,
-            "sentAt": "2026-10-30T04:20:59.265Z",
+            "sentAt": "2026-11-18T12:20:05.837Z",
             "status": "PENDING"
           },
           "roomTypes": [
@@ -1008,7 +1008,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "being added right now",
@@ -1041,7 +1041,7 @@
         "errorCode": "JOIN_REQUEST_BUSY"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "moved out and back",
@@ -1073,8 +1073,8 @@
         "message": "Request sent",
         "data": {
           "currentMonth": {
-            "label": "Kartik 2083",
-            "period": "2083-07"
+            "label": "Mangsir 2083",
+            "period": "2083-08"
           },
           "hostel": {
             "city": "Kathmandu",
@@ -1086,8 +1086,8 @@
               "months": [
                 {
                   "amount": 15000,
-                  "label": "Kartik 2083",
-                  "period": "2083-07"
+                  "label": "Mangsir 2083",
+                  "period": "2083-08"
                 }
               ],
               "oldDues": 0,
@@ -1102,17 +1102,17 @@
             "id": "6c00000000000000000000c2",
             "joinedDate": null,
             "note": "",
-            "paidTill": "2083-06",
+            "paidTill": "2083-07",
             "partPaid": 0,
             "phone": "9811111118",
             "problems": [],
             "rejectReason": "",
             "rent": 15000,
-            "rentLabel": "1 month due (Kartik)",
+            "rentLabel": "1 month due (Mangsir)",
             "residentId": null,
             "roomType": "Single",
             "sends": 1,
-            "sentAt": "2026-10-30T04:20:59.540Z",
+            "sentAt": "2026-11-18T12:20:06.070Z",
             "status": "PENDING"
           },
           "roomTypes": [
@@ -1139,7 +1139,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "paused link",
@@ -1172,7 +1172,7 @@
         "errorCode": "JOIN_LINK_OFF"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "full link",
@@ -1205,7 +1205,7 @@
         "errorCode": "JOIN_LINK_FULL"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "PUT refused",
@@ -1221,6 +1221,6 @@
       "status": 405,
       "contentType": ""
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   }
 ]

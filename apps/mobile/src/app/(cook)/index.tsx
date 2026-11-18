@@ -304,7 +304,7 @@ export default function CookTodayScreen() {
                     glyph: colors.primary,
                     icon: "cube",
                     key: "/kitchen-stock",
-                    label: "Kitchen stock",
+                    label: "Kitchen inventory",
                     onPress: () => router.push("/kitchen-stock"),
                     tone: "brand",
                   } satisfies ActionTile,

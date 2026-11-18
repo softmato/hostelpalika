@@ -5,7 +5,6 @@ import (
 	"errors"
 	"math"
 	"regexp"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,8 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
-	"github.com/softmato/hostelpalika/server/internal/modules/files"
-	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
@@ -123,6 +120,7 @@ func strField(raw bson.Raw, path ...string) string { return rawStr(raw.Lookup(pa
 
 type branchRow struct {
 	Area      string `json:"area"`
+	Label     string `json:"branchLabel"`
 	City      string `json:"city"`
 	CoverURL  any    `json:"coverUrl"`
 	CreatedAt any    `json:"createdAt"`
@@ -138,6 +136,7 @@ type mainRow struct {
 	Slug      string `json:"slug"`
 	Status    string `json:"status"`
 	Area      string `json:"area"`
+	Label     string `json:"branchLabel"`
 	City      string `json:"city"`
 	CoverURL  any    `json:"coverUrl"`
 	PanNumber any    `json:"panNumber"`
@@ -162,7 +161,7 @@ func (a *Admin) branchList(c *gin.Context) {
 		return
 	}
 	cur, err := a.DB.Collection("hostels").Find(c, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "parentHostelId", Value: main.ID}},
-		options.Find().SetSort(bson.D{{Key: "createdAt", Value: 1}}).SetLimit(200).SetProjection(bson.D{{Key: "name", Value: 1}, {Key: "slug", Value: 1}, {Key: "status", Value: 1},
+		options.Find().SetSort(bson.D{{Key: "createdAt", Value: 1}}).SetLimit(200).SetProjection(bson.D{{Key: "branchLabel", Value: 1}, {Key: "name", Value: 1}, {Key: "slug", Value: 1}, {Key: "status", Value: 1},
 			{Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}, {Key: "createdAt", Value: 1}}))
 	if err != nil {
 		httpx.Fail(c, err)
@@ -179,7 +178,7 @@ func (a *Admin) branchList(c *gin.Context) {
 		return
 	}
 	var pan bson.Raw
-	err = a.DB.Collection("hostels").FindOne(c, bson.D{{Key: "_id", Value: main.ID}}, options.FindOne().SetProjection(bson.D{{Key: "panNumber", Value: 1}, {Key: "location", Value: 1}, {Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}})).Decode(&pan)
+	err = a.DB.Collection("hostels").FindOne(c, bson.D{{Key: "_id", Value: main.ID}}, options.FindOne().SetProjection(bson.D{{Key: "branchLabel", Value: 1}, {Key: "panNumber", Value: 1}, {Key: "location", Value: 1}, {Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}})).Decode(&pan)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		httpx.Fail(c, err)
 		return
@@ -187,14 +186,14 @@ func (a *Admin) branchList(c *gin.Context) {
 	out := branchListOut{Allowance: allowance, Branches: []branchRow{}}
 	for _, r := range rows {
 		id, _ := r.Lookup("_id").ObjectIDOK()
-		out.Branches = append(out.Branches, branchRow{strField(r, "location", "area"), strField(r, "location", "city"), coverOf(r), rawDate(r.Lookup("createdAt")), id.Hex(),
+		out.Branches = append(out.Branches, branchRow{strField(r, "location", "area"), strField(r, "branchLabel"), strField(r, "location", "city"), coverOf(r), rawDate(r.Lookup("createdAt")), id.Hex(),
 			strField(r, "name"), strField(r, "slug"), strField(r, "status")})
 	}
 	var panOut any
 	if s, ok := pan.Lookup("panNumber").StringValueOK(); ok {
 		panOut = s
 	}
-	out.Main = mainRow{main.ID.Hex(), main.Name, main.Slug, main.Status, strField(pan, "location", "area"), strField(pan, "location", "city"), coverOf(pan), panOut}
+	out.Main = mainRow{main.ID.Hex(), main.Name, main.Slug, main.Status, strField(pan, "location", "area"), strField(pan, "branchLabel"), strField(pan, "location", "city"), coverOf(pan), panOut}
 	httpx.OK(c, out, "Branches loaded")
 }
 
@@ -311,6 +310,7 @@ func orStr(v bson.RawValue) any {
 type nameRow struct {
 	Area     string `json:"area"`
 	City     string `json:"city"`
+	Label    string `json:"branchLabel"`
 	CoverURL any    `json:"coverUrl"`
 	ID       string `json:"id"`
 	IsBranch bool   `json:"isBranch"`
@@ -360,7 +360,7 @@ func (a *Admin) branchNames(c *gin.Context) {
 	}
 	hcur, err := a.DB.Collection("hostels").Find(c, bson.D{{Key: "$or", Value: bson.A{bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: groups}}}}, bson.D{{Key: "parentHostelId", Value: bson.D{{Key: "$in", Value: groups}}}}}},
 		{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
-		options.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(500).SetProjection(bson.D{{Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1},
+		options.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(500).SetProjection(bson.D{{Key: "branchLabel", Value: 1}, {Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1},
 			{Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}}))
 	if err != nil {
 		httpx.Fail(c, err)
@@ -375,7 +375,7 @@ func (a *Admin) branchNames(c *gin.Context) {
 	for _, r := range rows {
 		id, _ := r.Lookup("_id").ObjectIDOK()
 		_, isBranch := r.Lookup("parentHostelId").ObjectIDOK()
-		out.Hostels = append(out.Hostels, nameRow{strField(r, "location", "area"), strField(r, "location", "city"), coverOf(r), id.Hex(), isBranch, strField(r, "name")})
+		out.Hostels = append(out.Hostels, nameRow{strField(r, "location", "area"), strField(r, "location", "city"), strField(r, "branchLabel"), coverOf(r), id.Hex(), isBranch, strField(r, "name")})
 	}
 	// Main hostel first, then branches in the order they were added.
 	sort.SliceStable(out.Hostels, func(i, j int) bool { return !out.Hostels[i].IsBranch && out.Hostels[j].IsBranch })
@@ -387,6 +387,7 @@ func (a *Admin) branchNames(c *gin.Context) {
 type summaryRow struct {
 	Area             string  `json:"area"`
 	City             string  `json:"city"`
+	Label            string  `json:"branchLabel"`
 	Beds             float64 `json:"beds"`
 	Collected        int64   `json:"collected"`
 	CoverURL         any     `json:"coverUrl"`
@@ -468,7 +469,7 @@ func (a *Admin) summary(c context.Context, p *authz.Principal) (summaryOut, erro
 		return summaryOut{[]summaryRow{}, period}, nil
 	}
 	cur, err := a.DB.Collection("hostels").Find(c, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
-		options.Find().SetProjection(bson.D{{Key: "capacitySummary", Value: 1}, {Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1},
+		options.Find().SetProjection(bson.D{{Key: "branchLabel", Value: 1}, {Key: "capacitySummary", Value: 1}, {Key: "location.area", Value: 1}, {Key: "location.city", Value: 1}, {Key: "name", Value: 1}, {Key: "parentHostelId", Value: 1},
 			{Key: "photos.kind", Value: 1}, {Key: "photos.url", Value: 1}, {Key: "slug", Value: 1}, {Key: "status", Value: 1}}))
 	if err != nil {
 		return summaryOut{}, err
@@ -511,7 +512,7 @@ func (a *Admin) summary(c context.Context, p *authz.Principal) (summaryOut, erro
 			cover = exterior[parent]
 		}
 		m := money[id]
-		rows = append(rows, summaryRow{strField(h, "location", "area"), strField(h, "location", "city"), beds, m[1], cover, max(0, m[0]-m[1]), id.Hex(), isBranch, strField(h, "name"), occupancy,
+		rows = append(rows, summaryRow{strField(h, "location", "area"), strField(h, "location", "city"), strField(h, "branchLabel"), beds, m[1], cover, max(0, m[0]-m[1]), id.Hex(), isBranch, strField(h, "name"), occupancy,
 			complaints[id], residents[id], strField(h, "slug"), strField(h, "status")})
 	}
 	order := map[string]int{}
@@ -610,7 +611,7 @@ func (a *Admin) branchRequest(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	httpx.Write(c, 201, out, "Branch sent for approval")
+	httpx.Write(c, 201, out, "Branch added")
 }
 
 type requestedOut struct {
@@ -621,16 +622,21 @@ type requestedOut struct {
 	} `json:"branch"`
 }
 
+// requestBranch starts a branch the way a quick sign-up starts a hostel: DRAFT,
+// unlisted and KYC-locked until a superadmin approves the branch's own KYC. It
+// rides the main hostel's plan, so it has no trial of its own.
 func (a *Admin) requestBranch(c *gin.Context, mainHostelID string, in Branch, p *authz.Principal) (*requestedOut, error) {
 	owned, err := ResolveOwned(c, a.DB, mainHostelID, p.UserID)
 	if err != nil {
 		return nil, err
 	}
 	var main struct {
-		ID         bson.ObjectID  `bson:"_id"`
-		Name       string         `bson:"name"`
-		OwnerID    bson.ObjectID  `bson:"ownerId"`
-		PanNumber  *string        `bson:"panNumber"`
+		ID      bson.ObjectID `bson:"_id"`
+		OwnerID bson.ObjectID `bson:"ownerId"`
+		Contact struct {
+			Phone *string `bson:"phone"`
+			Email *string `bson:"email"`
+		} `bson:"contact"`
 		Parent     *bson.ObjectID `bson:"parentHostelId"`
 		Suspension bson.D         `bson:"suspension"`
 	}
@@ -664,69 +670,7 @@ func (a *Admin) requestBranch(c *gin.Context, mainHostelID string, in Branch, p 
 		}
 		return nil, branchErr(409, "BRANCH_LIMIT_REACHED", planName+" includes "+strconv.Itoa(allowance.Cap)+" "+noun+", and you have "+strconv.Itoa(int(allowance.Used))+".")
 	}
-	key := NameKey(in.Name)
-	ncur, err := a.DB.Collection("hostels").Find(c, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}},
-		{Key: "location.area", Value: bson.Regex{Pattern: "^" + regexp.QuoteMeta(strings.TrimSpace(in.LocArea)) + "$", Options: "i"}},
-		{Key: "location.city", Value: bson.Regex{Pattern: "^" + regexp.QuoteMeta(strings.TrimSpace(in.LocCity)) + "$", Options: "i"}}},
-		options.Find().SetProjection(bson.D{{Key: "name", Value: 1}}).SetLimit(500))
-	if err != nil {
-		return nil, err
-	}
-	var neighbours []struct {
-		Name string `bson:"name"`
-	}
-	if err := ncur.All(c, &neighbours); err != nil {
-		return nil, err
-	}
-	if key != "" {
-		for _, n := range neighbours {
-			if NameKey(n.Name) == key {
-				return nil, branchErr(409, "HOSTEL_ALREADY_LISTED", "A hostel with this name is already listed in "+in.LocArea+". Give the branch a name that tells them apart.")
-			}
-		}
-	}
-	reg := &Registration{ShortStayLimits: a.ShortStayLimits}
-	shortStays, err := reg.shortStays(c, in.Reg)
-	if err != nil {
-		return nil, err
-	}
-	uploaded, err := a.Claims.Claim(c, a.DB, in.Documents, main.OwnerID)
-	if err != nil {
-		return nil, err
-	}
-	type docRef struct {
-		Type  string
-		Asset bson.ObjectID
-	}
-	var shared []docRef
-	if in.ReuseDocuments {
-		// Reuse only this owner's approved documents, never a client-supplied hostel or asset id.
-		dcur, err := a.DB.Collection("hosteldocuments").Find(c, bson.D{{Key: "hostelId", Value: main.ID}, {Key: "ownerId", Value: main.OwnerID}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "status", Value: "APPROVED"}},
-			options.Find().SetProjection(bson.D{{Key: "documentType", Value: 1}, {Key: "fileAssetId", Value: 1}}).SetLimit(100))
-		if err != nil {
-			return nil, err
-		}
-		var rows []struct {
-			Type  string        `bson:"documentType"`
-			Asset bson.ObjectID `bson:"fileAssetId"`
-		}
-		if err := dcur.All(c, &rows); err != nil {
-			return nil, err
-		}
-		for _, r := range rows {
-			shared = append(shared, docRef{r.Type, r.Asset})
-		}
-	}
-	var documents []docRef
-	for _, d := range shared {
-		if !slices.ContainsFunc(uploaded, func(u files.Claimed) bool { return u.DocumentType == d.Type }) {
-			documents = append(documents, d)
-		}
-	}
-	for _, u := range uploaded {
-		documents = append(documents, docRef{u.DocumentType, u.FileAssetID})
-	}
-	slug, err := a.uniqueBranchSlug(c, in.Name, in.LocArea)
+	slug, err := a.uniqueBranchSlug(c, in.Name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -734,176 +678,36 @@ func (a *Admin) requestBranch(c *gin.Context, mainHostelID string, in Branch, p 
 	if err != nil {
 		return nil, err
 	}
+	// The main hostel's phone and email to start from; the KYC can change them.
+	contact := bson.D{}
+	if main.Contact.Email != nil {
+		contact = append(contact, bson.E{Key: "email", Value: *main.Contact.Email})
+	}
+	if main.Contact.Phone != nil {
+		contact = append(contact, bson.E{Key: "phone", Value: *main.Contact.Phone})
+	}
+	fields := bson.D{{Key: "name", Value: in.Name}, {Key: "slug", Value: slug}, {Key: "ownerId", Value: main.OwnerID}, {Key: "parentHostelId", Value: main.ID},
+		{Key: "branchLabel", Value: in.Label}, {Key: "contact", Value: contact}, {Key: "status", Value: "DRAFT"}, {Key: "verificationStatus", Value: "UNVERIFIED"},
+		{Key: "createdBy", Value: actor}, {Key: "updatedBy", Value: actor}, {Key: "kyc", Value: bson.D{{Key: "required", Value: true}, {Key: "status", Value: "DRAFT"}}}}
+	if len(main.Suspension) > 0 {
+		// Rides the main plan, so it starts on the same suspension clock.
+		fields = append(fields, bson.E{Key: "suspension", Value: main.Suspension})
+	}
 	now := time.Now().UTC().Truncate(time.Millisecond)
 	branchID := bson.NewObjectID()
-	pan := in.PAN
-	if in.ReuseDocuments {
-		pan = main.PanNumber
-	}
-	fields := branchFields(in, main.OwnerID, main.ID, actor, slug, shortStays, main.Suspension, PanKey(pan))
 	if _, err := a.DB.Collection("hostels").InsertOne(c, NewHostelDoc(branchID, fields, now)); err != nil {
 		return nil, err
 	}
-	docSnap := bson.A{}
-	for _, d := range documents {
-		docSnap = append(docSnap, bson.D{{Key: "documentType", Value: d.Type}, {Key: "fileAssetId", Value: d.Asset}})
-	}
-	snap := bson.D{}
-	if in.TotalCap != nil {
-		snap = append(snap, bson.E{Key: "totalCapacity", Value: *in.TotalCap})
-	}
-	if in.Floors != nil {
-		snap = append(snap, bson.E{Key: "totalFloors", Value: *in.Floors})
-	}
-	if in.Year != nil {
-		snap = append(snap, bson.E{Key: "yearEstablished", Value: *in.Year})
-	}
-	snap = append(snap, bson.E{Key: "reuseDocuments", Value: in.ReuseDocuments}, bson.E{Key: "contact", Value: in.Contact}, bson.E{Key: "documents", Value: docSnap}, bson.E{Key: "location", Value: in.Location},
-		bson.E{Key: "name", Value: in.Name})
-	if len(in.Pricing) > 0 {
-		snap = append(snap, bson.E{Key: "pricing", Value: in.Pricing})
-	}
-	snap = append(snap, bson.E{Key: "parentHostelId", Value: main.ID})
-	if in.Deposit != nil {
-		snap = append(snap, bson.E{Key: "securityDeposit", Value: *in.Deposit})
-	}
-	snap = append(snap, bson.E{Key: "roomConfigurations", Value: roomSnapshot(in.Rooms)})
-	app := bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "hostelId", Value: branchID}, {Key: "applicantId", Value: main.OwnerID}, {Key: "submittedBy", Value: actor}, {Key: "status", Value: "PENDING"},
-		{Key: "source", Value: "BRANCH"}, {Key: "submittedByAgentId", Value: nil}, {Key: "requestedDocuments", Value: bson.A{}}}
-	if in.Notes != nil {
-		app = append(app, bson.E{Key: "notes", Value: *in.Notes})
-	}
-	app = append(app, bson.E{Key: "snapshot", Value: snap}, bson.E{Key: "isDeleted", Value: false}, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
-	if _, err := a.DB.Collection("hostelapplications").InsertOne(c, app); err != nil {
+	// The owner works in the branch from now on — its KYC is done from inside it —
+	// so it joins their hostels here, not at approval. The token heals at refresh.
+	if _, err := a.DB.Collection("users").UpdateOne(c, bson.D{{Key: "_id", Value: main.OwnerID}}, bson.D{{Key: "$addToSet", Value: bson.D{{Key: "hostelIds", Value: branchID}}}}); err != nil {
 		return nil, err
-	}
-	if _, err := a.DB.Collection("hostelverifications").InsertOne(c, bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "hostelId", Value: branchID}, {Key: "status", Value: "PENDING"},
-		{Key: "checklist", Value: bson.A{}}, {Key: "createdBy", Value: actor}, {Key: "updatedBy", Value: actor}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}}); err != nil {
-		return nil, err
-	}
-	if len(documents) > 0 {
-		rows := make([]any, 0, len(documents))
-		for _, d := range documents {
-			rows = append(rows, bson.D{{Key: "_id", Value: bson.NewObjectID()}, {Key: "hostelId", Value: branchID}, {Key: "ownerId", Value: main.OwnerID}, {Key: "documentType", Value: d.Type},
-				{Key: "fileAssetId", Value: d.Asset}, {Key: "status", Value: "PENDING"}, {Key: "createdBy", Value: actor}, {Key: "updatedBy", Value: actor}, {Key: "isDeleted", Value: false},
-				{Key: "createdAt", Value: now}, {Key: "updatedAt", Value: now}, {Key: "__v", Value: 0}})
-		}
-		if _, err := a.DB.Collection("hosteldocuments").InsertMany(c, rows); err != nil {
-			return nil, err
-		}
-	}
-	if in.Payout != nil {
-		(&Registration{DB: a.DB, Audit: a.Audit, Notify: a.Notify, FinanceKey: a.FinanceKey, FinancePrev: a.FinancePrev, PersonalKey: a.PersonalKey}).savePayout(c, branchID, in.Payout, actor, now)
-	}
-	var panAudit any
-	if k := PanKey(in.PAN); k != nil {
-		panAudit = *k
 	}
 	if err := a.Audit.Write(c, audit.Entry{Action: "HOSTEL_BRANCH_REQUESTED", ActorID: actor, EntityID: branchID.Hex(), EntityType: "Hostel", HostelID: branchID,
-		Metadata: bson.D{{Key: "mainHostelId", Value: main.ID.Hex()}, {Key: "panNumber", Value: panAudit}}}); err != nil {
+		Metadata: bson.D{{Key: "mainHostelId", Value: main.ID.Hex()}}}); err != nil {
 		return nil, err
 	}
-	phone := ""
-	if v, ok := lookup(in.Contact, "phone"); ok {
-		phone, _ = v.(string)
-	}
-	a.notifyBranch(c, in.Name, phone, main.Name)
 	out := &requestedOut{}
-	out.Branch.ID, out.Branch.Name, out.Branch.Status = branchID.Hex(), in.Name, "PENDING_APPROVAL"
+	out.Branch.ID, out.Branch.Name, out.Branch.Status = branchID.Hex(), in.Name, "DRAFT"
 	return out, nil
-}
-
-// branchFields is the document requestBranch creates, in the order the model keeps.
-func branchFields(in Branch, ownerID, mainID, actor bson.ObjectID, slug string, shortStays bson.D, suspension bson.D, pan *string) bson.D {
-	var capacity bson.D
-	if len(in.Rooms) > 0 {
-		var rooms, beds, vacant float64
-		for _, r := range in.Rooms {
-			rooms += r.Rooms
-			beds += r.Rooms * r.Beds
-			vacant += r.Vacant
-		}
-		capacity = bson.D{{Key: "totalRooms", Value: rooms}, {Key: "totalBeds", Value: beds}, {Key: "vacantBeds", Value: vacant}}
-	} else {
-		capacity = append(bson.D{}, in.Capacity...)
-		if in.TotalCap != nil {
-			capacity = setKey(capacity, "totalBeds", *in.TotalCap)
-		}
-	}
-	contact := append(bson.D{}, in.Contact...)
-	if in.AltPhone != nil {
-		contact = append(contact, bson.E{Key: "alternatePhone", Value: *in.AltPhone})
-	}
-	location := append(bson.D{}, in.Location...)
-	if in.Landmark != nil {
-		location = append(location, bson.E{Key: "landmark", Value: *in.Landmark})
-	}
-	if in.MapLink != nil {
-		location = append(location, bson.E{Key: "mapLink", Value: *in.MapLink})
-	}
-	rooms := bson.A{}
-	for _, rc := range in.Rooms {
-		rooms = append(rooms, append(bson.D{{Key: "_id", Value: bson.NewObjectID()}}, roomDoc(rc, in.Deposit, true)...))
-	}
-	photos := bson.A{}
-	for _, p := range in.Photos {
-		photos = append(photos, append(bson.D{{Key: "_id", Value: bson.NewObjectID()}}, p.(bson.D)...))
-	}
-	f := bson.D{}
-	if len(suspension) > 0 {
-		f = append(f, bson.E{Key: "suspension", Value: suspension})
-	}
-	f = append(f, bson.E{Key: "capacitySummary", Value: capacity}, bson.E{Key: "contact", Value: contact}, bson.E{Key: "createdBy", Value: actor})
-	if in.Desc != nil {
-		f = append(f, bson.E{Key: "description", Value: *in.Desc})
-	}
-	f = append(f, bson.E{Key: "facilities", Value: strArray(in.Facilities)})
-	if in.FoodSet {
-		f = append(f, bson.E{Key: "food", Value: in.Food})
-	}
-	f = append(f, bson.E{Key: "hostelType", Value: in.HostelType}, bson.E{Key: "location", Value: location}, bson.E{Key: "name", Value: in.Name}, bson.E{Key: "ownerId", Value: ownerID})
-	if pan != nil {
-		f = append(f, bson.E{Key: "panNumber", Value: *pan})
-	}
-	f = append(f, bson.E{Key: "parentHostelId", Value: mainID}, bson.E{Key: "photos", Value: photos})
-	if in.PricingSet {
-		f = append(f, bson.E{Key: "pricing", Value: in.Pricing})
-	}
-	if in.Deposit != nil {
-		f = append(f, bson.E{Key: "securityDeposit", Value: *in.Deposit})
-	}
-	f = append(f, bson.E{Key: "roomConfigurations", Value: rooms}, bson.E{Key: "roomTypes", Value: strArray(in.RoomTypes)}, bson.E{Key: "rules", Value: strArray(in.Rules)})
-	if shortStays != nil {
-		f = append(f, bson.E{Key: "shortStays", Value: shortStays})
-	}
-	if in.Floors != nil {
-		f = append(f, bson.E{Key: "totalFloors", Value: *in.Floors})
-	}
-	if in.Year != nil {
-		f = append(f, bson.E{Key: "yearEstablished", Value: *in.Year})
-	}
-	return append(f, bson.E{Key: "slug", Value: slug}, bson.E{Key: "status", Value: "PENDING_APPROVAL"}, bson.E{Key: "updatedBy", Value: actor}, bson.E{Key: "verificationStatus", Value: "PENDING"})
-}
-
-// notifyBranch is notifyPlatformOfBranch: the staff who approve hostels, best-effort.
-func (a *Admin) notifyBranch(c *gin.Context, branch, phone, main string) {
-	cur, err := a.DB.Collection("users").Find(c, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "role", Value: "SUPERADMIN"}, {Key: "status", Value: "ACTIVE"}},
-		options.Find().SetProjection(bson.D{{Key: "_id", Value: 1}}).SetLimit(200))
-	if err != nil {
-		return
-	}
-	var staff []struct {
-		ID bson.ObjectID `bson:"_id"`
-	}
-	if cur.All(c, &staff) != nil {
-		return
-	}
-	call := phone
-	if call == "" {
-		call = "the branch"
-	}
-	for _, m := range staff {
-		_, _ = a.Notify.CreateInApp(c, notifications.Input{ActionURL: "/platform/hostels", Body: branch + ", a branch of " + main + ". Call " + call + " before approving.", Category: "HOSTEL_APPROVAL",
-			Title: "Branch waiting for a call", UserID: m.ID.Hex()})
-	}
 }

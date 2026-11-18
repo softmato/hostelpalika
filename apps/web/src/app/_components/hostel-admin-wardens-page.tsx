@@ -53,7 +53,7 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   manageNotices: "Notices",
   managePaymentProfile: "Payment details",
   manageRooms: "Rooms & beds",
-  manageStock: "Stock",
+  manageStock: "Inventory",
   approveStockCount: "Approve counts",
   recordCash: "Record cash",
   recordExpenses: "Add expenses",

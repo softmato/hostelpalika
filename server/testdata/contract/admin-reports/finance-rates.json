@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concessions list",
@@ -48,13 +48,13 @@
               "percentOff": 50,
               "period": "2083-07",
               "reason": "Dashain",
-              "standing": "current"
+              "standing": "past"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession invalid",
@@ -110,7 +110,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession fraction",
@@ -151,7 +151,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession open bill",
@@ -181,7 +181,7 @@
         "message": "Month discount saved",
         "data": {
           "concession": {
-            "_id": "6ae852c2e87b32a4a6cd6dab",
+            "_id": "6afd9766c39dfc05d44ac5af",
             "label": "Aswin 2083 BS",
             "percentOff": 20,
             "period": "2083-06",
@@ -197,7 +197,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession paid bill",
@@ -223,12 +223,12 @@
         "message": "Month discount saved",
         "data": {
           "concession": {
-            "_id": "6ae852c2e87b32a4a6cd6dad",
+            "_id": "6afd9766c39dfc05d44ac5b1",
             "label": "Mangsir 2083 BS",
             "percentOff": 50,
             "period": "2083-08",
             "reason": null,
-            "standing": "upcoming",
+            "standing": "current",
             "applied": {
               "discounted": 500,
               "invoicesChanged": 1,
@@ -239,7 +239,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession rerun",
@@ -265,7 +265,7 @@
         "message": "Month discount saved",
         "data": {
           "concession": {
-            "_id": "6ae852c2e87b32a4a6cd6dab",
+            "_id": "6afd9766c39dfc05d44ac5af",
             "label": "Aswin 2083 BS",
             "percentOff": 30,
             "period": "2083-06",
@@ -281,7 +281,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession delete bad id",
@@ -304,7 +304,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession delete missing",
@@ -327,7 +327,7 @@
         "errorCode": "RENT_CONCESSION_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concessions after",
@@ -350,12 +350,12 @@
         "data": {
           "concessions": [
             {
-              "_id": "6ae852c2e87b32a4a6cd6dad",
+              "_id": "6afd9766c39dfc05d44ac5b1",
               "label": "Mangsir 2083 BS",
               "percentOff": 50,
               "period": "2083-08",
               "reason": null,
-              "standing": "upcoming"
+              "standing": "current"
             },
             {
               "_id": "6d09000000000000000000a0",
@@ -363,10 +363,10 @@
               "percentOff": 50,
               "period": "2083-07",
               "reason": "Dashain",
-              "standing": "current"
+              "standing": "past"
             },
             {
-              "_id": "6ae852c2e87b32a4a6cd6dab",
+              "_id": "6afd9766c39dfc05d44ac5af",
               "label": "Aswin 2083 BS",
               "percentOff": 30,
               "period": "2083-06",
@@ -377,7 +377,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession delete tihar",
@@ -398,7 +398,7 @@
         "success": true,
         "message": "Month discount removed",
         "data": {
-          "deletedId": "6ae852c2e87b32a4a6cd6dab",
+          "deletedId": "6afd9766c39dfc05d44ac5af",
           "restored": {
             "discounted": 0,
             "invoicesChanged": 1,
@@ -408,7 +408,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "concession delete dashain",
@@ -439,7 +439,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedules resident",
@@ -462,7 +462,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedules list",
@@ -536,7 +536,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78",
+    "recorded": "http://localhost:3100",
     "corrected": "FIN-8"
   },
   {
@@ -578,7 +578,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule bad rates",
@@ -646,7 +646,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule dup rates",
@@ -696,7 +696,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule referral over fee",
@@ -744,7 +744,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule this month",
@@ -776,7 +776,7 @@
         "errorCode": "FEE_SCHEDULE_MONTH_LOCKED"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule next",
@@ -832,15 +832,15 @@
             "admissionFee": 2000,
             "formFee": 0,
             "createdBy": "6c0000000000000000000005",
-            "_id": "6ae852c55e205a5564095e46",
-            "createdAt": "2026-11-02T09:07:17.202Z",
-            "updatedAt": "2026-11-02T09:07:17.202Z",
+            "_id": "6afd97727cae8e2a7798c9bc",
+            "createdAt": "2026-11-18T12:17:54.945Z",
+            "updatedAt": "2026-11-18T12:17:54.945Z",
             "__v": 0
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule replace",
@@ -887,15 +887,15 @@
             ],
             "formFee": 0,
             "createdBy": "6c0000000000000000000005",
-            "_id": "6ae852c55e205a5564095e4a",
-            "createdAt": "2026-11-02T09:07:17.285Z",
-            "updatedAt": "2026-11-02T09:07:17.285Z",
+            "_id": "6afd97737cae8e2a7798c9c0",
+            "createdAt": "2026-11-18T12:17:55.129Z",
+            "updatedAt": "2026-11-18T12:17:55.129Z",
             "__v": 0
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule earlier",
@@ -919,15 +919,15 @@
       "**dates"
     ],
     "response": {
-      "status": 422,
+      "status": 409,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "The rate card already changes in Poush 2083 BS. Replace that one, or pick a later month.",
-        "errorCode": "FEE_SCHEDULE_MISSING"
+        "message": "Rates can only change from the start of a future month. This month's residents are already being billed at the current rates.",
+        "errorCode": "FEE_SCHEDULE_MONTH_LOCKED"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedules after",
@@ -960,7 +960,7 @@
           ],
           "schedules": [
             {
-              "_id": "6ae852c55e205a5564095e4a",
+              "_id": "6afd97737cae8e2a7798c9c0",
               "hostelId": "6d0900000000000000000002",
               "effectiveFrom": "2026-12-16T00:00:00.000Z",
               "effectiveTo": null,
@@ -974,8 +974,8 @@
               ],
               "formFee": 0,
               "createdBy": "6c0000000000000000000005",
-              "createdAt": "2026-11-02T09:07:17.285Z",
-              "updatedAt": "2026-11-02T09:07:17.285Z",
+              "createdAt": "2026-11-18T12:17:55.129Z",
+              "updatedAt": "2026-11-18T12:17:55.129Z",
               "__v": 0,
               "standing": "upcoming"
             },
@@ -983,7 +983,7 @@
               "_id": "6d09000000000000000000a5",
               "hostelId": "6d0900000000000000000002",
               "createdAt": "2026-09-01T06:00:00.000Z",
-              "updatedAt": "2026-11-02T09:07:17.193Z",
+              "updatedAt": "2026-11-18T12:17:54.929Z",
               "__v": 0,
               "effectiveFrom": "2026-07-17T00:00:00.000Z",
               "effectiveTo": "2026-12-15T00:00:00.000Z",
@@ -1021,7 +1021,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78",
+    "recorded": "http://localhost:3100",
     "corrected": "FIN-8"
   },
   {
@@ -1045,7 +1045,7 @@
         "errorCode": "FEE_SCHEDULE_MONTH_LOCKED"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule delete bad id",
@@ -1068,7 +1068,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule delete upcoming",
@@ -1089,12 +1089,12 @@
         "success": true,
         "message": "Upcoming rates deleted",
         "data": {
-          "deletedId": "6ae852c55e205a5564095e4a",
+          "deletedId": "6afd97737cae8e2a7798c9c0",
           "restoredId": "6d09000000000000000000a5"
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule close invalid",
@@ -1134,7 +1134,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule close early",
@@ -1160,7 +1160,7 @@
         "errorCode": "FEE_SCHEDULE_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule close missing",
@@ -1186,7 +1186,7 @@
         "errorCode": "FEE_SCHEDULE_MISSING"
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedule close",
@@ -1214,7 +1214,7 @@
             "_id": "6d09000000000000000000a5",
             "hostelId": "6d0900000000000000000002",
             "createdAt": "2026-09-01T06:00:00.000Z",
-            "updatedAt": "2026-11-02T09:07:18.171Z",
+            "updatedAt": "2026-11-18T12:18:04.507Z",
             "__v": 0,
             "effectiveFrom": "2026-07-17T00:00:00.000Z",
             "effectiveTo": "2027-01-01T00:00:00.000Z",
@@ -1231,7 +1231,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "kyc invalid",
@@ -1295,7 +1295,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "kyc empty",
@@ -1335,7 +1335,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "kyc upcoming replaces",
@@ -1368,7 +1368,7 @@
           "nextMonth": false,
           "schedule": {
             "hostelId": "6d0900000000000000000002",
-            "effectiveFrom": "2026-10-18T00:00:00.000Z",
+            "effectiveFrom": "2026-11-17T00:00:00.000Z",
             "effectiveTo": null,
             "rates": [
               {
@@ -1381,15 +1381,15 @@
             "admissionFee": 1500,
             "formFee": 0,
             "createdBy": "6c0000000000000000000005",
-            "_id": "6ae852c85e205a5564095e52",
-            "createdAt": "2026-11-02T09:07:20.294Z",
-            "updatedAt": "2026-11-02T09:07:20.294Z",
+            "_id": "6afd97837cae8e2a7798c9c8",
+            "createdAt": "2026-11-18T12:18:11.322Z",
+            "updatedAt": "2026-11-18T12:18:11.322Z",
             "__v": 0
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "schedules final",
@@ -1422,9 +1422,9 @@
           ],
           "schedules": [
             {
-              "_id": "6ae852c85e205a5564095e52",
+              "_id": "6afd97837cae8e2a7798c9c8",
               "hostelId": "6d0900000000000000000002",
-              "effectiveFrom": "2026-10-18T00:00:00.000Z",
+              "effectiveFrom": "2026-11-17T00:00:00.000Z",
               "effectiveTo": null,
               "rates": [
                 {
@@ -1437,8 +1437,8 @@
               "admissionFee": 1500,
               "formFee": 0,
               "createdBy": "6c0000000000000000000005",
-              "createdAt": "2026-11-02T09:07:20.294Z",
-              "updatedAt": "2026-11-02T09:07:20.294Z",
+              "createdAt": "2026-11-18T12:18:11.322Z",
+              "updatedAt": "2026-11-18T12:18:11.322Z",
               "__v": 0,
               "standing": "current"
             },
@@ -1446,7 +1446,7 @@
               "_id": "6d09000000000000000000a5",
               "hostelId": "6d0900000000000000000002",
               "createdAt": "2026-09-01T06:00:00.000Z",
-              "updatedAt": "2026-11-02T09:07:19.135Z",
+              "updatedAt": "2026-11-18T12:18:10.207Z",
               "__v": 0,
               "effectiveFrom": "2026-07-17T00:00:00.000Z",
               "effectiveTo": "2027-01-01T00:00:00.000Z",
@@ -1484,7 +1484,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 1cf36f78",
+    "recorded": "http://localhost:3100",
     "corrected": "FIN-8"
   }
 ]

@@ -86,7 +86,7 @@ export default function KitchenStockScreen() {
       title: `Undo ${label}?`,
     });
 
-  const header = <AppBar centerTitle showBack subtitle={stock?.hostelName} title="Kitchen stock" />;
+  const header = <AppBar centerTitle showBack subtitle={stock?.hostelName} title="Kitchen inventory" />;
 
   if (resource.error && !stock) {
     return (

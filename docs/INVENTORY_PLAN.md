@@ -1,4 +1,4 @@
-# Inventory (Stock) — plan
+# Inventory — plan
 
 **Created 2026-10-05. Rebuilt as a stock ledger 2026-10-09.** A hostel buys rice,
 daal, oil, gas and cleaning goods in bulk and vegetables daily, from a handful of
@@ -18,7 +18,8 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 | The model | **A ledger, not a quantity field.** Every change is a movement row; what is left is their sum. Nothing is edited — a mistake is cancelled with a reason and stays in History. |
 | Movements | **In:** Bought (a bill), Opening stock. **Out:** Used (for Kitchen / Staff / Student / Other), Wasted (Spoiled / Expired / Damaged / Other), Send to another building. **Adjust:** an approved Count — what was found minus what the book said at that moment. |
 | Two kinds of item | **Store** (rice, daal, oil, gas, cleaning) is used, wasted and counted. **Daily** (vegetables, meat, milk) is used the day it comes: no Left, no Use entry, no Count. |
-| A bill | One row: supplier, bill no., date, photo, lines (qty + price), discount, VAT, total, paid. Saving it is one write, so the stock and the supplier's due never disagree. |
+| A bill | One row: supplier, bill no., date, photo, lines (qty + optional amount), total, paid. Saving it is one write, so the stock and the supplier's due never disagree. |
+| Bill total (2026-11-17) | **Item amounts are optional; the bill total is what counts.** Type only the total and it is shared by the items by their usual price (qty × average cost; equally while an item has none), shown in each blank box before Save (`splitBill`, `packages/shared/src/expenses/stock.ts`). Type every amount and leave the total blank: the total is their sum. Type both: the gap is stored as the bill's discount or VAT. The server takes `amount` as the printed total and it wins over the lines (TS + Go, `INV-1`). |
 | Money | What was **paid** on a bill writes one Expense (Money Out). The rest is **owed to the supplier**. Each later payment to a supplier writes its own Expense. Cancelling a bill or payment voids its expense. Money Out is cash that left; the supplier ledger is what is still owed. |
 | Supplier balance | `opening due + Σ(bill total − paid on bill) − Σ payments`. Derived on every read, never stored. Running balance per supplier, newest first. |
 | Cost | **Weighted average**, per item across the group. Only a priced Bought or Opening moves it. Every movement out is valued at the average *at that moment*. |
@@ -34,7 +35,9 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 
 ## 2. Words (A1 English)
 
-Use: **Stock · Buy · Bill · Use · Waste · Count · Send · Got it · Left · Supplier · Owed · Paid · Part paid · Not paid · Running low · Missing · Extra**.
+**2026-11-17: the feature is called Inventory** everywhere a person reads it (nav, titles, tiles, warden permission, guide). *Stock* stays only where it means goods on the shelf: Stock value, Stock check. Code names (`stock`, `/stock/*` app routes, `/api/v1/hostel-admin/stock`) are unchanged; the web page lives at `/hostel-admin/inventory`, and `/hostel-admin/stock` still opens it for old links and pushes.
+
+Use: **Inventory · Stock value · Buy · Bill · Use · Waste · Count · Send · Got it · Left · Supplier · Owed · Paid · Part paid · Not paid · Running low · Missing · Extra**.
 Never: inventory ledger, issue, transfer, reconcile, consumption, variance, payable.
 
 ## 3. Data

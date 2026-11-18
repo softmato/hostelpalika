@@ -144,7 +144,7 @@ export default function UseStockScreen() {
     }
   };
 
-  const header = <AppBar centerTitle showBack subtitle={here?.name} title={waste ? "Waste" : "Use stock"} />;
+  const header = <AppBar centerTitle showBack subtitle={here?.name} title={waste ? "Waste" : "Use"} />;
 
   if (denied) {
     return (
