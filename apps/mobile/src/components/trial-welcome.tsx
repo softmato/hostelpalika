@@ -8,6 +8,9 @@ import { Lottie } from "@/components/ui/lottie";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useKycLock } from "@/lib/kyc-lock";
+import { useSiteConfig } from "@/hooks/use-site-config";
+import { formatHostelDate } from "@hostel/calendar/bs";
+import { trialTerms } from "@hostel/plans/catalog";
 
 const SUCCESS_ANIMATION = require("../../assets/lottie/success.lottie");
 
@@ -21,6 +24,7 @@ const SUCCESS_ANIMATION = require("../../assets/lottie/success.lottie");
  */
 export function TrialWelcome() {
   const { kyc } = useKycLock();
+  const { config } = useSiteConfig();
   const [open, setOpen] = useState(false);
   const key = kyc ? `hostelpalika.trialWelcome.${kyc.hostelId}` : null;
 
@@ -65,12 +69,17 @@ export function TrialWelcome() {
       <View className="items-center gap-3 pb-2">
         <Lottie loop={false} size={130} source={SUCCESS_ANIMATION} />
         <Text className="text-center" variant="title">
-          You got {kyc.trialDays} days free
+          {kyc.trialDays}-day free trial
         </Text>
         <Text className="text-center" variant="muted">
-          {kyc.hostelName || "Your hostel"} has its own portal now. Enjoy and explore. Complete your KYC
-          to open every feature and list your hostel.
+          {kyc.hostelName || "Your hostel"} is on the Free trial until {formatHostelDate(kyc.trialEndsAt)}. No
+          payment needed now.
         </Text>
+      </View>
+      <View className="gap-2 pb-2">
+        {trialTerms(config.plans, formatHostelDate(kyc.trialEndsAt)).map((line) => (
+          <Text key={line} variant="muted">{`•  ${line}`}</Text>
+        ))}
       </View>
     </Sheet>
   );

@@ -309,10 +309,10 @@ export const legalSchema = z.object({
    */
   guide: z
     .object({
-      updatedAt: trimmed.max(40).default("10 November 2026"),
+      updatedAt: trimmed.max(40).default("18 November 2026"),
       version: trimmed.max(20).default("1.0"),
     })
-    .default({ updatedAt: "10 November 2026", version: "1.0" }),
+    .default({ updatedAt: "18 November 2026", version: "1.0" }),
 });
 
 /**

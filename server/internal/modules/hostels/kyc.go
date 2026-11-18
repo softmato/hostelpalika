@@ -29,10 +29,11 @@ var kycRequired = []string{"details", "photos", "rates", "documents", "location"
 const kycMinPhotos = 3
 
 type kycDetails struct {
-	Address    string `json:"address"`
-	Area       string `json:"area"`
-	City       string `json:"city"`
-	HostelType string `json:"hostelType"`
+	Address string `json:"address"`
+	Area    string `json:"area"`
+	City    string `json:"city"`
+	// Nil until the owner picks one: the quick sign-up never guesses it.
+	HostelType *string `json:"hostelType"`
 }
 
 type kycDocument struct {
@@ -237,7 +238,7 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 	}
 	done := map[string]bool{
 		"agreement":  signed,
-		"details":    strings.TrimSpace(h.Location.Area) != "" && strings.TrimSpace(h.Location.City) != "",
+		"details":    h.HostelType != "" && strings.TrimSpace(h.Location.Area) != "" && strings.TrimSpace(h.Location.City) != "",
 		"documents":  len(docs) > 0,
 		"facilities": len(h.Facilities) > 0,
 		"food":       food,
@@ -254,7 +255,7 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 	}
 
 	out := &kycOut{
-		Details:    kycDetails{h.Location.Address, h.Location.Area, h.Location.City, h.HostelType},
+		Details:    kycDetails{h.Location.Address, h.Location.Area, h.Location.City, nil},
 		Documents:  make([]kycDocument, 0, len(docs)),
 		Facilities: h.Facilities,
 		MinPhotos:  kycMinPhotos,
@@ -262,8 +263,8 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 		Rules:      h.Rules,
 		Steps:      make([]kycStep, 0, len(kycSteps)),
 	}
-	if out.Details.HostelType == "" {
-		out.Details.HostelType = "CO_LIVING"
+	if h.HostelType != "" {
+		out.Details.HostelType = &h.HostelType
 	}
 	if out.Facilities == nil {
 		out.Facilities = []string{}

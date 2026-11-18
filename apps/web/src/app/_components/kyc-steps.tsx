@@ -34,7 +34,7 @@ export const KYC_ENDPOINT = "/api/v1/hostel-admin/kyc";
 
 export type Kyc = {
   /** What the details step pre-fills from. */
-  details?: { address: string; area: string; city: string; hostelType: string };
+  details?: { address: string; area: string; city: string; hostelType: string | null };
   documents: {
     canRemove?: boolean;
     fileAssetId?: string | null;
@@ -184,13 +184,13 @@ function DetailsStep({ initial, onSaved }: { initial: Kyc["details"]; onSaved: (
     address: initial?.address ?? "",
     area: initial?.area ?? "",
     city: initial?.city || "Kathmandu",
-    hostelType: initial?.hostelType ?? "CO_LIVING",
+    hostelType: initial?.hostelType ?? null,
   });
   const set = (patch: Partial<typeof form>) => setForm((current) => ({ ...current, ...patch }));
 
   return (
     <SaveForm
-      disabled={!form.area.trim() || !form.city.trim()}
+      disabled={!form.hostelType || !form.area.trim() || !form.city.trim()}
       onSave={async () => {
         await browserApi(hostelAdminEndpoints.profile, {
           body: JSON.stringify({

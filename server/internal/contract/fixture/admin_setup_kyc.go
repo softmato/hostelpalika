@@ -46,7 +46,9 @@ func init() {
 				base(KycEmpty, KycOwner, "Kyc Empty", "kyc-empty", bson.D{{Key: "city", Value: ""}}),
 				base(KycComplete, KycOwner2, "Kyc Complete", "kyc-complete",
 					bson.D{{Key: "address", Value: "Ward 4"}, {Key: "area", Value: "Baneshwor"}, {Key: "city", Value: "Kathmandu"}, {Key: "lat", Value: 27.7}, {Key: "lng", Value: 85.3}, {Key: "locationSource", Value: "MANUAL"}},
-					bson.E{Key: "photos", Value: bson.A{photo("a"), photo("b"), photo("c")}}, bson.E{Key: "rules", Value: bson.A{"Quiet after ten"}}, bson.E{Key: "facilities", Value: bson.A{"WiFi"}}),
+					bson.E{Key: "photos", Value: bson.A{photo("a"), photo("b"), photo("c")}}, bson.E{Key: "rules", Value: bson.A{"Quiet after ten"}}, bson.E{Key: "facilities", Value: bson.A{"WiFi"}},
+					// Picked on the details step: sign-up no longer sets a type.
+					bson.E{Key: "hostelType", Value: "BOYS"}),
 			},
 			"users": {
 				setupUser(KycOwner, "kyc.owner@contract.test", "HOSTEL_ADMIN", bson.A{KycEmpty}, now),

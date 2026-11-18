@@ -25,7 +25,7 @@ var hostelSpec = []spec{
 	obj("location", dflt("area", ""), dflt("city", "Kathmandu"), plain("province"), plain("address"), plain("lat"), plain("lng"),
 		dflt("locationSource", "GEOCODED"), plain("landmark"), plain("mapLink")),
 	obj("contact", plain("phone"), plain("email"), plain("alternatePhone")),
-	plain("panNumber"), dflt("hostelType", "CO_LIVING"),
+	plain("panNumber"), plain("hostelType"),
 	obj("pricing", dflt("currency", "NPR"), plain("monthlyRentMin"), plain("monthlyRentMax"), plain("admissionFee"), plain("formFee")),
 	plain("securityDeposit"), dflt("facilities", bson.A{}), dflt("roomTypes", bson.A{}), dflt("roomConfigurations", bson.A{}),
 	obj("food", plain("mealsPerDay"), dflt("hasVeg", true), dflt("hasNonVeg", true), plain("notes")),

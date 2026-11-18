@@ -520,10 +520,20 @@ export const HostelAdminDashboardPageContent = memo(
                 </div>
 
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 font-semibold text-foreground">
-                    <BedDouble className="size-3.5 text-role-admin" />
-                    {hostelTypeLabels[hostel.hostelType] ?? statusLabel(hostel.hostelType)}
-                  </span>
+                  {hostel.hostelType ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 font-semibold text-foreground">
+                      <BedDouble className="size-3.5 text-role-admin" />
+                      {hostelTypeLabels[hostel.hostelType] ?? statusLabel(hostel.hostelType)}
+                    </span>
+                  ) : (
+                    <Link
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-2.5 py-1.5 font-semibold text-muted-foreground transition hover:bg-muted"
+                      href="/hostel-admin/kyc"
+                    >
+                      <BedDouble className="size-3.5 text-role-admin" />
+                      Choose hostel type
+                    </Link>
+                  )}
                   {hostel.contact?.phone ? (
                     <a
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-foreground transition hover:bg-muted"

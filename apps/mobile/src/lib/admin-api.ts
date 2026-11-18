@@ -1150,7 +1150,7 @@ export async function postHostelAnnouncement(body: string) {
 /** Hostel KYC — what a hostel still has to finish after it goes live. */
 export type HostelKyc = {
   /** What the details step pre-fills from. Absent on an older server. */
-  details?: { address: string; area: string; city: string; hostelType: string };
+  details?: { address: string; area: string; city: string; hostelType: string | null };
   /** Newest first. The file is read through `files/[assetId]/url`. */
   documents: {
     /** The caller uploaded it and it is not approved yet. */

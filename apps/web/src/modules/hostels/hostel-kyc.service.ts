@@ -118,7 +118,7 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
 
   const done: Record<KycStep, boolean> = {
     agreement: signed,
-    details: Boolean(hostel.location?.area?.trim() && hostel.location?.city?.trim()),
+    details: Boolean(hostel.hostelType && hostel.location?.area?.trim() && hostel.location?.city?.trim()),
     documents: documents.length > 0,
     facilities: (hostel.facilities ?? []).length > 0,
     food: (routine?.meals ?? []).length > 0,
@@ -153,7 +153,7 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
       address: hostel.location?.address ?? "",
       area: hostel.location?.area ?? "",
       city: hostel.location?.city ?? "",
-      hostelType: hostel.hostelType ?? "CO_LIVING",
+      hostelType: hostel.hostelType || null,
     },
     documents: documents.map((doc) => {
       const file = doc.fileAssetId ? fileById.get(String(doc.fileAssetId)) : undefined;

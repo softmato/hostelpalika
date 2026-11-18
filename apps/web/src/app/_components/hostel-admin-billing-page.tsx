@@ -327,7 +327,7 @@ function UpgradeDialog({
     <Dialog onOpenChange={(open) => (open ? undefined : onClose())} open>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upgrade your plan</DialogTitle>
+          <DialogTitle>{current ? "Upgrade your plan" : "Choose a plan"}</DialogTitle>
           <DialogDescription>
             The new plan starts when it is paid, and its time is added after your current period.
           </DialogDescription>
@@ -386,6 +386,10 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
   // Nothing may be owed: with an invoice open, that invoice is what gets paid.
   const clear = plan.amountDue <= 0 && Boolean(plan.planId);
   const canRenew = clear && Boolean(plan.cycle) && days !== null && days <= RENEW_WITHIN_DAYS;
+  // On the trial or Free: any plan can be bought, any time.
+  const canChoose = plan.amountDue <= 0 && !plan.planId && !plan.lifetime;
+  const [now] = useState(() => Date.now());
+  const onTrial = Boolean(plan.trialEndsAt) && Date.parse(plan.trialEndsAt ?? "") > now;
   const canUpgrade =
     clear &&
     days !== null &&
@@ -426,7 +430,7 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
             Current plan
           </p>
           <p className="mt-1 text-lg font-bold text-foreground">
-            {plan.planName ?? "No plan chosen yet"}
+            {plan.planName ?? (onTrial ? "Free trial" : plan.trialEndsAt ? (catalog.free?.name ?? "Free") : "No plan chosen yet")}
             {plan.cycleLabel ? (
               <span className="font-normal text-muted-foreground">
                 {" \u00b7 "}
@@ -508,6 +512,16 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
             <LayoutList className="size-3.5" />
             See plans
           </a>
+          {canChoose ? (
+            <button
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-teal px-3 text-xs font-bold text-white transition hover:brightness-110"
+              onClick={() => setUpgrading(true)}
+              type="button"
+            >
+              <ArrowUpCircle className="size-3.5" />
+              Choose a plan
+            </button>
+          ) : null}
           {canUpgrade ? (
             <button
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-teal/40 px-3 text-xs font-bold text-brand-teal transition hover:bg-brand-teal/10"

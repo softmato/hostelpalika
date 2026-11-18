@@ -16,12 +16,12 @@ func hello(name string) string {
 // HostelPortalOpen is hostelPortalOpenEmail (templates/hostel/hostel-kyc.ts).
 func HostelPortalOpen(hostelName, kycURL, ownerName string, trialDays int, trialEndsOn string) Content {
 	days := strconv.Itoa(trialDays)
-	return Content{Category: Info, Subject: "Your " + hostelName + " portal is open — " + days + " days free", HTML: EmailLayout(Layout{
+	return Content{Category: Info, Subject: "Your " + hostelName + " portal is open — " + days + "-day free trial", HTML: EmailLayout(Layout{
 		Heading: "Congratulations — your hostel portal is open",
 		BodyHTML: strings.Join([]string{
 			hello(ownerName),
-			Paragraph("<strong>" + EscapeHTML(hostelName) + "</strong> now has its own hostel portal in the app and on the website. You have <strong>" + days + " days free</strong>, until " + EscapeHTML(trialEndsOn) + ". Enjoy and explore."),
-			Paragraph("Next, complete your hostel KYC: photos, documents, rooms and your address. Our team checks it within 24 hours. Until then some features stay locked, and your hostel is not shown to the public."),
+			Paragraph("<strong>" + EscapeHTML(hostelName) + "</strong> now has its own hostel portal in the app and on the website. You are on a <strong>" + days + "-day free trial</strong>, until " + EscapeHTML(trialEndsOn) + ": everything in the Max plan, with no payment now. After that, buy a plan to keep it, or carry on with the Free plan."),
+			Paragraph("Next, complete your hostel KYC: photos, documents, rooms and your address. Our team checks it within 24 hours. Approval unlocks the locked features and shows your hostel to the public."),
 			CTAButton(kycURL, "Complete KYC"),
 		}, "\n"),
 	})}

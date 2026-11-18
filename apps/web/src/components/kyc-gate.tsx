@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useSiteConfig } from "@/components/site-config-provider";
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { trialTerms } from "@hostel/shared/plans/catalog";
 import { useSessionStore } from "@/stores/session-store";
 
 /**
@@ -164,6 +166,7 @@ export function KycFrozenPage() {
 /** "Congratulations — you got N days", once per hostel per browser. */
 export function TrialWelcomeDialog({ tone }: { tone: string }) {
   const { kyc } = useKycPortalLock(tone);
+  const { plans } = useSiteConfig();
   const [open, setOpen] = useState(false);
   const key = kyc && tone === "admin" ? `hostelpalika.trialWelcome.${kyc.hostelId}` : null;
 
@@ -194,11 +197,16 @@ export function TrialWelcomeDialog({ tone }: { tone: string }) {
     <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Congratulations! You got {kyc.trialDays} days free</AlertDialogTitle>
+          <AlertDialogTitle>Congratulations! {kyc.trialDays}-day free trial</AlertDialogTitle>
           <AlertDialogDescription>
-            {kyc.hostelName || "Your hostel"} has its own portal now. Enjoy and explore. Complete your KYC to open
-            every feature and list your hostel.
+            {kyc.hostelName || "Your hostel"} is on the Free trial until {formatHostelDate(kyc.trialEndsAt)}. No payment
+            needed now.
           </AlertDialogDescription>
+          <ul className="list-disc space-y-1.5 pl-5 text-left text-sm text-muted-foreground">
+            {trialTerms(plans, formatHostelDate(kyc.trialEndsAt)).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Start exploring</AlertDialogCancel>

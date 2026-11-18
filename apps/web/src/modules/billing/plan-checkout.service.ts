@@ -14,7 +14,7 @@ import {
   requestOtpChallenge,
   verifyOtpChallenge,
 } from "@/modules/auth/auth.service";
-import { countBranches } from "@/modules/billing/billing-hostel";
+import { billingHostelId, countBranches } from "@/modules/billing/billing-hostel";
 import { daysLeftThrough, getBillingHistory } from "@/modules/billing/billing-history.service";
 import { planAfterPayment } from "@/modules/billing/subscription.service";
 import {
@@ -83,6 +83,8 @@ export const planCheckoutSchema = z.discriminatedUnion("step", [
   z.object({ step: z.literal("pay"), token: z.string().min(1) }),
   /** The emailed "Pay now" link (`plan-pay-link.ts`) in place of email + code. */
   z.object({ link: z.string().min(1), step: z.literal("link") }),
+  // A signed-in hostel admin: the route reads the sign-in, see `openSessionCheckout`.
+  z.object({ step: z.literal("session") }),
   /** The pay step's plan and month pickers, on an invoice nothing has touched yet. */
   z.object({
     months: z.coerce.number().int().min(1).max(12),
@@ -338,6 +340,30 @@ async function checkoutView(hostelId: string, invoice: CheckoutInvoice | null) {
   };
 }
 
+/**
+ * The pricing page's "Get plan" for a signed-in hostel admin: the sign-in
+ * proves what the email code would, so it opens straight on the pay step. A
+ * branch pays through its main hostel, as the email-and-ID lookup does.
+ */
+export async function openSessionCheckout(hostelId: string | undefined) {
+  await connectToDatabase();
+
+  if (!hostelId || !Types.ObjectId.isValid(hostelId)) fail("No hostel on this account.", "HOSTEL_NOT_MATCHED", 404);
+
+  const billedId = String(await billingHostelId(hostelId));
+  const hostel = await HostelModel.findOne({ _id: billedId, isDeleted: { $ne: true } })
+    .select("name ownerId")
+    .lean<{ name?: string; ownerId?: Types.ObjectId } | null>();
+
+  if (!hostel) fail("No hostel on this account.", "HOSTEL_NOT_MATCHED", 404);
+
+  return {
+    hostel: await checkoutHostel(billedId, hostel.name),
+    token: await signCheckoutToken(billedId, String(hostel.ownerId)),
+    ...(await paymentState(billedId)),
+  };
+}
+
 export async function runPlanCheckout(
   input: PlanCheckoutInput,
   context?: { ipAddress?: string; userAgent?: string },
@@ -434,6 +460,10 @@ export async function runPlanCheckout(
         ...(await paymentState(hostelId)),
       };
     }
+
+    case "session":
+      // Needs the request's sign-in, so the route answers it (`openSessionCheckout`).
+      return fail("Sign in first.", "UNAUTHORIZED", 401);
 
     case "link": {
       const linked = await readPlanPayLink(input.link);

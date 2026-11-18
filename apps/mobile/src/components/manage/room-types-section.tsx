@@ -1,4 +1,4 @@
-import { ROOM_TYPE_OPTIONS, roomTypeLabel } from "@hostel/constants/room-types";
+import { bedsForRoomType, ROOM_TYPE_OPTIONS, roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Sheet } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Text } from "@/components/ui/text";
 import { EmptyCard } from "@/components/ui/states";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
@@ -42,6 +44,10 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(BLANK);
   const [saving, setSaving] = useState(false);
+  // Adding: every type the owner taps, saved together. Nothing is pre-picked.
+  const [picked, setPicked] = useState<string[]>([]);
+  // Types being saved: the sheet closes at once and these show as skeleton rows.
+  const [pending, setPending] = useState<string[]>([]);
 
   const configurations = useMemo(() => hostel.data?.roomConfigurations ?? [], [hostel.data]);
   const photos = hostel.data?.photos;
@@ -64,6 +70,27 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
     },
     [onChanged, setData],
   );
+
+  /** Adds every picked type (+ the typed one) at once; rooms are set per type after. */
+  const addPicked = useCallback(async () => {
+    const other = draft.roomType.trim();
+    const names = [...picked, ...(other && !picked.some((item) => item.toLowerCase() === other.toLowerCase()) ? [other] : [])];
+    if (!names.length) return toastError("Pick a room type", "Tap every type your hostel has.");
+
+    const clash = names.find((name) => configurations.some((config) => config.roomType.toLowerCase() === name.toLowerCase()));
+    if (clash) return toastError("Already listed", `Edit “${roomTypeLabel(clash)}” instead of adding it twice.`);
+
+    const next = [
+      ...configurations,
+      ...names.map((roomType) => ({ bedsPerRoom: bedsForRoomType(roomType), mealInclusion: "Included", rooms: 0, roomType, vacantBeds: 0 }) as RoomConfiguration),
+    ];
+
+    setEditing(null);
+    setPending(names);
+    await save(next, names.length === 1 ? `Added ${roomTypeLabel(names[0])}.` : `Added ${names.length} room types.`);
+    // Saved or not (save toasts the failure), the list is the truth again.
+    setPending([]);
+  }, [configurations, draft.roomType, picked, save]);
 
   const submit = useCallback(async () => {
     const roomType = draft.roomType.trim();
@@ -128,6 +155,7 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
             label="Add"
             onPress={() => {
               setDraft(BLANK);
+              setPicked([]);
               setEditing("");
             }}
             size="sm"
@@ -137,7 +165,7 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
         title="Room types"
       />
 
-      {configurations.length === 0 ? (
+      {configurations.length === 0 && pending.length === 0 ? (
         <EmptyCard description="Add one and the public listing can start showing vacancies." title="No room types yet" />
       ) : (
         <Card className="gap-0" padding="px-4 py-0">
@@ -161,38 +189,67 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
               />
             </View>
           ))}
+          {pending.map((name) => (
+            <View key={`pending-${name}`}>
+              {configurations.length > 0 || pending[0] !== name ? <RowDivider inset /> : null}
+              <View className="flex-row items-center gap-3 py-3">
+                <Skeleton height={40} radius={12} className="w-10" />
+                <View className="flex-1 gap-1.5">
+                  <Text variant="label">{roomTypeLabel(name)}</Text>
+                  <Skeleton height={12} className="w-32" />
+                </View>
+              </View>
+            </View>
+          ))}
         </Card>
       )}
 
       <Sheet
-        footer={<Button label={editing === "" ? "Add room type" : "Save changes"} loading={saving} onPress={() => void submit()} />}
+        footer={
+          <Button
+            label={
+              editing !== ""
+                ? "Save changes"
+                : picked.length + (draft.roomType.trim() ? 1 : 0) > 1
+                  ? `Add ${picked.length + (draft.roomType.trim() ? 1 : 0)} room types`
+                  : "Add room type"
+            }
+            loading={saving}
+            onPress={() => void (editing === "" ? addPicked() : submit())}
+          />
+        }
         onClose={() => setEditing(null)}
         open={editing !== null}
-        title={editing === "" ? "New room type" : `Edit ${roomTypeLabel(editing ?? "")}`}
+        title={editing === "" ? "Add room types" : `Edit ${roomTypeLabel(editing ?? "")}`}
       >
         <View className="gap-3 pb-2">
           {editing === "" ? (
             <>
-              <Input
-                autoCapitalize="words"
-                label="Room type"
-                onChangeText={(roomType) => setDraft((prev) => ({ ...prev, roomType }))}
-                placeholder="Three Sharing"
-                value={draft.roomType}
-              />
               <View className="flex-row flex-wrap gap-2">
                 {ROOM_TYPE_OPTIONS.filter((type) => !configurations.some((config) => config.roomType === type)).map((type) => (
                   <Chip
                     key={type}
                     label={roomTypeLabel(type)}
-                    onPress={() => setDraft((prev) => ({ ...prev, roomType: type }))}
-                    tone={draft.roomType === type ? "brand" : "neutral"}
+                    onPress={() =>
+                      setPicked((current) => (current.includes(type) ? current.filter((item) => item !== type) : [...current, type]))
+                    }
+                    tone={picked.includes(type) ? "brand" : "neutral"}
                   />
                 ))}
               </View>
+              <Input
+                autoCapitalize="words"
+                hint="Tap every type you have. Set rooms for each after adding."
+                label="Other"
+                onChangeText={(roomType) => setDraft((prev) => ({ ...prev, roomType }))}
+                placeholder="6 Sharing"
+                value={draft.roomType}
+              />
             </>
           ) : null}
 
+          {editing === "" ? null : (
+          <>
           <View className="flex-row gap-3">
             <View className="flex-1">
               <Input keyboardType="number-pad" label="Rooms" onChangeText={(rooms) => setDraft((prev) => ({ ...prev, rooms }))} value={draft.rooms} />
@@ -214,6 +271,8 @@ export function RoomTypesSection({ onChanged }: { onChanged?: () => void }) {
             onChangeText={(vacantBeds) => setDraft((prev) => ({ ...prev, vacantBeds }))}
             value={draft.vacantBeds}
           />
+          </>
+          )}
 
           {editing ? <Button label="Remove this room type" onPress={() => remove(editing)} variant="outline" /> : null}
         </View>

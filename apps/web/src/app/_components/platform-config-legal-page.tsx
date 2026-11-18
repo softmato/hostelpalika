@@ -107,7 +107,7 @@ export const PlatformConfigLegalPageContent = memo(
             <TextField
               label="Last updated"
               onChange={(updatedAt) => setValue("legal", { ...legal, guide: { ...legal.guide, updatedAt } })}
-              placeholder="10 November 2026"
+              placeholder="18 November 2026"
               value={legal.guide.updatedAt}
             />
           </div>

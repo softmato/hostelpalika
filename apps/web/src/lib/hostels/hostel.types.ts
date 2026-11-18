@@ -9,7 +9,7 @@ export type BranchDetails = {
     description: string;
     facilities: string[];
     food: { hasNonVeg?: boolean; hasVeg?: boolean; mealsPerDay?: number; notes?: string };
-    hostelType: string;
+    hostelType: string | null;
     id: string;
     location: { address?: string; area?: string; city?: string; landmark?: string; mapLink?: string; province?: string };
     name: string;

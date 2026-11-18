@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list as hostel admin",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list as moderator",
@@ -78,7 +78,7 @@
                 "email": "owner@contract.test",
                 "phone": "9800000001"
               },
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "A test hostel near the lake.",
               "facilities": [
@@ -174,7 +174,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "NEEDS_MORE_INFO",
               "branchOf": null,
@@ -223,7 +223,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -284,7 +284,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": {
@@ -330,7 +330,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -338,7 +338,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -390,7 +390,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "APPROVED",
               "branchOf": null,
@@ -439,7 +439,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -491,7 +491,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "PENDING",
               "applicationStatus": "",
               "branchOf": null,
@@ -532,7 +532,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -540,7 +540,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -602,7 +602,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": null,
@@ -643,7 +643,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -651,7 +651,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -713,7 +713,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": null,
@@ -754,7 +754,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -762,7 +762,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -814,7 +814,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": null,
@@ -855,7 +855,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -863,7 +863,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -919,7 +919,7 @@
                 "submittedAt": null
               },
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": null,
@@ -960,7 +960,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -973,7 +973,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c00000000000000000000a1",
               "isArchived": false,
               "isDemoData": false,
@@ -1051,7 +1051,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c00000000000000000000a2",
               "isArchived": false,
               "isDemoData": false,
@@ -1069,10 +1069,10 @@
               "slug": "suspended-hostel",
               "status": "DRAFT",
               "suspension": {
-                "graceEndsAt": "2026-11-02T13:26:53.058Z",
+                "graceEndsAt": "2026-11-17T14:51:15.164Z",
                 "reason": "PLAN_PAYMENT",
                 "stage": "SUSPENDED",
-                "startedAt": "2026-10-29T13:26:53.058Z"
+                "startedAt": "2026-11-13T14:51:15.164Z"
               },
               "kyc": null,
               "totalFloors": 0,
@@ -1130,7 +1130,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000079",
               "isArchived": false,
               "isDemoData": false,
@@ -1204,7 +1204,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000037",
               "isArchived": false,
               "isDemoData": false,
@@ -1492,7 +1492,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list archived only",
@@ -1525,7 +1525,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000062",
               "isArchived": true,
               "isDemoData": false,
@@ -1599,7 +1599,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000063",
               "isArchived": true,
               "isDemoData": false,
@@ -1678,7 +1678,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000069",
               "isArchived": true,
               "isDemoData": false,
@@ -1752,11 +1752,11 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000078",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-03T12:26:53.058Z",
+              "purgeScheduledAt": "2026-11-18T13:51:15.164Z",
               "name": "Hostel left-purge-due",
               "nameChangeCount": 0,
               "ownerId": "6c0000000000000000000001",
@@ -1838,7 +1838,7 @@
               "id": "6d0d00000000000000000003",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-23T13:26:56.924Z",
+              "purgeScheduledAt": "2026-12-08T14:51:23.206Z",
               "location": {
                 "address": "Ring Road",
                 "area": "Chabahil",
@@ -1939,7 +1939,7 @@
               "id": "6d0d00000000000000000006",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-02T13:26:56.924Z",
+              "purgeScheduledAt": "2026-11-17T14:51:23.206Z",
               "location": {
                 "address": "Ring Road",
                 "area": "Chabahil",
@@ -2028,7 +2028,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list pending",
@@ -2056,7 +2056,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -2108,7 +2108,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "",
               "branchOf": null,
@@ -2149,7 +2149,7 @@
                   "role": "GUARDIAN"
                 }
               ],
-              "submittedAt": "2026-10-24T13:26:53.058Z"
+              "submittedAt": "2026-11-08T14:51:15.164Z"
             },
             {
               "arrivalGuide": null,
@@ -2372,7 +2372,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list bad status",
@@ -2409,7 +2409,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list page two",
@@ -2437,7 +2437,7 @@
               "archiveReason": "",
               "capacitySummary": {},
               "contact": {},
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "",
               "facilities": [
@@ -2489,7 +2489,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "APPROVED",
               "branchOf": null,
@@ -2548,7 +2548,7 @@
                 "email": "owner@contract.test",
                 "phone": "9800000001"
               },
-              "createdAt": "2026-10-24T13:26:53.058Z",
+              "createdAt": "2026-11-08T14:51:15.164Z",
               "demoDataLabel": "",
               "description": "A test hostel near the lake.",
               "facilities": [
@@ -2644,7 +2644,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-02T13:26:53.058Z",
+              "updatedAt": "2026-11-17T14:51:15.164Z",
               "verificationStatus": "VERIFIED",
               "applicationStatus": "NEEDS_MORE_INFO",
               "branchOf": null,
@@ -2698,7 +2698,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "get pending",
@@ -2859,7 +2859,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "get published",
@@ -2916,7 +2916,7 @@
             "id": "6c0000000000000000000010",
             "name": "Fixture Owner",
             "phone": "",
-            "registeredAt": "2026-11-02T13:26:53.058Z",
+            "registeredAt": "2026-11-17T14:51:15.164Z",
             "role": "HOSTEL_ADMIN"
           },
           "documents": [],
@@ -2937,7 +2937,7 @@
               "email": "owner@contract.test",
               "phone": "9800000001"
             },
-            "createdAt": "2026-10-24T13:26:53.058Z",
+            "createdAt": "2026-11-08T14:51:15.164Z",
             "demoDataLabel": "",
             "description": "A test hostel near the lake.",
             "facilities": [
@@ -3033,7 +3033,7 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T13:26:53.058Z",
+            "updatedAt": "2026-11-17T14:51:15.164Z",
             "verificationStatus": "VERIFIED"
           },
           "owner": {
@@ -3041,7 +3041,7 @@
             "id": "6c0000000000000000000010",
             "name": "Fixture Owner",
             "phone": "",
-            "registeredAt": "2026-11-02T13:26:53.058Z",
+            "registeredAt": "2026-11-17T14:51:15.164Z",
             "role": "HOSTEL_ADMIN"
           },
           "portals": [
@@ -3081,13 +3081,13 @@
             "id": "6c0000000000000000000010",
             "name": "Fixture Owner",
             "phone": "",
-            "registeredAt": "2026-11-02T13:26:53.058Z",
+            "registeredAt": "2026-11-17T14:51:15.164Z",
             "role": "HOSTEL_ADMIN"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "get bad id",
@@ -3110,7 +3110,7 @@
         "errorCode": "INVALID_HOSTEL_ID"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "get missing",
@@ -3133,7 +3133,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "billing history",
@@ -3164,7 +3164,7 @@
             "cycle": null,
             "cycleMonths": null,
             "cycleLabel": null,
-            "currentPeriodEnd": "2026-11-23T13:26:53.058Z",
+            "currentPeriodEnd": "2026-12-08T14:51:15.164Z",
             "daysRemaining": 21,
             "daysToDue": null,
             "dueBy": null,
@@ -3180,7 +3180,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "billing missing",
@@ -3208,7 +3208,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "agreement as moderator",
@@ -3231,7 +3231,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "agreement unsigned",
@@ -3256,7 +3256,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "agreement missing",
@@ -3281,6 +3281,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   }
 ]

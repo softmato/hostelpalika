@@ -67,7 +67,7 @@ const hostelSchema = new Schema(
     hostelType: {
       type: String,
       enum: ["BOYS", "GIRLS", "CO_LIVING"],
-      default: "CO_LIVING",
+      // No default: the owner picks it on the KYC details step.
     },
     pricing: {
       currency: { type: String, default: "NPR", trim: true },

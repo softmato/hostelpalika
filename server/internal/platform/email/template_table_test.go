@@ -82,6 +82,7 @@ var templateTable = map[string]struct {
 	"planOverdue":                         {PlanOverdue, []string{"in"}},
 	"planSuspensionNotice":                {PlanSuspensionNotice, []string{"amount", "hostelName", "invoiceAttached", "invoiceNumber", "ownerName", "payBy", "payURL", "planName"}},
 	"platformAdminInvitation":             {PlatformAdminInvitation, []string{"acceptURL", "expiresInDays", "invitedByName", "roleLabel"}},
+	"platformNotice":                      {PlatformNotice, []string{"body", "dashboardURL", "hostelName", "ownerName", "title"}},
 	"residentAccessCleared":               {ResidentAccessCleared, []string{"memberships", "clearedRole", "hostelName", "reactivatedInvite", "residentName"}},
 	"residentLinked":                      {ResidentLinked, []string{"dashboardURL", "hostelName", "residentName"}},
 	"residentNewNotice":                   {ResidentNewNotice, []string{"body", "category", "hostelName", "isUrgent", "noticesURL", "title"}},

@@ -9,6 +9,7 @@ import { currency } from "@/app/_components/shared-ui";
 import { Glyph } from "@/components/glyph";
 import { useMediaViewer } from "@/components/media-viewer";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,8 @@ export function RoomTypesPanel() {
   const [editing, setEditing] = useState<RoomConfiguration | null>(null);
   const [photosFor, setPhotosFor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Types being saved: the dialog closes at once and these show as skeleton cards.
+  const [pending, setPending] = useState<string[]>([]);
 
   /** Writes the whole list; `true` when the server took it. */
   const save = useCallback(
@@ -126,7 +129,7 @@ export function RoomTypesPanel() {
         </Button>
       </div>
 
-      {configurations.length === 0 ? (
+      {configurations.length === 0 && pending.length === 0 ? (
         <button
           className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border px-4 py-8 text-center transition hover:border-brand-teal"
           onClick={() => setAdding(true)}
@@ -181,6 +184,19 @@ export function RoomTypesPanel() {
               </article>
             );
           })}
+          {pending.map((name) => (
+            <article
+              aria-busy="true"
+              className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5"
+              key={`pending-${name}`}
+            >
+              <Skeleton className="size-14 shrink-0 rounded-xl" />
+              <div className="grid min-w-0 flex-1 gap-1.5">
+                <span className="truncate text-sm font-semibold text-foreground">{roomTypeLabel(name)}</span>
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </article>
+          ))}
         </div>
       )}
 
@@ -188,16 +204,26 @@ export function RoomTypesPanel() {
         <AddRoomTypeDialog
           busy={busy}
           existing={configurations.map((config) => config.roomType)}
-          onAdd={async (roomType, bedsPerRoom, rooms) => {
-            const ok = await save(
+          onAdd={async (roomTypes) => {
+            setAdding(false);
+            setPending(roomTypes);
+            await save(
               [
                 ...configurations,
                 // Unpriced until the rate card prices it — zero is "not priced".
-                { bedsPerRoom, mealInclusion: "Included", monthlyRent: 0, rooms, roomType, vacantBeds: rooms * bedsPerRoom },
+                ...roomTypes.map((roomType) => ({
+                  bedsPerRoom: bedsForRoomType(roomType),
+                  mealInclusion: "Included",
+                  monthlyRent: 0,
+                  rooms: 0,
+                  roomType,
+                  vacantBeds: 0,
+                })),
               ],
-              `${roomTypeLabel(roomType)} added.`,
+              roomTypes.length === 1 ? `${roomTypeLabel(roomTypes[0])} added.` : `${roomTypes.length} room types added.`,
             );
-            if (ok) setAdding(false);
+            // Saved or not (save toasts the failure), the list is the truth again.
+            setPending([]);
           }}
           onClose={() => setAdding(false)}
           tracking={tracking}
@@ -287,7 +313,8 @@ function AddRoomTypeDialog({
 }: {
   busy: boolean;
   existing: string[];
-  onAdd: (roomType: string, bedsPerRoom: number, rooms: number) => Promise<void>;
+  /** Every type picked, in one save. */
+  onAdd: (roomTypes: string[]) => Promise<void>;
   onClose: () => void;
   tracking: boolean;
 }) {
@@ -307,25 +334,29 @@ function AddRoomTypeDialog({
     });
   };
   const choices = ROOM_TYPE_OPTIONS.filter((option) => !isTaken(option));
-  const [roomType, setRoomType] = useState(choices[0] ?? "");
+  // Nothing is picked for the owner; they tap every type the hostel has.
+  const [picked, setPicked] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
-  const name = custom.trim() || roomType;
-  const taken = isTaken(name);
+  const other = custom.trim();
+  const otherTaken = Boolean(other) && (isTaken(other) || picked.some((item) => item.toLowerCase() === other.toLowerCase()));
+  const names = other && !otherTaken ? [...picked, other] : picked;
+  const toggle = (option: string) =>
+    setPicked((current) => (current.includes(option) ? current.filter((item) => item !== option) : [...current, option]));
 
   return (
     <Dialog onOpenChange={(open) => (open ? null : onClose())} open>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a room type</DialogTitle>
+          <DialogTitle>Add room types</DialogTitle>
           <DialogDescription>
-            {tracking ? "Then add its rooms on a floor." : "Then set how many rooms it has."} Beds come from the name.
+            Pick every type you have. {tracking ? "Then add their rooms on a floor." : "Then set how many rooms each has."} Beds come from the name.
           </DialogDescription>
         </DialogHeader>
         <form
           className="grid gap-4"
           onSubmit={(event) => {
             event.preventDefault();
-            if (name && !taken) void onAdd(name, bedsForRoomType(name), 0);
+            if (names.length) void onAdd(names);
           }}
         >
           <div className="flex flex-wrap gap-1.5">
@@ -333,13 +364,11 @@ function AddRoomTypeDialog({
               <button
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                  option === roomType && !custom.trim() ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted",
+                  picked.includes(option) ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted",
                 )}
+                aria-pressed={picked.includes(option)}
                 key={option}
-                onClick={() => {
-                  setRoomType(option);
-                  setCustom("");
-                }}
+                onClick={() => toggle(option)}
                 type="button"
               >
                 {roomTypeLabel(option)}
@@ -349,11 +378,23 @@ function AddRoomTypeDialog({
           <label className={LABEL}>
             Other
             <input className={INPUT} onChange={(event) => setCustom(event.target.value)} placeholder="6 Sharing" value={custom} />
-            {name ? <span className="font-normal">{bedsForRoomType(name)} {bedsForRoomType(name) === 1 ? "bed" : "beds"} a room</span> : null}
+            {other ? (
+              <span className={cn("font-normal", otherTaken && "text-destructive")}>
+                {otherTaken
+                  ? "You already have this type."
+                  : `${bedsForRoomType(other)} ${bedsForRoomType(other) === 1 ? "bed" : "beds"} a room`}
+              </span>
+            ) : null}
           </label>
           <DialogFooter>
-            <Button disabled={busy || !name || taken} type="submit">
-              {busy ? "Adding…" : `Add ${name}`}
+            <Button disabled={busy || !names.length} type="submit">
+              {busy
+                ? "Adding…"
+                : names.length === 0
+                  ? "Pick a room type"
+                  : names.length === 1
+                    ? `Add ${roomTypeLabel(names[0])}`
+                    : `Add ${names.length} room types`}
             </Button>
           </DialogFooter>
         </form>

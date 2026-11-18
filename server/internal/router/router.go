@@ -271,7 +271,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 			return signedBookings.SettleFromSoftmato(ctx, invoiceNo, time.Now())
 		}}).Register(v1)
 	(&hostels.RegistrationBilling{DB: d.DB, Guards: guards, Settler: settler}).Register(v1)
-	(&billing.PlanCheckout{Settler: settler, Limiter: limiter, RequestOTP: authSvc.PlanCheckoutOTP, VerifyOTP: authSvc.VerifiedIdentifier, Cooldown: authSvc.ResendCooldown, ClaimValid: claims.Valid}).Register(v1)
+	(&billing.PlanCheckout{Settler: settler, Limiter: limiter, RequestOTP: authSvc.PlanCheckoutOTP, VerifyOTP: authSvc.VerifiedIdentifier, Cooldown: authSvc.ResendCooldown, ClaimValid: claims.Valid, Guards: guards}).Register(v1)
 	mountPlatform(v1, sh, settler)
 	sh.J.Gateway = mountGateway(v1, sh)
 	sh.J.Bookings, sh.J.Plans = signedBookings, settler.Service

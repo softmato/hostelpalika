@@ -253,7 +253,7 @@ func (q *Quick) quickRegister(ctx context.Context, in quickIn, userID string) (o
 		}
 		mail := email.HostelPortalOpen(hostel.Name, q.SiteURL+"/"+url.PathEscape(hostel.Slug)+"/admin/kyc", in.ownerName, trialDays, trialEndsOn)
 		q.Mail.Send(ctx, email.Message{Category: mail.Category, To: []string{user.Email}, Subject: mail.Subject, HTML: mail.HTML})
-		q.tellOwner(ctx, user.ID, hostel.ID, "/hostel-admin", fmt.Sprintf("You got %d days free — enjoy and explore.", trialDays), "Congratulations! "+hostel.Name+" is on HostelPalika", "HOSTEL_PORTAL_OPEN")
+		q.tellOwner(ctx, user.ID, hostel.ID, "/hostel-admin", fmt.Sprintf("You are on a %d-day free trial until %s, with everything in the Max plan.", trialDays, trialEndsOn), "Congratulations! "+hostel.Name+" is on HostelPalika", "HOSTEL_PORTAL_OPEN")
 		q.tellOwner(ctx, user.ID, hostel.ID, "/hostel-admin/kyc", "Complete your hostel KYC now. Our team checks it within 24 hours, then every feature opens.", "Please complete your KYC", "HOSTEL_KYC")
 	}
 	q.Cache.PublicChanged(ctx)

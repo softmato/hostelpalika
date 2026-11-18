@@ -20,7 +20,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "resident",
@@ -46,7 +46,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "warden reads",
@@ -81,7 +81,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000001",
             "isArchived": false,
             "isDemoData": false,
@@ -109,7 +109,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "published reads",
@@ -144,7 +144,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -250,7 +250,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain reads",
@@ -285,7 +285,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d040000000000000000003c",
             "isArchived": false,
             "isDemoData": false,
@@ -332,7 +332,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "bad scope",
@@ -372,7 +372,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "other scope",
@@ -398,7 +398,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "patch anon",
@@ -422,7 +422,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "patch warden no grant",
@@ -449,7 +449,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "invalid",
@@ -554,7 +554,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain edits",
@@ -671,14 +671,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.490Z",
+            "updatedAt": "2026-11-18T14:50:40.886Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain pan set once",
@@ -771,14 +771,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.593Z",
+            "updatedAt": "2026-11-18T14:50:41.296Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain pan stays",
@@ -871,14 +871,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.645Z",
+            "updatedAt": "2026-11-18T14:50:41.381Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain pricing kept",
@@ -979,14 +979,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.705Z",
+            "updatedAt": "2026-11-18T14:50:41.452Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain rename free",
@@ -1083,14 +1083,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.759Z",
+            "updatedAt": "2026-11-18T14:50:41.539Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "location merges",
@@ -1188,14 +1188,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:38.814Z",
+            "updatedAt": "2026-11-18T14:50:41.610Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "location read",
@@ -1288,7 +1288,7 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:41.131Z",
+            "updatedAt": "2026-11-18T14:50:43.878Z",
             "verificationStatus": "VERIFIED",
             "hostelCode": "HH-0000003C"
           },
@@ -1296,7 +1296,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "plain rooms",
@@ -1395,7 +1395,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcb",
+                "id": "6afdbb44908e3b4ae3362f7b",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -1404,7 +1404,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcc",
+                "id": "6afdbb44908e3b4ae3362f7c",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -1423,14 +1423,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:41.231Z",
+            "updatedAt": "2026-11-18T14:50:44.054Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": false
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "published rename refused",
@@ -1459,7 +1459,7 @@
         "errorCode": "NAME_CHANGE_LIMIT_REACHED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "published same name",
@@ -1497,7 +1497,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -1595,14 +1595,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:41.337Z",
+            "updatedAt": "2026-11-18T14:50:44.219Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": true
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "published pricing stripped",
@@ -1642,7 +1642,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -1740,14 +1740,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:41.403Z",
+            "updatedAt": "2026-11-18T14:50:44.308Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": true
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "published pan stays",
@@ -1785,7 +1785,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -1883,14 +1883,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:41.473Z",
+            "updatedAt": "2026-11-18T14:50:44.628Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": true
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "occupied refused",
@@ -1928,7 +1928,7 @@
         "errorCode": "ROOM_TYPE_OCCUPIED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "drop empty type keeps rent",
@@ -1995,7 +1995,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -2055,7 +2055,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd5",
+                "id": "6afdbb44908e3b4ae3362f81",
                 "mealInclusion": "Optional",
                 "monthlyRent": 9000,
                 "rooms": 3,
@@ -2064,7 +2064,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd6",
+                "id": "6afdbb44908e3b4ae3362f82",
                 "mealInclusion": "Optional",
                 "monthlyRent": 12000,
                 "rooms": 3,
@@ -2073,7 +2073,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd7",
+                "id": "6afdbb44908e3b4ae3362f83",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2088,14 +2088,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:41.636Z",
+            "updatedAt": "2026-11-18T14:50:44.759Z",
             "verificationStatus": "VERIFIED"
           },
           "pricedByRateCard": true
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "read back",
@@ -2134,7 +2134,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -2194,7 +2194,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd5",
+                "id": "6afdbb44908e3b4ae3362f81",
                 "mealInclusion": "Optional",
                 "monthlyRent": 9000,
                 "rooms": 3,
@@ -2203,7 +2203,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd6",
+                "id": "6afdbb44908e3b4ae3362f82",
                 "mealInclusion": "Optional",
                 "monthlyRent": 12000,
                 "rooms": 3,
@@ -2212,7 +2212,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd7",
+                "id": "6afdbb44908e3b4ae3362f83",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2227,7 +2227,7 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:41.636Z",
+            "updatedAt": "2026-11-18T14:50:44.759Z",
             "verificationStatus": "VERIFIED",
             "hostelCode": "HH-00000032"
           },
@@ -2235,7 +2235,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "geocode anon",
@@ -2258,7 +2258,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "geocode refused",
@@ -2298,7 +2298,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "geocode warden",
@@ -2324,7 +2324,7 @@
         "errorCode": "CAPABILITY_DENIED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "change anon",
@@ -2348,7 +2348,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "change invalid",
@@ -2399,7 +2399,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "change sent",
@@ -2434,7 +2434,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "change other hostel",
@@ -2465,7 +2465,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "photo anon",
@@ -2489,7 +2489,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "photo invalid",
@@ -2540,7 +2540,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "room photo no type",
@@ -2584,7 +2584,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "room photo unknown type",
@@ -2615,7 +2615,7 @@
         "errorCode": "ROOM_TYPE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "photo added",
@@ -2692,7 +2692,7 @@
             "photos": [
               {
                 "alt": "Front",
-                "id": "6ae828365e205a5564095dda",
+                "id": "6afdbb4a908e3b4ae3362f86",
                 "kind": "INTERIOR",
                 "mediumUrl": "",
                 "roomType": "",
@@ -2707,7 +2707,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcb",
+                "id": "6afdbb44908e3b4ae3362f7b",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2716,7 +2716,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcc",
+                "id": "6afdbb44908e3b4ae3362f7c",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2735,13 +2735,13 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:42.121Z",
+            "updatedAt": "2026-11-18T14:50:50.158Z",
             "verificationStatus": "VERIFIED"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "room photo added",
@@ -2820,7 +2820,7 @@
             "photos": [
               {
                 "alt": "Front",
-                "id": "6ae828365e205a5564095dda",
+                "id": "6afdbb4a908e3b4ae3362f86",
                 "kind": "INTERIOR",
                 "mediumUrl": "",
                 "roomType": "",
@@ -2828,7 +2828,7 @@
               },
               {
                 "alt": "Bed",
-                "id": "6ae828365e205a5564095ddc",
+                "id": "6afdbb4a908e3b4ae3362f88",
                 "kind": "ROOM",
                 "mediumUrl": "",
                 "roomType": "Double",
@@ -2843,7 +2843,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcb",
+                "id": "6afdbb44908e3b4ae3362f7b",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2852,7 +2852,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dcc",
+                "id": "6afdbb44908e3b4ae3362f7c",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -2871,13 +2871,13 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 4,
-            "updatedAt": "2026-11-02T06:05:42.169Z",
+            "updatedAt": "2026-11-18T14:50:50.225Z",
             "verificationStatus": "VERIFIED"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "exterior limit",
@@ -2907,7 +2907,7 @@
         "errorCode": "PHOTO_LIMIT_REACHED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "delete anon",
@@ -2930,7 +2930,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "delete bad id",
@@ -2956,7 +2956,7 @@
         "errorCode": "INVALID_HOSTEL_ID"
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "delete",
@@ -2995,7 +2995,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -3047,7 +3047,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd5",
+                "id": "6afdbb44908e3b4ae3362f81",
                 "mealInclusion": "Optional",
                 "monthlyRent": 9000,
                 "rooms": 3,
@@ -3056,7 +3056,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd6",
+                "id": "6afdbb44908e3b4ae3362f82",
                 "mealInclusion": "Optional",
                 "monthlyRent": 12000,
                 "rooms": 3,
@@ -3065,7 +3065,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd7",
+                "id": "6afdbb44908e3b4ae3362f83",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -3080,13 +3080,13 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:42.352Z",
+            "updatedAt": "2026-11-18T14:50:59.406Z",
             "verificationStatus": "VERIFIED"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "delete again",
@@ -3125,7 +3125,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d0400000000000000000032",
             "isArchived": false,
             "isDemoData": false,
@@ -3177,7 +3177,7 @@
             "roomConfigurations": [
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd5",
+                "id": "6afdbb44908e3b4ae3362f81",
                 "mealInclusion": "Optional",
                 "monthlyRent": 9000,
                 "rooms": 3,
@@ -3186,7 +3186,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd6",
+                "id": "6afdbb44908e3b4ae3362f82",
                 "mealInclusion": "Optional",
                 "monthlyRent": 12000,
                 "rooms": 3,
@@ -3195,7 +3195,7 @@
               },
               {
                 "bedsPerRoom": 2,
-                "id": "6ae828355e205a5564095dd7",
+                "id": "6afdbb44908e3b4ae3362f83",
                 "mealInclusion": "Optional",
                 "monthlyRent": 500,
                 "rooms": 3,
@@ -3210,12 +3210,12 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-02T06:05:42.410Z",
+            "updatedAt": "2026-11-18T14:50:59.459Z",
             "verificationStatus": "VERIFIED"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 566873e2"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   }
 ]

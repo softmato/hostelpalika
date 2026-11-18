@@ -241,7 +241,7 @@ export function buildLlmsFullTxt(data: LlmsData) {
   }
 
   // The user guide, one heading level down so it nests under this file's title.
-  const guide = guideAsMarkdown(data.guide ?? { updatedAt: "10 November 2026", version: "1.0" }, data.base);
+  const guide = guideAsMarkdown(data.guide ?? { updatedAt: "18 November 2026", version: "1.0" }, data.base);
   lines.push("", guide.replace(/^(#+) /gm, "#$1 "), "");
 
   return `${lines.join("\n").trimEnd()}\n`;

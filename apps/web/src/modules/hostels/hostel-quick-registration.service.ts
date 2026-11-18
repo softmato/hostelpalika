@@ -227,7 +227,7 @@ export async function quickRegisterHostel(input: QuickHostelRegistrationInput, u
 
     await notifyHostelOwnerOf(user._id, hostel._id, {
       actionUrl: "/hostel-admin",
-      body: `You got ${trial.days} days free — enjoy and explore.`,
+      body: `You are on a ${trial.days}-day free trial until ${trialEndsOn}, with everything in the Max plan.`,
       title: `Congratulations! ${hostel.name} is on ${PLATFORM_NAME}`,
       type: "HOSTEL_PORTAL_OPEN",
     });

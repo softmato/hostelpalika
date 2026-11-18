@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "resident refused",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "warden",
@@ -63,7 +63,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "owner, no review",
@@ -89,7 +89,7 @@
               "address": "",
               "area": "",
               "city": "",
-              "hostelType": "CO_LIVING"
+              "hostelType": null
             },
             "documents": [],
             "facilities": [],
@@ -169,7 +169,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "other hostel",
@@ -192,7 +192,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "bad hostel",
@@ -215,7 +215,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "no documents",
@@ -253,7 +253,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "empty documents",
@@ -293,7 +293,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "bad claim",
@@ -325,7 +325,7 @@
         "errorCode": "REGISTRATION_DOCUMENT_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "remove bad id",
@@ -348,7 +348,7 @@
         "errorCode": "DOCUMENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "remove unknown",
@@ -371,7 +371,7 @@
         "errorCode": "DOCUMENT_NOT_REMOVABLE"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "submit, not required",
@@ -395,7 +395,7 @@
         "errorCode": "KYC_NOT_REQUIRED"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "draft empty",
@@ -421,7 +421,7 @@
               "address": "",
               "area": "",
               "city": "",
-              "hostelType": "CO_LIVING"
+              "hostelType": null
             },
             "documents": [],
             "facilities": [],
@@ -514,7 +514,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "submit incomplete",
@@ -538,7 +538,7 @@
         "errorCode": "KYC_INCOMPLETE"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "draft complete",
@@ -564,7 +564,7 @@
               "address": "Ward 4",
               "area": "Baneshwor",
               "city": "Kathmandu",
-              "hostelType": "CO_LIVING"
+              "hostelType": "BOYS"
             },
             "documents": [
               {
@@ -675,7 +675,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "remove approved refused",
@@ -698,7 +698,7 @@
         "errorCode": "DOCUMENT_NOT_REMOVABLE"
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "remove own",
@@ -724,7 +724,7 @@
               "address": "Ward 4",
               "area": "Baneshwor",
               "city": "Kathmandu",
-              "hostelType": "CO_LIVING"
+              "hostelType": "BOYS"
             },
             "documents": [
               {
@@ -825,7 +825,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "after remove, submit incomplete? one doc left",
@@ -851,7 +851,7 @@
               "address": "Ward 4",
               "area": "Baneshwor",
               "city": "Kathmandu",
-              "hostelType": "CO_LIVING"
+              "hostelType": "BOYS"
             },
             "documents": [
               {
@@ -876,7 +876,7 @@
               "missing": [],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-02T05:45:40.701Z"
+              "submittedAt": "2026-11-18T14:50:33.272Z"
             },
             "rules": [
               "Quiet after ten"
@@ -952,7 +952,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "submit twice",
@@ -979,7 +979,7 @@
               "address": "Ward 4",
               "area": "Baneshwor",
               "city": "Kathmandu",
-              "hostelType": "CO_LIVING"
+              "hostelType": "BOYS"
             },
             "documents": [
               {
@@ -1004,7 +1004,7 @@
               "missing": [],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-02T05:45:40.701Z"
+              "submittedAt": "2026-11-18T14:50:33.272Z"
             },
             "rules": [
               "Quiet after ten"
@@ -1080,7 +1080,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "read back",
@@ -1106,7 +1106,7 @@
               "address": "Ward 4",
               "area": "Baneshwor",
               "city": "Kathmandu",
-              "hostelType": "CO_LIVING"
+              "hostelType": "BOYS"
             },
             "documents": [
               {
@@ -1131,7 +1131,7 @@
               "missing": [],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-02T05:45:40.701Z"
+              "submittedAt": "2026-11-18T14:50:33.272Z"
             },
             "rules": [
               "Quiet after ten"
@@ -1207,6 +1207,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d3d8b3e5"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   }
 ]

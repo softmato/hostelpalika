@@ -427,7 +427,7 @@ export function serializeHostel(hostel: HostelRecord) {
     description: hostel.description ?? "",
     facilities: hostel.facilities ?? [],
     food: hostel.food ?? {},
-    hostelType: hostel.hostelType ?? "CO_LIVING",
+    hostelType: hostel.hostelType || null,
     id: hostel._id.toString(),
     isArchived: Boolean(hostel.isDeleted),
     isDemoData: Boolean(hostel.isDemoData),

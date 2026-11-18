@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list warden",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list",
@@ -94,7 +94,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list from the branch",
@@ -148,7 +148,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "names",
@@ -193,7 +193,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "names from the branch",
@@ -238,7 +238,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "summary",
@@ -282,7 +282,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "details",
@@ -316,7 +316,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d1100000000000000000003",
             "isArchived": false,
             "isDemoData": false,
@@ -361,7 +361,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "details bad id",
@@ -384,7 +384,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "details not a branch",
@@ -407,7 +407,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "details the main itself",
@@ -441,7 +441,7 @@
             "description": "",
             "facilities": [],
             "food": {},
-            "hostelType": "CO_LIVING",
+            "hostelType": null,
             "id": "6d1100000000000000000002",
             "isArchived": false,
             "isDemoData": false,
@@ -486,7 +486,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "request invalid",
@@ -533,7 +533,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "request no label",
@@ -573,7 +573,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "request",
@@ -602,14 +602,14 @@
         "message": "Branch added",
         "data": {
           "branch": {
-            "id": "6afd95187cae8e2a7798c9b5",
+            "id": "6afdbb5e908e3b4ae3362f8c",
             "name": "Main Hostel Koteshwor",
             "status": "DRAFT"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "details new branch",
@@ -638,7 +638,7 @@
             "contact": {
               "phone": "9800000170"
             },
-            "createdAt": "2026-11-18T12:07:52.915Z",
+            "createdAt": "2026-11-18T14:51:10.302Z",
             "demoDataLabel": "",
             "description": "",
             "facilities": [],
@@ -646,8 +646,8 @@
               "hasVeg": true,
               "hasNonVeg": true
             },
-            "hostelType": "CO_LIVING",
-            "id": "6afd95187cae8e2a7798c9b5",
+            "hostelType": null,
+            "id": "6afdbb5e908e3b4ae3362f8c",
             "isArchived": false,
             "isDemoData": false,
             "purgeScheduledAt": null,
@@ -677,7 +677,7 @@
               "submittedAt": null
             },
             "totalFloors": 0,
-            "updatedAt": "2026-11-18T12:07:52.915Z",
+            "updatedAt": "2026-11-18T14:51:10.302Z",
             "verificationStatus": "UNVERIFIED",
             "yearEstablished": "",
             "shortStays": {
@@ -695,7 +695,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "list after request",
@@ -739,8 +739,8 @@
               "branchLabel": "Block B",
               "city": "Kathmandu",
               "coverUrl": null,
-              "createdAt": "2026-11-18T12:07:52.915Z",
-              "id": "6afd95187cae8e2a7798c9b5",
+              "createdAt": "2026-11-18T14:51:10.302Z",
+              "id": "6afdbb5e908e3b4ae3362f8c",
               "name": "Main Hostel Koteshwor",
               "slug": "main-hostel-koteshwor",
               "status": "DRAFT"
@@ -760,7 +760,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "request again",
@@ -786,14 +786,14 @@
         "message": "Branch added",
         "data": {
           "branch": {
-            "id": "6afd95197cae8e2a7798c9b7",
+            "id": "6afdbb5e908e3b4ae3362f8e",
             "name": "Main Hostel Koteshwor",
             "status": "DRAFT"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "request other hostel scope",
@@ -820,6 +820,6 @@
         "errorCode": "NOT_HOSTEL_OWNER"
       }
     },
-    "recorded": "http://localhost:3100"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   }
 ]

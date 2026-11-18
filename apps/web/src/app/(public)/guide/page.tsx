@@ -39,7 +39,7 @@ const COVER: Record<string, string> = {
 export default async function GuidePage() {
   const [{ legal }, hostels] = await Promise.all([loadSiteConfig(), loadGuideHostels(8)]);
   const version = legal.guide?.version ?? "1.0";
-  const updatedAt = legal.guide?.updatedAt ?? "10 November 2026";
+  const updatedAt = legal.guide?.updatedAt ?? "18 November 2026";
   const parts = GUIDE_GROUPS.filter((g) => g.slug !== "reference");
 
   return (

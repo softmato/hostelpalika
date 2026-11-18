@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/plans"
@@ -33,6 +34,8 @@ type PlanCheckout struct {
 	Cooldown   func() time.Duration
 	// ClaimValid is isValidDocumentClaimToken: the upload the anonymous payer may attach.
 	ClaimValid func(assetID, token string) bool
+	// Guards reads the sign-in for the "session" step: a signed-in owner needs no code.
+	Guards *authz.Guards
 }
 
 func (p *PlanCheckout) Register(v1 *gin.RouterGroup) { v1.POST("/public/plan-checkout", p.run) }
@@ -46,7 +49,7 @@ const (
 var (
 	sixDigits     = regexp.MustCompile(`^\d{6}$`)
 	nonHex        = regexp.MustCompile(`[^0-9A-F]`)
-	checkoutSteps = []string{"start", "verify", "invoice", "pay", "link", "months", "resume", "claim"}
+	checkoutSteps = []string{"start", "verify", "invoice", "pay", "link", "session", "months", "resume", "claim"}
 )
 
 // normalizeHostelCode: "H" is not a hex digit, so stripping non-hex drops the prefix too.
@@ -135,6 +138,8 @@ func (p *PlanCheckout) parse(f *valid.Form, step string) checkoutIn {
 		token()
 	case "link":
 		in.link, _ = f.Str("link", valid.S{Min: 1})
+	case "session":
+		// The sign-in is the proof; nothing to read from the body.
 	case "months":
 		months, _ := f.Num("months", valid.N{Coerce: true, Int: true, Min: valid.P(1), Max: valid.P(12)})
 		in.months = int(months)
@@ -199,6 +204,8 @@ func (p *PlanCheckout) step(c *gin.Context, step string, in checkoutIn) (any, er
 			return nil, err
 		}
 		return p.opened(c, linked.ID, linked.OwnerID, name)
+	case "session":
+		return p.session(c)
 	}
 	t, err := p.Settler.readToken(in.token)
 	if err != nil {
@@ -311,6 +318,43 @@ func (p *PlanCheckout) start(ctx context.Context, email string) (ordered.Map, er
 func ceilSeconds(d time.Duration) int64 { return int64((d + time.Second - 1) / time.Second) }
 
 // opened is verify's and link's answer: the hostel, a fresh token, and how it can pay.
+// session opens the checkout for the hostel a signed-in hostel admin is on —
+// the sign-in already proves what the email code would. A branch pays through
+// its main hostel, the same as the email-and-ID lookup.
+func (p *PlanCheckout) session(c *gin.Context) (ordered.Map, error) {
+	pr, err := p.Guards.RequireHostelAdmin(c)
+	if err != nil {
+		return nil, err
+	}
+	ids := pr.HostelIDs
+	if len(ids) == 0 {
+		return nil, payErr(404, "HOSTEL_NOT_MATCHED", "No hostel on this account.")
+	}
+	id, err := bson.ObjectIDFromHex(ids[0])
+	if err != nil {
+		return nil, payErr(404, "HOSTEL_NOT_MATCHED", "No hostel on this account.")
+	}
+	s := p.Settler
+	var h checkoutMatch
+	err = s.DB.Collection("hostels").FindOne(c, bson.D{{Key: "_id", Value: id}, live}).Decode(&h)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, payErr(404, "HOSTEL_NOT_MATCHED", "No hostel on this account.")
+	}
+	if err != nil {
+		return nil, err
+	}
+	match := &h
+	if h.ParentID != nil {
+		if match, err = s.billedHostel(c, bson.D{{Key: "_id", Value: *h.ParentID}}); err != nil {
+			return nil, err
+		}
+		if match == nil {
+			return nil, payErr(404, "HOSTEL_NOT_MATCHED", "No hostel on this account.")
+		}
+	}
+	return p.opened(c, match.ID, match.OwnerID, match.Name)
+}
+
 func (p *PlanCheckout) opened(ctx context.Context, hostelID, ownerID bson.ObjectID, name string) (ordered.Map, error) {
 	s := p.Settler
 	hostel, err := s.checkoutHostel(ctx, hostelID, name)

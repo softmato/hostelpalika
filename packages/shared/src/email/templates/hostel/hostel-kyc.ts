@@ -19,16 +19,16 @@ export function hostelPortalOpenEmail(input: {
 }): EmailContent {
   return {
     category: "info",
-    subject: `Your ${input.hostelName} portal is open — ${input.trialDays} days free`,
+    subject: `Your ${input.hostelName} portal is open — ${input.trialDays}-day free trial`,
     html: emailLayout({
       heading: "Congratulations — your hostel portal is open",
       bodyHtml: [
         hello(input.ownerName),
         paragraph(
-          `<strong>${escapeHtml(input.hostelName)}</strong> now has its own hostel portal in the app and on the website. You have <strong>${input.trialDays} days free</strong>, until ${escapeHtml(input.trialEndsOn)}. Enjoy and explore.`,
+          `<strong>${escapeHtml(input.hostelName)}</strong> now has its own hostel portal in the app and on the website. You are on a <strong>${input.trialDays}-day free trial</strong>, until ${escapeHtml(input.trialEndsOn)}: everything in the Max plan, with no payment now. After that, buy a plan to keep it, or carry on with the Free plan.`,
         ),
         paragraph(
-          "Next, complete your hostel KYC: photos, documents, rooms and your address. Our team checks it within 24 hours. Until then some features stay locked, and your hostel is not shown to the public.",
+          "Next, complete your hostel KYC: photos, documents, rooms and your address. Our team checks it within 24 hours. Approval unlocks the locked features and shows your hostel to the public.",
         ),
         ctaButton(input.kycUrl, "Complete KYC"),
       ].join("\n"),

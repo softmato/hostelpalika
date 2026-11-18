@@ -121,9 +121,9 @@ export function HostelBranchDetailPage({ branchId }: { branchId: string }) {
                 <Fact
                   label="Hostel type"
                   value={
-                    { BOYS: "Boys", GIRLS: "Girls", CO_LIVING: "Co-living" }[
-                      hostel.hostelType
-                    ]
+                    hostel.hostelType
+                      ? { BOYS: "Boys", GIRLS: "Girls", CO_LIVING: "Co-living" }[hostel.hostelType]
+                      : "Not chosen yet"
                   }
                 />
                 <Fact label="Year established" value={hostel.yearEstablished} />

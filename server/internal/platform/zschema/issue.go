@@ -288,10 +288,11 @@ func (d *Desc) stringIssues(s string, path []string) []Problem {
 				fail = bound("Too big", "string", "<=", num(c.V))
 			}
 		case "len":
+			// zod 4.6 words an exact length as "exactly N", either way.
 			if n := jsLen(s); n > int(num(c.V)) {
-				fail = bound("Too big", "string", "<=", num(c.V))
+				fail = bound("Too big", "string", "exactly ", num(c.V))
 			} else if n < int(num(c.V)) {
-				fail = bound("Too small", "string", ">=", num(c.V))
+				fail = bound("Too small", "string", "exactly ", num(c.V))
 			}
 		case "regex":
 			if !c.re.MatchString(s) {

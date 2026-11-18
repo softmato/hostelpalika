@@ -17,19 +17,19 @@
           "formErrors": [],
           "fieldErrors": {
             "step": [
-              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'"
+              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'session' | 'months' | 'resume' | 'claim'"
             ]
           },
           "issues": [
             {
-              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'",
+              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'session' | 'months' | 'resume' | 'claim'",
               "path": "step"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "bad step",
@@ -51,19 +51,19 @@
           "formErrors": [],
           "fieldErrors": {
             "step": [
-              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'"
+              "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'session' | 'months' | 'resume' | 'claim'"
             ]
           },
           "issues": [
             {
-              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'months' | 'resume' | 'claim'",
+              "message": "Invalid discriminator value. Expected 'start' | 'verify' | 'invoice' | 'pay' | 'link' | 'session' | 'months' | 'resume' | 'claim'",
               "path": "step"
             }
           ]
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start bad email",
@@ -106,7 +106,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start email not a string",
@@ -142,7 +142,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start not matched",
@@ -164,7 +164,7 @@
         "errorCode": "HOSTEL_NOT_MATCHED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start wrong code",
@@ -186,7 +186,7 @@
         "errorCode": "HOSTEL_NOT_MATCHED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start owner",
@@ -210,14 +210,14 @@
         "success": true,
         "message": "OK",
         "data": {
-          "challengeId": "6aea101d8327c86edbcdf0c1",
-          "expiresAt": "2026-11-03T16:57:25.930Z",
+          "challengeId": "6afdbb62908e3b4ae3362f90",
+          "expiresAt": "2026-11-18T15:01:14.547Z",
           "resendInSeconds": 60,
           "resumed": false
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start again resumes",
@@ -242,14 +242,14 @@
         "success": true,
         "message": "OK",
         "data": {
-          "challengeId": "6aea101d8327c86edbcdf0c1",
-          "expiresAt": "2026-11-03T16:57:25.930Z",
+          "challengeId": "6afdbb62908e3b4ae3362f90",
+          "expiresAt": "2026-11-18T15:01:14.547Z",
           "resendInSeconds": 60,
           "resumed": true
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "start by contact email",
@@ -273,14 +273,14 @@
         "success": true,
         "message": "OK",
         "data": {
-          "challengeId": "6aea101e8327c86edbcdf0c2",
-          "expiresAt": "2026-11-03T16:57:26.069Z",
+          "challengeId": "6afdbb62908e3b4ae3362f92",
+          "expiresAt": "2026-11-18T15:01:14.725Z",
           "resendInSeconds": 60,
           "resumed": false
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "verify bad code",
@@ -317,7 +317,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "verify unknown challenge",
@@ -340,7 +340,7 @@
         "errorCode": "OTP_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "invoice bad cycle",
@@ -376,7 +376,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "invoice bad token",
@@ -398,7 +398,7 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "months out of range",
@@ -434,7 +434,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "months bad token",
@@ -456,7 +456,7 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "resume bad token",
@@ -477,7 +477,7 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "pay bad token",
@@ -498,7 +498,7 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "link expired",
@@ -519,7 +519,7 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "claim missing fields",
@@ -561,7 +561,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   },
   {
     "name": "claim bad token",
@@ -584,6 +584,6 @@
         "errorCode": "CHECKOUT_EXPIRED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 b5f874ec+wt"
   }
 ]

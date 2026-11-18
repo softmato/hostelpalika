@@ -18,6 +18,8 @@ import { lifetimeOfferFor } from "@hostel/shared/plans/lifetime";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { browserApi } from "@/lib/browser-api";
+import { Role } from "@/lib/roles";
+import { useSessionStore } from "@/stores/session-store";
 import { cn } from "@/lib/utils";
 import type {
   BillingInvoiceRow,
@@ -187,7 +189,16 @@ export function PlanCheckoutPage({
   }, [planId, savedRaw]);
   const [restoreDone, setRestoreDone] = useState(false);
   const [linking, setLinking] = useState(Boolean(link));
-  const booting = savedRaw === undefined || (Boolean(resumable) && !restoreDone) || (linking && !resumable);
+  // Signed in as a hostel admin: the sign-in proves the hostel, so no email form.
+  const sessionStatus = useSessionStore((state) => state.status);
+  const signedInAdmin = useSessionStore((state) => state.user?.role === Role.HOSTEL_ADMIN);
+  const [sessionTried, setSessionTried] = useState(false);
+  const trySession = !link && signedInAdmin && !sessionTried;
+  const booting =
+    savedRaw === undefined ||
+    (Boolean(resumable) && !restoreDone) ||
+    (linking && !resumable) ||
+    (!link && !resumable && (sessionStatus !== "resolved" || trySession));
 
   function applyCheckout(
     result: PaymentState & {
@@ -346,6 +357,29 @@ export function PlanCheckoutPage({
     // Once per link; `openCheckout` reads the plan and cycle the page opened with.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [link, resumable]);
+
+  // Signed in: straight to paying for the hostel on the account. Any refusal
+  // (a warden, a suspended hostel) falls back to the email form.
+  useEffect(() => {
+    if (!trySession || resumable) return;
+
+    let live = true;
+
+    checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
+      step: "session",
+    })
+      .then((verified) => (live ? openCheckout(verified) : undefined))
+      .catch(() => undefined)
+      .finally(() => {
+        if (live) setSessionTried(true);
+      });
+
+    return () => {
+      live = false;
+    };
+    // Once per visit, like the link above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trySession, resumable]);
 
   // Restoring a checkout from this tab: skeletons, never a flash of the email form.
   if (booting) {

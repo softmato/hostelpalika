@@ -134,6 +134,23 @@ export function freeTierLines(free: PlanFreeLike) {
 }
 
 /**
+ * What the free trial gives, in order — the welcome on web and app reads this
+ * so both say the same thing. The trial includes the top plan; after it the
+ * hostel buys a plan or carries on with Free; KYC approval only unlocks.
+ */
+export function trialTerms(catalog: Pick<PlansCatalog, "free" | "plans">, endsOn: string) {
+  const top = catalog.plans[catalog.plans.length - 1]?.name ?? "Max";
+  const free = catalog.free;
+  const caps = free ? ` (${freeTierLines(free).join(", ").toLowerCase()})` : "";
+
+  return [
+    `Everything in the ${top} plan is included, free.`,
+    `After ${endsOn}: buy a plan to keep it, or carry on with ${free?.name ?? "Free"}${caps}.`,
+    "KYC approval unlocks the locked features.",
+  ];
+}
+
+/**
  * Only the parts the arithmetic reads. The stored section carries a `page`
  * block as well — headings and the closing pitch — which nothing here needs, so
  * asking for it would be asking a caller for something to be ignored.

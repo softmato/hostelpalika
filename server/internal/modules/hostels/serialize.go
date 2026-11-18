@@ -24,6 +24,14 @@ func rawStr(v bson.RawValue, def string) string {
 	return def
 }
 
+// rawStrOrNil: an unset string is null, never a guessed default.
+func rawStrOrNil(v bson.RawValue) any {
+	if s, ok := v.StringValueOK(); ok && s != "" {
+		return s
+	}
+	return nil
+}
+
 func rawNum(v bson.RawValue, def float64) float64 {
 	switch v.Type {
 	case bson.TypeDouble:
@@ -140,7 +148,7 @@ func SerializeHostel(h bson.Raw, now time.Time) ordered.Map {
 		{Key: "arrivalGuide", Value: guide}, {Key: "archivedAt", Value: rawDate(h.Lookup("deletedAt"))}, {Key: "archiveReason", Value: rawStr(h.Lookup("archiveReason"), "")},
 		{Key: "capacitySummary", Value: objOr(h, "capacitySummary")}, {Key: "contact", Value: objOr(h, "contact")}, {Key: "createdAt", Value: rawDate(h.Lookup("createdAt"))},
 		{Key: "demoDataLabel", Value: rawStr(h.Lookup("demoDataLabel"), "")}, {Key: "description", Value: rawStr(h.Lookup("description"), "")},
-		{Key: "facilities", Value: strList(h, "facilities")}, {Key: "food", Value: objOr(h, "food")}, {Key: "hostelType", Value: rawStr(h.Lookup("hostelType"), "CO_LIVING")},
+		{Key: "facilities", Value: strList(h, "facilities")}, {Key: "food", Value: objOr(h, "food")}, {Key: "hostelType", Value: rawStrOrNil(h.Lookup("hostelType"))},
 		{Key: "id", Value: rawID(h.Lookup("_id"))}, {Key: "isArchived", Value: deleted}, {Key: "isDemoData", Value: demo}, {Key: "purgeScheduledAt", Value: rawDate(h.Lookup("purgeScheduledAt"))},
 		{Key: "location", Value: location}, {Key: "name", Value: rawStr(h.Lookup("name"), "")}, {Key: "nameChangeCount", Value: rawNum(h.Lookup("nameChangeCount"), 0)},
 		{Key: "ownerId", Value: rawID(h.Lookup("ownerId"))}, {Key: "panNumber", Value: pan}, {Key: "parentHostelId", Value: parent}, {Key: "photos", Value: photos},

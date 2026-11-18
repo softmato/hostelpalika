@@ -85,8 +85,8 @@ export const GUIDE_GROUPS: GuideGroup[] = [
     chapters: [
       {
         body: [
-          `${PLATFORM_NAME} is an app for running a hostel. It keeps the rooms, the residents, the bills and the daily work in one place.`,
-          "The owner, the wardens, the cook, the residents and their guardians all use the same app. Each person sees only their own part.",
+          `${PLATFORM_NAME} runs your whole hostel: an app for Android and iPhone, and a web portal for any laptop or computer. Both show the same data, live. It keeps the rooms, the residents, the bills and the daily work in one place.`,
+          "The owner, the wardens, the cook, the residents and their guardians all use it, on the phone or on the web. Each person sees only their own part.",
           "All dates are in Bikram Sambat. A bill is for one BS month, for example Kartik 2083.",
         ],
         id: "what-it-is",
@@ -94,7 +94,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "admin-vs-warden",
           "The same hostel on two phones. The owner is on the left, the warden is on the right.",
         ),
-        summary: "One app for the whole hostel.",
+        summary: "One app and web portal for the whole hostel.",
         title: `What ${PLATFORM_NAME} is`,
       },
       {
@@ -105,8 +105,9 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           title: "Your hostel is private at first",
         },
         steps: [
-          "Open Register your hostel. Type your hostel name, your name, and your phone or email.",
-          "Your portal opens right away. You start on a free trial.",
+          "Open Register your hostel, in the app or on the website. Type your hostel name, your name, and your phone or email.",
+          "Your portal opens right away, in the app and on the web portal. Nothing is filled in for you: you choose the hostel type, address, rooms and rents yourself.",
+          "You start on the Free trial. See Your plan at the start below.",
           "Fill in Hostel KYC. This form shows us that your hostel is real. It asks about the owner, the hostel, documents, photos, rooms and money. At the end you sign the agreement.",
           "We check your details and approve them. You get an email when it is done.",
         ],
@@ -118,8 +119,19 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ),
       },
       {
+        id: "start-plan",
+        links: [link("Plans & pricing", "/plans-pricing"), link("Plan billing", "/hostel-admin/billing")],
+        points: [
+          "Free trial: every new hostel gets 12 days free. Everything in the Max plan is included, and you pay nothing.",
+          "After the 12 days: buy a plan in Plan billing to keep using it, or carry on with the Free plan.",
+          "KYC: when we approve it, the locked features open. That is all it changes.",
+        ],
+        summary: "12 days of Max, free. Then buy a plan, or stay on Free.",
+        title: "Your plan at the start",
+      },
+      {
         body: [
-          "Everyone uses the same sign-in page. After you sign in, the app opens the right screens for you: owner, warden, resident, guardian or cook.",
+          `Everyone uses the same sign-in page. After you sign in, ${PLATFORM_NAME} opens the right screens for you: owner, warden, resident, guardian or cook.`,
           "Sign in with Google, or with your email and password. If you forget the password, tap Forgot password.",
         ],
         id: "sign-in",
@@ -128,7 +140,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "sign-in",
           "The sign-in page on the website, and the PIN screen in the app.",
         ),
-        summary: "Everyone signs in the same way. The app opens your own screens.",
+        summary: `Everyone signs in the same way. ${PLATFORM_NAME} opens your own screens.`,
         title: "Sign in",
       },
       {
@@ -145,7 +157,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         title: "Lock the app",
       },
     ],
-    intro: "What the app is, how to add your hostel, and how to sign in.",
+    intro: `What ${PLATFORM_NAME} is, how to add your hostel, your plan at the start, and how to sign in.`,
     label: "Start here",
     slug: "start",
   },
@@ -178,7 +190,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
           "Change a room: tap the room, then change its number or its type.",
           "Swap two room numbers: press and hold two rooms, then tap Renumber. Room 101 and Room 102 swap numbers.",
           "Move a resident: open Rooms & Beds, choose the person, then choose a free bed.",
-          "Remove a floor: tap the bin next to the floor name. If people live on that floor, the app first asks where each person should go. Then it removes the floor.",
+          `Remove a floor: tap the bin next to the floor name. If people live on that floor, ${PLATFORM_NAME} first asks where each person should go. Then it removes the floor.`,
         ],
         note: {
           body: "Move the residents to another bed first. Then you can delete the room.",
@@ -193,7 +205,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "In Room rates you set one monthly rent for each room type. The app uses this rent everywhere: on your public page and on every new bill.",
+          `In Room rates you set one monthly rent for each room type. ${PLATFORM_NAME} uses this rent everywhere: on your public page and on every new bill.`,
           "Does one resident pay a different rent? When you add them, tap Edit under What it costs and write a reason.",
         ],
         id: "room-rates",
@@ -215,7 +227,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "Plan billing shows your plan and how much you owe. Pay by QR, then upload a photo of the payment.",
+          "Plan billing shows your plan and how much you owe. During the trial it says Free trial and the day it ends. Pay by QR, then upload a photo of the payment.",
           "Do you want to leave the platform? Go to Settings → Leave. You can clear your bills and download all your data first.",
         ],
         id: "plan",
@@ -280,7 +292,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "This is step 3 of 3. You choose a bed, and the app works out how much the resident pays. You do not need a calculator.",
+          `This is step 3 of 3. You choose a bed, and ${PLATFORM_NAME} works out how much the resident pays. You do not need a calculator.`,
         ],
         flow: pic(
           "flow-join-bed",
@@ -289,7 +301,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         id: "bed-and-money",
         note: {
           body: "Example: the rent is 16,000 a month and the resident moves in on the 24th. They pay only for the days left this month (2,800), plus the admission fee (2,000). The screen shows Due at move-in before you save.",
-          title: "The app does the maths",
+          title: `${PLATFORM_NAME} does the maths`,
         },
         steps: [
           "Where they sleep: choose the room type. Each type shows how many beds are free.",
@@ -305,7 +317,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "When you tap Register them, the app does four things on its own:",
+          `When you tap Register them, ${PLATFORM_NAME} does four things on its own:`,
         ],
         flow: pic(
           "flow-notify",
@@ -319,11 +331,11 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ),
         steps: [
           "The resident's app changes to their hostel Home. It shows their room, what they owe, and a Pay now button.",
-          "The app makes their first bills: the joining bill (admission fee and deposit) and this month's rent.",
+          `${PLATFORM_NAME} makes their first bills: the joining bill (admission fee and deposit) and this month's rent.`,
           "You, the owner and the other wardens get a notification. It says New resident registered, with the room and the move-in day.",
           "Your phone shows a green tick and opens Payments on the new resident: the admission fee, the deposit, this month's rent and the total. Tap Collect there if they pay now.",
         ],
-        summary: "The app makes the bills and tells everyone.",
+        summary: `${PLATFORM_NAME} makes the bills and tells everyone.`,
         title: "After you register a resident",
       },
       {
@@ -388,12 +400,12 @@ export const GUIDE_GROUPS: GuideGroup[] = [
     chapters: [
       {
         body: [
-          "You never make a bill by hand. On each resident's bill day the app makes the bill, sends it to their phone and starts the reminders.",
+          `You never make a bill by hand. On each resident's bill day ${PLATFORM_NAME} makes the bill, sends it to their phone and starts the reminders.`,
           "Each bill has a month code, like RUP-482K-BHA83. The resident writes it in the remark when they pay, so you know which month the money is for.",
         ],
         id: "auto-billing",
         links: [link("Payments", "/hostel-admin/payments")],
-        summary: "Every month the app bills each resident for you.",
+        summary: `Every month ${PLATFORM_NAME} bills each resident for you.`,
         title: "Bills make themselves",
         widget: "auto-billing",
       },
@@ -402,7 +414,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         id: "payment-flow",
         links: [link("Payments", "/hostel-admin/payments")],
         steps: [
-          "The app makes the bill and sends it to the resident.",
+          `${PLATFORM_NAME} makes the bill and sends it to the resident.`,
           "Online: the resident pays to your QR, eSewa, Khalti or bank and sends the screenshot from the app. You check it in Payments and tap Approve.",
           "At the desk: the resident pays you cash or scans your QR. Tap Collect on Home, find their name, and save it.",
           "Either way the month is marked paid, the resident gets a receipt and points, and the money shows in the Statement.",
@@ -411,7 +423,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         title: "How a payment reaches you",
       },
       {
-        body: ["The app makes every bill on its own. You do not have to press anything."],
+        body: [`${PLATFORM_NAME} makes every bill on its own. You do not have to press anything.`],
         id: "how-bills-work",
         links: [link("Late fine", "/hostel-admin/late-fine"), link("Khata", "/hostel-admin/khata")],
         note: {
@@ -421,21 +433,21 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         steps: [
           "Calendar month: the first bill is only for the days left in this month. After that, there is one bill on the 1st of every month.",
           "Same day each month: the first bill is for one full month from the day they joined. After that, there is a bill on that same day every month.",
-          "Reminders: the app reminds the resident 7 days and 5 days before the due date. From 3 days before, it reminds them twice a day until they pay.",
-          "Late fine: this is off until you turn it on. After the free days, the app adds a small amount for each day a bill stays unpaid. You can remove a fine.",
+          `Reminders: ${PLATFORM_NAME} reminds the resident 7 days and 5 days before the due date. From 3 days before, it reminds them twice a day until they pay.`,
+          `Late fine: this is off until you turn it on. After the free days, ${PLATFORM_NAME} adds a small amount for each day a bill stays unpaid. You can remove a fine.`,
           "Khata: these are extras like eggs or laundry. They are added to the next bill.",
         ],
         shot: pic(
           "reminders-fines-khata",
           "Late fine: how much per day, and after how many free days.",
         ),
-        summary: "The app makes bills, sends reminders and adds fines for you.",
+        summary: `${PLATFORM_NAME} makes bills, sends reminders and adds fines for you.`,
         title: "How bills work",
       },
       {
         body: [
           "Payments lists every resident for the month. You see who has paid, who still owes, and who is late. If you use a late fine, it is added here.",
-          "If a resident pays cash at the desk, open the resident and record it. Payments made with eSewa or Khalti inside the app are marked paid on their own.",
+          `If a resident pays cash at the desk, open the resident and record it. Payments made with eSewa or Khalti inside ${PLATFORM_NAME} are marked paid on their own.`,
         ],
         id: "payments",
         links: [link("Payments", "/hostel-admin/payments")],
@@ -465,7 +477,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "When a resident pays to your QR, eSewa, Khalti or bank, they send you a screenshot of the payment. The app calls this a claim. It waits for you under Payments → Claims to verify.",
+          `When a resident pays to your QR, eSewa, Khalti or bank, they send you a screenshot of the payment. ${PLATFORM_NAME} calls this a claim. It waits for you under Payments → Claims to verify.`,
         ],
         flow: pic(
           "flow-verify",
@@ -474,14 +486,14 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         id: "verify-payments",
         links: [link("Payments", "/hostel-admin/payments")],
         note: {
-          body: "Each claim shows the checks the app has already done. Is it a payment screenshot? Was it paid to you? Do the amount and the reference match? Approve only when you can see the money in your own account.",
+          body: `Each claim shows the checks ${PLATFORM_NAME} has already done. Is it a payment screenshot? Was it paid to you? Do the amount and the reference match? Approve only when you can see the money in your own account.`,
           title: "Check first, then approve",
         },
         steps: [
           "Open Payments. A card shows 1 claim to verify.",
           "Tap the receipt to see it in full size.",
           "Tap Approve. Or tap Reject and write a reason.",
-          "The app records the payment, makes a receipt, and updates the resident's balance right away.",
+          `${PLATFORM_NAME} records the payment, makes a receipt, and updates the resident's balance right away.`,
           "The resident gets points for the day they sent the receipt, not the day you approve it. So a late approval does not hurt them.",
         ],
         summary: "Residents send a screenshot. You check it and approve it.",
@@ -702,10 +714,10 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       {
         body: [
           "Your hostel adds you in one of three ways. The staff fill in your form at the desk. Or they scan your HostelPalika ID card. Or you scan the hostel's QR and fill in the form yourself. The email on the form becomes your login.",
-          "Sign in with Google, or tap Forgot password to set a password. The app then opens on your hostel.",
+          `Sign in with Google, or tap Forgot password to set a password. ${PLATFORM_NAME} then opens on your hostel.`,
         ],
         id: "joining",
-        summary: "Your hostel adds you. Then the app shows your hostel.",
+        summary: `Your hostel adds you. Then ${PLATFORM_NAME} shows your hostel.`,
         title: "Join your hostel",
         flow: pic(
           "joining",
@@ -728,7 +740,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
       },
       {
         body: [
-          "Right after you join, the app shows your first bills: the joining bill (admission fee and deposit) and this month's rent. Pay this next always shows your oldest bill.",
+          `Right after you join, ${PLATFORM_NAME} shows your first bills: the joining bill (admission fee and deposit) and this month's rent. Pay this next always shows your oldest bill.`,
         ],
         flow: pic(
           "flow-resident-first",
@@ -751,18 +763,18 @@ export const GUIDE_GROUPS: GuideGroup[] = [
         ],
         flow: pic(
           "flow-pay-proof",
-          "1 Upload the receipt · 2 The app reads it · 3 It stops a wrong amount · 4 Sent to your hostel.",
+          `1 Upload the receipt · 2 ${PLATFORM_NAME} reads it · 3 It stops a wrong amount · 4 Sent to your hostel.`,
         ),
         id: "send-proof",
         links: [link("My payments", "/resident/payments")],
         widget: "share-receipt",
         note: {
-          body: "The app reads the amount and the transaction ID from your screenshot. If the amount is much more than you owe, the app stops and asks you to check. This way a typing mistake does not become a wrong record.",
-          title: "The app checks for you",
+          body: `${PLATFORM_NAME} reads the amount and the transaction ID from your screenshot. If the amount is much more than you owe, ${PLATFORM_NAME} stops and asks you to check. This way a typing mistake does not become a wrong record.`,
+          title: `${PLATFORM_NAME} checks for you`,
         },
         steps: [
           "Tap I've paid and choose your receipt screenshot. You can also share it from your bank app to HostelPalika.",
-          "The app fills in the amount, the method and the transaction ID. Check that they are right.",
+          `${PLATFORM_NAME} fills in the amount, the method and the transaction ID. Check that they are right.`,
           "Tap Submit claim. You see Sent to your hostel, and the bill shows Pending proof.",
           "When the hostel approves it, you get a notification and your balance goes down. Your receipt has a QR. Anyone can check it at /verify-receipt.",
         ],
@@ -899,7 +911,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
     chapters: [
       {
         body: [
-          "You can use the app before you join any hostel. Search hostels by city or near a college, and see them on the map. Compare them, save them and read reviews. Then send a question or book a bed.",
+          "You can use the app or the website before you join any hostel. Search hostels by city or near a college, and see them on the map. Compare them, save them and read reviews. Then send a question or book a bed.",
           "Your HostelPalika ID card is at the top of the app. Show it at any hostel, and the staff can add you by scanning it.",
         ],
         id: "visitor",

@@ -65,6 +65,7 @@ beforeEach(() => {
     {
       _id: hostelId,
       kyc: { required: true, status: "DRAFT" },
+      hostelType: "BOYS",
       location: { area: "Baneshwor", city: "Kathmandu", lat: 27.7, locationSource: "MANUAL" },
       name: "Study Sanjal",
       ownerId,

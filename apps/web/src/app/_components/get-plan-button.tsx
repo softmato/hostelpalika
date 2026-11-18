@@ -4,12 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { useSessionStore } from "@/stores/session-store";
 
 /**
  * A plan card's "Get plan": first asks whether the hostel is already on the
  * platform, in an iOS-style alert. Yes → the checkout that extends a running
- * plan; No → registration, as the button always did.
+ * plan; No → registration, as the button always did. A signed-in hostel admin
+ * is already on the platform, so they skip the question and the email form.
  */
 export function GetPlanButton({
   className,
@@ -26,12 +29,18 @@ export function GetPlanButton({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const signedInAdmin = useSessionStore((state) => state.user?.role === Role.HOSTEL_ADMIN);
+  const checkoutHref = `/plans-pricing/checkout?plan=${encodeURIComponent(planId)}&cycle=${cycle}`;
   const row =
     "flex h-11 w-full items-center justify-center border-t border-border/70 text-[16px] text-brand-teal transition active:bg-muted/70";
 
   return (
     <>
-      <button className={className} onClick={() => setOpen(true)} type="button">
+      <button
+        className={className}
+        onClick={() => (signedInAdmin ? router.push(checkoutHref) : setOpen(true))}
+        type="button"
+      >
         {label}
       </button>
       <Dialog onOpenChange={setOpen} open={open}>
@@ -49,9 +58,7 @@ export function GetPlanButton({
           </div>
           <button
             className={cn(row, "font-semibold")}
-            onClick={() =>
-              router.push(`/plans-pricing/checkout?plan=${encodeURIComponent(planId)}&cycle=${cycle}`)
-            }
+            onClick={() => router.push(checkoutHref)}
             type="button"
           >
             Yes, it&apos;s running

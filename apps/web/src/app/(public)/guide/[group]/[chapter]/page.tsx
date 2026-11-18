@@ -52,7 +52,7 @@ export default async function GuideChapterPage({ params }: { params: Params }) {
   if (!found) notFound();
 
   const [{ legal }, hostels] = await Promise.all([loadSiteConfig(), loadGuideHostels()]);
-  const updatedAt = legal.guide?.updatedAt ?? "10 November 2026";
+  const updatedAt = legal.guide?.updatedAt ?? "18 November 2026";
   const modified = new Date(updatedAt);
   const c = found.chapter;
   const url = absoluteUrl(found.href);
