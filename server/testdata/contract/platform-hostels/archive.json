@@ -23,7 +23,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "archive short reason",
@@ -63,7 +63,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "archive missing",
@@ -89,7 +89,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "archive",
@@ -115,7 +115,7 @@
         "data": {
           "hostel": {
             "arrivalGuide": null,
-            "archivedAt": "2026-11-03T13:25:36.815Z",
+            "archivedAt": "2026-11-18T15:34:15.403Z",
             "archiveReason": "Owner asked",
             "capacitySummary": {},
             "contact": {
@@ -139,7 +139,7 @@
             "id": "6d0d00000000000000000001",
             "isArchived": true,
             "isDemoData": false,
-            "purgeScheduledAt": "2027-01-02T13:25:36.815Z",
+            "purgeScheduledAt": "2027-01-17T15:34:15.403Z",
             "location": {
               "address": "Ring Road",
               "area": "Kalanki",
@@ -174,14 +174,14 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-03T13:25:36.815Z",
+            "updatedAt": "2026-11-18T15:34:15.403Z",
             "verificationStatus": "PENDING"
           },
           "sessionsRevoked": 0
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "archive twice",
@@ -207,7 +207,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "archived list",
@@ -240,7 +240,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000062",
               "isArchived": true,
               "isDemoData": false,
@@ -314,7 +314,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000063",
               "isArchived": true,
               "isDemoData": false,
@@ -393,7 +393,7 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000069",
               "isArchived": true,
               "isDemoData": false,
@@ -467,11 +467,11 @@
               "description": "",
               "facilities": [],
               "food": {},
-              "hostelType": "CO_LIVING",
+              "hostelType": null,
               "id": "6c0000000000000000000078",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-03T12:25:21.727Z",
+              "purgeScheduledAt": "2026-11-18T14:34:12.737Z",
               "name": "Hostel left-purge-due",
               "nameChangeCount": 0,
               "ownerId": "6c0000000000000000000001",
@@ -532,7 +532,7 @@
             },
             {
               "arrivalGuide": null,
-              "archivedAt": "2026-11-03T13:25:36.815Z",
+              "archivedAt": "2026-11-18T15:34:15.403Z",
               "archiveReason": "Owner asked",
               "capacitySummary": {},
               "contact": {
@@ -556,7 +556,7 @@
               "id": "6d0d00000000000000000001",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2027-01-02T13:25:36.815Z",
+              "purgeScheduledAt": "2027-01-17T15:34:15.403Z",
               "location": {
                 "address": "Ring Road",
                 "area": "Kalanki",
@@ -591,7 +591,7 @@
               "suspension": null,
               "kyc": null,
               "totalFloors": 0,
-              "updatedAt": "2026-11-03T13:25:36.815Z",
+              "updatedAt": "2026-11-18T15:34:15.403Z",
               "verificationStatus": "PENDING",
               "applicationStatus": "PENDING",
               "branchOf": null,
@@ -657,7 +657,7 @@
               "id": "6d0d00000000000000000003",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-23T13:25:25.816Z",
+              "purgeScheduledAt": "2026-12-08T15:34:14.992Z",
               "location": {
                 "address": "Ring Road",
                 "area": "Chabahil",
@@ -758,7 +758,7 @@
               "id": "6d0d00000000000000000006",
               "isArchived": true,
               "isDemoData": false,
-              "purgeScheduledAt": "2026-11-02T13:25:25.816Z",
+              "purgeScheduledAt": "2026-11-17T15:34:14.992Z",
               "location": {
                 "address": "Ring Road",
                 "area": "Chabahil",
@@ -847,7 +847,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "restore live hostel",
@@ -870,7 +870,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "restore grace ran out",
@@ -893,7 +893,7 @@
         "errorCode": "HOSTEL_PURGE_DUE"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "restore",
@@ -972,13 +972,13 @@
             "suspension": null,
             "kyc": null,
             "totalFloors": 0,
-            "updatedAt": "2026-11-03T13:25:49.017Z",
+            "updatedAt": "2026-11-18T15:34:21.511Z",
             "verificationStatus": "VERIFIED"
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "purge as moderator",
@@ -1001,7 +1001,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "purge live hostel",
@@ -1024,7 +1024,7 @@
         "errorCode": "HOSTEL_NOT_ARCHIVED"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "purge",
@@ -1052,7 +1052,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   },
   {
     "name": "purged is gone",
@@ -1075,6 +1075,6 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 618f5b2f"
+    "recorded": "http://localhost:3100 0dbf4bf3"
   }
 ]
