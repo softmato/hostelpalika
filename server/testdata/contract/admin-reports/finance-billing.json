@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "summary no period",
@@ -57,7 +57,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "summary bad period",
@@ -94,7 +94,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "summary 2083-06",
@@ -127,7 +127,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run resident",
@@ -153,7 +153,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run invalid",
@@ -211,7 +211,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run bad resident id",
@@ -240,7 +240,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run 2083-06",
@@ -269,7 +269,7 @@
               "amount": 9000,
               "creditApplied": 0,
               "dueDate": "2026-10-17T00:00:00.000Z",
-              "invoiceId": "6af4682fa9d7d42d0f0fc3b3",
+              "invoiceId": "6afda6b0a6cc809521983dc4",
               "referenceCode": "REP-001E-ASW83",
               "residentId": "6d09000000000000000000b0"
             },
@@ -277,7 +277,7 @@
               "amount": 7000,
               "creditApplied": 0,
               "dueDate": "2026-10-26T00:00:00.000Z",
-              "invoiceId": "6af4682fa9d7d42d0f0fc3b4",
+              "invoiceId": "6afda6b0a6cc809521983dc5",
               "referenceCode": "REP-002M-ASW83",
               "residentId": "6d09000000000000000000b1"
             }
@@ -304,7 +304,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run 2083-09 one",
@@ -337,7 +337,7 @@
               "amount": 9000,
               "creditApplied": 0,
               "dueDate": "2027-01-10T00:00:00.000Z",
-              "invoiceId": "6af4682fa9d7d42d0f0fc3b6",
+              "invoiceId": "6afda6b0a6cc809521983dc7",
               "referenceCode": "REP-003T-POU83",
               "residentId": "6d09000000000000000000b3"
             }
@@ -349,7 +349,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run 2083-09",
@@ -378,7 +378,7 @@
               "amount": 9000,
               "creditApplied": 0,
               "dueDate": "2027-01-14T00:00:00.000Z",
-              "invoiceId": "6af46830a9d7d42d0f0fc3b8",
+              "invoiceId": "6afda6b0a6cc809521983dc9",
               "referenceCode": "REP-0041-POU83",
               "residentId": "6d090000000000000000000a"
             },
@@ -386,7 +386,7 @@
               "amount": 9000,
               "creditApplied": 0,
               "dueDate": "2027-01-14T00:00:00.000Z",
-              "invoiceId": "6af46830a9d7d42d0f0fc3b9",
+              "invoiceId": "6afda6b0a6cc809521983dca",
               "referenceCode": "REP-001E-POU83",
               "residentId": "6d09000000000000000000b0"
             }
@@ -413,7 +413,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "run 2083-09 again",
@@ -468,7 +468,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "summary 2083-09",
@@ -498,7 +498,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices 2083-09",
@@ -527,7 +527,7 @@
               "payment": {
                 "dueAmount": 9000,
                 "dueDate": "2027-01-14T00:00:00.000Z",
-                "id": "6af46830a9d7d42d0f0fc3b8",
+                "id": "6afda6b0a6cc809521983dc9",
                 "month": "2083-09",
                 "paidAmount": 0,
                 "status": "UNPAID",
@@ -556,7 +556,7 @@
               "payment": {
                 "dueAmount": 9000,
                 "dueDate": "2027-01-14T00:00:00.000Z",
-                "id": "6af46830a9d7d42d0f0fc3b9",
+                "id": "6afda6b0a6cc809521983dca",
                 "month": "2083-09",
                 "paidAmount": 0,
                 "status": "UNPAID",
@@ -585,7 +585,7 @@
               "payment": {
                 "dueAmount": 9000,
                 "dueDate": "2027-01-10T00:00:00.000Z",
-                "id": "6af4682fa9d7d42d0f0fc3b6",
+                "id": "6afda6b0a6cc809521983dc7",
                 "month": "2083-09",
                 "paidAmount": 0,
                 "status": "UNPAID",
@@ -652,7 +652,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "ledger after run",
@@ -681,9 +681,20 @@
               "lines": [],
               "paidAmount": 0,
               "payments": [],
-              "period": "2083-07",
+              "period": "2083-08",
               "referenceCode": null,
               "status": "UNPAID"
+            },
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-07",
+              "referenceCode": null,
+              "status": "NOT_BILLED"
             },
             {
               "dueAmount": 1000,
@@ -739,6 +750,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   }
 ]

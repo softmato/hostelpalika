@@ -14,7 +14,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 e4059554"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "public user",
@@ -37,7 +37,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e4059554"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "hostel admin",
@@ -59,6 +59,7 @@
           "hostels": [
             {
               "branchCap": 0,
+              "branchLabel": "",
               "coverUrl": null,
               "id": "6c00000000000000000000a1",
               "isBranch": false,
@@ -69,7 +70,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e4059554"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "hostel admin, unknown slug",
@@ -91,6 +92,7 @@
           "hostels": [
             {
               "branchCap": 0,
+              "branchLabel": "",
               "coverUrl": null,
               "id": "6c00000000000000000000a1",
               "isBranch": false,
@@ -101,6 +103,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e4059554"
+    "recorded": "http://localhost:3100 e63b19c4"
   }
 ]

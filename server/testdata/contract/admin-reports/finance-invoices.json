@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices bad period",
@@ -57,7 +57,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices 2083-05",
@@ -206,7 +206,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices 2083-06",
@@ -336,7 +336,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices 2083-08",
@@ -466,7 +466,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "invoices current",
@@ -487,20 +487,26 @@
         "success": true,
         "message": "Invoices",
         "data": {
-          "month": "2083-07",
+          "month": "2083-08",
           "rows": [
             {
-              "displayStatus": "UNPAID",
+              "displayStatus": "PAID",
               "notBilled": null,
               "payment": {
-                "dueAmount": 700,
-                "dueDate": "2026-09-02T18:00:00.000Z",
-                "id": "6d0900000000000000000019",
-                "month": "2083-07",
-                "paidAmount": 0,
-                "status": "UNPAID",
+                "dueAmount": 1000,
+                "dueDate": "2026-09-11T06:00:00.000Z",
+                "id": "6d09000000000000000000a2",
+                "month": "2083-08",
+                "paidAmount": 1000,
+                "status": "PAID",
                 "fineWaived": false,
-                "lines": []
+                "lines": [
+                  {
+                    "amount": 1000,
+                    "basis": "SCHEDULE",
+                    "description": "Monthly rent"
+                  }
+                ]
               },
               "resident": {
                 "fullName": "Asha Report",
@@ -515,7 +521,7 @@
             {
               "displayStatus": "NOT_BILLED",
               "notBilled": {
-                "amount": 4500,
+                "amount": 9000,
                 "reason": "NOT_YET_RUN"
               },
               "payment": null,
@@ -532,7 +538,7 @@
             {
               "displayStatus": "NOT_BILLED",
               "notBilled": {
-                "amount": 4500,
+                "amount": 9000,
                 "reason": "NOT_YET_RUN"
               },
               "payment": null,
@@ -564,8 +570,8 @@
             {
               "displayStatus": "NOT_BILLED",
               "notBilled": {
-                "amount": 3500,
-                "reason": "NOT_YET_RUN"
+                "amount": 7000,
+                "reason": "NOT_YET_DUE"
               },
               "payment": null,
               "resident": {
@@ -579,18 +585,18 @@
             }
           ],
           "totals": {
-            "collected": 0,
-            "due": 700,
+            "collected": 1000,
+            "due": 1000,
             "notBilled": 4,
             "overdue": 0,
-            "paid": 0,
+            "paid": 1,
             "partial": 0,
-            "unpaid": 1
+            "unpaid": 0
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "ledger resident",
@@ -613,7 +619,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "ledger",
@@ -689,7 +695,7 @@
               "dueAmount": 700,
               "dueDate": "2026-09-02T18:00:00.000Z",
               "id": "6d0900000000000000000019",
-              "month": "2083-07",
+              "month": "2083-08",
               "paidAmount": 0,
               "status": "UNPAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
@@ -725,7 +731,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "periods",
@@ -750,19 +756,19 @@
           "months": [
             {
               "collected": 1000,
-              "due": 1000,
-              "needsAttention": 0,
+              "due": 1700,
+              "needsAttention": 1,
               "paid": 1,
               "period": "2083-08",
-              "total": 1
+              "total": 2
             },
             {
               "collected": 0,
-              "due": 700,
-              "needsAttention": 1,
+              "due": 0,
+              "needsAttention": 0,
               "paid": 0,
               "period": "2083-07",
-              "total": 1
+              "total": 0
             },
             {
               "collected": 0,
@@ -802,7 +808,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "resident ledger",
@@ -831,9 +837,20 @@
               "lines": [],
               "paidAmount": 0,
               "payments": [],
-              "period": "2083-07",
+              "period": "2083-08",
               "referenceCode": null,
               "status": "UNPAID"
+            },
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-07",
+              "referenceCode": null,
+              "status": "NOT_BILLED"
             },
             {
               "dueAmount": 1000,
@@ -889,7 +906,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "resident ledger own fee",
@@ -911,6 +928,17 @@
         "message": "Resident payment history",
         "data": {
           "months": [
+            {
+              "dueAmount": 0,
+              "dueDate": null,
+              "invoiceId": null,
+              "lines": [],
+              "paidAmount": 0,
+              "payments": [],
+              "period": "2083-08",
+              "referenceCode": null,
+              "status": "NOT_BILLED"
+            },
             {
               "dueAmount": 0,
               "dueDate": null,
@@ -961,7 +989,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "resident ledger bad id",
@@ -984,7 +1012,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   },
   {
     "name": "resident ledger erased",
@@ -1007,6 +1035,6 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 afd18b22"
+    "recorded": "http://localhost:3100 e63b19c4"
   }
 ]
