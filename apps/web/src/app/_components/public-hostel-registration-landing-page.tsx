@@ -34,7 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/animate-ui/components/animate/tooltip";
-import { useSiteConfig } from "@/components/site-config-provider";
+import { type PublicSiteConfig, useSiteConfig } from "@/components/site-config-provider";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { contentIcon, resolveContentPage } from "@/lib/site-content";
 import { useSessionStore } from "@/stores/session-store";
@@ -348,8 +348,13 @@ function WatchDemo({ className, url }: { className: string; url: string }) {
   );
 }
 
-export function PublicHostelRegistrationLandingPage() {
-  const { apps, content, identity, platformStats } = useSiteConfig();
+/** `platformStats` is passed by the page: the site-wide config sent to every page leaves the live counts out. */
+export function PublicHostelRegistrationLandingPage({
+  platformStats,
+}: {
+  platformStats: PublicSiteConfig["platformStats"];
+}) {
+  const { apps, content, identity } = useSiteConfig();
   const siteName = identity.siteName;
   const page = resolveContentPage(content.registerHostel, identity);
   const stats = page.highlights;

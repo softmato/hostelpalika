@@ -10,6 +10,15 @@ import { NOINDEX, pageMetadata, snippet } from "@/lib/seo";
 
 import { loadHostel, loadSearchPhotos } from "./load-hostel";
 
+/**
+ * No paths at build: each one renders on its first visit, then is served from
+ * the ISR cache until its window or `HOSTELS_TAG` clears it. Without this the
+ * route rendered on every request — the busiest CPU line on the project.
+ */
+export function generateStaticParams() {
+  return [];
+}
+
 type PageParams = {
   params: Promise<{ slug: string }>;
 };

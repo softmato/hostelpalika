@@ -29,6 +29,17 @@ export const loadSiteConfig = cache(async (): Promise<PublicSiteConfig> => {
   }
 });
 
+/**
+ * What the layouts hand to `SiteConfigProvider`, which serialises it into every
+ * page. The live counts are left out: they move with every resident added, so
+ * carrying them made every page's output change and every re-render an ISR
+ * write. The home and register-hostel pages pass them as a prop instead.
+ * Cached, so both layouts hand over the same object and it is sent once.
+ */
+export const loadClientSiteConfig = cache(
+  async (): Promise<PublicSiteConfig> => ({ ...(await loadSiteConfig()), platformStats: [] }),
+);
+
 /** The admin-configured site name, with the shipped default as last resort. */
 export async function loadSiteName() {
   const config = await loadSiteConfig();

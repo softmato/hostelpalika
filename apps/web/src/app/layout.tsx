@@ -17,7 +17,7 @@ import { Toaster } from "@/components/toaster";
 import { SEO_LOCALE } from "@/lib/seo";
 import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
 import { siteUrl } from "@/lib/site";
-import { loadSiteConfig } from "@/lib/site-config-server";
+import { loadClientSiteConfig } from "@/lib/site-config-server";
 
 import "./globals.css";
 
@@ -108,8 +108,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * portal page that is otherwise static — `/team/register` is — was prerendered
  * once at build and kept that build's site config until the next deploy, so a
  * plan repriced in Website Config never reached the agent's plan picker.
+ * A day (`PAGE_REVALIDATE` in lib/server-api.ts; a segment export must be a
+ * literal): config saves clear every page on demand, so the window is only a
+ * fallback, and each re-render of ~700 pages is CPU.
  */
-export const revalidate = 21600;
+export const revalidate = 86400;
 
 export default async function RootLayout({
   children,
@@ -118,7 +121,7 @@ export default async function RootLayout({
 }>) {
   // Loaded here rather than per route group so portals, auth screens, and the
   // marketing site all read branding from the same admin-owned source.
-  const siteConfig = await loadSiteConfig();
+  const siteConfig = await loadClientSiteConfig();
 
   return (
     <html

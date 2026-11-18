@@ -13,7 +13,7 @@ import { hostelTypeLabel, locationSlug } from "@/lib/hostel-locations";
 import { breadcrumbJsonLd, faqJsonLd, formatNpr, itemListJsonLd } from "@/lib/json-ld";
 import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { formatDistance, NEAR_RADIUS_METERS, type NearPlace } from "@/lib/near-places";
-import { serverApi } from "@/lib/server-api";
+import { HOSTELS_TAG, serverApi } from "@/lib/server-api";
 
 type NearEntry = {
   hostels: Array<PublicHostel & { distanceMeters: number }>;
@@ -24,7 +24,7 @@ type NearEntry = {
 async function readNear(place?: string): Promise<NearEntry[]> {
   const query = place ? `?place=${encodeURIComponent(place)}` : "";
 
-  return (await serverApi<{ places: NearEntry[] }>(`/api/v1/public/hostels/near${query}`)).places;
+  return (await serverApi<{ places: NearEntry[] }>(`/api/v1/public/hostels/near${query}`, { tags: [HOSTELS_TAG] })).places;
 }
 
 /** The API sends the hostels with their distances; the page code reads them as a map too. */

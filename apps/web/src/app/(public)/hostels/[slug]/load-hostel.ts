@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import type { PublicHostel } from "@/app/_components/public-hostel-data";
-import { serverApi, ServerApiError } from "@/lib/server-api";
+import { HOSTELS_TAG, serverApi, ServerApiError } from "@/lib/server-api";
 
 /**
  * One hostel, read once per request and shared by the layout, the metadata and
@@ -16,7 +16,7 @@ import { serverApi, ServerApiError } from "@/lib/server-api";
  */
 export const loadHostel = cache(async (slug: string): Promise<PublicHostel | null> => {
   try {
-    const { hostel } = await serverApi<{ hostel: PublicHostel }>(`/api/v1/public/hostels/${encodeURIComponent(slug)}`);
+    const { hostel } = await serverApi<{ hostel: PublicHostel }>(`/api/v1/public/hostels/${encodeURIComponent(slug)}`, { tags: [HOSTELS_TAG] });
     return hostel;
   } catch (error) {
     if (error instanceof ServerApiError && error.status === 404) {
@@ -38,6 +38,7 @@ export const loadSearchPhotos = cache(async (slug: string) => {
 
   const listed = await serverApi<{ hostels: Array<{ images: string[] }> }>(
     `/api/v1/public/hostels/sitemap?slug=${encodeURIComponent(slug)}`,
+    { tags: [HOSTELS_TAG] },
   ).catch(() => null);
 
   // A sample listing is not in the database; its photos are already absolute.

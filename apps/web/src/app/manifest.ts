@@ -1,88 +1,10 @@
-import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
-
-import { PLATFORM_NAME, PLATFORM_PLAY_STORE_URL } from "@hostel/shared/brand/brand";
-
-const PLATFORM_PLAY_STORE_ID = new URL(PLATFORM_PLAY_STORE_URL).searchParams.get("id") ?? undefined;
-
-import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
+import { webManifest } from "@/lib/web-manifest";
 
 /**
- * The web app manifest: the name, icons and colour a browser uses for the site.
- *
- * What a phone installs is the phone app itself, exported for the web and served
- * at `/app` (`apps/mobile/scripts/export-pwa.mjs`) — the same screens as the
- * Android build, not the website in a window. So `start_url`, `scope` and `id`
- * all point there, and installing from any page of the site installs the app.
- * No trailing slash on `scope` or `start_url`: Next redirects `/app/` to `/app`,
- * and `/app` is outside a `/app/` scope, so Chrome drew its "left the app" bar
- * over the home screen. `id` keeps the slash so existing installs update.
- * Only iPhones install `/app` — `InstallAppBanner` sends them there, where the
- * app's own sheet walks through Add to Home Screen. Android has the Play app:
- * it gets the site manifest with `prefer_related_applications`, so Chrome
- * offers the store app and never installs `/app`.
- *
- * A laptop or desktop gets the website itself instead — the portals in their
- * own window, from `/` — because the phone screens are wrong at that size. The
- * browser fetches this file with its own user agent, so the split happens here
- * and `/app`'s `index.html` (which links this same file) follows it too.
+ * `/manifest.webmanifest` for a laptop or desktop. Phones never reach this file:
+ * next.config.ts rewrites the same URL by user agent to `/manifest-iphone.webmanifest`
+ * or `/manifest-android.webmanifest` (see lib/web-manifest.ts for what differs).
  */
-export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const { fill, seo } = await loadSeo();
-  const home = resolveSeoPage(seo, "home", fill);
-  const agent = (await headers()).get("user-agent") ?? "";
-  const iphone = /iPhone|iPad|iPod/i.test(agent);
-  const shared: MetadataRoute.Manifest = {
-    background_color: "#ffffff",
-    categories: ["business", "education", "lifestyle"],
-    description: home.description,
-    display: "standalone",
-    icons: [
-      // Opaque white, so the installed shortcut is not a dark logo on a dark desktop.
-      { purpose: "any", sizes: "192x192", src: "/pwa-icon-192.png", type: "image/png" },
-      { purpose: "any", sizes: "512x512", src: "/pwa-icon-512.png", type: "image/png" },
-      { purpose: "maskable", sizes: "512x512", src: "/pwa-icon-maskable-512.png", type: "image/png" },
-      { sizes: "180x180", src: "/apple-icon.png", type: "image/png" },
-    ],
-    lang: "en-NP",
-    name: PLATFORM_NAME,
-    short_name: PLATFORM_NAME,
-    // The app's own background, not the brand green: Android paints the status
-    // bar and the navigation bar under the tab bar in this colour.
-    theme_color: "#ffffff",
-  };
-
-  // Android has the Play app, so it never installs `/app`: the site manifest,
-  // with Play preferred, so Chrome offers the store app instead.
-  if (!iphone) {
-    return {
-      ...shared,
-      id: "/",
-      scope: "/",
-      start_url: "/",
-      ...(/Android/i.test(agent)
-        ? {
-            prefer_related_applications: true,
-            related_applications: [
-              { id: PLATFORM_PLAY_STORE_ID, platform: "play", url: PLATFORM_PLAY_STORE_URL },
-            ],
-          }
-        : {}),
-    };
-  }
-
-  return {
-    ...shared,
-    id: "/app/",
-    scope: "/app",
-    share_target: {
-      action: "/app/share-payment",
-      method: "POST",
-      enctype: "multipart/form-data",
-      // Android can advertise a banking PDF as generic binary or x-pdf.
-      // Include extensions too, otherwise Chrome can omit the attachment.
-      params: { files: [{ name: "receipt", accept: ["image/*", "application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream", ".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"] }] },
-    },
-    start_url: "/app",
-  };
+export default function manifest() {
+  return webManifest("desktop");
 }

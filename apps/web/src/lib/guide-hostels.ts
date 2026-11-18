@@ -7,10 +7,14 @@ export type GuideHostel = { area: string; image: string; name: string; slug: str
  * A few live hostels for the guide's right rail — each with its first exterior photo.
  * Demo listings and hostels without a real photo are skipped. Same cached request
  * the sitemap and llms.txt make, so it costs nothing extra; never throws.
+ *
+ * Deliberately untagged and on the default day-long window: a guide chapter is
+ * ~1 MB and ~1 s of CPU to render, and tagging this read re-rendered all of them
+ * on every bed change anywhere. A new hostel reaches the rail within a day.
  */
 export async function loadGuideHostels(limit = 6): Promise<GuideHostel[]> {
   try {
-    const { hostels } = await serverApi<{ hostels: PublicHostel[] }>("/api/v1/public/hostels", { revalidate: 3600 });
+    const { hostels } = await serverApi<{ hostels: PublicHostel[] }>("/api/v1/public/hostels");
     return hostels
       .filter((h) => !h.isDemoData)
       .map(mapPublicHostelToSummary)

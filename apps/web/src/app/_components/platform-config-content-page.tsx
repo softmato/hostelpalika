@@ -2,7 +2,8 @@
 
 import { memo } from "react";
 
-import { useSiteConfig } from "@/components/site-config-provider";
+import type { PublicSiteConfig } from "@/components/site-config-provider";
+import { usePortalResource } from "@/lib/portal-query";
 import { CONTENT_ICON_SLUGS } from "@/lib/site-content";
 import type {
   ContentPage,
@@ -213,7 +214,9 @@ export const PlatformConfigContentPageContent = memo(
       state,
       valueFor,
     } = useSiteConfigDraft();
-  const livePlatformStats = useSiteConfig().platformStats;
+  // Read here, not from useSiteConfig: the config every page carries leaves the live counts out.
+  const livePlatformStats =
+    usePortalResource<{ config: PublicSiteConfig }>("/api/v1/public/site-config").data?.config.platformStats ?? [];
 
     const content = valueFor("content");
     const dirty = isDirty("content");

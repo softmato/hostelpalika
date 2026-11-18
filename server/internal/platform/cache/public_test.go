@@ -12,7 +12,7 @@ import (
 func TestPublicChangedPingsWeb(t *testing.T) {
 	got := make(chan string, 2)
 	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		got <- r.Method + " " + r.URL.Path + " " + r.Header.Get("Authorization")
+		got <- r.Method + " " + r.URL.RequestURI() + " " + r.Header.Get("Authorization")
 	}))
 	defer web.Close()
 
@@ -33,5 +33,24 @@ func TestPublicChangedPingsWeb(t *testing.T) {
 	case call := <-got:
 		t.Fatalf("unexpected second call %q", call)
 	case <-time.After(200 * time.Millisecond):
+	}
+}
+
+// SiteChanged asks the web to drop every page, not just the listing ones.
+func TestSiteChangedScopesWholeSite(t *testing.T) {
+	got := make(chan string, 1)
+	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got <- r.URL.RequestURI()
+	}))
+	defer web.Close()
+
+	(&Cache{Web: Web{URL: web.URL, Secret: "s3"}}).SiteChanged(context.Background())
+	select {
+	case uri := <-got:
+		if uri != "/api/revalidate?scope=site" {
+			t.Fatalf("web got %q", uri)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("web never called")
 	}
 }

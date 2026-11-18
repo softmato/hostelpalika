@@ -34,9 +34,16 @@ func PublicChangedOn(ctx context.Context, b any) {
 var webClient = &http.Client{Timeout: 5 * time.Second}
 
 // PublicChanged is revalidatePublicPages: something a listing shows changed, so
-// the cached public reads here and the web's cached pages are both dropped.
+// the cached public reads here and the web's listing pages are both dropped.
 // Never fails and never holds up the write that called it.
-func (c *Cache) PublicChanged(ctx context.Context) {
+func (c *Cache) PublicChanged(ctx context.Context) { c.publicChanged(ctx, "") }
+
+// SiteChanged: the website config changed. Every web page renders it, so the
+// web drops all of them, not only the listing pages PublicChanged clears —
+// that whole-site drop on every bed change was the web's Vercel ISR bill.
+func (c *Cache) SiteChanged(ctx context.Context) { c.publicChanged(ctx, "?scope=site") }
+
+func (c *Cache) publicChanged(ctx context.Context, query string) {
 	if c == nil {
 		return
 	}
@@ -45,9 +52,9 @@ func (c *Cache) PublicChanged(ctx context.Context) {
 		return
 	}
 	// ponytail: one POST per call; a burst of writes sends a few, which the
-	// web absorbs (revalidatePath only marks the pages stale). Coalesce if it shows up.
+	// web absorbs (revalidateTag only marks the pages stale). Coalesce if it shows up.
 	go func() {
-		req, err := http.NewRequest(http.MethodPost, c.Web.URL+"/api/revalidate", nil)
+		req, err := http.NewRequest(http.MethodPost, c.Web.URL+"/api/revalidate"+query, nil)
 		if err != nil {
 			return
 		}

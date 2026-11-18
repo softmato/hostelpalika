@@ -32,14 +32,30 @@ export class ServerApiError extends Error {
 type Options = {
   /**
    * Seconds the answer may be served from Next's data cache. Defaults to the
-   * public layouts' window (`revalidate = 21600`): a shorter one here would
-   * shorten the page's own and re-render it that often. Go clears it on a change
+   * layouts' window (`PAGE_REVALIDATE`): a shorter one here would shorten the
+   * page's own and re-render it that often. Go clears it on a change
    * (`POST /api/revalidate`). `0` = never cached.
    */
   revalidate?: number;
   /** Forward the visitor's cookies, for a signed-in read. Never cached. */
   session?: boolean;
+  /**
+   * `[HOSTELS_TAG]` on a read whose page shows listing data (beds, rent,
+   * profile), so a listing change re-renders only those pages, not all ~700.
+   */
+  tags?: string[];
 };
+
+/**
+ * The window every layout uses. A day, because every change a page shows is
+ * cleared on demand: listings by `HOSTELS_TAG`, the website config by a
+ * whole-site revalidate (app/api/revalidate). Each early re-render is CPU,
+ * and a changed one is ISR writes.
+ */
+export const PAGE_REVALIDATE = 86400;
+
+/** Tag on reads of listing data; `revalidatePublicPages` clears it. */
+export const HOSTELS_TAG = "hostels";
 
 let breaker: ApiBreaker | null = null;
 
@@ -51,11 +67,11 @@ function serverBreaker() {
 
 /** GET `path` (e.g. `/api/v1/public/hostels`) and return the envelope's `data`. */
 export async function serverApi<T>(path: string, options: Options = {}): Promise<T> {
-  const revalidate = options.session ? 0 : (options.revalidate ?? 21600);
+  const revalidate = options.session ? 0 : (options.revalidate ?? PAGE_REVALIDATE);
   const cookie = options.session ? (await headers()).get("cookie") : null;
   const response = await serverBreaker().fetch(path, {
     headers: { accept: "application/json", ...(cookie ? { cookie } : {}) },
-    ...(revalidate === 0 ? { cache: "no-store" as const } : { next: { revalidate } }),
+    ...(revalidate === 0 ? { cache: "no-store" as const } : { next: { revalidate, tags: options.tags } }),
   });
   const body = (await response.json().catch(() => null)) as {
     data?: T;

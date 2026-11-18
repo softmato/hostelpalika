@@ -234,6 +234,13 @@ export async function GET(request: NextRequest) {
         </div>
       </div>
     ),
-    { fonts, height: 630, width: 1200 },
+    {
+      fonts,
+      // The image is a pure function of its signed query, so the CDN keeps each
+      // one for a day: every share preview re-fetched it and cost ~0.5 s of CPU.
+      headers: { "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800" },
+      height: 630,
+      width: 1200,
+    },
   );
 }

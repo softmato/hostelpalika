@@ -366,6 +366,19 @@ const nextConfig: NextConfig = {
         ...(process.env.API_REWRITE_ENABLED === "true" && process.env.API_URL
           ? [{ destination: `${process.env.API_URL.replace(/\/+$/, "")}/api/v1/:path*`, source: "/api/v1/:path*" }]
           : []),
+        // A phone's own manifest (lib/web-manifest.ts), picked here by user agent
+        // so all three are static files; reading the header in the handler made
+        // every manifest fetch a function run. iPhone first, as the handler did.
+        {
+          source: "/manifest.webmanifest",
+          has: [{ type: "header", key: "user-agent", value: ".*(iPhone|iPad|iPod).*" }],
+          destination: "/manifest-iphone.webmanifest",
+        },
+        {
+          source: "/manifest.webmanifest",
+          has: [{ type: "header", key: "user-agent", value: ".*Android.*" }],
+          destination: "/manifest-android.webmanifest",
+        },
         // Cold/uncontrolled share navigations must not fall through to the Expo
         // shell: rendering index.html loses the multipart receipt body.
         { source: "/app/share-payment", has: [{ type: "header", key: "content-type", value: "multipart/form-data.*" }], destination: "/api/receipt-share" },

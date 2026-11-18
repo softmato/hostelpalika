@@ -177,7 +177,7 @@ function planLine(state: NonNullable<PlanState>) {
   }
 
   if (status === "ACTIVE") {
-    return currentPeriodEnd ? `Active till ${shortDate(currentPeriodEnd)}` : "Active";
+    return currentPeriodEnd ? `Ends on ${shortDate(currentPeriodEnd)}` : "Active";
   }
 
   return status === "PENDING_SELECTION" ? "Choose a plan" : "Not active yet";

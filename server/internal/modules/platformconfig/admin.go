@@ -42,7 +42,7 @@ type Admin struct {
 	Mail    *email.Sender
 	SiteURL string
 	Now     func() time.Time
-	Cache   *cache.Cache // PublicChanged on every save: the settings feed the public pages
+	Cache   *cache.Cache // SiteChanged on every save: the settings feed every web page
 }
 
 func (a *Admin) Register(v1 *gin.RouterGroup) {
@@ -99,7 +99,7 @@ func (a *Admin) save(ctx context.Context, key string, value any, by bson.ObjectI
 			{Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}, {Key: "__v", Value: 0}}}}, options.UpdateOne().SetUpsert(true))
 	a.Config.Invalidate()
 	if err == nil {
-		a.Cache.PublicChanged(ctx)
+		a.Cache.SiteChanged(ctx)
 	}
 	return err
 }

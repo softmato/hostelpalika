@@ -19,7 +19,6 @@ import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanButton, PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
 import { PlanMark } from "@/app/_components/plan-mark";
-import { PlanUsageCard } from "@/app/_components/plan-usage";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -163,7 +162,6 @@ export function HostelAdminBillingPageContent() {
         title="Plan billing"
       />
 
-      <PlanUsageCard />
 
 
       {error ? (
@@ -480,7 +478,7 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
           // "Runs", not "paid", while a balance is owed: a team hostel's plan
           // starts the day it is filed, before the money is in.
           <span>
-            {plan.amountDue > 0 && !isRunning(plan) ? "Runs" : "Paid"} through{" "}
+            {plan.amountDue > 0 && !isRunning(plan) ? "Runs until" : "Paid until"}{" "}
             {shortDate(plan.currentPeriodEnd)}
           </span>
         ) : plan.amountPaid > 0 ? (

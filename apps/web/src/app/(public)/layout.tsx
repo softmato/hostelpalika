@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteAnnouncementBanner } from "@/components/site-announcement-banner";
 import { SiteConfigProvider } from "@/components/site-config-provider";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/json-ld";
-import { loadSiteConfig } from "@/lib/site-config-server";
+import { loadClientSiteConfig } from "@/lib/site-config-server";
 import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults";
 
 /**
@@ -17,15 +17,17 @@ import { DEFAULT_SITE_CONFIG } from "@/lib/platform-config/site-config.defaults"
  * 2026-10-20: 6h, not 1h — each hourly re-render of /, /hostels/[slug] and the
  * city pages was half the project's CPU. Profile, rate and bed changes clear
  * it on demand (`revalidatePublicPages`).
+ * 2026-11-18: a day. Listing changes clear only `HOSTELS_TAG` pages and config
+ * saves clear everything, so the window is a fallback (`PAGE_REVALIDATE`).
  */
-export const revalidate = 21600;
+export const revalidate = 86400;
 
 export default async function PublicLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const config = await loadSiteConfig();
+  const config = await loadClientSiteConfig();
   const alternateNames = config.seo.alternateNames;
   const { identity } = config;
 

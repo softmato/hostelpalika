@@ -36,7 +36,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import VariableProximity from "@/components/react-bits/variable-proximity";
-import { useSiteConfig } from "@/components/site-config-provider";
+import { type PublicSiteConfig, useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
 import { parseSearchQuery } from "@/lib/search/query-parser";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
@@ -381,11 +381,14 @@ function HostelSnapshot({ hostel }: { hostel?: HostelSummary }) {
   );
 }
 
-function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
+/** Live counts, passed by the page: the site-wide config sent to every page leaves them out. */
+type HomeProps = { hostels: HostelSummary[]; platformStats: PublicSiteConfig["platformStats"] };
+
+function PublicHomePageContent({ hostels, platformStats }: HomeProps) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
   useHomeEntrance();
-  const { hero, identity, platformStats, trustPoints } = useSiteConfig();
+  const { hero, identity, trustPoints } = useSiteConfig();
   const [searchVal, setSearchVal] = useState("");
   const [searching, setSearching] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
@@ -1235,10 +1238,10 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   );
 }
 
-export function PublicHomePage({ hostels }: { hostels: HostelSummary[] }) {
+export function PublicHomePage({ hostels, platformStats }: HomeProps) {
   return (
     <Suspense fallback={null}>
-      <PublicHomePageContent hostels={hostels} />
+      <PublicHomePageContent hostels={hostels} platformStats={platformStats} />
     </Suspense>
   );
 }

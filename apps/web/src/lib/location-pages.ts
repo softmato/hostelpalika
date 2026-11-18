@@ -22,10 +22,10 @@ import { haversineMeters } from "@/lib/maps/nearby";
 import { loadNearIndex, type NearIndexPlace } from "@/lib/near-pages";
 import { loadSiteConfig } from "@/lib/site-config-server";
 import type { LocationCountRow } from "@/lib/hostel-locations";
-import { serverApi } from "@/lib/server-api";
+import { HOSTELS_TAG, serverApi } from "@/lib/server-api";
 
 const listPublicHostelLocations = async () =>
-  (await serverApi<{ locations: LocationCountRow[] }>("/api/v1/public/hostels/locations")).locations;
+  (await serverApi<{ locations: LocationCountRow[] }>("/api/v1/public/hostels/locations", { tags: [HOSTELS_TAG] })).locations;
 
 /** `GET /api/v1/public/hostels` filtered to one city, area or type. */
 const listPublicHostels = (query: { area?: string; city?: string; type?: string }) =>
@@ -33,6 +33,7 @@ const listPublicHostels = (query: { area?: string; city?: string; type?: string 
     `/api/v1/public/hostels?${new URLSearchParams(
       Object.entries(query).filter((entry): entry is [string, string] => Boolean(entry[1])),
     )}`,
+    { tags: [HOSTELS_TAG] },
   );
 
 /**

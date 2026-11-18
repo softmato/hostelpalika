@@ -6,6 +6,15 @@ import { JsonLd } from "@/components/json-ld";
 import { loadLocationPage, locationJsonLd } from "@/lib/location-pages";
 import { NOINDEX, pageMetadata } from "@/lib/seo";
 
+/**
+ * No paths at build: each one renders on its first visit, then is served from
+ * the ISR cache until its window or `HOSTELS_TAG` clears it. Without this the
+ * route rendered on every request — the busiest CPU line on the project.
+ */
+export function generateStaticParams() {
+  return [];
+}
+
 type PageParams = {
   params: Promise<{ city: string; filter: string }>;
 };
