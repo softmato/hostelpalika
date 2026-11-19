@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "resident refused",
@@ -40,7 +40,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "warden",
@@ -63,7 +63,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "owner, no review",
@@ -169,7 +169,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "other hostel",
@@ -192,7 +192,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "bad hostel",
@@ -215,7 +215,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "no documents",
@@ -253,7 +253,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "empty documents",
@@ -293,7 +293,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "bad claim",
@@ -325,7 +325,7 @@
         "errorCode": "REGISTRATION_DOCUMENT_INVALID"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "remove bad id",
@@ -348,7 +348,7 @@
         "errorCode": "DOCUMENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "remove unknown",
@@ -371,7 +371,7 @@
         "errorCode": "DOCUMENT_NOT_REMOVABLE"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "submit, not required",
@@ -395,7 +395,7 @@
         "errorCode": "KYC_NOT_REQUIRED"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "draft empty",
@@ -514,7 +514,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "submit incomplete",
@@ -538,7 +538,7 @@
         "errorCode": "KYC_INCOMPLETE"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "draft complete",
@@ -675,7 +675,145 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "submit complete, both documents",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc/submit",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "KYC submitted",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "BOYS"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              },
+              {
+                "canRemove": true,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002e",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "PENDING",
+                "type": "PAN"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": false,
+              "missing": [],
+              "note": null,
+              "status": "SUBMITTED",
+              "submittedAt": "2026-11-18T18:34:20.386Z"
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "remove approved refused",
@@ -698,7 +836,7 @@
         "errorCode": "DOCUMENT_NOT_REMOVABLE"
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "remove own",
@@ -742,14 +880,16 @@
               "WiFi"
             ],
             "minPhotos": 3,
-            "percent": 69,
+            "percent": 62,
             "photoCount": 3,
             "review": {
-              "canSubmit": true,
-              "missing": [],
+              "canSubmit": false,
+              "missing": [
+                "documents"
+              ],
               "note": null,
-              "status": "DRAFT",
-              "submittedAt": null
+              "status": "SUBMITTED",
+              "submittedAt": "2026-11-18T18:34:20.386Z"
             },
             "rules": [
               "Quiet after ten"
@@ -776,7 +916,7 @@
                 "required": false
               },
               {
-                "done": true,
+                "done": false,
                 "key": "documents",
                 "required": true
               },
@@ -825,10 +965,10 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
-    "name": "after remove, submit incomplete? one doc left",
+    "name": "after remove, already submitted",
     "request": {
       "method": "POST",
       "path": "/api/v1/hostel-admin/kyc/submit",
@@ -869,14 +1009,16 @@
               "WiFi"
             ],
             "minPhotos": 3,
-            "percent": 69,
+            "percent": 62,
             "photoCount": 3,
             "review": {
               "canSubmit": false,
-              "missing": [],
+              "missing": [
+                "documents"
+              ],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-18T14:50:33.272Z"
+              "submittedAt": "2026-11-18T18:34:20.386Z"
             },
             "rules": [
               "Quiet after ten"
@@ -903,7 +1045,7 @@
                 "required": false
               },
               {
-                "done": true,
+                "done": false,
                 "key": "documents",
                 "required": true
               },
@@ -952,7 +1094,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "submit twice",
@@ -997,14 +1139,16 @@
               "WiFi"
             ],
             "minPhotos": 3,
-            "percent": 69,
+            "percent": 62,
             "photoCount": 3,
             "review": {
               "canSubmit": false,
-              "missing": [],
+              "missing": [
+                "documents"
+              ],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-18T14:50:33.272Z"
+              "submittedAt": "2026-11-18T18:34:20.386Z"
             },
             "rules": [
               "Quiet after ten"
@@ -1031,7 +1175,7 @@
                 "required": false
               },
               {
-                "done": true,
+                "done": false,
                 "key": "documents",
                 "required": true
               },
@@ -1080,7 +1224,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "read back",
@@ -1124,14 +1268,16 @@
               "WiFi"
             ],
             "minPhotos": 3,
-            "percent": 69,
+            "percent": 62,
             "photoCount": 3,
             "review": {
               "canSubmit": false,
-              "missing": [],
+              "missing": [
+                "documents"
+              ],
               "note": null,
               "status": "SUBMITTED",
-              "submittedAt": "2026-11-18T14:50:33.272Z"
+              "submittedAt": "2026-11-18T18:34:20.386Z"
             },
             "rules": [
               "Quiet after ten"
@@ -1158,7 +1304,7 @@
                 "required": false
               },
               {
-                "done": true,
+                "done": false,
                 "key": "documents",
                 "required": true
               },
@@ -1207,6 +1353,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 b5f874ec+wt"
+    "recorded": "http://localhost:3100"
   }
 ]

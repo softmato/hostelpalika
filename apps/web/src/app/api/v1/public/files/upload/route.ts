@@ -51,9 +51,15 @@ function r2Configured(bucketVariable: "R2_BUCKET_PRIVATE" | "R2_BUCKET_PUBLIC") 
 
 export async function POST(request: NextRequest) {
   try {
-    const rateLimited = rateLimitPublicForm(request, {
-      namespace: "public-file-upload",
-    });
+    const rateLimited =
+      rateLimitPublicForm(request, { namespace: "public-file-upload" }) ??
+      // A day's budget on top: anonymous uploads land in our buckets, and the
+      // per-minute budget alone allowed tens of GB a day from one IP.
+      rateLimitPublicForm(request, {
+        limit: 40,
+        namespace: "public-file-upload-day",
+        windowMs: 24 * 60 * 60 * 1000,
+      });
 
     if (rateLimited) {
       return rateLimited;

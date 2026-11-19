@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { isLLMConfigured } from "@/lib/llm/providers";
+import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { parseWithLLM } from "@/lib/search/llm-search";
 import { parseSearchQuery, type ParsedSearch } from "@/lib/search/query-parser";
 import {
@@ -50,7 +51,14 @@ export async function POST(request: NextRequest) {
     const worthEscalating =
       keyword.confidence < CONFIDENCE_FLOOR &&
       isLLMConfigured() &&
-      quotaRemaining(state) > 0;
+      quotaRemaining(state) > 0 &&
+      // The quota a client cannot drop: the cookie one starts fresh the moment
+      // a script stops sending it, and every call is billed.
+      rateLimitPublicForm(request, {
+        limit: QUOTA_LIMIT,
+        namespace: "search-llm",
+        windowMs: 5 * 60 * 60 * 1000,
+      }) === null;
 
     if (worthEscalating) {
       calledLLM = true;

@@ -57,6 +57,17 @@ describe("app API failover", () => {
     expect(seen).toEqual([`POST ${GO}`, `POST ${TS}`]);
   });
 
+  it("rejects a 4xx on a first GET (validateStatus is never left unset)", async () => {
+    const { api } = await client();
+    // Settles the way axios's real adapters do: a missing validateStatus resolves every status.
+    api.defaults.adapter = async (config) => {
+      const response = { config, data: { success: false }, headers: {}, status: 422, statusText: "" };
+      if (!config.validateStatus || config.validateStatus(422)) return response;
+      throw new AxiosError("Unprocessable", "ERR_BAD_REQUEST", config, null, response);
+    };
+    await expect(api.get("/public/hostel-referral-codes/NOPE")).rejects.toThrow("Unprocessable");
+  });
+
   it("leaves Go's own errors alone", async () => {
     const { api, seen } = await client();
     api.defaults.adapter = adapter(seen, 500);

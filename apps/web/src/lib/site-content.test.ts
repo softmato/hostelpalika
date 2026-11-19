@@ -84,7 +84,7 @@ describe("resolveContentPage", () => {
   });
 
   it("does not print a bare full stop when no support email is configured", () => {
-    // `supportEmail` is optional. "Contact our Data Protection team at ." is a
+    // `supportEmail` is optional. "Write to us at ." is a
     // worse sentence than one that names no address, so the blank resolves to a
     // phrase — and the app has to do the same, or one stored string renders two
     // different sentences.
@@ -93,7 +93,7 @@ describe("resolveContentPage", () => {
       supportEmail: "",
     });
 
-    expect(page.noteBody).toBe("Contact our Data Protection team at our support team.");
+    expect(page.noteBody).toBe("Write to us at our support team.");
   });
 });
 

@@ -93,6 +93,22 @@ func (l *Limiter) Check(c *gin.Context, namespace string, limit int, window time
 	if !over {
 		return nil
 	}
+	return tooMany(namespace, ttl)
+}
+
+// Subject counts per account or email address, whichever IP the request comes
+// from: the budget rotating proxies cannot reset. It guards what lands in
+// someone else's inbox or notification list (reset mails, invites, posts).
+func (l *Limiter) Subject(c *gin.Context, namespace, subject string, limit int, window time.Duration) error {
+	sum := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(subject))))
+	ttl, over := l.hit(c, "rl:"+namespace+":s:"+hex.EncodeToString(sum[:8]), limit, window)
+	if !over {
+		return nil
+	}
+	return tooMany(namespace, ttl)
+}
+
+func tooMany(namespace string, ttl time.Duration) error {
 	retry := int(math.Max(1, math.Ceil(ttl.Seconds())))
 	obs.RateLimited(namespace)
 	return httpx.NewError(http.StatusTooManyRequests, "RATE_LIMITED",

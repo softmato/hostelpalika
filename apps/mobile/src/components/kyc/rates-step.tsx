@@ -130,7 +130,7 @@ export function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) 
           {savedRent(type.roomType) ? null : <Badge label="Not priced" tone="warning" />}
           <IconButton label={`Remove ${roomTypeLabel(type.roomType)}`} name="trash" onPress={() => removeType(type.roomType)} size="sm" />
         </View>
-        <Input accessibilityLabel={`${roomTypeLabel(type.roomType)} rent`} keyboardType="number-pad" label="Rent / month" leading={<Glyph color={colors.mutedForeground} name="cash" size={18} />} onChangeText={(text) => setRents((current) => ({ ...current, [type.roomType]: digits(text) }))} placeholder="12000" value={rentOf(type.roomType)} variant="line" />
+        <Input accessibilityLabel={`${roomTypeLabel(type.roomType)} rent`} keyboardType="number-pad" label="Rent / month" leading={<Glyph color={colors.mutedForeground} name="cash" size={18} />} onChangeText={(text) => setRents((current) => ({ ...current, [type.roomType]: digits(text) }))} placeholder="12000" value={rentOf(type.roomType)} />
         <PhotoStrip busy={uploadingFor === targetKey(target)} disabled={Boolean(uploadingFor)} limit={PHOTO_LIMITS.ROOM} name={roomTypeLabel(type.roomType)} onAdd={(source) => void addPhotos(target, shots.length, source)} onRemove={removePhoto} photos={shots} />
       </Card>;
     })}
@@ -138,13 +138,13 @@ export function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) 
       <StepSection caption="Same for every room" title="Joining fees">
         <View className="flex-row gap-2">
           {FEE_FIELDS.map((item) => <View className="flex-1" key={item.field}>
-            <Input keyboardType="number-pad" label={item.label} leading={<Glyph color={colors.mutedForeground} name={item.icon} size={18} />} onChangeText={(text) => setFeeDraft((current) => ({ ...current, [item.field]: digits(text) }))} placeholder="0" value={feeOf(item.field)} variant="line" />
+            <Input keyboardType="number-pad" label={item.label} leading={<Glyph color={colors.mutedForeground} name={item.icon} size={18} />} onChangeText={(text) => setFeeDraft((current) => ({ ...current, [item.field]: digits(text) }))} placeholder="0" value={feeOf(item.field)} />
           </View>)}
         </View>
       </StepSection>
     </> : null}
     <Sheet footer={<Button disabled={saving || !naming?.trim()} label={saving ? "Saving…" : "Add room type"} onPress={() => void addType(naming ?? "")} />} onClose={() => setNaming(null)} open={naming !== null} title="Other room type">
-      {naming !== null ? <Input autoCapitalize="words" hint={naming.trim() ? `${bedsForRoomType(naming)} ${bedsForRoomType(naming) === 1 ? "bed" : "beds"} a room` : "Put the beds in the name: 6 Sharing"} label="Name" leading={<Glyph color={colors.mutedForeground} name="bed" size={18} />} onChangeText={setNaming} placeholder="6 Sharing" value={naming} variant="line" /> : null}
+      {naming !== null ? <Input autoCapitalize="words" hint={naming.trim() ? `${bedsForRoomType(naming)} ${bedsForRoomType(naming) === 1 ? "bed" : "beds"} a room` : "Put the beds in the name: 6 Sharing"} label="Name" leading={<Glyph color={colors.mutedForeground} name="bed" size={18} />} onChangeText={setNaming} placeholder="6 Sharing" value={naming} /> : null}
     </Sheet>
   </View>;
 }

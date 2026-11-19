@@ -6,7 +6,7 @@ import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { connectToDatabase } from "@/lib/db";
 import { countBranches } from "@/modules/billing/billing-hostel";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
-import { getSubscriptionState } from "@/modules/billing/subscription.service";
+import { branchPlan, planState, type PlanSub } from "@/modules/billing/plan-limits";
 import type { BranchRequestInput } from "@/lib/hostels/hostel-branch.validation";
 export { branchRequestSchema, type BranchRequestInput } from "@/lib/hostels/hostel-branch.validation";
 import { collectionTotals } from "@/modules/finance/ledger-read.service";
@@ -14,11 +14,11 @@ import { getSiteConfigSection } from "@/modules/platform-config/site-config.serv
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { currentBsPeriod } from "@hostel/shared/calendar/bs";
-import { getPlan } from "@hostel/shared/plans/catalog";
 import { serializeHostel, type HostelRecord } from "./hostel.service";
 
 /** Branches share an owner and plan; business details and accounts belong to each hostel. */
@@ -52,16 +52,21 @@ async function uniqueBranchSlug(name: string, area: string) {
 
 /** The main hostel's plan, its branch cap and what it already has. */
 export async function getBranchAllowance(mainHostelId: string) {
-  const state = await getSubscriptionState(mainHostelId);
-  const plan = state?.subscription.planId
-    ? getPlan(await getSiteConfigSection("plans"), state.subscription.planId)
-    : null;
-  const used = await countBranches(new Types.ObjectId(mainHostelId));
+  const [sub, catalog, used] = await Promise.all([
+    HostelSubscriptionModel.findOne({ hostelId: mainHostelId })
+      .select("planId planName status trialEndsAt currentPeriodEnd lifetimeSince")
+      .lean<(PlanSub & { planName?: string | null; status?: string }) | null>(),
+    getSiteConfigSection("plans"),
+    countBranches(new Types.ObjectId(mainHostelId)),
+  ]);
+  const plan = branchPlan(catalog, sub);
+  // The trial is everything in Max, branches included, before any plan is paid.
+  const trial = planState(catalog, sub).kind === "trial";
 
   return {
-    active: state?.subscription.status === "ACTIVE",
+    active: trial || sub?.status === "ACTIVE",
     cap: plan?.maxBranches ?? 0,
-    planName: state?.subscription.planName ?? null,
+    planName: trial && plan ? `${plan.name} trial` : (sub?.planName ?? null),
     used,
   };
 }

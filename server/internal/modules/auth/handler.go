@@ -537,7 +537,7 @@ func (h *Handler) forgotPassword(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	h.emailForm(c, h.svc.ForgotPassword, "A reset link has been sent.")
+	h.emailForm(c, "auth-forgot-password", h.svc.ForgotPassword, "A reset link has been sent.")
 }
 
 func (h *Handler) resendVerification(c *gin.Context) {
@@ -545,15 +545,23 @@ func (h *Handler) resendVerification(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	h.emailForm(c, h.svc.ResendVerification, "If that email needs verification, a new link has been sent.")
+	h.emailForm(c, "auth-resend-verification", h.svc.ResendVerification, "If that email needs verification, a new link has been sent.")
 }
 
-func (h *Handler) emailForm(c *gin.Context, run func(context.Context, string) (map[string]any, error), msg string) {
+// mailsPerAddress caps what one inbox receives from these forms in an hour,
+// whichever IPs ask: the per-client budget alone let rotating proxies mail-bomb
+// any address with reset links.
+const mailsPerAddress = 3
+
+func (h *Handler) emailForm(c *gin.Context, namespace string, run func(context.Context, string) (map[string]any, error), msg string) {
 	b, ok := body(c)
 	if !ok {
 		return
 	}
 	addr, err := parseEmailOnly(b)
+	if err == nil {
+		err = h.limiter.Subject(c, namespace+"-to", addr, mailsPerAddress, time.Hour)
+	}
 	if err != nil {
 		httpx.Fail(c, err)
 		return

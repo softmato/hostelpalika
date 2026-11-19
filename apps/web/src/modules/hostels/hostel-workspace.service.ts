@@ -1,7 +1,7 @@
 import { connectToDatabase } from "@/lib/db";
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
-import { planBranchCap } from "@/modules/billing/billing-hostel";
+import { planBranchCap } from "@/modules/billing/plan-limits";
 import { heldHostelForSlug } from "@/modules/hostels/hostel-leave.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
 

@@ -147,9 +147,7 @@ function StepBar({
 }
 
 /**
- * A field's label, always shown — the floating `line` label disappears into an
- * empty field, and a form of blank lines does not say what it is asking. The
- * dot marks a required answer; `children` sit at the end of the line.
+ * A field's label, always shown above the box, as on the web. The dot marks a required answer; `children` sit at the end of the line.
  */
 export function FieldHead({
   children,
@@ -162,7 +160,7 @@ export function FieldHead({
 }) {
   return (
     <View className="min-h-5 flex-row items-center gap-2">
-      <Text className="flex-1 text-sm text-muted-foreground" variant={null}>
+      <Text className="flex-1" variant="label">
         {label}
         {required ? <Text className="text-primary" variant={null}>{"  ●"}</Text> : null}
       </Text>
@@ -171,12 +169,11 @@ export function FieldHead({
   );
 }
 
-/** A `line` {@link Input} under a {@link FieldHead}. */
+/** An {@link Input} under a {@link FieldHead}. */
 export function Field({
   aside,
   label,
   required,
-  variant = "line",
   ...input
 }: Omit<ComponentProps<typeof Input>, "label"> & {
   /** End of the label line — a "From map" tag. */
@@ -185,11 +182,11 @@ export function Field({
   required?: boolean;
 }) {
   return (
-    <View className="gap-0.5">
+    <View className="gap-1.5">
       <FieldHead label={label} required={required}>
         {aside}
       </FieldHead>
-      <Input accessibilityLabel={label} variant={variant} {...input} />
+      <Input accessibilityLabel={label} {...input} />
     </View>
   );
 }
@@ -223,7 +220,7 @@ export function NumberStepper({
       <Pressable
         accessibilityLabel={`${by < 0 ? "Fewer" : "More"} — ${label}`}
         accessibilityRole="button"
-        className="h-12 w-12 items-center justify-center rounded-xl bg-muted active:opacity-60"
+        className="h-11 w-11 items-center justify-center rounded-lg bg-muted active:opacity-60"
         disabled={off}
         onPress={() => onChange(String(Math.min(max ?? Infinity, Math.max(min, count + by))))}
       >
@@ -237,7 +234,7 @@ export function NumberStepper({
       {button(-1)}
       <TextInput
         accessibilityLabel={label}
-        className={`border-b text-center font-semibold ${error ? "border-destructive text-destructive" : "border-border text-foreground"}`}
+        className={`rounded-lg border bg-card text-center font-semibold ${error ? "border-destructive text-destructive" : "text-foreground"}`}
         inputMode="numeric"
         maxLength={5}
         onChangeText={(text) => onChange(text.replace(/\D/g, ""))}
@@ -252,7 +249,8 @@ export function NumberStepper({
         style={{
           fontSize: 18,
           fontVariant: ["tabular-nums"],
-          height: 48,
+          ...(error ? null : { borderColor: colors.input }),
+          height: 44,
           includeFontPadding: false,
           lineHeight: 24,
           minWidth: 56,
@@ -499,6 +497,26 @@ export function ReviewVerdict({
         All details look good!
       </Text>
     </View>
+  );
+}
+
+/**
+ * The line that binds a sign-up to the Terms when there is no box to tick: shown
+ * beside the buttons that create the account, so pressing one is the agreement.
+ */
+export function TermsNotice({ prefix }: { prefix: string }) {
+  return (
+    <Text variant="caption">
+      {prefix} our{" "}
+      <Text className="text-primary" onPress={() => router.push("/legal/terms")} variant="caption">
+        Terms
+      </Text>{" "}
+      and{" "}
+      <Text className="text-primary" onPress={() => router.push("/legal/privacy")} variant="caption">
+        Privacy Policy
+      </Text>
+      .
+    </Text>
   );
 }
 

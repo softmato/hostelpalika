@@ -181,13 +181,13 @@ export function GoogleAuthButton({
       {/* Google SDK renders the real button here when clientId + SDK are ready */}
       <div
         ref={buttonRef}
-        className="w-full overflow-hidden rounded-xl google-auth-button-container"
+        className="w-full overflow-hidden rounded-lg google-auth-button-container"
       />
 
       {!clientId ? (
         /* No clientId configured — show a styled fallback */
         <button
-          className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-[14px] font-medium text-[#0F172A] shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
+          className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-[#d2cecb] bg-white text-[14px] font-medium text-[#0F172A] shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
           onClick={() =>
             onError(
               "Google sign-in is not configured. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID to enable it.",
@@ -223,7 +223,7 @@ export function GoogleAuthButton({
         </button>
       ) : !isReady || isSubmitting ? (
         /* SDK loading or submitting — show a skeleton-style placeholder */
-        <div className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-[14px] text-slate-400 select-none">
+        <div className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-[#d2cecb] bg-white text-[14px] text-slate-400 select-none">
           <svg
             width="18"
             height="18"

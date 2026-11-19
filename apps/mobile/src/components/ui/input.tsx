@@ -6,60 +6,60 @@ import {
   View,
 } from "react-native";
 
-import Animated, { ReduceMotion, useAnimatedStyle, withTiming } from "react-native-reanimated";
-
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
 /**
- * The single-line box height, and the floor under a multiline one.
+ * The single-line box height, and the floor under a multiline one — the web's
+ * `h-11` (docs/DESIGN.md §6 "Fields").
  *
- * A number rather than `h-12` / `min-h-12` on the multiline branch: `h-12` is a
- * class this app uses in a dozen places and is certainly generated, but
- * `min-h-12` appears nowhere else, and NativeWind compiles the class list at
- * bundle time — a name nothing else uses can resolve to nothing and take the
- * floor with it. Written this way it cannot.
+ * A number rather than a `min-h-*` class on the multiline branch: NativeWind
+ * compiles the class list at bundle time, and a name nothing else uses can
+ * resolve to nothing and take the floor with it. Written this way it cannot.
  */
-const FIELD_HEIGHT = 48;
+export const FIELD_HEIGHT = 44;
 
 /**
- * A labelled field, single-line or multiline.
+ * The edge and side inset for a field box, focused or not.
+ *
+ * The web draws focus as a green edge plus a 1px ring; React Native has no
+ * ring, so the edge goes to 2 and the inset gives the extra 1 back — the text
+ * does not jump sideways when the caret arrives.
+ */
+export function fieldBoxStyle(focused: boolean, borderColor: string) {
+  return { borderColor, borderWidth: focused ? 2 : 1, paddingHorizontal: focused ? 11 : 12 };
+}
+
+/**
+ * A labelled field, single-line or multiline — the one field look the web uses
+ * (white, 44dp, `rounded-lg`, thin warm-grey `--input` edge, crisp green focus).
+ * `Select` and `BirthDateField` draw the same box.
  *
  * ## The box has to be told when it is holding a textarea
  *
- * The bordered row was `h-12` and `items-center` for every field, and callers
- * that wanted a textarea passed the height straight to the `TextInput` —
- * `style={{ height: 132, paddingTop: 12, textAlignVertical: "top" }}` and
- * variants of it, in eight screens. A 132dp input inside a 48dp row that centres
- * its children does not clip: React Native has no `overflow: hidden` by default,
- * so the input **overflowed the border by 42dp in each direction** and the first
- * line of text was drawn *above* the box, on top of the field's own label. The
- * ID card form showed it worst — "Permanent address" rendered its value on the
- * label line with an empty box underneath, which reads as two broken fields
- * rather than one.
- *
- * So the row now branches: single-line keeps the fixed 48dp and centres, and
- * multiline stops constraining the height and lets the input's own height define
- * the box. `FIELD_HEIGHT` is the floor, so a textarea with no height given is
- * still at least as tall as an ordinary field instead of collapsing to one line.
+ * Callers that want a textarea pass the height straight to the `TextInput`. A
+ * tall input inside a fixed-height row that centres its children does not clip:
+ * React Native has no `overflow: hidden` by default, so the input overflowed the
+ * border and the first line of text was drawn *above* the box, on top of the
+ * field's own label. So the row branches: single-line keeps the fixed height
+ * and centres, and multiline lets the input's own height define the box, with
+ * `FIELD_HEIGHT` as the floor.
  *
  * `textAlignVertical: "top"` is applied here rather than left to callers because
- * it is not a preference — it is what stops Android centring a single line of
- * text in a tall box, and every caller that remembered it wanted the same thing.
- * A caller's own `style` is merged last and still wins.
+ * it is what stops Android centring a single line of text in a tall box. A
+ * caller's own `style` is merged last and still wins.
  */
 /**
  * The borders {@link Input.tone} can ask for.
  *
  * One utility per tone and no fill: a tinted *background* on a field reads as a
  * field that cannot be edited, which is the opposite of what every one of these
- * means — each of them is asking to be looked at, and two of them are asking to
- * be typed in.
+ * means.
  */
 const FIELD_TONES = {
-  danger: "border-destructive",
-  success: "border-success",
-  warning: "border-warning",
+  danger: "destructive",
+  success: "success",
+  warning: "warning",
 } as const;
 
 type InputProps = Omit<TextInputProps, "className"> & {
@@ -71,26 +71,24 @@ type InputProps = Omit<TextInputProps, "className"> & {
    * already has, and named the same so a form built from both lines up.
    *
    * A node rather than an icon name, because the marks these forms need are not
-   * all one set: `finance/payment-setup` puts a `<WalletMark>` (an image on a
-   * white tile) beside an account number while the rest of the form takes a
-   * glyph. Size it for a 48dp field — about 18 to 22 points.
+   * all one set: `finance/payment-setup` puts a `<WalletMark>` beside an
+   * account number while the rest of the form takes a glyph. Size it for a
+   * 44dp field — about 16 to 20 points.
    *
    * It is decoration, so it carries no label: the field's own `label` is what a
-   * screen reader reads, and an icon that announced itself would make every row
-   * say its own name twice.
+   * screen reader reads.
    */
   leading?: ReactNode;
+  /** "Optional" at the right of the label line, as on the web — never in the label. */
+  optional?: boolean;
   /** Renders the show/hide toggle and starts masked. */
   secure?: boolean;
   /**
    * Colours the border without printing a sentence under it.
    *
-   * For the case `error` cannot express: a field the *screen* has something to
-   * say about, where the sentence is already said once, elsewhere, about the
-   * group. The claim form is the case it exists for — a receipt read fills
-   * three fields and leaves one empty, and the resident has to be shown *which*
-   * of them still wants an answer while a single notice at the top explains
-   * why. Four red captions repeating one banner is not that.
+   * For a field the *screen* has something to say about, where the sentence is
+   * already said once, elsewhere, about the group — the claim form's receipt
+   * read that fills three fields and leaves one empty.
    *
    * `error` still wins: a validation failure is about this field alone and has
    * its own words, and focus wins over both, because a border that will not
@@ -99,20 +97,11 @@ type InputProps = Omit<TextInputProps, "className"> & {
   tone?: keyof typeof FIELD_TONES;
   /** Rendered inside the field, after the text — a tick, a calendar glyph. */
   trailing?: ReactNode;
-  /**
-   * `line` drops the box for a bare value over a hairline, with a small caps
-   * label: the minimal form style of the ID card flow.
-   */
-  variant?: "box" | "line";
 };
 
-/** The small uppercase label a `line` field sits under. */
+/** A field's label: the web's 14px medium line above the box. */
 export function FieldLabel({ children }: { children: ReactNode }) {
-  return (
-    <Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-      {children}
-    </Text>
-  );
+  return <Text variant="label">{children}</Text>;
 }
 
 export function Input({
@@ -121,61 +110,49 @@ export function Input({
   label,
   leading,
   multiline = false,
+  optional = false,
   secure = false,
   onBlur,
   onFocus,
   style,
   tone,
   trailing,
-  variant = "box",
   ...props
 }: InputProps) {
-  const line = variant === "line";
   const { colors } = useAppTheme();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  const raised = focused || Boolean(props.value);
-  const timing = { duration: 160, reduceMotion: ReduceMotion.System };
-  const labelStyle = useAnimatedStyle(
-    () => ({
-      opacity: withTiming(raised ? 1 : 0, timing),
-      transform: [{ translateY: withTiming(raised ? 0 : 10, timing) }],
-    }),
-    [raised],
-  );
+  const disabled = props.editable === false;
 
-  const borderTone = error
-    ? "border-destructive"
-    : focused
-      ? "border-primary"
+  // A colour value, not a `border-*` class: on the phone the class edge drew black.
+  const borderColor = focused
+    ? error
+      ? colors.destructive
+      : colors.primary
+    : error
+      ? colors.destructive
       : tone
-        ? FIELD_TONES[tone]
-        : "border-border";
+        ? colors[FIELD_TONES[tone]]
+        : colors.input;
 
   return (
-    <View className={line ? "gap-1" : "gap-1.5"}>
-      {/* A `line` label sits in the field as its placeholder and floats up once there is something to label. */}
-      {label ? (
-        line ? (
-          <Animated.View style={labelStyle}>
-            <FieldLabel>{label}</FieldLabel>
-          </Animated.View>
-        ) : (
-          <Text variant="label">{label}</Text>
-        )
+    <View className="gap-1.5">
+      {label || optional ? (
+        <View className="flex-row items-center justify-between gap-2">
+          {label ? <FieldLabel>{label}</FieldLabel> : <View />}
+          {optional ? <Text variant="caption">Optional</Text> : null}
+        </View>
       ) : null}
 
       <View
-        className={`flex-row gap-2 ${line ? "border-b" : "rounded-xl border bg-card px-4"} ${
-          multiline ? "items-stretch" : line ? "h-11 items-center" : "h-12 items-center"
-        } ${borderTone}`}
-        style={multiline ? { minHeight: FIELD_HEIGHT } : undefined}
+        className={`flex-row gap-2 rounded-lg ${disabled ? "bg-muted opacity-60" : "bg-card"} ${
+          multiline ? "items-stretch" : "h-11 items-center"
+        }`}
+        style={[fieldBoxStyle(focused, borderColor), multiline ? { minHeight: FIELD_HEIGHT } : null]}
       >
         {/*
-          Above the input, not inside it. A leading node in the same row keeps the
-          48dp height and the text simply starts after it — which is why this is a
-          row with `gap-2` rather than left padding on the `TextInput`: padding
-          would put the caret under the glyph on an empty field.
+          A row with `gap-2` rather than left padding on the `TextInput`:
+          padding would put the caret under the glyph on an empty field.
         */}
         {leading ?? null}
 
@@ -194,15 +171,14 @@ export function Input({
           secureTextEntry={secure && !revealed}
           /*
             Single-line: no vertical padding. Android adds its own on top of the
-            line height, and inside the fixed 44/48dp row that left too little
-            room — digits came out clipped top and bottom. The row centres it.
+            line height, and inside the fixed row that left too little room —
+            digits came out clipped top and bottom. The row centres it.
           */
           style={[
-            multiline ? { paddingTop: line ? 8 : 12, textAlignVertical: "top" } : { paddingVertical: 0 },
+            multiline ? { paddingBottom: 10, paddingTop: 10, textAlignVertical: "top" } : { paddingVertical: 0 },
             style,
           ]}
           {...props}
-          placeholder={line && label && !focused ? label : props.placeholder}
         />
 
         {secure ? (

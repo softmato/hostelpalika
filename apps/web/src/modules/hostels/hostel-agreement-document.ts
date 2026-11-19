@@ -190,6 +190,22 @@ async function render(input: AgreementDocumentInput | (PaperAgreementInput & { p
       first = false;
     }
   };
+  /** The height `text` takes flowed full width, as `flow` lays it out below the swoosh. */
+  const measure = (text: string, size: number, font: PDFFont, indent = 0) => {
+    const width = PAGE.width - MARGIN.right - MARGIN.left - indent;
+    let lines = 0;
+    let line = "";
+
+    for (const word of ascii(text).split(/\s+/).filter(Boolean)) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && font.widthOfTextAtSize(next, size) > width) {
+        lines += 1;
+        line = word;
+      } else line = next;
+    }
+
+    return (lines + (line ? 1 : 0)) * size * 1.4;
+  };
   const { company, hostel, owner } = input.parties;
 
   pdf.setTitle(paperCopy ? AGREEMENT_TITLE : `${AGREEMENT_TITLE} ${input.refCode ?? PREVIEW}`);
@@ -287,8 +303,17 @@ async function render(input: AgreementDocumentInput | (PaperAgreementInput & { p
   flow(agreementIntro(input.parties));
   cursor.down(6);
 
-  for (const section of input.terms) {
-    room(BODY * 1.4 * 3);
+  for (const [index, section] of input.terms.entries()) {
+    // The last section travels with the signatures, so they never stand alone on
+    // a page of their own, detached from the terms they sign.
+    room(
+      index < input.terms.length - 1
+        ? BODY * 1.4 * 3
+        : 6 +
+            measure(section.heading, 9.5, ink.bold) +
+            section.points.reduce((sum, point) => sum + measure(point, BODY, ink.regular, BULLET_INDENT), 0) +
+            (paperCopy ? 108 : SIGN_BLOCK + 8),
+    );
     cursor.down(5);
     flow(section.heading, { color: COLORS.accent, font: ink.bold, size: 9.5 });
     cursor.down(1);

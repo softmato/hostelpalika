@@ -64,7 +64,7 @@ export function AgreementStep({ onSaved, onSigningChange }: { onSaved: () => Pro
         ? <Button label={`Download agreement ${signed.refCode}`} onPress={() => void downloadToDevice({ extension: "pdf", fileName: `HostelPalika-Agreement-${signed.refCode!.replace(/\//g, "-")}`, label: "Agreement", mimeType: "application/pdf", url: `${API_BASE_URL}${KYC_AGREEMENT_PDF_PATH}` }).catch(error => toastError("Not downloaded", readApiError(error)))} />
         : <><Text variant="muted">We email you the signed PDF when your KYC is approved.</Text><Button label="Sign again" variant="ghost" onPress={() => setAgain(true)} /></>}
     </Card> : <View className="gap-4">
-      <Input autoCapitalize="words" autoComplete="name" leading={<Glyph color={colors.mutedForeground} name="person" size={18} />} variant="line" label="Your full name" onChangeText={setName} value={name} />
+      <Input autoCapitalize="words" autoComplete="name" leading={<Glyph color={colors.mutedForeground} name="person" size={18} />} label="Your full name" onChangeText={setName} value={name} />
       <SignaturePad onActiveChange={onSigningChange} onChange={setSignature} value={signature} />
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: agree }} onPress={() => setAgree(!agree)} className="min-h-12 flex-row items-center gap-3">
         <Glyph name={agree ? "checkmark-circle" : "ellipse"} color={agree ? colors.primary : colors.mutedForeground} size={24} />

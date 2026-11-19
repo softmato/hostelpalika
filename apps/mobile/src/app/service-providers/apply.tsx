@@ -498,7 +498,6 @@ function ProviderWizard({
             onChangeText={(value) => patch({ fullName: value })}
             placeholder="The name hostels should ask for"
             value={form.fullName}
-            variant="line"
           />
           <Input
             error={errors.phone}
@@ -507,7 +506,6 @@ function ProviderWizard({
             onChangeText={(value) => patch({ phone: value })}
             placeholder="98XXXXXXXX"
             value={form.phone}
-            variant="line"
           />
         </>
       ) : null}
@@ -547,7 +545,6 @@ function ProviderWizard({
               onChangeText={(value) => patch({ experience: value })}
               placeholder="5 years fixing residential plumbing"
               value={form.experience}
-              variant="line"
             />
             <Input
               label="About your service"
@@ -555,7 +552,6 @@ function ProviderWizard({
               onChangeText={(value) => patch({ description: value })}
               placeholder="Coverage, tools, how quickly you can get there."
               value={form.description}
-              variant="line"
             />
           </Accordion>
         </>
@@ -570,7 +566,6 @@ function ProviderWizard({
             onChangeText={(value) => patch({ area: value })}
             placeholder="Neighbourhood or tole"
             value={form.area}
-            variant="line"
           />
           <ChoiceChips
             error={customCity ? undefined : errors.city}
@@ -592,7 +587,6 @@ function ProviderWizard({
               label="Your city *"
               onChangeText={(value) => patch({ city: value })}
               value={form.city}
-              variant="line"
             />
           ) : null}
 

@@ -116,6 +116,9 @@ func (s *Service) RaiseRenewalInvoice(ctx context.Context, hostelID bson.ObjectI
 	var hostel struct {
 		Name     string `bson:"name"`
 		Verified string `bson:"verificationStatus"`
+		Kyc      struct {
+			Status string `bson:"status"`
+		} `bson:"kyc"`
 	}
 	if err := s.DB.Collection("hostels").FindOne(ctx, bson.D{{Key: "_id", Value: sub.HostelID}}).Decode(&hostel); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -124,7 +127,11 @@ func (s *Service) RaiseRenewalInvoice(ctx context.Context, hostelID bson.ObjectI
 		return nil, false, err
 	}
 	if hostel.Verified != "VERIFIED" {
-		return nil, false, payErr(409, "NOT_VERIFIED", "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.")
+		if hostel.Verified == "PENDING" || hostel.Kyc.Status == "SUBMITTED" {
+			return nil, false, payErr(409, "NOT_VERIFIED", "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.")
+		}
+		// KYC never sent: the plan waits on it, the trial does not.
+		return nil, false, payErr(409, "NOT_VERIFIED", "Send your hostel KYC first. Once our team approves it you can buy a plan — until then, explore everything on your free trial.")
 	}
 	var priced Priced
 	if o.Agreed != nil && !in.Lifetime {

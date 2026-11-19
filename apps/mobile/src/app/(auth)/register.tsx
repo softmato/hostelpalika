@@ -8,6 +8,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
+import { TermsNotice } from "@/components/step-flow";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { APP_NAME, logo } from "@/constants/branding";
@@ -331,6 +332,8 @@ export default function RegisterScreen() {
             value={password}
           />
         </View>
+
+        <TermsNotice prefix="By sending the code or continuing with Google, you confirm you are 18 or older and agree to" />
 
         {error ? (
           <Text className="text-destructive" variant="caption">

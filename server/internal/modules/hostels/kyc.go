@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +24,9 @@ import (
 var kycSteps = []string{"details", "photos", "rates", "rooms", "documents", "payout", "payments", "opening", "food", "rules", "facilities", "location", "agreement"}
 
 // kycRequired is KYC_REQUIRED_STEPS: what must be done before Submit.
+// panVat is the PAN / VAT document (`kyc-steps.tsx` DOCUMENTS); every other type is the owner's ID.
+var panVat = regexp.MustCompile(`(?i)pan|vat`)
+
 var kycRequired = []string{"details", "photos", "rates", "documents", "location", "agreement"}
 
 // kycMinPhotos is enough to fill the listing's cover and a first look inside.
@@ -236,10 +240,22 @@ func (a *Admin) kycOf(ctx context.Context, id bson.ObjectID, viewerID string) (*
 			photoCount++
 		}
 	}
+	// Both of them: the owner's ID and the business's PAN / VAT. A rejected one is sent again.
+	var idDoc, panDoc bool
+	for _, d := range docs {
+		if d.Status != "REJECTED" {
+			if panVat.MatchString(d.Type) {
+				panDoc = true
+			} else {
+				idDoc = true
+			}
+		}
+	}
+	bothDocs := idDoc && panDoc
 	done := map[string]bool{
 		"agreement":  signed,
 		"details":    h.HostelType != "" && strings.TrimSpace(h.Location.Area) != "" && strings.TrimSpace(h.Location.City) != "",
-		"documents":  len(docs) > 0,
+		"documents":  bothDocs,
 		"facilities": len(h.Facilities) > 0,
 		"food":       food,
 		// A geocoded point is a guess at the neighbourhood; only a placed pin counts.

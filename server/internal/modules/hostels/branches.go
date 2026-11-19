@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
@@ -67,20 +68,15 @@ type allowanceOut struct {
 	Used     int64 `json:"used"`
 }
 
-// planCap is getPlan(plans, id)?.maxBranches ?? 0.
-func (a *Admin) planCap(ctx context.Context, planID string) (cap int, name string, err error) {
+// catalog is the live plans section.
+func (a *Admin) catalog(ctx context.Context) (plans.Catalog, error) {
+	var catalog plans.Catalog
 	raw, err := a.Config.Section(ctx, "plans")
 	if err != nil {
-		return 0, "", err
+		return catalog, err
 	}
-	var catalog plans.Catalog
-	if err := platformconfig.Decode(raw, &catalog); err != nil {
-		return 0, "", err
-	}
-	if p := plans.GetPlan(catalog, planID); p != nil {
-		return p.MaxBranches, p.Name, nil
-	}
-	return 0, "", nil
+	err = platformconfig.Decode(raw, &catalog)
+	return catalog, err
 }
 
 func (a *Admin) countBranches(ctx context.Context, main bson.ObjectID) (int64, error) {
@@ -97,10 +93,23 @@ func (a *Admin) allowance(ctx context.Context, main bson.ObjectID) (allowanceOut
 	if state != nil {
 		out.Active = state.Subscription.Status == "ACTIVE"
 		out.PlanName = state.Subscription.PlanName
-		if id, ok := state.Subscription.PlanID.(string); ok && id != "" {
-			if out.Cap, _, err = a.planCap(ctx, id); err != nil {
-				return out, err
-			}
+	}
+	catalog, err := a.catalog(ctx)
+	if err != nil {
+		return out, err
+	}
+	plan, trial, err := billing.BranchPlan(ctx, a.DB, catalog, main, time.Now())
+	if err != nil {
+		return out, err
+	}
+	if plan != nil {
+		out.Cap = plan.MaxBranches
+	}
+	// The trial is everything in Max, branches included, before any plan is paid.
+	if trial {
+		out.Active = true
+		if plan != nil {
+			out.PlanName = plan.Name + " trial"
 		}
 	}
 	out.Used, err = a.countBranches(ctx, main)

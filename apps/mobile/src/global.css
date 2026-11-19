@@ -50,7 +50,7 @@
     */
     --destructive-soft: 254 226 226; /* #fee2e2 */
     --border: 231 229 228; /* #e7e5e4 */
-    --input: 231 229 228; /* #e7e5e4 */
+    --input: 210 206 203; /* #d2cecb — the web's --input-border, every field's edge */
     --ring: 10 138 75; /* #0a8a4b */
 
     --surface: 255 250 244; /* #fffaf4 */
@@ -117,7 +117,7 @@
     --destructive-foreground: 255 255 255; /* #ffffff */
     --destructive-soft: 43 15 15; /* #2b0f0f */
     --border: 45 43 42; /* #2d2b2a — white at 10% over the ground, as on the web */
-    --input: 57 55 54; /* #393736 — white at 15% */
+    --input: 80 79 78; /* #504f4e — white at 25%, the web's dark --input-border */
     --ring: 18 169 93; /* #12a95d */
 
     --surface: 41 37 36; /* #292524 */

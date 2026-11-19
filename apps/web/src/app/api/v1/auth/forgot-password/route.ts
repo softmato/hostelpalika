@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
-import { rateLimitPublicForm } from "@/lib/rate-limit";
+import { rateLimitPublicForm, rateLimitSubject } from "@/lib/rate-limit";
 import { AuthServiceError, requestPasswordReset } from "@/modules/auth/auth.service";
 import { forgotPasswordSchema } from "@hostel/shared/schemas/auth.schema";
 
@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
     }
 
     const input = forgotPasswordSchema.parse(await request.json());
+    // Per inbox, whichever IPs ask: rotating proxies otherwise mail-bombed any address.
+    const perAddress = rateLimitSubject("auth-forgot-password-to", input.email, 3, 60 * 60 * 1000);
+    if (perAddress) return perAddress;
     const result = await requestPasswordReset(input);
 
     return successResponse(

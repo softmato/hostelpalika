@@ -65,6 +65,10 @@ import type { BillingCycle } from "@hostel/shared/plans/catalog";
  * one path with no branch in it.
  */
 
+/** A hostel whose KYC was never sent: the plan waits on it, the trial does not. */
+export const NOT_VERIFIED_SEND_KYC =
+  "Send your hostel KYC first. Once our team approves it you can buy a plan — until then, explore everything on your free trial.";
+
 export class SubscriptionError extends Error {
   constructor(
     message: string,
@@ -646,8 +650,14 @@ export async function raiseRenewalInvoice(
   }
 
   const hostel = await HostelModel.findById(subscription.hostelId)
-    .select("name slug status verificationStatus")
-    .lean<{ name?: string; slug?: string; status?: string; verificationStatus?: string } | null>();
+    .select("name slug status verificationStatus kyc.status")
+    .lean<{
+      kyc?: { status?: string | null };
+      name?: string;
+      slug?: string;
+      status?: string;
+      verificationStatus?: string;
+    } | null>();
 
   if (!hostel) {
     throw new SubscriptionError("Hostel not found.", "HOSTEL_NOT_FOUND", 404);
@@ -655,7 +665,9 @@ export async function raiseRenewalInvoice(
 
   if (hostel.verificationStatus !== "VERIFIED") {
     throw new SubscriptionError(
-      "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.",
+      hostel.verificationStatus === "PENDING" || hostel.kyc?.status === "SUBMITTED"
+        ? "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is."
+        : NOT_VERIFIED_SEND_KYC,
       "NOT_VERIFIED",
       409,
     );

@@ -24,6 +24,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/llm"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"github.com/softmato/hostelpalika/server/internal/platform/pagination"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
@@ -36,6 +37,25 @@ type Handler struct {
 	Bump   realtime.Bumper
 	BG     *background.Runner
 	LLM    *llm.Router
+	// Limiter caps one author's posts and comments and one visitor's sponsor
+	// clicks. Nil in the admin registrations, which never reach those routes.
+	Limiter *ratelimit.Limiter
+}
+
+// One author's budget. A script posting in a loop otherwise filled the feed and,
+// for a hostel post, every member's notifications.
+const (
+	postsPerHour    = 10
+	commentsPerHour = 60
+	clicksPerHour   = 20
+)
+
+// throttle spends one unit of the signed-in author's budget.
+func (h *Handler) throttle(c *gin.Context, namespace, userID string, limit int) error {
+	if h.Limiter == nil {
+		return nil
+	}
+	return h.Limiter.Subject(c, namespace, userID, limit, time.Hour)
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
@@ -433,6 +453,10 @@ func (h *Handler) create(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
+	if err := h.throttle(c, "community-post", p.UserID, postsPerHour); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
 	hostelID, spaceType, err := authorSpace(p)
 	if err != nil {
 		httpx.Fail(c, err)
@@ -526,8 +550,14 @@ func postPreview(body string) string {
 // hostel, or every active account for a public post. A category mute stops the
 // push, not the bell row.
 func (h *Handler) notifyNewPost(ctx context.Context, authorName, authorID, body string, hostelID *bson.ObjectID, hostelName, postID string) {
+	// A post in the public space notifies nobody: it used to reach every active
+	// account on the platform, so one fresh sign-up could push its own title and
+	// text to all of them, once per post.
+	if hostelID == nil {
+		return
+	}
 	audience := []string{}
-	if hostelID != nil {
+	{
 		staff, err := residents.HostelStaffUserIDs(ctx, h.DB, *hostelID, false)
 		if err != nil {
 			return
@@ -555,20 +585,6 @@ func (h *Handler) notifyNewPost(ctx context.Context, authorName, authorID, body 
 					audience = append(audience, x.UserID.Hex())
 				}
 			}
-		}
-	} else {
-		cur, err := h.DB.Collection("users").Find(ctx, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "status", Value: "ACTIVE"}}, options.Find().SetProjection(bson.D{{Key: "_id", Value: 1}}))
-		if err != nil {
-			return
-		}
-		var rows []struct {
-			ID bson.ObjectID `bson:"_id"`
-		}
-		if err := cur.All(ctx, &rows); err != nil {
-			return
-		}
-		for _, x := range rows {
-			audience = append(audience, x.ID.Hex())
 		}
 	}
 	recipients := slices.DeleteFunc(audience, func(id string) bool { return id == authorID })
@@ -859,6 +875,10 @@ func (h *Handler) comment(c *gin.Context) {
 		parent, _ = valid.ObjectID(v, "parentId", "", &f.Is, false)
 	}
 	if err := f.Err(); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	if err := h.throttle(c, "community-comment", p.UserID, commentsPerHour); err != nil {
 		httpx.Fail(c, err)
 		return
 	}
@@ -1612,9 +1632,13 @@ func (h *Handler) sponsorClick(c *gin.Context) {
 		httpx.Fail(c, err)
 		return
 	}
-	if _, err := h.DB.Collection("sponsors").UpdateOne(c, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "clickCount", Value: 1}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now().UTC()}}}}); err != nil {
-		httpx.Fail(c, err)
-		return
+	// Over the visitor's budget the click is answered but not counted, so a
+	// script cannot inflate a sponsor's numbers or turn this into a write flood.
+	if h.Limiter == nil || h.Limiter.Check(c, "sponsor-click", clicksPerHour, time.Hour) == nil {
+		if _, err := h.DB.Collection("sponsors").UpdateOne(c, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "clickCount", Value: 1}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now().UTC()}}}}); err != nil {
+			httpx.Fail(c, err)
+			return
+		}
 	}
 	httpx.OK(c, recorded{true}, "Click recorded")
 }

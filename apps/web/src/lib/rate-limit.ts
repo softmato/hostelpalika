@@ -86,10 +86,22 @@ export function rateLimitPublicForm(
   );
   const resetAt = ipResetAt ?? clientResetAt;
 
-  if (resetAt === null) {
-    return null;
-  }
+  return resetAt === null ? null : tooMany(resetAt, now);
+}
 
+/**
+ * Per account or email address, whichever IP asks: the budget rotating proxies
+ * cannot reset. Guards what lands in someone else's inbox or notification list
+ * (reset mails, invitations, posts).
+ */
+export function rateLimitSubject(namespace: string, subject: string, limit: number, windowMs: number) {
+  const now = Date.now();
+  const resetAt = hitBucket(`${namespace}:s:${subject.trim().toLowerCase()}`, limit, windowMs, now);
+
+  return resetAt === null ? null : tooMany(resetAt, now);
+}
+
+function tooMany(resetAt: number, now: number) {
   const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
 
   return errorResponse(

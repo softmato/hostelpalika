@@ -51,13 +51,15 @@ it("keeps photos, documents and payout KYC separate for branches owned by the sa
       documentType: "PAN",
       status: "APPROVED",
     },
+    // The documents step needs both: the owner's ID and the business's PAN / VAT.
+    { _id: new Types.ObjectId(), hostelId: main, isDeleted: false, documentType: "Owner ID proof", status: "APPROVED" },
   ]);
   (HostelPayoutAccountModel as unknown as FakeModel).reset([{ hostelId: main }]);
   const a = await getHostelKyc(main);
   const b = await getHostelKyc(branch);
   expect(a.photoCount).toBe(3);
   expect(b.photoCount).toBe(1);
-  expect(a.documents).toHaveLength(1);
+  expect(a.documents).toHaveLength(2);
   expect(b.documents).toEqual([]);
   for (const key of ["photos", "documents", "payout"]) {
     expect(a.steps.find((step) => step.key === key)?.done).toBe(true);

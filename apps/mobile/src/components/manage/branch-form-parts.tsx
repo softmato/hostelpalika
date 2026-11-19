@@ -447,16 +447,17 @@ export function RulesList({ onChange, rules }: { onChange: (next: string[]) => v
   const [focusLast, setFocusLast] = useState(false);
 
   return (
-    <View>
+    <View className="gap-2">
       {rules.map((rule, at) => (
-        <View className="min-h-12 flex-row items-center gap-3 border-b border-border" key={at}>
+        <View className="h-11 flex-row items-center gap-2 rounded-lg border bg-card pl-3" key={at} style={{ borderColor: colors.input }}>
           <Text className="w-5 text-muted-foreground" style={{ fontVariant: ["tabular-nums"] }} variant={null}>
             {at + 1}.
           </Text>
           <TextInput
             accessibilityLabel={`Rule ${at + 1}`}
             autoFocus={focusLast && at === rules.length - 1}
-            className="flex-1 py-3 text-base text-foreground"
+            className="h-full flex-1 text-base text-foreground"
+            style={{ paddingVertical: 0 }}
             maxLength={80}
             onChangeText={(text) => onChange(rules.map((item, index) => (index === at ? text : item)))}
             placeholder={at === 0 ? "Quiet hours after 10 pm" : "Another rule"}

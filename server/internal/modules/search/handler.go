@@ -11,6 +11,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/llm"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	lib "github.com/softmato/hostelpalika/server/internal/platform/search"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
@@ -19,14 +20,24 @@ import (
 // that an LLM call would only add latency and burn quota.
 const confidenceFloor = 0.6
 
+// llmWindow is the cookie quota's window, kept by the server per client.
+const llmWindow = 5 * time.Hour
+
 type Handler struct {
-	router *llm.Router
-	quota  lib.Quota
-	secure bool // COOKIE_SECURE === "true"
+	router  *llm.Router
+	quota   lib.Quota
+	secure  bool // COOKIE_SECURE === "true"
+	limiter *ratelimit.Limiter
 }
 
-func NewHandler(router *llm.Router, quotaSecret string, secure bool) *Handler {
-	return &Handler{router, lib.Quota{Secret: quotaSecret}, secure}
+func NewHandler(router *llm.Router, quotaSecret string, secure bool, limiter *ratelimit.Limiter) *Handler {
+	return &Handler{router, lib.Quota{Secret: quotaSecret}, secure, limiter}
+}
+
+// serverBudget is the quota a client cannot drop. The cookie one starts fresh
+// the moment a script stops sending the cookie, and every call is billed.
+func (h *Handler) serverBudget(c *gin.Context) bool {
+	return h.limiter == nil || h.limiter.Check(c, "search-llm", lib.QuotaLimit, llmWindow) == nil
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) { v1.POST("/public/search/parse", h.parse) }
@@ -63,7 +74,7 @@ func (h *Handler) parse(c *gin.Context) {
 	state := h.quota.CurrentWindow(auth.CookieValue(c.Request, lib.QuotaCookie), now)
 	result := keyword
 	calledLLM := false
-	if keyword.Confidence < confidenceFloor && h.router.Configured() && lib.Remaining(state) > 0 {
+	if keyword.Confidence < confidenceFloor && h.router.Configured() && lib.Remaining(state) > 0 && h.serverBudget(c) {
 		// An upstream call was made, not necessarily a useful one: the provider
 		// is billed either way, so an unusable answer still costs quota.
 		calledLLM = true

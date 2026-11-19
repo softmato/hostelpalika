@@ -102,6 +102,8 @@ export async function lookupRegistrationLocation(
 /** What a hostel referral code gives — `GET /public/hostel-referral-codes/:code`. */
 export type HostelReferralPreview = {
   code: string;
+  /** A hostel's code shows the hostel's first exterior photo; partners have none. */
+  coverUrl: string | null;
   from: string;
   kind: "HOSTEL" | "PARTNER";
   rewardText: string;

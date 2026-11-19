@@ -61,6 +61,36 @@ func planState(c plans.Catalog, sub *capsSubscription, now time.Time) planOn {
 	return planOn{kind: "free", name: f.Name, caps: map[string]*int{"residents": &f.MaxResidents, "wardens": &f.PortalAccess.Wardens, "cooks": &f.PortalAccess.Cooks}}
 }
 
+// branchPlan is branchPlan: the plan whose branches a hostel gets. The trial
+// is everything in Max, so a running trial gets the top plan's (the catalogue
+// is cheapest-first) and trial is true; otherwise the chosen plan's.
+func branchPlan(c plans.Catalog, sub *capsSubscription, now time.Time) (plan *plans.Plan, trial bool) {
+	if planState(c, sub, now).kind == "trial" {
+		if n := len(c.Plans); n > 0 {
+			return &c.Plans[n-1], true
+		}
+		return nil, true
+	}
+	if sub != nil && sub.PlanID != nil && *sub.PlanID != "" {
+		return plans.GetPlan(c, *sub.PlanID), false
+	}
+	return nil, false
+}
+
+// BranchPlan is branchPlan read for a billing (main) hostel.
+func BranchPlan(ctx context.Context, db *mongo.Database, c plans.Catalog, billing bson.ObjectID, now time.Time) (*plans.Plan, bool, error) {
+	var sub capsSubscription
+	err := db.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "hostelId", Value: billing}}, options.FindOne().SetProjection(subFields)).Decode(&sub)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	plan, trial := branchPlan(c, &sub, now)
+	return plan, trial, nil
+}
+
 // seatsOver is seatsOver: the seats past their cap.
 func seatsOver(on planOn, used map[string]int64) []string {
 	var over []string

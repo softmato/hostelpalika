@@ -17,7 +17,7 @@ import { lifetimeOfferFor } from "@hostel/shared/plans/lifetime";
 
 import { useSiteConfig } from "@/components/site-config-provider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { browserApi } from "@/lib/browser-api";
+import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { Role } from "@/lib/roles";
 import { useSessionStore } from "@/stores/session-store";
 import { cn } from "@/lib/utils";
@@ -193,6 +193,8 @@ export function PlanCheckoutPage({
   const sessionStatus = useSessionStore((state) => state.status);
   const signedInAdmin = useSessionStore((state) => state.user?.role === Role.HOSTEL_ADMIN);
   const [sessionTried, setSessionTried] = useState(false);
+  // Signed in, but the plan was refused (KYC not approved yet): the email form would only hit the same wall.
+  const [sessionBlock, setSessionBlock] = useState<{ kyc: boolean; message: string } | null>(null);
   const trySession = !link && signedInAdmin && !sessionTried;
   const booting =
     savedRaw === undefined ||
@@ -358,8 +360,9 @@ export function PlanCheckoutPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [link, resumable]);
 
-  // Signed in: straight to paying for the hostel on the account. Any refusal
-  // (a warden, a suspended hostel) falls back to the email form.
+  // Signed in: straight to paying for the hostel on the account. A refused
+  // sign-in (a warden, a suspended hostel) falls back to the email form; a
+  // refused plan is said here, since the form would only refuse it again.
   useEffect(() => {
     if (!trySession || resumable) return;
 
@@ -368,7 +371,19 @@ export function PlanCheckoutPage({
     checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
       step: "session",
     })
-      .then((verified) => (live ? openCheckout(verified) : undefined))
+      .then(async (verified) => {
+        if (!live) return;
+        try {
+          await openCheckout(verified);
+        } catch (caught) {
+          if (live) {
+            setSessionBlock({
+              kyc: caught instanceof ApiRequestError && caught.errorCode === "NOT_VERIFIED",
+              message: errorText(caught),
+            });
+          }
+        }
+      })
       .catch(() => undefined)
       .finally(() => {
         if (live) setSessionTried(true);
@@ -449,7 +464,11 @@ export function PlanCheckoutPage({
           {!invoice
             ? lifetimeOffer
               ? `${rupees(lifetimeOffer.price)}, paid once — every feature of ${plan?.name}, no renewals. Enter your hostel's email and ID to claim it.`
-              : "Enter your hostel's email and ID. You choose the plan after the code."
+              : sessionBlock
+                ? sessionBlock.kyc
+                  ? "Your hostel can buy a plan once its KYC is approved."
+                  : "This plan can't be bought right now."
+                : "Enter your hostel's email and ID. You choose the plan after the code."
             : reused
               ? `Invoice ${invoice.invoiceNumber} is still open. It is paid before any new plan.`
               : invoice.lifetime
@@ -497,7 +516,15 @@ export function PlanCheckoutPage({
             ) : null}
 
             <div className={cn("app-card", invoice ? "p-5" : "mt-6 p-6")}>
-              {step === "details" ? (
+              {step === "details" && sessionBlock ? (
+                <div className="space-y-4 text-center">
+                  <ShieldCheck className="mx-auto size-10 text-brand-teal" />
+                  <p className="text-sm text-foreground">{sessionBlock.message}</p>
+                  <Link className={PRIMARY} href={sessionBlock.kyc ? "/hostel-admin/kyc" : "/hostel-admin/billing"}>
+                    {sessionBlock.kyc ? "Complete your KYC" : "Open billing"}
+                  </Link>
+                </div>
+              ) : step === "details" ? (
                 <form className="space-y-4" onSubmit={sendCode}>
                   <label className="block text-sm font-semibold text-foreground">
                     Hostel email

@@ -87,6 +87,7 @@ describe("submitHostelKyc", () => {
 
   it("puts a finished KYC in the review queue, still editable", async () => {
     await documents.create({ documentType: "Owner ID proof", hostelId, isDeleted: false, status: "PENDING" });
+    await documents.create({ documentType: "PAN", hostelId, isDeleted: false, status: "PENDING" });
     await rateCards.create({ effectiveTo: null, hostelId, rates: [{ monthlyAmount: 9000, roomType: "Double" }] });
     agreement.signed = true;
 
@@ -99,6 +100,7 @@ describe("submitHostelKyc", () => {
 
   it("lets a branch awaiting approval send its KYC, without locking the account", async () => {
     await documents.create({ documentType: "Owner ID proof", hostelId, isDeleted: false, status: "PENDING" });
+    await documents.create({ documentType: "PAN", hostelId, isDeleted: false, status: "PENDING" });
     await rateCards.create({ effectiveTo: null, hostelId, rates: [{ monthlyAmount: 9000, roomType: "Double" }] });
     agreement.signed = true;
     hostels.docs[0]!.kyc = undefined;

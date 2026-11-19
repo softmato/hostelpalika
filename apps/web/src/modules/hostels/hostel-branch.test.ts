@@ -29,10 +29,15 @@ vi.mock("@/modules/billing/subscription-access", () => ({
     name: "Main",
   })),
 }));
-vi.mock("@/modules/billing/subscription.service", () => ({
-  getSubscriptionState: vi.fn(async () => ({
-    subscription: { planId: "max", planName: state.plan.name, status: state.plan.status },
-  })),
+// The allowance reads the main hostel's subscription row itself (`branchPlan`).
+vi.mock("@hostel/db/models/HostelSubscription", () => ({
+  HostelSubscriptionModel: {
+    findOne: () => ({
+      select: () => ({
+        lean: async () => ({ planId: "max", planName: state.plan.name, status: state.plan.status }),
+      }),
+    }),
+  },
 }));
 vi.mock("@/modules/platform-config/site-config.service", () => ({
   getSiteConfigSection: vi.fn(async () => ({

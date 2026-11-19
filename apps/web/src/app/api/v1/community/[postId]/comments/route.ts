@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { loadApiPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { rateLimitSubject } from "@/lib/rate-limit";
 import { commentOnPost, listPostComments } from "@/modules/community/community.service";
 import { communityCommentCreateSchema } from "@/modules/community/community.validation";
 import { paginationQuerySchema } from "@/lib/pagination";
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { postId } = await context.params;
     const principal = await requireApiPrincipal(request);
     const input = communityCommentCreateSchema.parse(await request.json());
+    const limited = rateLimitSubject("community-comment", principal.userId, 60, 60 * 60 * 1000);
+    if (limited) return limited;
     const result = await commentOnPost(postId, input, principal);
 
     return successResponse(result, "Comment added", { status: 201 });

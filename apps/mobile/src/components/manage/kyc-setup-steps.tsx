@@ -90,7 +90,6 @@ export function OpeningBalanceForm({
         keyboardType="numbers-and-punctuation"
         label="Bank balance (Rs)"
         leading={<Glyph color={colors.mutedForeground} name="wallet" size={18} />}
-        variant="line"
         onChangeText={setAmount}
         placeholder="250000"
         value={amount}
@@ -100,7 +99,6 @@ export function OpeningBalanceForm({
         keyboardType="numbers-and-punctuation"
         label="On the day"
         leading={<Glyph color={colors.mutedForeground} name="calendar" size={18} />}
-        variant="line"
         onChangeText={setAsOf}
         value={asOf}
       />

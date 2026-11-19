@@ -19,6 +19,10 @@ import (
 
 const maxSize = 5 * 1024 * 1024
 
+// uploadsPerDay per device (six times that per IP): a hostel registration with
+// its photos and documents fits several times over.
+const uploadsPerDay = 40
+
 var (
 	allowedTypes = []string{"image/jpeg", "image/png", "image/webp", "application/pdf", "text/plain"}
 	publicTypes  = []string{"image/jpeg", "image/png", "image/webp"}
@@ -81,6 +85,12 @@ func (h *Handler) configured(bucket string) bool {
 
 func (h *Handler) upload(c *gin.Context) {
 	if err := h.limiter.PublicForm(c, "public-file-upload"); err != nil {
+		httpx.Fail(c, err)
+		return
+	}
+	// A day's budget on top of the per-minute one: anonymous uploads land in our
+	// buckets, and the minute budget alone allowed tens of GB a day from one IP.
+	if err := h.limiter.Check(c, "public-file-upload-day", uploadsPerDay, 24*time.Hour); err != nil {
 		httpx.Fail(c, err)
 		return
 	}

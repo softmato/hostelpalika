@@ -40,3 +40,27 @@ func TestPlanState(t *testing.T) {
 		t.Errorf("seatsOver: %v", got)
 	}
 }
+
+// The trial is everything in Max: branches open before any plan is paid.
+func TestBranchPlan(t *testing.T) {
+	catalog, _ := plans.Defaults()
+	now := time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)
+	past, future := now.AddDate(0, 0, -3), now.AddDate(0, 0, 3)
+	top := catalog.Plans[len(catalog.Plans)-1]
+	goID := catalog.Plans[0].ID
+	if top.MaxBranches == 0 {
+		t.Fatal("top plan has no branches")
+	}
+	if p, trial := branchPlan(catalog, &capsSubscription{TrialEndsAt: &future}, now); !trial || p == nil || p.ID != top.ID {
+		t.Fatalf("running trial: got %v %v, want %s", p, trial, top.ID)
+	}
+	if p, trial := branchPlan(catalog, &capsSubscription{PlanID: &goID, TrialEndsAt: &future}, now); !trial || p.ID != top.ID {
+		t.Fatalf("chosen-unpaid on trial: got %v %v", p, trial)
+	}
+	if p, trial := branchPlan(catalog, &capsSubscription{PlanID: &goID, CurrentPeriodEnd: &future, TrialEndsAt: &future}, now); trial || p.MaxBranches != 0 {
+		t.Fatalf("paid Go: got %v %v", p, trial)
+	}
+	if p, trial := branchPlan(catalog, &capsSubscription{TrialEndsAt: &past}, now); trial || p != nil {
+		t.Fatalf("trial over: got %v %v", p, trial)
+	}
+}

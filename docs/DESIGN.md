@@ -357,6 +357,14 @@ The actual data, paginated if list exceeds pageSize.
 - Show inline validation errors from the shared Zod schemas (RULES.md/CODING_STANDARDS.md), not just a toast
 - Error messages in red, below the field
 
+**Fields (web, one spec — `apps/web/src/components/ui/input.tsx`):**
+- Claude-style: white (`--surface`) field, height 44px (`h-11`; 32px `h-8` only for dense table/toolbar controls), `rounded-lg` (`--radius`, 10px), 12px side padding, no shadow
+- Edge `--input-border` (`#d2cecb`, thin warm grey), `foreground/40` on hover
+- Focus: crisp `--primary` edge + 1px ring. Invalid: `--destructive` edge and ring, trailing alert icon
+- Label 14px medium above, 6px gap; placeholder "Enter your …" in `muted-foreground/70`; one 13px line below — the error if there is one, else the hint. "Optional" sits right of the label, never in it
+- Icons 16px muted inside the edge (`InputGroup`); a form's submit button is the field height (44px) and `rounded-lg`
+- Build with `Field` + `Input` / `InputGroup` + `InputGroupInput` / `Textarea` / `SelectTrigger`; never a local `inputClass`. Auth pages are light-only and copy the same values as literals in `authInputClass` / `authPrimaryButtonClass` — change both together
+
 **Images:**
 - Alt text on every image (hostel photos, food photos, profile pictures)
 - Decorative images use empty alt (`alt=""`) so screen readers skip them

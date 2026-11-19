@@ -15,7 +15,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 
 /** Eases its content open/shut by animating the grid row from 0fr to 1fr. */
-function Reveal({ children, open }: { children: ReactNode; open: boolean }) {
+export function Reveal({ children, open }: { children: ReactNode; open: boolean }) {
   return (
     <div
       aria-hidden={!open}
@@ -28,9 +28,25 @@ function Reveal({ children, open }: { children: ReactNode; open: boolean }) {
   );
 }
 
-type Preview = { code: string; coverUrl: string | null; from: string; kind: "HOSTEL" | "PARTNER"; rewardText: string };
+export type ReferralPreview = { code: string; coverUrl: string | null; from: string; kind: "HOSTEL" | "PARTNER"; rewardText: string };
 
 const FORM = "/register-hostel/form";
+
+/** Who a checked referral code is from: the hostel's photo and name, or the partner's. */
+export function ReferrerRow({ preview }: { preview: ReferralPreview }) {
+  return (
+    <div className="flex items-center gap-3 pb-1">
+      {preview.coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img alt={preview.from} className="size-14 shrink-0 rounded-lg object-cover" src={preview.coverUrl} />
+      ) : null}
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground">{preview.kind === "HOSTEL" ? "Referred by" : "Partner"}</p>
+        <p className="truncate text-base font-semibold">{preview.from}</p>
+      </div>
+    </div>
+  );
+}
 
 const noSubscribe = () => () => {};
 
@@ -57,10 +73,10 @@ export function RegisterHostelStart({ children, className }: { children: ReactNo
   const fromUrl = useReferralCodeFromUrl();
   const [typed, setCode] = useState<string | null>(null);
   const code = typed ?? fromUrl;
-  const [preview, setPreview] = useState<Preview | null>(null);
+  const [preview, setPreview] = useState<ReferralPreview | null>(null);
   const [error, setError] = useState("");
   // Kept after `preview`/`error` clear so their panels can ease shut with content still in them.
-  const [shown, setShown] = useState<Preview | null>(null);
+  const [shown, setShown] = useState<ReferralPreview | null>(null);
   const [lastError, setLastError] = useState("");
   const [checking, setChecking] = useState(false);
 
@@ -76,7 +92,7 @@ export function RegisterHostelStart({ children, className }: { children: ReactNo
     setError("");
 
     try {
-      const found = await browserApi<Preview>(
+      const found = await browserApi<ReferralPreview>(
         `/api/v1/public/hostel-referral-codes/${encodeURIComponent(code.trim())}`,
       );
       setShown(found);
@@ -133,20 +149,7 @@ export function RegisterHostelStart({ children, className }: { children: ReactNo
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <Reveal open={Boolean(preview)}>
-                {shown ? (
-                  <div className="flex items-center gap-3 pb-1">
-                    {shown.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img alt={shown.from} className="size-14 shrink-0 rounded-lg object-cover" src={shown.coverUrl} />
-                    ) : null}
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">
-                        {shown.kind === "HOSTEL" ? "Referred by" : "Partner"}
-                      </p>
-                      <p className="truncate text-base font-semibold">{shown.from}</p>
-                    </div>
-                  </div>
-                ) : null}
+                {shown ? <ReferrerRow preview={shown} /> : null}
               </Reveal>
               <input
                 aria-label="Referral code"

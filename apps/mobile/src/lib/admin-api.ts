@@ -154,6 +154,10 @@ export type AdminSubscription = {
     planId: string | null;
     planName: string | null;
     status: string;
+    currentPeriodEnd?: string | null;
+    lifetimeSince?: string | null;
+    /** The free trial's end — everything in Max, branches included, until a plan is paid. */
+    trialEndsAt?: string | null;
   };
 };
 

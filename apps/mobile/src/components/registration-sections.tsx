@@ -133,7 +133,6 @@ export function ShortStaysSection({
             label="Fewest nights"
             onChangeText={(minNights) => onChange({ ...value, minNights })}
             value={value.minNights}
-            variant="line"
           />
           {rooms
             .filter((room) => room.roomType.trim())
@@ -152,7 +151,6 @@ export function ShortStaysSection({
                   label={`${name} · a night`}
                   onChangeText={(next) => onChange({ ...value, rates: { ...value.rates, [name]: next } })}
                   value={rate}
-                  variant="line"
                 />
               );
             })}
@@ -211,7 +209,6 @@ export function CustomFacility({ onAdd }: { onAdd: (name: string) => void }) {
         </Pressable>
       }
       value={name}
-      variant="line"
     />
   );
 }
@@ -285,7 +282,6 @@ export function RoomSection({
             label="How many"
             onChangeText={(value) => onChange({ rooms: value })}
             value={room.rooms}
-            variant="line"
           />
         </View>
         <View style={{ flex: 1 }}>
@@ -294,7 +290,6 @@ export function RoomSection({
             label="Beds each"
             onChangeText={(value) => onChange({ bedsPerRoom: value })}
             value={room.bedsPerRoom}
-            variant="line"
           />
         </View>
       </View>
@@ -307,7 +302,6 @@ export function RoomSection({
             onChangeText={(value) => onChange({ monthlyRent: value })}
             placeholder="NPR"
             value={room.monthlyRent}
-            variant="line"
           />
         </View>
         <View style={{ flex: 1 }}>
@@ -316,7 +310,6 @@ export function RoomSection({
             label="Beds free now"
             onChangeText={(value) => onChange({ vacantBeds: value })}
             value={room.vacantBeds}
-            variant="line"
           />
         </View>
       </View>
@@ -329,7 +322,6 @@ export function RoomSection({
           onChangeText={(value) => onChange({ securityDeposit: value })}
           placeholder="NPR"
           value={room.securityDeposit ?? ""}
-          variant="line"
         />
       ) : null}
 

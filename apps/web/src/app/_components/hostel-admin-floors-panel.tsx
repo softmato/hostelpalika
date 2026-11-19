@@ -813,10 +813,11 @@ export function FloorsPanel() {
           </table>
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[200px_minmax(0,1fr)]">
-          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+        <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+          <aside className="min-w-0 space-y-2 lg:sticky lg:top-4 lg:self-start">
             <p className="text-xs font-semibold text-muted-foreground">Room types</p>
-            <div className="flex flex-wrap gap-2 lg:flex-col">
+            {/* nowrap at lg: a wrapping column sizes each button to its full name and spills over the floors. */}
+            <div className="flex flex-wrap gap-2 lg:flex-col lg:flex-nowrap">
               {types.map((roomType) => {
                 const on = paint === roomType;
                 return (
@@ -833,7 +834,7 @@ export function FloorsPanel() {
                   >
                     <Glyph className="size-4 shrink-0" name="bed" />
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold">{roomTypeLabel(roomType)}</span>
+                      <span className="block truncate text-[13px] font-semibold" title={roomTypeLabel(roomType)}>{roomTypeLabel(roomType)}</span>
                       <span className={cn("block text-[11px]", on ? "text-white/80" : "text-muted-foreground")}>{beds(roomType)}</span>
                     </span>
                   </button>

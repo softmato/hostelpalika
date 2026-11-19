@@ -25,6 +25,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
 
@@ -38,7 +39,17 @@ type Service struct {
 	Audit  *audit.Log
 	Issuer *users.Issuer
 	AppURL func(path string) string
+	// Limiter caps invitation mail: per resident, and per address across residents.
+	Limiter *ratelimit.Limiter
 }
+
+// Every invitation is an email from our domain to an address the resident
+// typed, so it is capped like one: a loop otherwise mailed anybody, any number
+// of times, and cost us our sender reputation.
+const (
+	invitesPerResident = 10
+	invitesPerAddress  = 3
+)
 
 func (s *Service) Register(v1 *gin.RouterGroup) {
 	v1.GET("/resident/guardians", httpx.ETag(), s.list)
@@ -240,6 +251,16 @@ func (s *Service) invite(c *gin.Context) {
 	if err := f.Err(); err != nil {
 		httpx.Fail(c, err)
 		return
+	}
+	if s.Limiter != nil {
+		if err := s.Limiter.Subject(c, "guardian-invite", p.UserID, invitesPerResident, 24*time.Hour); err != nil {
+			httpx.Fail(c, err)
+			return
+		}
+		if err := s.Limiter.Subject(c, "guardian-invite-to", addr, invitesPerAddress, 24*time.Hour); err != nil {
+			httpx.Fail(c, err)
+			return
+		}
 	}
 	r, err := residents.Current(c, s.DB, p)
 	if err != nil {

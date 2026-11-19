@@ -52,9 +52,9 @@
    * it is no box at all, and WCAG 1.4.11 asks for 3:1 on the boundary of any
    * control somebody has to find and operate.
    *
-   * This lands near `#8c8681` and measures ~3.5:1, so a field reads as a field
-   * without every form on the site turning into a grid of heavy rectangles.
-   * Darkening `--border` itself would have done the second thing.
+   * 2026-11-19: was `#8c8681` (~3.5:1). The owner chose a Claude-style field:
+   * white, a thin warm-grey edge a step darker than slate-300 (~2:1), darker
+   * on hover, a crisp green edge on focus.
    *
    * It is also separate from `--input`, which looks like the obvious home for
    * it and is not: shadcn uses that token for the *fill* as well as the edge
@@ -63,7 +63,7 @@
    * `input.tsx`, `select.tsx` and `textarea.tsx` take their border from here and
    * leave their backgrounds on `--input`.
    */
-  --input-border: oklch(0.62 0.008 58.071);
+  --input-border: #d2cecb;
   --input: oklch(0.923 0.003 48.717);
   --ring: oklch(0.709 0.01 56.259);
   --radius: 0.625rem;
@@ -286,7 +286,7 @@ html.dark {
    * White at 40% over the dark surface — ~3.7:1, where the 10% `--border` was
    * 1.4:1. Same reasoning as the light value next door.
    */
-  --input-border: oklch(1 0 0 / 40%);
+  --input-border: oklch(1 0 0 / 25%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.553 0.013 58.071);
   --surface: #292524;

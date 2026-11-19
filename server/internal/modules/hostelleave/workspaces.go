@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
@@ -119,22 +120,13 @@ func (h *Handler) planCatalog(ctx context.Context) plans.Catalog {
 	return catalog
 }
 
-// branchCap is planBranchCap: branches the billing hostel's plan includes — 0 on every plan but Max.
+// branchCap is planBranchCap: branches the billing hostel's plan includes — 0 on every plan but Max, Max's on a running trial.
 func (h *Handler) branchCap(ctx context.Context, billingID bson.ObjectID, catalog plans.Catalog) (int, error) {
-	var sub struct {
-		PlanID *string `bson:"planId"`
-	}
-	err := h.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "hostelId", Value: billingID}}, options.FindOne().SetProjection(bson.D{{Key: "planId", Value: 1}})).Decode(&sub)
-	if errors.Is(err, mongo.ErrNoDocuments) || (err == nil && (sub.PlanID == nil || *sub.PlanID == "")) {
-		return 0, nil
-	}
-	if err != nil {
+	plan, _, err := billing.BranchPlan(ctx, h.DB, catalog, billingID, time.Now())
+	if err != nil || plan == nil {
 		return 0, err
 	}
-	if plan := plans.GetPlan(catalog, *sub.PlanID); plan != nil {
-		return plan.MaxBranches, nil
-	}
-	return 0, nil
+	return plan.MaxBranches, nil
 }
 
 // heldAt is heldHostelForSlug != null: a deleted hostel at this address whose

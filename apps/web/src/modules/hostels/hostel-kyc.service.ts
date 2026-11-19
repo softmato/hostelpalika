@@ -58,6 +58,13 @@ export const KYC_REQUIRED_STEPS: readonly KycStep[] = ["details", "photos", "rat
 /** Enough to fill the listing's cover and a first look inside. */
 const MIN_PHOTOS = 3;
 
+/** Owner ID and PAN / VAT both sent, neither rejected. **Pure.** */
+export function hasBothKycDocuments(documents: { documentType: string; status?: string }[]) {
+  const sent = documents.filter((doc) => doc.status !== "REJECTED").map((doc) => /pan|vat/i.test(doc.documentType));
+
+  return sent.includes(true) && sent.includes(false);
+}
+
 export function kycPercent(done: Record<KycStep, boolean>) {
   return Math.round((100 * KYC_STEPS.filter((key) => done[key]).length) / KYC_STEPS.length);
 }
@@ -119,7 +126,8 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
   const done: Record<KycStep, boolean> = {
     agreement: signed,
     details: Boolean(hostel.hostelType && hostel.location?.area?.trim() && hostel.location?.city?.trim()),
-    documents: documents.length > 0,
+    // Both of them (`kyc-steps.tsx` DOCUMENTS): the owner's ID and the business's PAN / VAT. A rejected one is sent again.
+    documents: hasBothKycDocuments(documents),
     facilities: (hostel.facilities ?? []).length > 0,
     food: (routine?.meals ?? []).length > 0,
     // A geocoded point is a guess at the neighbourhood; only a placed pin counts.

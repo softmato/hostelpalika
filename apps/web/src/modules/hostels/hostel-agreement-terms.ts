@@ -58,7 +58,7 @@ export function agreementTerms(parties: AgreementParties, how: "electronic" | "p
         "A public page for your hostel on hostelpalika.com, with the Verified badge after our team checks your KYC.",
         "Logins for your wardens and cooks, as your plan allows.",
         "Every update and new feature we add to your plan, at no extra cost.",
-        "Help from our support team whenever you need it.",
+        "Help from our support team when you need it, by phone or email.",
       ],
     },
     {
@@ -105,7 +105,7 @@ export function agreementTerms(parties: AgreementParties, how: "electronic" | "p
         "Every login has its own role: a warden or a cook sees only what that role allows.",
         "You can lock the app with your PIN and your fingerprint.",
         "We keep backup copies of your data, so it can be brought back if something goes wrong.",
-        "If we find a security problem that affects your data, we tell you as soon as we know, and within 72 hours.",
+        "If we find a security problem that affects your data, we tell you as soon as we can.",
       ],
     },
     {
@@ -115,6 +115,7 @@ export function agreementTerms(parties: AgreementParties, how: "electronic" | "p
         "We run HostelPalika with care, fix faults as fast as we can, and tell you before a big change.",
         "No main feature of your plan is taken away during a period you have already paid for.",
         "We are not responsible when internet, power, mobile networks, app stores or payment services fail.",
+        "SOS, night check-in and attendance help your team, but they are not an emergency service. In an emergency, call 100 (Police), 101 (Fire) or 102 (Ambulance) first.",
       ],
     },
     {
@@ -150,6 +151,8 @@ export function agreementTerms(parties: AgreementParties, how: "electronic" | "p
       points: [
         "We are not part of any disagreement between your hostel and its residents, guardians, staff or service providers.",
         "We are not responsible for loss caused by wrong information that your hostel enters.",
+        "We are not responsible for indirect loss, like lost profit or lost bookings.",
+        "If someone makes a claim against us because of your hostel, your listing, your residents' data or something done from your logins, you cover our loss and costs.",
         "The most we can owe you is the plan fees you paid in the 12 months before a claim.",
       ],
     },

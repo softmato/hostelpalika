@@ -146,7 +146,6 @@ export function MapLinkField({
         onEndEditing={onEndEditing}
         placeholder="https://maps.app.goo.gl/…"
         value={value}
-        variant="line"
       />
 
       {pin ? (

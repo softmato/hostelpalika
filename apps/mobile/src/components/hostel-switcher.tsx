@@ -107,7 +107,15 @@ export function useBranchesLock(): string | null | undefined {
   const subscription = useResource(query.load, { cacheKey: query.key, topics: query.topics });
 
   if (subscription.loading) return undefined;
-  if (subscription.data?.subscription.planId !== "max") return "You need the Max plan to use branches.";
+
+  const sub = subscription.data?.subscription;
+  const now = Date.now();
+  const paidLive =
+    Boolean(sub?.planId) && (Boolean(sub?.lifetimeSince) || Date.parse(sub?.currentPeriodEnd ?? "") > now);
+  // The trial is everything in Max (the server's `branchPlan`), until a plan is paid.
+  const trial = !paidLive && Date.parse(sub?.trialEndsAt ?? "") > now;
+
+  if (sub?.planId !== "max" && !trial) return "You need the Max plan to use branches.";
 
   return role === ROLE.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
 }

@@ -5,7 +5,6 @@ import { createInAppNotification } from "@/modules/notifications/notification.se
 import { resolveHostelStaffUserIds } from "@/modules/residents/resident-notify";
 import { NotificationPreferenceModel } from "@hostel/db/models/NotificationPreference";
 import { ResidentModel } from "@hostel/db/models/Resident";
-import { UserModel } from "@hostel/db/models/User";
 
 /** How much of the post rides in the push body before it is cut. */
 const PREVIEW_CHARS = 110;
@@ -69,10 +68,13 @@ async function usersMutingNewPosts(userIds: string[]) {
 }
 
 /**
- * A new post goes to everyone who can read it as a bell row and a push:
- * a hostel's post to that hostel, a public-space post (author with no hostel)
- * to every active account. The push reads "Sita posted" over the post's words,
- * and the post id routes the tap to that post's own screen.
+ * A hostel's new post goes to that hostel as a bell row and a push. The push
+ * reads "Sita posted" over the post's words, and the post id routes the tap to
+ * that post's own screen.
+ *
+ * A public-space post (author with no hostel) notifies nobody. It used to reach
+ * every active account, so one fresh sign-up could push its own title and text
+ * to the whole platform, once per post.
  *
  * Anyone who muted new community posts still gets the bell row, just no push.
  * Staff announcements ignore that mute — they are the hostel speaking.
@@ -88,14 +90,10 @@ export async function notifyHostelOfNewPost(input: {
   isAnnouncement?: boolean;
   postId: string;
 }) {
+  if (!input.hostelId) return;
+
   try {
-    const audience = input.hostelId
-      ? await resolveHostelCommunityUserIds(input.hostelId)
-      : (
-          await UserModel.find({ isDeleted: { $ne: true }, status: "ACTIVE" })
-            .select({ _id: 1 })
-            .lean<{ _id: Types.ObjectId }[]>()
-        ).map((user) => user._id.toString());
+    const audience = await resolveHostelCommunityUserIds(input.hostelId);
     const recipients = audience.filter((userId) => userId !== input.authorUserId);
     const muted = input.isAnnouncement
       ? new Set<string>()

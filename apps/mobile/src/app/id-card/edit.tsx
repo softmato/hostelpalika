@@ -940,7 +940,6 @@ function AboutStep({ control }: { control: FormControl }) {
         label="Date of birth *"
         onChange={(picked) => control.set("dateOfBirth", picked.ad)}
         value={{ ad: control.draft.dateOfBirth }}
-        variant="line"
       />
       <ChoiceChips
         columns={4}
@@ -1006,7 +1005,6 @@ function ContactStep({
         tone={phoneGood ? "success" : undefined}
         trailing={phoneGood ? checkMark : null}
         value={control.draft.primaryPhone}
-        variant="line"
       />
       <TextField
         control={control}
@@ -1027,7 +1025,6 @@ function ContactStep({
         tone={good ? "success" : undefined}
         trailing={good ? checkMark : null}
         value={control.draft.primaryEmail}
-        variant="line"
       />
       <TextField
         control={control}
@@ -1057,7 +1054,6 @@ function AddressStep({ control }: { control: FormControl }) {
         options={provinces.map((name) => ({ label: name, value: name }))}
         placeholder="Select"
         value={current || null}
-        variant="line"
       />
       <TextField control={control} label="District" name="district" placeholder="Kathmandu" />
       <TextField
@@ -1717,7 +1713,6 @@ function TextField({
       onChangeText={(value) => control.set(name, value)}
       placeholder={placeholder}
       value={control.draft[name]}
-      variant="line"
     />
   );
 }

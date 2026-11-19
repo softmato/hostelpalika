@@ -43,7 +43,7 @@ export function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void
     </Pressable>;
   })}</View>
     <View className="flex-row items-end gap-2">
-      <View className="flex-1"><Input autoCapitalize="sentences" label="Add custom facility" leading={<Glyph color={colors.mutedForeground} name="add" size={18} />} onChangeText={setCustom} onSubmitEditing={addCustom} placeholder="Rooftop garden" returnKeyType="done" value={custom} variant="line" /></View>
+      <View className="flex-1"><Input autoCapitalize="sentences" label="Add custom facility" leading={<Glyph color={colors.mutedForeground} name="add" size={18} />} onChangeText={setCustom} onSubmitEditing={addCustom} placeholder="Rooftop garden" returnKeyType="done" value={custom} /></View>
       <Button disabled={!custom.trim()} label="Add" onPress={addCustom} size="md" variant="outline" />
     </View>
   </View>;

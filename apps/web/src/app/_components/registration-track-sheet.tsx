@@ -6,7 +6,7 @@ import type { PresenceChannel } from "pusher-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandSpinner } from "@/components/brand-mark";
 import { browserApi } from "@/lib/browser-api";
 import { TRACK_SHEET_CHANNEL, TRACK_SHEET_EVENT } from "@/lib/realtime/channels";
 import {
@@ -66,10 +66,7 @@ type MemberData = { id: string; info?: { email?: string; image?: string | null; 
 export function TrackSheetLoader({ message }: { message?: string }) {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-background px-6 text-center">
-      <div className="relative flex size-20 items-center justify-center rounded-2xl bg-brand-teal/10">
-        <BrandMark className="h-8 animate-pulse" />
-        <div className="absolute -inset-2.5 animate-spin rounded-3xl border-2 border-brand-teal/20 border-t-brand-teal" />
-      </div>
+      <BrandSpinner />
       {message ? (
         <p className="text-sm text-destructive" role="alert">
           {message}

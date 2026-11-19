@@ -38,8 +38,8 @@ export function DetailsStep({ data, onSaved }: { data: HostelKyc; onSaved: () =>
   useKycDraft({ dirty, busy: saving, save });
   return <View className="gap-4">
     <ChoiceChips columns={3} error={tried && !form.hostelType ? "Choose who lives here" : undefined} label="Who lives here" onToggle={(hostelType) => set({ hostelType })} options={HOSTEL_TYPES} value={form.hostelType as (typeof HOSTEL_TYPES)[number]["value"]} />
-    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="business" size={18} />} variant="line" autoComplete="postal-address-locality" error={tried && form.city.trim().length < 2 ? "Enter the city" : undefined} label="City" onChangeText={(city) => set({ city })} value={form.city} />
-    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="map" size={18} />} variant="line" error={tried && form.area.trim().length < 2 ? "Enter the area" : undefined} label="Area" onChangeText={(area) => set({ area })} placeholder="Baneshwor" value={form.area} />
-    <Input autoCapitalize="sentences" leading={<Glyph color={colors.mutedForeground} name="location" size={18} />} variant="line" autoComplete="street-address" label="Address" onChangeText={(address) => set({ address })} placeholder="Street, near a landmark" value={form.address} />
+    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="business" size={18} />} autoComplete="postal-address-locality" error={tried && form.city.trim().length < 2 ? "Enter the city" : undefined} label="City" onChangeText={(city) => set({ city })} value={form.city} />
+    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="map" size={18} />} error={tried && form.area.trim().length < 2 ? "Enter the area" : undefined} label="Area" onChangeText={(area) => set({ area })} placeholder="Baneshwor" value={form.area} />
+    <Input autoCapitalize="sentences" leading={<Glyph color={colors.mutedForeground} name="location" size={18} />} autoComplete="street-address" label="Address" onChangeText={(address) => set({ address })} placeholder="Street, near a landmark" value={form.address} />
   </View>;
 }

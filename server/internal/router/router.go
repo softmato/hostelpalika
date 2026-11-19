@@ -196,7 +196,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	refHandler.Register(v1)
 	(&hostels.Quick{DB: d.DB, Guards: guards, Limiter: limiter, Refs: refs, Config: siteConfig, Mail: sender, Notify: notify, Audit: log, SiteURL: strings.TrimRight(cfg.AppURL, "/"), Cache: ch}).Register(v1)
 	hostels.NewGeo(maps.NewClient(cfg.Google.MapsAPIKey, cfg.AppURL), guards, limiter).Register(v1)
-	searchmod.NewHandler(llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), cfg.LLM.SearchQuotaSecret, cfg.CookieSecure).Register(v1)
+	searchmod.NewHandler(llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), cfg.LLM.SearchQuotaSecret, cfg.CookieSecure, limiter).Register(v1)
 	reviews.NewHandler(d.DB).Register(v1)
 	reports.NewHandler(d.DB).Register(v1)
 	billing.NewHandler(d.DB, siteConfig).Register(v1)
@@ -228,7 +228,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 		}}).Register(v1)
 
 	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: ch,
-		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
+		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }, Limiter: limiter}
 	safetySvc.Register(v1)
 	portal := &residentportal.Handler{DB: d.DB, Guards: guards, Cache: ch, Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: ch}
 	portal.Register(v1)
@@ -241,8 +241,8 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: ch}).Register(v1)
 	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: ch, Cache: ch}).Register(v1)
 	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: ch}).Register(v1)
-	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: ch, BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
-	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL}).Register(v1)
+	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: ch, BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), Limiter: limiter}).Register(v1)
+	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL, Limiter: limiter}).Register(v1)
 	kitchenH := &kitchen.Handler{DB: d.DB, Guards: guards, Cache: ch, Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}
 	kitchenH.Register(v1)
 	(&notices.Handler{DB: d.DB, Guards: guards, Cache: ch}).Register(v1)

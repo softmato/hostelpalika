@@ -3,6 +3,16 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
+/** The HostelPalika wait: the HP mark in a spinning ring (Google sign-in style). */
+export function BrandSpinner({ className }: { className?: string }) {
+  return (
+    <div className={cn("relative flex size-20 items-center justify-center rounded-2xl bg-brand-teal/10", className)}>
+      <BrandMark adaptive className="h-8 animate-pulse" />
+      <div className="absolute -inset-2.5 animate-spin rounded-3xl border-2 border-brand-teal/20 border-t-brand-teal [animation-duration:1.1s]" />
+    </div>
+  );
+}
+
 /**
  * The HP mark. Height comes from `className`; width follows the art.
  *

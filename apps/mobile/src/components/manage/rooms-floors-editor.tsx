@@ -893,7 +893,7 @@ function FloorNameSheet({ busy, floor, name, onApply, onClose, open }: { busy: b
 
   return (
     <Sheet footer={<Button disabled={busy} label="Save" loading={busy} onPress={() => onApply(value.trim())} />} onClose={onClose} open={open} title="Floor name">
-      <Input autoCapitalize="words" hint={`Leave empty to show "${shortFloor(floor)}"`} label="Name" maxLength={30} onChangeText={setValue} placeholder="Girls block" value={value} variant="line" />
+      <Input autoCapitalize="words" hint={`Leave empty to show "${shortFloor(floor)}"`} label="Name" maxLength={30} onChangeText={setValue} placeholder="Girls block" value={value} />
     </Sheet>
   );
 }
@@ -910,7 +910,7 @@ function RenumberSheet({ busy, onApply, onClose, open, start }: { busy: boolean;
 
   return (
     <Sheet footer={<Button disabled={busy || !first.trim()} label="Renumber" loading={busy} onPress={() => onApply(first)} />} onClose={onClose} open={open} title="Renumber">
-      <Input hint="The rest follow in order" label="First number" onChangeText={setFirst} value={first} variant="line" />
+      <Input hint="The rest follow in order" label="First number" onChangeText={setFirst} value={first} />
     </Sheet>
   );
 }
@@ -1022,7 +1022,7 @@ function RoomSheet({ busy, onClose, room, run, types }: { busy: boolean; onClose
             )) : <Text variant="caption">Nobody lives here yet.</Text>}
           </View>
 
-          <Input label="Room no." onChangeText={setNumber} value={number} variant="line" />
+          <Input label="Room no." onChangeText={setNumber} value={number} />
           <View className="gap-2">
             <Text variant="label">Room type</Text>
             <View className="flex-row flex-wrap gap-2">

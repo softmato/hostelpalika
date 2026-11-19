@@ -96,6 +96,8 @@ export async function fanOutSOSAlert(input: {
   alertId: string;
   guardianAlertEnabled: boolean;
   hostelId: Types.ObjectId;
+  /** False past the resident's hourly SOS mail budget: bell rows and pushes still go. */
+  mail?: boolean;
   message?: string;
   residentId: Types.ObjectId;
   residentName: string;
@@ -131,7 +133,7 @@ export async function fanOutSOSAlert(input: {
       triggeredAt: input.triggeredAt,
     });
 
-    deliveries.push(
+    if (input.mail !== false) deliveries.push(
       sendNotificationEmail({
         action: "sos_alert_staff",
         category: email.category, html: email.html,
@@ -168,7 +170,7 @@ export async function fanOutSOSAlert(input: {
       triggeredAt: input.triggeredAt,
     });
 
-    deliveries.push(
+    if (input.mail !== false) deliveries.push(
       sendNotificationEmail({
         action: "sos_alert_guardian",
         category: email.category, html: email.html,

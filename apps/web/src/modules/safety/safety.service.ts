@@ -37,6 +37,7 @@ import type {
   sosListQuerySchema,
   sosStatusUpdateSchema,
 } from "@/modules/safety/safety.validation";
+import { rateLimitSubject } from "@/lib/rate-limit";
 
 type NightStatusUpdateInput = z.infer<typeof nightStatusUpdateSchema>;
 type NightStatusListQuery = z.infer<typeof nightStatusListQuerySchema>;
@@ -644,6 +645,9 @@ export async function triggerSOS(input: SOSCreateInput, principal: ApiPrincipal)
     alertId: alert._id.toString(),
     guardianAlertEnabled: input.guardianAlertEnabled,
     hostelId: resident.hostelId,
+    // A real emergency is one alert, maybe a second press; a script was a mail
+    // cannon aimed at every admin, warden and guardian. The alert and push still go.
+    mail: rateLimitSubject("sos-mail", principal.userId, 5, 60 * 60 * 1000) === null,
     message: input.message,
     residentId: resident._id,
     residentName: `${resident.firstName} ${resident.lastName}`.trim(),

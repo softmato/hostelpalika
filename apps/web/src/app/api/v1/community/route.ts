@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { loadApiPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { rateLimitSubject } from "@/lib/rate-limit";
 import {
   createCommunityPost,
   listCommunityFeed,
@@ -37,6 +38,10 @@ export async function POST(request: NextRequest) {
   try {
     const principal = await requireApiPrincipal(request);
     const input = communityPostCreateSchema.parse(await request.json());
+    // One author's budget: a script posting in a loop filled the feed and every
+    // member's notifications.
+    const limited = rateLimitSubject("community-post", principal.userId, 10, 60 * 60 * 1000);
+    if (limited) return limited;
     const result = await createCommunityPost(input, principal);
 
     return successResponse(result, "Post published", { status: 201 });

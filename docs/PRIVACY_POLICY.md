@@ -1,5 +1,9 @@
 # PRIVACY_POLICY.md — Privacy Policy & Data Protection
 
+> **Superseded planning notes (July 2026).** The policy users read is `content.privacy`
+> (and the Terms are `content.terms`) in `apps/web/src/lib/platform-config/site-config.defaults.ts`,
+> unless a superadmin overrides it under Website Config → Legal Pages. Change it there, never here.
+
 **Last Updated:** 14 July 2026
 
 This document outlines the privacy practices for the Multi-Hostel SaaS Platform, with special focus on location tracking, data retention, and user rights.

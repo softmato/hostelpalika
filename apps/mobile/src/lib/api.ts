@@ -150,6 +150,13 @@ const ETAG_MEMORY_CAP = 150;
 const etagKey = (config: InternalAxiosRequestConfig) =>
   `${String(config.headers?.["x-hostel-id"] ?? "")} ${api.getUri(config)}`;
 
+/**
+ * axios's own 2xx rule, spelled out. Leaving `validateStatus` unset is not "the
+ * default": axios resolves *every* status when it is missing, so a 422 came
+ * back as a success with an error body (a bad referral code sailed through).
+ */
+const OK_STATUS = (status: number) => status >= 200 && status < 300;
+
 api.interceptors.request.use((config) => {
   if ((config.method ?? "get").toLowerCase() !== "get") return config;
 
@@ -162,7 +169,7 @@ api.interceptors.request.use((config) => {
     // A failover resend copies the first attempt's headers; without a body to
     // replay here, a 304 from the other origin would arrive empty.
     config.headers.delete("If-None-Match");
-    config.validateStatus = undefined;
+    config.validateStatus = OK_STATUS;
   }
 
   return config;
@@ -184,7 +191,7 @@ api.interceptors.response.use((response) => {
      * (the white screen after an offline spell, 2026-11-16). Ask again in full.
      */
     response.config.headers.delete("If-None-Match");
-    return api.request({ ...response.config, validateStatus: undefined });
+    return api.request({ ...response.config, validateStatus: OK_STATUS });
   }
 
   const etag = response.headers?.etag as string | undefined;

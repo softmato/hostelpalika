@@ -88,6 +88,26 @@ export function planForCaps(catalog: PlansCatalog, sub: PlanSub | null, now = ne
   return planState(catalog, sub, now).plan;
 }
 
+/**
+ * The plan whose branches a hostel gets. The trial is everything in Max, so a
+ * running trial gets the top plan's (the catalogue is cheapest-first);
+ * otherwise the chosen plan's. **Pure.**
+ */
+export function branchPlan(catalog: PlansCatalog, sub: PlanSub | null, now = new Date()) {
+  if (planState(catalog, sub, now).kind === "trial") return catalog.plans[catalog.plans.length - 1] ?? null;
+
+  return sub?.planId ? (getPlan(catalog, sub.planId) ?? null) : null;
+}
+
+/** Branches this hostel's plan includes — 0 on every plan but Max, Max's on a running trial. A branch answers for its main hostel. */
+export async function planBranchCap(hostelId: string | Types.ObjectId) {
+  const subscription = await HostelSubscriptionModel.findOne({ hostelId: await billingHostelId(hostelId) })
+    .select(SUB_FIELDS)
+    .lean<PlanSub | null>();
+
+  return branchPlan(await getSiteConfigSection("plans"), subscription)?.maxBranches ?? 0;
+}
+
 export type PlanUsage = Record<PlanSeat, number>;
 
 function capOf(plan: CapsPlan, seat: PlanSeat) {

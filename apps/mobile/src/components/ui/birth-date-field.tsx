@@ -47,14 +47,12 @@ export function BirthDateField({
   label = "Date of birth",
   onChange,
   value,
-  variant = "box",
 }: {
   error?: string | null;
   label?: string;
   onChange: (value: BirthDate) => void;
   /** Blank `ad` = nothing picked yet. `calendar`/`asEntered` may be blank for an AD-only record. */
   value: { ad: string; asEntered?: string; calendar?: string };
-  variant?: "box" | "line";
 }) {
   const { colors } = useAppTheme();
   const shownCalendar: BirthCalendar = value.calendar === "BS" ? "BS" : "AD";
@@ -101,27 +99,21 @@ export function BirthDateField({
   const pickedIso = isoOf(year, month, Math.min(day, days));
   const pickedAd = calendar === "AD" ? pickedIso : bsToAd(pickedIso);
   const future = pickedAd !== null && pickedAd > new Date().toISOString().slice(0, 10);
-  const line = variant === "line";
 
   return (
-    <View className={line ? "gap-1" : "gap-1.5"}>
-      {line ? (
-        <View style={{ opacity: shown ? 1 : 0 }}>
-          <FieldLabel>{label}</FieldLabel>
-        </View>
-      ) : (
-        <Text variant="label">{label}</Text>
-      )}
+    <View className="gap-1.5">
+      <FieldLabel>{label}</FieldLabel>
       <Pressable
         accessibilityLabel={`${label}: ${shown ?? "not set"}. Change`}
         accessibilityRole="button"
         className={`flex-row items-center gap-2 active:opacity-70 ${
-          line ? "h-11 border-b" : "h-12 rounded-xl border bg-card px-4"
-        } ${error ? "border-destructive" : "border-border"}`}
+          "h-11 rounded-lg border bg-card px-3"
+        } ${error ? "border-destructive" : ""}`}
+        style={error ? undefined : { borderColor: colors.input }}
         onPress={openSheet}
       >
         <Text className={`flex-1 text-base ${shown ? "text-foreground" : "text-muted-foreground"}`} variant={null}>
-          {shown ?? (line ? label : "Pick the date")}
+          {shown ?? "Pick the date"}
         </Text>
         <Glyph color={colors.primary} name="calendar" size={20} />
       </Pressable>

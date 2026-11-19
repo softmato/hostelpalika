@@ -37,7 +37,7 @@ export type SelectOption<T extends string> = {
    * `<WalletMark>` (an image on a white tile), not a `<Glyph>`.
    *
    * **The same node appears in both places, so size it for the trigger.** The
-   * trigger is `h-12`, which leaves room for a mark up to about 28 points; pass
+   * trigger is `h-11`, which leaves room for a mark up to about 26 points; pass
    * anything taller and the field grows past the `<Input>`s either side of it,
    * which is the one thing this component exists not to do. Sharing the node
    * rather than taking two is deliberate — a picker whose mark changes size the
@@ -85,11 +85,10 @@ type SelectProps<T extends string> = {
   tone?: keyof typeof FIELD_TONES;
   value: T | null | undefined;
   /**
-   * `line` matches {@link Input}'s boxless variant. `compact` is a small pill
-   * sized to its value, with no label — for a choice that sits beside a
-   * section title rather than in a column of fields.
+   * `compact` is a small pill sized to its value, with no label — for a choice
+   * that sits beside a section title rather than in a column of fields.
    */
-  variant?: "box" | "compact" | "line";
+  variant?: "box" | "compact";
 };
 
 export function Select<T extends string>({
@@ -107,7 +106,6 @@ export function Select<T extends string>({
   value,
   variant = "box",
 }: SelectProps<T>) {
-  const line = variant === "line";
   const compact = variant === "compact";
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
@@ -131,19 +129,13 @@ export function Select<T extends string>({
     ? "border-destructive"
     : tone
       ? FIELD_TONES[tone]
-      : "border-border";
+      : compact
+        ? "border-border"
+        : "";
 
   return (
-    <View className={line ? "gap-1" : "gap-1.5"}>
-      {label && !compact ? (
-        line ? (
-          <View style={{ opacity: selected ? 1 : 0 }}>
-            <FieldLabel>{label}</FieldLabel>
-          </View>
-        ) : (
-          <Text variant="label">{label}</Text>
-        )
-      ) : null}
+    <View className="gap-1.5">
+      {label && !compact ? <FieldLabel>{label}</FieldLabel> : null}
 
       <Pressable
         accessibilityLabel={label}
@@ -153,7 +145,7 @@ export function Select<T extends string>({
         /*
           The left inset tightens when there is a mark to show.
 
-          `px-4` in front of a 28-point tile puts the tile where the *text*
+          `px-3` in front of a 28-point tile puts the tile where the *text*
           belongs and pushes the label a third of the way across the field. The
           mark takes the gutter instead and the label sits where a leading
           adornment always puts it.
@@ -161,12 +153,11 @@ export function Select<T extends string>({
         className={`flex-row items-center active:opacity-80 ${
           compact
             ? "h-9 gap-1 rounded-full border px-3"
-            : line
-              ? "h-11 gap-2.5 border-b"
-              : `h-12 gap-2.5 rounded-xl border bg-card pr-4 ${selected?.leading ? "pl-2.5" : "pl-4"}`
+            : `h-11 gap-2.5 rounded-lg border bg-card pr-3 ${selected?.leading ? "pl-2" : "pl-3"}`
         } ${borderTone} ${disabled ? "opacity-50" : ""}`}
         disabled={disabled}
         onPress={() => setOpen(true)}
+        style={borderTone ? undefined : { borderColor: colors.input }}
       >
         {/*
           The chosen option's own mark, on the trigger.
@@ -182,7 +173,7 @@ export function Select<T extends string>({
         <Text
           className={`${compact ? "text-sm font-semibold" : "flex-1"} ${selected ? "text-foreground" : "text-muted-foreground"}`}
         >
-          {selected?.label ?? (line && label ? label : placeholder)}
+          {selected?.label ?? placeholder}
         </Text>
         <Glyph color={colors.mutedForeground} name="chevron-down" size={compact ? 14 : 18} />
       </Pressable>

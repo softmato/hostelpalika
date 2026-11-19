@@ -116,3 +116,23 @@ func TestHungRedisFallsBackFast(t *testing.T) {
 		t.Fatalf("took %v with Redis hung", took)
 	}
 }
+
+func TestSubjectBudgetIgnoresTheClient(t *testing.T) {
+	l := New(nil, 10, time.Minute)
+	try := func(ip, ua, subject string) error {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		c.Request = httptest.NewRequest("POST", "/", nil)
+		c.Request.RemoteAddr = ip + ":1"
+		c.Request.Header.Set("User-Agent", ua)
+		return l.Subject(c, "reset", subject, 2, time.Minute)
+	}
+	if try("1.1.1.1", "a", "Owner@x.com") != nil || try("2.2.2.2", "b", " owner@x.com ") != nil {
+		t.Fatal("first two refused")
+	}
+	if try("3.3.3.3", "c", "OWNER@X.COM") == nil {
+		t.Fatal("a third IP reset the per-address budget")
+	}
+	if try("3.3.3.3", "c", "other@x.com") != nil {
+		t.Fatal("budgets are per subject")
+	}
+}

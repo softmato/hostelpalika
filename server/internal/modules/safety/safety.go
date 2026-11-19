@@ -24,6 +24,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 	"github.com/softmato/hostelpalika/server/internal/platform/valid"
 )
@@ -39,7 +40,14 @@ type Service struct {
 	RT     *realtime.Client
 	Cache  realtime.Bumper
 	AppURL func(path string) string
+	// Limiter stops one resident's SOS emails past sosMailsPerHour. The alert,
+	// the bell row and the push are never limited.
+	Limiter *ratelimit.Limiter
 }
+
+// sosMailsPerHour: a real emergency is one alert, maybe a second press; a
+// script was a mail cannon aimed at every admin, warden and guardian.
+const sosMailsPerHour = 5
 
 func (s *Service) Register(v1 *gin.RouterGroup) {
 	r := v1.Group("/resident")
@@ -645,7 +653,8 @@ func (s *Service) sosCreate(c *gin.Context) {
 		return
 	}
 	realtime.PublishResourceChange(c, s.RT, s.Cache, realtime.Change{HostelIDs: []string{r.HostelID.Hex()}, Topics: []realtime.Topic{realtime.Safety}})
-	staff, guardians, err := s.fanOut(c.Request.Context(), &alert, r, msg)
+	mail := s.Limiter == nil || s.Limiter.Subject(c, "sos-mail", p.UserID, sosMailsPerHour, time.Hour) == nil
+	staff, guardians, err := s.fanOut(c.Request.Context(), &alert, r, msg, mail)
 	if err != nil {
 		httpx.Fail(c, err)
 		return
@@ -655,7 +664,7 @@ func (s *Service) sosCreate(c *gin.Context) {
 
 // fanOut is fanOutSOSAlert. Each delivery stands alone (Promise.allSettled): a
 // dead mail provider must not cost the warden their push.
-func (s *Service) fanOut(ctx context.Context, a *sosRow, r *residents.Record, msg string) (staffN, guardianN int, err error) {
+func (s *Service) fanOut(ctx context.Context, a *sosRow, r *residents.Record, msg string, mail bool) (staffN, guardianN int, err error) {
 	hostelName, err := residents.HostelName(ctx, s.DB, r.HostelID)
 	if err != nil {
 		return 0, 0, err
@@ -685,6 +694,9 @@ func (s *Service) fanOut(ctx context.Context, a *sosRow, r *residents.Record, ms
 	var sends []func()
 	do := func(fn func()) { sends = append(sends, fn) }
 	send := func(action, to string, content email.Content) {
+		if !mail {
+			return
+		}
 		do(func() {
 			s.Mail.Notify(ctx, email.Notification{Action: action, To: to, Subject: content.Subject, HTML: content.HTML, Category: content.Category})
 		})
