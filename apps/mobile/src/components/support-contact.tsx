@@ -59,6 +59,14 @@ export function SupportContact() {
       ) : null}
       {signedIn ? (
         <MenuRow
+          icon="book"
+          onPress={() => router.push("/guide")}
+          subtitle="How to use the app, for your role"
+          title="Guide"
+        />
+      ) : null}
+      {signedIn ? (
+        <MenuRow
           icon="chatbox"
           onPress={() => router.push("/help")}
           subtitle="Feedback, a bug, or an idea — screenshots welcome"

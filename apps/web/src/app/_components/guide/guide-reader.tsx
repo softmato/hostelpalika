@@ -1,13 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
-import { GUIDE_PAGES, chapterAsMarkdown } from "@hostel/shared/guide/guide";
-
-import { CopyMarkdown } from "@/app/_components/guide/copy-markdown";
 import { HostelRail, OnThisPage, PageUseful } from "@/app/_components/guide/guide-rail";
-import { chapterToc } from "@/app/_components/guide/guide-toc";
+import type { GuideReaderPage } from "@/lib/guide-access";
 import type { GuideHostel } from "@/lib/guide-hostels";
 
 /** The section top that counts as "reading this chapter": just under the sticky bar. */
@@ -18,18 +15,29 @@ const READ_LINE = 120;
  * place (no navigation), so the sidebar and "On this page" follow; opening a chapter
  * from the sidebar or search scrolls to it.
  */
-export function GuideReader({ children, current, hostels }: { children: ReactNode; current: string; hostels: GuideHostel[] }) {
+export function GuideReader({
+  children,
+  current,
+  hostels,
+  pages,
+}: {
+  children: ReactNode;
+  current: string;
+  hostels: GuideHostel[];
+  /** The chapters on this page — only those the reader may open. */
+  pages: GuideReaderPage[];
+}) {
   const path = usePathname();
-  const active = GUIDE_PAGES.find((p) => p.href === path) ?? GUIDE_PAGES.find((p) => p.href === current)!;
-  const toc = useMemo(() => chapterToc(active), [active]);
+  const active = pages.find((p) => p.href === path) ?? pages.find((p) => p.href === current)!;
+  const first = pages[0].href;
   // The last URL this reader wrote itself, so it does not scroll to its own update.
   const written = useRef<string | null>(null);
 
   useEffect(() => {
     if (written.current === path) return;
     const el = document.querySelector(`[data-chapter="${path}"]`);
-    if (el && path !== GUIDE_PAGES[0].href) el.scrollIntoView({ block: "start" });
-  }, [path]);
+    if (el && path !== first) el.scrollIntoView({ block: "start" });
+  }, [path, first]);
 
   useEffect(() => {
     let frame = 0;
@@ -43,11 +51,11 @@ export function GuideReader({ children, current, hostels }: { children: ReactNod
           : sections.filter((s) => s.getBoundingClientRect().top <= READ_LINE).at(-1) ?? sections[0];
         const href = hit?.dataset.chapter;
         if (!href || href === window.location.pathname) return;
-        const from = GUIDE_PAGES.find((p) => p.href === window.location.pathname);
-        const to = GUIDE_PAGES.find((p) => p.href === href);
+        const from = pages.find((p) => p.href === window.location.pathname);
+        const to = pages.find((p) => p.href === href);
         written.current = href;
         window.history.replaceState(null, "", href);
-        if (from && to) document.title = document.title.replace(from.chapter.title, to.chapter.title);
+        if (from && to) document.title = document.title.replace(from.title, to.title);
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -55,7 +63,7 @@ export function GuideReader({ children, current, hostels }: { children: ReactNod
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
-  }, []);
+  }, [pages]);
 
   return (
     <div className="flex">
@@ -65,9 +73,8 @@ export function GuideReader({ children, current, hostels }: { children: ReactNod
 
       <aside className="hidden w-[340px] shrink-0 border-l border-border xl:block">
         <div className="thin-scrollbar sticky top-16 max-h-[calc(100dvh-4rem)] space-y-6 overflow-y-auto px-7 py-8">
-          <p className="truncate text-xs font-medium text-primary">{active.chapter.title}</p>
-          <OnThisPage items={toc} />
-          <CopyMarkdown markdown={chapterAsMarkdown(active.chapter)} />
+          <p className="truncate text-xs font-medium text-primary">{active.title}</p>
+          <OnThisPage items={active.toc} />
           <PageUseful key={active.href} />
           <HostelRail hostels={hostels} />
         </div>

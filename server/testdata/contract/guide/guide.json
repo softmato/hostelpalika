@@ -1,0 +1,59 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guide"
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The guide could not be loaded. Try again in a minute.",
+        "errorCode": "GUIDE_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "signed in",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guide",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The guide could not be loaded. Try again in a minute.",
+        "errorCode": "GUIDE_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "expired token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guide",
+      "headers": {
+        "authorization": "Bearer not-a-real-token"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your session has expired.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  }
+]

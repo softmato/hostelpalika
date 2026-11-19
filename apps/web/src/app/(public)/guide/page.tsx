@@ -3,14 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
-import { GUIDE_GROUPS } from "@hostel/shared/guide/guide";
-import { GUIDE_NE_GROUPS } from "@hostel/shared/guide/guide-ne";
+import { canReadChapter, guidePages } from "@hostel/shared/guide/guide";
 
 import { L } from "@/app/_components/guide/guide-l";
 import { HostelRail } from "@/app/_components/guide/guide-rail";
 import { BrandMark, BrandWordmark } from "@/components/brand-mark";
 import { JsonLd } from "@/components/json-ld";
-import { ChevronRight } from "@/components/icons";
+import { ChevronRight, Lock } from "@/components/icons";
+import { guideNav, loadGuide } from "@/lib/guide-access";
 import { loadGuideHostels } from "@/lib/guide-hostels";
 import { absoluteUrl, breadcrumbJsonLd } from "@/lib/json-ld";
 import { loadSiteConfig } from "@/lib/site-config-server";
@@ -24,23 +24,19 @@ export const metadata: Metadata = {
   title: "User guide",
 };
 
-/** The picture on each part's card — the screen that part is mostly about. */
-const COVER: Record<string, string> = {
-  cook: "/guide/cook.webp",
-  guardian: "/guide/payments.webp",
-  owner: "/guide/finding-your-way.webp",
-  resident: "/guide/resident-tour.webp",
-  start: "/guide/admin-vs-warden.webp",
-  visitor: "/guide/visitor.webp",
-  warden: "/guide/warden-permissions.webp",
-};
 
 /** `/guide` — the front door: the banner, the version line, one card per part. */
 export default async function GuidePage() {
-  const [{ legal }, hostels] = await Promise.all([loadSiteConfig(), loadGuideHostels(8)]);
-  const version = legal.guide?.version ?? "1.0";
-  const updatedAt = legal.guide?.updatedAt ?? "18 November 2026";
-  const parts = GUIDE_GROUPS.filter((g) => g.slug !== "reference");
+  const [{ legal }, hostels, payload] = await Promise.all([loadSiteConfig(), loadGuideHostels(8), loadGuide()]);
+  const version = payload?.version ?? legal.guide?.version ?? "1.0";
+  const updatedAt = payload?.updatedAt ?? legal.guide?.updatedAt ?? "18 November 2026";
+  // Every part shows as a card; a part this reader may not open is a locked card to sign-in.
+  const parts = payload ? guideNav(payload).filter((g) => g.slug !== "reference") : [];
+  // An open part's card shows its first picture (signed); a locked part shows none.
+  const cover = new Map(
+    (payload?.guide.groups ?? []).map((g) => [g.slug, g.chapters.map((c) => c.flow?.src ?? c.shot?.src).find(Boolean)]),
+  );
+  const publicPages = payload ? guidePages(payload.guide).filter((p) => canReadChapter("visitor", p.group, p.chapter)) : [];
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
@@ -51,9 +47,7 @@ export default async function GuidePage() {
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             description: DESCRIPTION,
-            hasPart: GUIDE_GROUPS.flatMap((g) =>
-              g.chapters.map((c) => ({ "@type": "TechArticle", headline: c.title, url: absoluteUrl(`/guide/${g.slug}/${c.id}`) })),
-            ),
+            hasPart: publicPages.map((p) => ({ "@type": "TechArticle", headline: p.chapter.title, url: absoluteUrl(p.href) })),
             name: `${PLATFORM_NAME} user guide`,
             url: absoluteUrl("/guide"),
           },
@@ -98,30 +92,43 @@ export default async function GuidePage() {
           {parts.map((g) => (
             <Link
               className="group overflow-hidden rounded-2xl border border-border transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-              href={`/guide/${g.slug}/${g.chapters[0].id}`}
+              href={g.open ? g.chapters[0].href : `/login?next=${encodeURIComponent(g.first)}`}
               key={g.slug}
               // Each chapter page carries the whole guide; don't prefetch seven copies.
               prefetch={false}
             >
               <span className="relative block aspect-[3/2] overflow-hidden bg-muted/40">
-                <Image
-                  alt=""
-                  className="object-cover object-top transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-                  fill
-                  sizes="(min-width: 1024px) 330px, (min-width: 640px) 50vw, 100vw"
-                  src={COVER[g.slug] ?? "/guide/finding-your-way.webp"}
-                />
+                {cover.get(g.slug) ? (
+                  <Image
+                    alt=""
+                    className="object-cover object-top transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                    fill
+                    sizes="(min-width: 1024px) 330px, (min-width: 640px) 50vw, 100vw"
+                    src={cover.get(g.slug)!}
+                    unoptimized
+                  />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
+                    <Lock aria-hidden className="size-8" />
+                  </span>
+                )}
               </span>
               <span className="flex items-center justify-between border-t border-border px-4 py-3">
                 <span>
-                  <span className="block font-heading font-bold text-foreground"><L en={g.label} ne={GUIDE_NE_GROUPS[g.slug]?.label} /></span>
-                  <span className="block text-xs text-muted-foreground">
-                    {g.chapters.length} {g.chapters.length === 1 ? "chapter" : "chapters"}
+                  <span className="block font-heading font-bold text-foreground"><L en={g.label} ne={g.ne} /></span>
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    {g.open ? (
+                      `${g.chapters.length} ${g.chapters.length === 1 ? "chapter" : "chapters"}`
+                    ) : (
+                      <>
+                        <Lock aria-hidden className="size-3" /> Sign in to read
+                      </>
+                    )}
                   </span>
                 </span>
                 <ChevronRight aria-hidden className="size-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
               </span>
-              <span className="sr-only"><L en={g.intro} ne={GUIDE_NE_GROUPS[g.slug]?.intro} /></span>
+              {g.intro ? <span className="sr-only"><L en={g.intro} ne={payload?.guide.ne.groups[g.slug]?.intro} /></span> : null}
             </Link>
           ))}
         </div>

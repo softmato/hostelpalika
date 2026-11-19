@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 
-import { GUIDE_PAGES } from "@hostel/shared/guide/guide";
+import { guidePages } from "@hostel/shared/guide/guide";
 
 import { listingTiers } from "@/app/_components/plans-catalog";
+import { loadPublicGuide } from "@/lib/guide-access";
 import { HOSTEL_TYPE_PAGES } from "@/lib/hostel-locations";
 import { loadCityIndex } from "@/lib/location-pages";
 import { loadNearPlaces } from "@/lib/near-pages";
@@ -137,12 +138,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * are read at generation time. `loadSeo` never throws, so an unreachable
    * database costs the sitemap these rows rather than the whole file.
    */
-  const { config, fill, seo } = await loadSeo();
+  const [{ config, fill, seo }, publicGuide] = await Promise.all([loadSeo(), loadPublicGuide()]);
   const catalog = config.plans;
 
   const marketingEntries: Entry[] = [
-    // Every guide chapter is its own page, so search can show them as sitelinks.
-    ...GUIDE_PAGES.map((page) => ({
+    // The public guide chapters only; the rest is behind sign-in (lib/guide-access.ts).
+    ...(publicGuide ? guidePages(publicGuide.guide) : []).map((page) => ({
       changeFrequency: "monthly" as const,
       priority: 0.5,
       url: `${base}${page.href}`,

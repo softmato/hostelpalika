@@ -4,49 +4,39 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-import { GUIDE_PAGES } from "@hostel/shared/guide/guide";
-
 import { ArrowRight, CornerDownLeft, Search } from "@/components/icons";
 import { jumpToChapter } from "@/app/_components/guide/guide-toc";
+import type { GuideSearchEntry } from "@/lib/guide-access";
 import { cn } from "@/lib/utils";
-
-type Page = (typeof GUIDE_PAGES)[number];
-
-/** Every searchable line of a chapter, title first. */
-const INDEX = GUIDE_PAGES.map((page) => {
-  const c = page.chapter;
-  const lines = [c.summary, ...(c.body ?? []), ...(c.steps ?? []), c.note?.body ?? "", c.flow?.caption ?? "", c.shot?.caption ?? ""].filter(Boolean);
-  return { lines, page, title: c.title.toLowerCase(), group: page.group.label.toLowerCase() };
-});
 
 /** Shown before anything is typed: the questions people actually arrive with. */
 const POPULAR = ["add-resident", "send-proof", "verify-payments", "how-bills-work", "expenses", "app-lock"];
 
-function search(query: string) {
+/** Only the chapters this reader may open are in the index (built on the server). */
+function search(index: GuideSearchEntry[], query: string) {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!terms.length) {
-    return POPULAR.flatMap((id) => {
-      const hit = INDEX.find((e) => e.page.chapter.id === id);
-      return hit ? [{ page: hit.page, snippet: hit.page.chapter.summary }] : [];
-    });
+    const popular = POPULAR.flatMap((id) => index.filter((e) => e.id === id));
+    return (popular.length ? popular : index.slice(0, 6)).map((page) => ({ page, snippet: page.summary }));
   }
-  return INDEX.map((e) => {
+  return index.map((page) => {
+    const title = page.title.toLowerCase();
     let score = 0;
     let snippet = "";
     for (const t of terms) {
-      if (e.title.includes(t)) score += 10;
-      if (e.group.includes(t)) score += 2;
-      const line = e.lines.find((l) => l.toLowerCase().includes(t));
+      if (title.includes(t)) score += 10;
+      if (page.group.toLowerCase().includes(t)) score += 2;
+      const line = page.lines.find((l) => l.toLowerCase().includes(t));
       if (line) {
         score += 3;
         snippet ||= cut(line, t);
-      } else if (!e.title.includes(t)) {
+      } else if (!title.includes(t)) {
         return null; // every word has to appear somewhere
       }
     }
-    return { page: e.page, score, snippet: snippet || e.page.chapter.summary };
+    return { page, score, snippet: snippet || page.summary };
   })
-    .filter((r): r is { page: Page; score: number; snippet: string } => r !== null)
+    .filter((r): r is { page: GuideSearchEntry; score: number; snippet: string } => r !== null)
     .sort((a, b) => b.score - a.score)
     .slice(0, 8);
 }
@@ -84,7 +74,7 @@ function isTyping(target: EventTarget | null) {
  * middle, sliding down over a blurred page (a click outside closes it); results update as you type; ↑ ↓ to move,
  * Enter to open, Esc to close. Everything runs on the page — no request per key.
  */
-export function GuideSearch({ trigger }: { trigger: (open: () => void) => ReactNode }) {
+export function GuideSearch({ index, trigger }: { index: GuideSearchEntry[]; trigger: (open: () => void) => ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -92,7 +82,7 @@ export function GuideSearch({ trigger }: { trigger: (open: () => void) => ReactN
   const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLUListElement>(null);
-  const results = useMemo(() => search(query), [query]);
+  const results = useMemo(() => search(index, query), [index, query]);
 
   const show = () => {
     setQuery("");
@@ -228,9 +218,9 @@ export function GuideSearch({ trigger }: { trigger: (open: () => void) => ReactN
                   role="option"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-medium text-muted-foreground">{r.page.group.label}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground">{r.page.group}</p>
                     <p className="truncate text-sm font-semibold text-foreground">
-                      <Highlight query={query} text={r.page.chapter.title} />
+                      <Highlight query={query} text={r.page.title} />
                     </p>
                     <p className="mt-0.5 line-clamp-2 text-[13px] leading-5 text-muted-foreground">
                       <Highlight query={query} text={r.snippet} />

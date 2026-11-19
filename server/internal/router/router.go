@@ -28,6 +28,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/files"
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/modules/guardian"
+	"github.com/softmato/hostelpalika/server/internal/modules/guide"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelleave"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelreferrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelresidents"
@@ -203,6 +204,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	bookings.NewHandler(bookingsSvc).Register(v1)
 
 	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
+	(&guide.Handler{R2: storage.New(cfg.R2), Config: siteConfig, Guards: guards, Now: time.Now}).Register(v1)
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
 	platformlogs.NewHandler(d.DB, guards).Register(v1)
 	(&team.Handler{DB: d.DB, Guards: guards, Config: siteConfig, Audit: log, RT: rt, Now: time.Now}).Register(v1)

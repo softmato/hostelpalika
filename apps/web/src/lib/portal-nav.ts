@@ -983,6 +983,14 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Plan billing",
       },
       {
+        // The guide shows each reader only their own part (lib/guide-access.ts).
+        description: "Step by step: how you and your team use the app and the portal.",
+        href: "/guide",
+        icon: "help",
+        keywords: ["guide", "help", "how to", "manual", "learn"],
+        label: "Guide",
+      },
+      {
         description: "Hostel workspace controls for profile, resident access, and staff.",
         href: "/hostel-admin/settings",
         icon: "settings",
@@ -1097,6 +1105,7 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
     items: [
       { href: "/resident/referral", icon: "gift", label: "Referral" },
       { href: "/resident/notifications", icon: "bell", label: "Notifications" },
+      { href: "/guide", icon: "help", keywords: ["guide", "help", "how to", "manual"], label: "Guide" },
       {
         href: "/resident/settings",
         icon: "settings",
@@ -1125,7 +1134,10 @@ export const GUARDIAN_NAV: PortalNavGroup[] = [
     label: "Safety",
   },
   {
-    items: [{ href: "/guardian/notifications", icon: "bell", label: "Notifications" }],
+    items: [
+      { href: "/guardian/notifications", icon: "bell", label: "Notifications" },
+      { href: "/guide", icon: "help", keywords: ["guide", "help", "how to", "manual"], label: "Guide" },
+    ],
     label: "Account",
   },
 ];
@@ -1139,6 +1151,7 @@ export const COOK_NAV: PortalNavGroup[] = [
       { href: "/cook/photos", icon: "camera", keywords: ["upload", "picture"], label: "Photos" },
       { href: "/cook/khata", icon: "card", keywords: ["khata", "ask", "egg", "give"], label: "Khata" },
       { href: "/cook/notifications", icon: "bell", label: "Notifications" },
+      { href: "/guide", icon: "help", keywords: ["guide", "help", "how to", "manual"], label: "Guide" },
     ],
   },
 ];

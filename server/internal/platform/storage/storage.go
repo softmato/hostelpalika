@@ -149,6 +149,16 @@ func (r *R2) PresignUpload(ctx context.Context, bucket, key, contentType string)
 
 // PresignRead is a GET URL valid for PrivateReadURLTTL; a downloadName makes it an attachment.
 func (r *R2) PresignRead(ctx context.Context, bucket, key, downloadName string) (string, error) {
+	return r.presignRead(ctx, bucket, key, downloadName, PrivateReadURLTTL)
+}
+
+// PresignReadFor is an inline GET URL valid for ttl — the user guide's pictures,
+// which must outlive a long read (modules/guide).
+func (r *R2) PresignReadFor(ctx context.Context, bucket, key string, ttl time.Duration) (string, error) {
+	return r.presignRead(ctx, bucket, key, "", ttl)
+}
+
+func (r *R2) presignRead(ctx context.Context, bucket, key, downloadName string, ttl time.Duration) (string, error) {
 	if err := r.ready(); err != nil {
 		return "", err
 	}
@@ -156,7 +166,7 @@ func (r *R2) PresignRead(ctx context.Context, bucket, key, downloadName string) 
 	if downloadName != "" {
 		in.ResponseContentDisposition = aws.String("attachment; filename*=UTF-8''" + httpx.EncodeURIComponent(downloadName))
 	}
-	req, err := r.presign.PresignGetObject(ctx, in, s3.WithPresignExpires(PrivateReadURLTTL))
+	req, err := r.presign.PresignGetObject(ctx, in, s3.WithPresignExpires(ttl))
 	if err != nil {
 		return "", err
 	}

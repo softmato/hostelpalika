@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { GUIDE_ACCESS, GUIDE_PAGES, GUIDE_TROUBLE, type GuideLink, type GuidePicture } from "@hostel/shared/guide/guide";
-import { GUIDE_NE, GUIDE_NE_ACCESS, GUIDE_NE_GROUPS, GUIDE_NE_TROUBLE, GUIDE_NE_UI, type GuideChapterNe } from "@hostel/shared/guide/guide-ne";
+import { guidePages, type GuideContent, type GuideLink, type GuidePicture } from "@hostel/shared/guide/guide";
+import { GUIDE_NE_UI, type GuideChapterNe } from "@hostel/shared/guide/guide-ne";
 
 import { AutoBillingDemo } from "@/app/_components/guide/guide-auto-billing";
 import { L } from "@/app/_components/guide/guide-l";
@@ -10,6 +10,7 @@ import { GuideReader } from "@/app/_components/guide/guide-reader";
 import { chapterKey, type GuidePageEntry } from "@/app/_components/guide/guide-toc";
 import { ShareReceiptSteps } from "@/app/_components/share-receipt-steps";
 import { ArrowUpRight, ChevronRight, House } from "@/components/icons";
+import { readerPages } from "@/lib/guide-access";
 import type { GuideHostel } from "@/lib/guide-hostels";
 
 const ROLES = ["owner", "warden", "resident", "guardian", "cook"] as const;
@@ -39,7 +40,7 @@ function Figure({ caption, id, label, picture, priority }: { caption?: string; i
   );
 }
 
-function AccessTable() {
+function AccessTable({ guide }: { guide: GuideContent }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-border">
       <table className="w-full min-w-[560px] text-left text-sm">
@@ -48,18 +49,18 @@ function AccessTable() {
             <th className="px-4 py-3 font-semibold"><L en="Area" ne={GUIDE_NE_UI.area} /></th>
             {ROLES.map((r) => (
               <th className="px-4 py-3 font-semibold capitalize" key={r}>
-                <L en={r} ne={GUIDE_NE_ACCESS.roles[r]} />
+                <L en={r} ne={guide.ne.access.roles[r]} />
               </th>
             ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {GUIDE_ACCESS.map((row) => (
+          {guide.access.map((row) => (
             <tr key={row.area}>
-              <td className="px-4 py-3 font-medium text-foreground"><L en={row.area} ne={GUIDE_NE_ACCESS.areas[row.area]} /></td>
+              <td className="px-4 py-3 font-medium text-foreground"><L en={row.area} ne={guide.ne.access.areas[row.area]} /></td>
               {ROLES.map((r) => (
                 <td className={row.cells[r] === "—" ? "px-4 py-3 text-muted-foreground/50" : "px-4 py-3 text-foreground/80"} key={r}>
-                  <L en={row.cells[r]} ne={GUIDE_NE_ACCESS.cells[row.cells[r]]} />
+                  <L en={row.cells[r]} ne={guide.ne.access.cells[row.cells[r]]} />
                 </td>
               ))}
             </tr>
@@ -70,13 +71,13 @@ function AccessTable() {
   );
 }
 
-function Trouble() {
+function Trouble({ guide }: { guide: GuideContent }) {
   return (
     <dl className="divide-y divide-border rounded-2xl border border-border">
-      {GUIDE_TROUBLE.map((t, i) => (
+      {guide.trouble.map((t, i) => (
         <div className="px-5 py-4" key={t.problem}>
-          <dt className="font-semibold text-foreground"><L en={t.problem} ne={GUIDE_NE_TROUBLE[i]?.problem} /></dt>
-          <dd className="mt-1 text-[15px] leading-7 text-foreground/75"><L en={t.fix} ne={GUIDE_NE_TROUBLE[i]?.fix} /></dd>
+          <dt className="font-semibold text-foreground"><L en={t.problem} ne={guide.ne.trouble[i]?.problem} /></dt>
+          <dd className="mt-1 text-[15px] leading-7 text-foreground/75"><L en={t.fix} ne={guide.ne.trouble[i]?.fix} /></dd>
         </div>
       ))}
     </dl>
@@ -144,9 +145,9 @@ function Links({ links }: { links: GuideLink[] }) {
 }
 
 /** One chapter: breadcrumb, title, one line, the pictures, then the words and where to do it. */
-function Chapter({ own, page, first }: { first: boolean; own: boolean; page: GuidePageEntry }) {
+function Chapter({ first, guide, own, page }: { first: boolean; guide: GuideContent; own: boolean; page: GuidePageEntry }) {
   const { chapter: c, group } = page;
-  const ne = GUIDE_NE[c.id];
+  const ne = guide.ne.chapters[c.id];
   // A part not yet in Nepali reads in English under the Nepali switch.
   const neWords = { body: ne?.body ?? c.body, note: ne?.note ?? c.note, points: ne?.points ?? c.points, steps: ne?.steps ?? c.steps };
   const k = chapterKey(page);
@@ -159,7 +160,7 @@ function Chapter({ own, page, first }: { first: boolean; own: boolean; page: Gui
           <House className="size-4" />
         </Link>
         <ChevronRight aria-hidden className="size-3.5" />
-        <span><L en={group.label} ne={GUIDE_NE_GROUPS[group.slug]?.label} /></span>
+        <span><L en={group.label} ne={guide.ne.groups[group.slug]?.label} /></span>
         <ChevronRight aria-hidden className="size-3.5" />
         <span className="font-medium text-primary"><L en={c.title} ne={ne?.title} /></span>
       </nav>
@@ -176,8 +177,8 @@ function Chapter({ own, page, first }: { first: boolean; own: boolean; page: Gui
             <ShareReceiptSteps open />
           </section>
         ) : null}
-        {c.widget === "access-table" ? <AccessTable /> : null}
-        {c.widget === "troubleshooting" ? <Trouble /> : null}
+        {c.widget === "access-table" ? <AccessTable guide={guide} /> : null}
+        {c.widget === "troubleshooting" ? <Trouble guide={guide} /> : null}
         {c.widget === "auto-billing" ? <AutoBillingDemo /> : null}
         {c.shot ? <Figure caption={ne?.shot} id={`${k}-screen`} label="On web and app" picture={c.shot} priority={own && !c.flow} /> : null}
       </div>
@@ -194,24 +195,36 @@ function Chapter({ own, page, first }: { first: boolean; own: boolean; page: Gui
 }
 
 /**
- * The guide from a chapter's URL: every chapter in reading order on one page,
- * opened at this one. The reader keeps the URL, sidebar and rail on the chapter
- * in view.
+ * The guide from a chapter's URL: every chapter this reader may open, in reading
+ * order on one page, opened at this one. The reader keeps the URL, sidebar and
+ * rail on the chapter in view.
  */
-export function GuideArticle({ href, hostels, updatedAt }: { hostels: GuideHostel[]; href: string; updatedAt: string }) {
-  const ownKey = chapterKey(GUIDE_PAGES.find((p) => p.href === href)!);
+export function GuideArticle({
+  guide,
+  href,
+  hostels,
+  updatedAt,
+}: {
+  /** The reader's own guide, from the API: only chapters they may open, pictures signed. */
+  guide: GuideContent;
+  hostels: GuideHostel[];
+  href: string;
+  updatedAt: string;
+}) {
+  const pages = guidePages(guide);
+  const ownKey = chapterKey(pages.find((p) => p.href === href)!);
 
   return (
-    <GuideReader current={href} hostels={hostels}>
-      {GUIDE_PAGES.map((p, i) => (
-        <Chapter first={i === 0} key={p.href} own={p.href === href} page={p} />
+    <GuideReader current={href} hostels={hostels} pages={readerPages(pages)}>
+      {pages.map((p, i) => (
+        <Chapter first={i === 0} guide={guide} key={p.href} own={p.href === href} page={p} />
       ))}
       {/* Land on the opened chapter before first paint, not after hydration. Inside a
           div's HTML so it runs once from the server page and React never renders a
           <script> (a dev error on client navigation; the reader scrolls then). */}
       <div
         dangerouslySetInnerHTML={{
-          __html: `<script>(function(){var e=document.getElementById(${JSON.stringify(ownKey)});if(e&&${JSON.stringify(href !== GUIDE_PAGES[0].href)})e.closest("[data-chapter]").scrollIntoView();})()</script>`,
+          __html: `<script>(function(){var e=document.getElementById(${JSON.stringify(ownKey)});if(e&&${JSON.stringify(href !== pages[0].href)})e.closest("[data-chapter]").scrollIntoView();})()</script>`,
         }}
         hidden
         suppressHydrationWarning

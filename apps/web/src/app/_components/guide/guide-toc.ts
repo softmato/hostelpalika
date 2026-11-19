@@ -1,6 +1,6 @@
-import type { GUIDE_PAGES } from "@hostel/shared/guide/guide";
+import type { GuidePageEntry } from "@hostel/shared/guide/guide";
 
-export type GuidePageEntry = (typeof GUIDE_PAGES)[number];
+export type { GuidePageEntry };
 
 /** Every chapter sits on one long page, so its anchors carry the chapter's key. */
 export function chapterKey(p: GuidePageEntry) {

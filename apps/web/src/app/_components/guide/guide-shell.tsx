@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import { useState, type ComponentType, type ReactNode } from "react";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
-import { GUIDE_GROUPS } from "@hostel/shared/guide/guide";
-import { GUIDE_NE, GUIDE_NE_GROUPS } from "@hostel/shared/guide/guide-ne";
 
 import { L } from "@/app/_components/guide/guide-l";
 import { GUIDE_LANG_SCRIPT, GuideLangSwitch } from "@/app/_components/guide/guide-lang";
@@ -19,7 +17,9 @@ import {
   ChevronRight,
   HelpCircle,
   Heart,
+  Lock,
   MapPin,
+  Share2,
   Menu,
   Search,
   ShieldCheck,
@@ -29,10 +29,12 @@ import {
 import { useSiteConfig } from "@/components/site-config-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import type { GuideNavGroup, GuideSearchEntry } from "@/lib/guide-access";
 import { cn } from "@/lib/utils";
 
 /** One icon per part, so each role reads as its own section at a glance. */
 const GROUP_ICON: Record<string, ComponentType<{ className?: string }>> = {
+  connects: Share2,
   cook: ChefHat,
   guardian: Heart,
   owner: Building2,
@@ -50,9 +52,11 @@ const NAV = [
   { href: "/get-app", label: "Get the app" },
 ];
 
-function Sidebar({ onPick }: { onPick?: () => void }) {
+function Sidebar({ nav, onPick }: { nav: GuideNavGroup[]; onPick?: () => void }) {
   const path = usePathname();
-  const current = GUIDE_GROUPS.find((g) => path.startsWith(`/guide/${g.slug}/`))?.slug ?? "start";
+  const groups = nav.filter((g) => g.open);
+  const locked = nav.length > groups.length;
+  const current = groups.find((g) => path.startsWith(`/guide/${g.slug}/`))?.slug ?? "start";
   // One group open at a time; opening another closes the rest.
   const [open, setOpen] = useState<string | null>(current);
   // Follow the page into another group (search, prev/next) without an effect.
@@ -72,7 +76,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
         Overview
       </Link>
       <ul className="divide-y divide-border border-y border-border">
-        {GUIDE_GROUPS.map((group) => {
+        {groups.map((group) => {
           const Icon = GROUP_ICON[group.slug] ?? Sparkles;
           const isOpen = open === group.slug;
           return (
@@ -86,7 +90,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="size-4" />
                 </span>
-                <span className="flex-1"><L en={group.label} ne={GUIDE_NE_GROUPS[group.slug]?.label} /></span>
+                <span className="flex-1"><L en={group.label} ne={group.ne} /></span>
                 <ChevronRight
                   aria-hidden
                   className={cn("size-4 text-muted-foreground transition-transform duration-200 ease-out", isOpen && "rotate-90")}
@@ -101,7 +105,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
               >
                 <ul className="space-y-0.5 overflow-hidden pb-3 pl-3">
                   {group.chapters.map((c) => {
-                    const href = `/guide/${group.slug}/${c.id}`;
+                    const { href } = c;
                     const active = path === href;
                     return (
                       <li key={c.id}>
@@ -120,7 +124,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
                           }}
                           prefetch={false}
                         >
-                          <L en={c.title} ne={GUIDE_NE[c.id]?.title} />
+                          <L en={c.title} ne={c.ne} />
                         </Link>
                       </li>
                     );
@@ -131,6 +135,16 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
           );
         })}
       </ul>
+      {locked ? (
+        <Link
+          className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+          href={`/login?next=${encodeURIComponent(path)}`}
+          onClick={onPick}
+        >
+          <Lock aria-hidden className="size-3.5" />
+          Sign in to your hostel to read your part
+        </Link>
+      ) : null}
     </nav>
   );
 }
@@ -140,7 +154,7 @@ function Sidebar({ onPick }: { onPick?: () => void }) {
  * guide as collapsible groups on the left (one per role), and the page. Pages fade
  * in on navigation (`animate-page-in`, off for reduced motion).
  */
-export function GuideShell({ children }: { children: ReactNode }) {
+export function GuideShell({ children, nav, search }: { children: ReactNode; nav: GuideNavGroup[]; search: GuideSearchEntry[] }) {
   const { legal } = useSiteConfig();
   const path = usePathname();
   const [menu, setMenu] = useState(false);
@@ -172,6 +186,7 @@ export function GuideShell({ children }: { children: ReactNode }) {
 
           <div className="flex flex-1 justify-center px-2">
             <GuideSearch
+              index={search}
               trigger={(open) => (
                 <button
                   className="flex h-10 w-full max-w-sm items-center gap-2.5 rounded-full border border-border bg-background px-4 text-sm text-muted-foreground shadow-sm transition-colors duration-150 hover:border-primary/40"
@@ -213,7 +228,7 @@ export function GuideShell({ children }: { children: ReactNode }) {
       <div className="mx-auto flex max-w-[1440px]">
         <aside className="hidden w-[304px] shrink-0 border-r border-border lg:block">
           <div className="thin-scrollbar sticky top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 py-7">
-            <Sidebar />
+            <Sidebar nav={nav} />
           </div>
         </aside>
         {/* Chapter URLs share one reader (it rewrites the URL as you scroll), so
@@ -229,7 +244,7 @@ export function GuideShell({ children }: { children: ReactNode }) {
             <SheetTitle>Guide</SheetTitle>
           </SheetHeader>
           <div className="px-1 pb-8">
-            <Sidebar onPick={() => setMenu(false)} />
+            <Sidebar nav={nav} onPick={() => setMenu(false)} />
           </div>
         </SheetContent>
       </Sheet>

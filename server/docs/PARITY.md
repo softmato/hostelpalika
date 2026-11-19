@@ -400,6 +400,12 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☑ | GET | `/api/v1/guardian/payments` | requireGuardianPrincipal | etag | guardian |
 | ☑ | GET | `/api/v1/guardian/safety-summary` | requireGuardianPrincipal | etag | guardian |
 
+### `guide` (1)
+
+| ☐ | Methods | Path | Guard | Notes | Modules |
+|---|---|---|---|---|---|
+| ☑ | GET | `/api/v1/guide` | loadApiPrincipal | private R2 content, signed pictures; contract covers 503/401 (R2 off), goldens cover the filter | guide |
+
 ### `health` (1)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |

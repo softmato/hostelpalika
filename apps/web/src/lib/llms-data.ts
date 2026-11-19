@@ -5,6 +5,7 @@ import {
   mapPublicHostelToSummary,
   type PublicHostel,
 } from "@/app/_components/public-hostel-data";
+import { loadPublicGuide } from "@/lib/guide-access";
 import { loadCityIndex } from "@/lib/location-pages";
 import type { LlmsData } from "@/lib/llms-txt";
 import { loadNearPlaces } from "@/lib/near-pages";
@@ -18,11 +19,12 @@ import { serverApi } from "@/lib/server-api";
  * retried — rather than publishing "no hostels" to every tool that reads it.
  */
 export async function loadLlmsData(): Promise<LlmsData> {
-  const [{ config, fill, seo }, cities, near, { hostels }] = await Promise.all([
+  const [{ config, fill, seo }, cities, near, { hostels }, publicGuide] = await Promise.all([
     loadSeo(),
     loadCityIndex(),
     loadNearPlaces(),
     serverApi<{ hostels: PublicHostel[] }>("/api/v1/public/hostels", { revalidate: 3600 }),
+    loadPublicGuide(),
   ]);
   const tiers = new Map(listingTiers(config.plans).map(({ plan, tier }) => [plan.id, tier.label]));
   const software = resolveSoftwarePage(seo, fill);
@@ -30,6 +32,7 @@ export async function loadLlmsData(): Promise<LlmsData> {
   return {
     base: siteUrl(),
     guide: config.legal?.guide,
+    guideContent: publicGuide?.guide ?? null,
     cities,
     comparisons: seo.comparisons.flatMap((comparison) => {
       const resolved = resolveComparison(seo, comparison.slug, fill);

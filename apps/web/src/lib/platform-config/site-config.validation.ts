@@ -304,7 +304,7 @@ export const legalSchema = z.object({
     .default({ body: "", updatedAt: "" }),
   /**
    * The user guide's label (`/guide` and the app's Guide screen). The chapters
-   * live in `packages/shared/src/guide/guide.ts`; this is only the version and
+   * are private, in R2 (`scripts/guide-sync.ts`); this is only the version and
    * date a reader sees, bumped here whenever the text changes.
    */
   guide: z

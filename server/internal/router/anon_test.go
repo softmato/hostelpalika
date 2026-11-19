@@ -32,6 +32,7 @@ var openToAnyone = map[string]bool{
 	"POST /api/v1/email-preferences":                    true, // signed link in the body
 	"POST /api/v1/email-preferences/unsubscribe":        true, // signed link in the body
 	"GET /api/v1/files/:assetId/url":                    true, // public assets; private ones check inside
+	"GET /api/v1/guide":                                 true, // the user guide: signed out reads only its public part
 	"POST /api/v1/guide/feedback":                       true, // "Is this page useful?" on the public guide; sign-in optional
 	"POST /api/v1/cook/accept-invitation":               true, // invitation token in the body
 	"POST /api/v1/guardian/accept-invitation":           true, // invitation token in the body

@@ -1,5 +1,5 @@
 import { PLATFORM_NAME, PLATFORM_VENDOR, PLATFORM_VENDOR_URL } from "@hostel/shared/brand/brand";
-import { guideAsMarkdown } from "@hostel/shared/guide/guide";
+import { guideAsMarkdown, type GuideContent } from "@hostel/shared/guide/guide";
 
 import { formatNpr } from "@/lib/json-ld";
 import { ROLE_LINKS } from "@/lib/role-links";
@@ -41,6 +41,8 @@ export type LlmsData = {
   base: string;
   /** The user guide's version line (`legal.guide`); absent means the shipped default. */
   guide?: { updatedAt: string; version: string };
+  /** The guide's public part (`GET /api/v1/guide` signed out); absent leaves the guide out. */
+  guideContent?: GuideContent | null;
   cities: Array<{
     areas: Array<{ count: number; name: string; slug: string }>;
     count: number;
@@ -132,7 +134,7 @@ export function buildLlmsTxt(data: LlmsData) {
     "",
     "## Each person in a hostel",
     "",
-    link(base, "/guide", "User guide", "step by step for owners, wardens, residents, guardians and cooks; full text in llms-full.txt"),
+    link(base, "/guide", "User guide", "getting started and finding a hostel; the rest opens after sign-in, for each role"),
     ...ROLE_LINKS.map((role) =>
       link(base, `/for/${role.slug}`, `For ${role.label.toLowerCase()}`, ROLE_NOTES[role.slug]),
     ),
@@ -241,8 +243,10 @@ export function buildLlmsFullTxt(data: LlmsData) {
   }
 
   // The user guide, one heading level down so it nests under this file's title.
-  const guide = guideAsMarkdown(data.guide ?? { updatedAt: "18 November 2026", version: "1.0" }, data.base);
-  lines.push("", guide.replace(/^(#+) /gm, "#$1 "), "");
+  if (data.guideContent) {
+    const guide = guideAsMarkdown(data.guideContent, data.guide ?? { updatedAt: "18 November 2026", version: "1.0" }, data.base);
+    lines.push("", guide.replace(/^(#+) /gm, "#$1 "), "");
+  }
 
   return `${lines.join("\n").trimEnd()}\n`;
 }

@@ -87,3 +87,9 @@ skills-lock.json
 
 # stray Go test binaries
 /bin/
+
+# The user guide is private: kept out of this public repo, stored in private R2 (scripts/guide-sync.ts).
+/guide-content/
+
+# Expo local machine state.
+/.expo/
