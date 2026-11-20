@@ -556,7 +556,7 @@ func (h *Handler) notifyNewPost(ctx context.Context, authorName, authorID, body 
 	if hostelID == nil {
 		return
 	}
-	audience := []string{}
+	var audience []string
 	{
 		staff, err := residents.HostelStaffUserIDs(ctx, h.DB, *hostelID, false)
 		if err != nil {
