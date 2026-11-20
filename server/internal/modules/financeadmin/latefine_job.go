@@ -57,7 +57,16 @@ func lateFineLine(base int64, due time.Time, enabledAt *time.Time, mode string, 
 // rent bill past its due day gets its FINE line recomputed. The write is
 // guarded by the old total, so a payment landing meanwhile is never overwritten.
 func (h *Handler) AccrueLateFines(ctx context.Context, p *push.Sender, now time.Time) (ordered.Map, error) {
-	cur, err := h.DB.Collection("hostelsettings").Find(ctx, bson.D{{Key: "lateFine.enabled", Value: true}}, options.Find().SetProjection(bson.D{{Key: "hostelId", Value: 1}, {Key: "lateFine", Value: 1}}))
+	return h.accrueLateFines(ctx, p, now, bson.D{{Key: "lateFine.enabled", Value: true}})
+}
+
+// AccrueLateFinesFor is the same run for one hostel only (`dev demo`).
+func (h *Handler) AccrueLateFinesFor(ctx context.Context, p *push.Sender, now time.Time, hostel bson.ObjectID) (ordered.Map, error) {
+	return h.accrueLateFines(ctx, p, now, bson.D{{Key: "lateFine.enabled", Value: true}, {Key: "hostelId", Value: hostel}})
+}
+
+func (h *Handler) accrueLateFines(ctx context.Context, p *push.Sender, now time.Time, filter bson.D) (ordered.Map, error) {
+	cur, err := h.DB.Collection("hostelsettings").Find(ctx, filter, options.Find().SetProjection(bson.D{{Key: "hostelId", Value: 1}, {Key: "lateFine", Value: 1}}))
 	if err != nil {
 		return nil, err
 	}

@@ -34,6 +34,12 @@ Five additions from the owner in the same conversation, equally binding:
    is read only, R2 writes stay under a throwaway test prefix and are deleted, and the contract
    suite stays on its local fixture, because every file drops that database.
 
+6. **Demo-video writes** (2026-11-20): "yes you can write i give permission". The `dev demo`
+   command for the demo videos (`demo-video.md` §6) may write to production, but only for the
+   demo hostel Himalaya Boys Hostel (`HH-BA1F794D`). It refuses any other hostel, marks every
+   row it writes, sends no email, push or SMS from the seed, and `dev demo unseed` removes it all.
+   Everything else in addition 5 stands.
+
 How the project's own rules apply on top of this brief:
 
 - No durations anywhere (root `CLAUDE.md`). The brief's phases are provisional, and

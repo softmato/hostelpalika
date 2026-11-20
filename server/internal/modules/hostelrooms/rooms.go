@@ -371,6 +371,9 @@ func (s *Service) Layout(ctx context.Context, hostel bson.ObjectID) (*Layout, er
 	return out, nil
 }
 
+// SyncTypeCounts is syncTypeCounts for a caller outside the package (`dev demo`).
+func (s *Service) SyncTypeCounts(ctx context.Context, hostel bson.ObjectID) error { return s.syncTypeCounts(ctx, hostel) }
+
 // syncTypeCounts re-derives the listing's per-type counts from the floor plan.
 // A hostel with no rooms keeps what was typed.
 func (s *Service) syncTypeCounts(ctx context.Context, hostel bson.ObjectID) error {
