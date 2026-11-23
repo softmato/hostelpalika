@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "list",
@@ -82,7 +82,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "list limit 1",
@@ -120,7 +120,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "list limit 0",
@@ -157,7 +157,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "list limit abc",
@@ -194,7 +194,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get resident",
@@ -217,7 +217,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get nope",
@@ -240,7 +240,7 @@
         "errorCode": "STATEMENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get unknown",
@@ -263,7 +263,7 @@
         "errorCode": "STATEMENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get failed",
@@ -286,7 +286,7 @@
         "errorCode": "STATEMENT_NOT_READY"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get parsing",
@@ -309,7 +309,7 @@
         "errorCode": "STATEMENT_NOT_READY"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get ready",
@@ -415,7 +415,7 @@
           "fileName": "statement.csv",
           "matchedTotal": 1000,
           "parserVersion": "esewa@2",
-          "periodEnd": "2026-11-03T10:01:24.606Z",
+          "periodEnd": "2026-11-24T13:01:45.408Z",
           "periodStart": "2026-09-01T06:00:00.000Z",
           "provider": "ESEWA",
           "rowCount": 5,
@@ -425,7 +425,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "import resident",
@@ -452,7 +452,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "import empty",
@@ -497,7 +497,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "import bad provider",
@@ -538,7 +538,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "import asset nope",
@@ -565,7 +565,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "import asset unknown",
@@ -592,7 +592,7 @@
         "errorCode": "ASSET_NOT_OWNED"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask resident",
@@ -615,7 +615,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask nope",
@@ -638,7 +638,7 @@
         "errorCode": "CLAIM_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask unknown",
@@ -661,7 +661,7 @@
         "errorCode": "CLAIM_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask not a claim",
@@ -684,7 +684,7 @@
         "errorCode": "CLAIM_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask no account",
@@ -709,7 +709,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "ask with account",
@@ -734,7 +734,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign resident",
@@ -760,7 +760,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign empty",
@@ -798,7 +798,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign unknown event",
@@ -824,7 +824,7 @@
         "errorCode": "EVENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign claim event",
@@ -850,7 +850,7 @@
         "errorCode": "EVENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign unknown invoice",
@@ -876,7 +876,7 @@
         "errorCode": "INVOICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign orphan",
@@ -905,7 +905,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "assign again",
@@ -931,7 +931,7 @@
         "errorCode": "EVENT_ALREADY_ASSIGNED"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "approve resident",
@@ -954,7 +954,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "approve failed",
@@ -977,7 +977,7 @@
         "errorCode": "STATEMENT_NOT_READY"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "approve unknown",
@@ -1000,7 +1000,7 @@
         "errorCode": "STATEMENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "approve matched",
@@ -1026,7 +1026,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "approve again",
@@ -1052,7 +1052,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "get after",
@@ -1112,6 +1112,19 @@
                 "why": "reference HP-TEST — Bina Report, 2083-05"
               },
               {
+                "amount": 777,
+                "claimEventId": null,
+                "confirmsClaim": false,
+                "eventId": "6d09000000000000000000c4",
+                "occurredAt": "2026-09-01T09:16:00.000Z",
+                "period": "2083-05",
+                "providerTxnId": "TXN-D1",
+                "referenceCode": null,
+                "residentName": "Asha Report",
+                "status": "SETTLED",
+                "why": "Assigned by hand"
+              },
+              {
                 "amount": 500,
                 "claimEventId": "6d090000000000000000002a",
                 "confirmsClaim": false,
@@ -1147,9 +1160,9 @@
             ]
           },
           "fileName": "statement.csv",
-          "matchedTotal": 1000,
+          "matchedTotal": 1777,
           "parserVersion": "esewa@2",
-          "periodEnd": "2026-11-03T10:01:24.606Z",
+          "periodEnd": "2026-11-24T13:01:45.408Z",
           "periodStart": "2026-09-01T06:00:00.000Z",
           "provider": "ESEWA",
           "rowCount": 5,
@@ -1159,7 +1172,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   },
   {
     "name": "list after",
@@ -1221,6 +1234,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 d1fb7611"
+    "recorded": "http://localhost:3100 6b4f5f4b"
   }
 ]
