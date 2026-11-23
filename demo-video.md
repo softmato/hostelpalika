@@ -655,6 +655,27 @@ Still to do with the owner: sign-ins 2–8 (§2), ch 57 superadmin approve, ch 4
 - ch 45 resident half → `45-guardian-invite-B` (140 s): More → Guardians → Invite: Krishna Sherestha, G's email, 9800000107, Father; on: fee status, receipts, notices, food menu, night safety (complaints off) → "They will see 5 things" → Send → **Pending, expires in 8 days**. G signs in later (sign-in 7).
 - ch 30 waits for the owner: "Record my location" brings up Android's location permission on B.
 
+### Next session starts here (day 7, after the 2026-11-23 shoot)
+**State:** day 6 filmed 21b 22 33 34 35 36 38 39 40 41 50 50a 52 55 56 17 (all ☑, takes log below). `demo restore` ran at the end. Server fixes pushed (b09b6882 gofmt gate, e164853f CSV MIME, d2c067b8 BS reminder text, 2b85645d the 11 day-6 bugs). **OTA published 2026-11-23** on `production`, runtime `07f747e7…` = the store build: update group `2b302785-f451-4d29-914d-40fde9031dcf`.
+
+**First, before any take:**
+1. `gh run list --workflow "Go server" --limit 1`: 2b85645d's deploy must be green (it was running at hand-off).
+2. Cold-start the app **twice** on each phone (the first start downloads the OTA, the second runs it). The owner types B's PIN.
+3. `server/`: `go build -o bin\dev.exe ./cmd/dev` then `.\bin\dev.exe demo check` (PowerShell).
+
+**Left to film:**
+| Ch | What | Needs |
+|---|---|---|
+| 54 | Settings: नेपाली switch, email opt-out per topic, backup | **Build first** in the app (§10 ch 54): language switch, per-topic email opt-out, backup must not say "plan does not include it" on a trial |
+| 35 (part) | Re-shoot only the **repeat send**: the refusal now names the earlier claim | A = Aarav; same `receipt-resident-rent.png` (already on A) |
+| 50a (part) | Optional: "Who sent this?" now prints Rs 14,000 with its comma | B |
+| 57, 58 | Buy a plan / unpaid plan bill → **web video** (Play Payments policy: the Android app may not sell the plan or link out to buy it) | Web session, owner approves as superadmin, then `plan-past-due`, then `restore` |
+| 30 | Attendance check-ins | Only once background check-ins ship in a store build |
+
+**Then the edit** (§9, §8b module order): narration per module, 01 intro + 59 outro. Trims and blurs are listed per take (search fumbles in 33, picker grids in 35/50a, PINs).
+
+**Tooling learnt on day 6:** DocumentsUI (Android's file picker) ignores injected taps on files: the owner taps the file. A shell `SEND` intent can't grant a MediaStore URI, so to share a sample, open it with `am start -a android.intent.action.VIEW -d content://media/external/images/media/<id>` and use the viewer's own Share. On Samsung A, sticky footers sit at y≈2134: tap at y≈2085 (inside the button, above the nav bar). Sample receipts: `marketing/video/demo-film/make_sample_receipts.py`.
+
 ### Next session starts here (day 6, footage checked 2026-11-23)
 Footage: 139 takes in `assets/raw/clips` (A Samsung 1080×2340, B Infinix 720×1640), each with its `.touches`; `NN-slug-A/B` names map straight onto the §8b modules. 48 chapters ☑ · 9 ◐ · 9 still to shoot (01 and 59 are made in the edit, 20 is web only).
 
