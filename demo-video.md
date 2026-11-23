@@ -392,7 +392,7 @@ B logs out G; O signs in (sign-in 8). Set the notice days so the last day can be
 | ☑ | 51 | Reports & PDF exports | Charts, date range, PDF download | PDF opens | ADM |
 | ☑ | 52 | Branches & Overall | Add a branch (name + label), switcher, Overall view, stock Send → Got it | — | ADM |
 | ☑ | 53 | Referrals & supply store | Referral code, invite other hostels, what it earns; browse the supply store catalogue (no order) | — | ADM |
-| ◐ | 54 | Notifications, settings & your data | Bell, push, email opt-out per topic; switch to नेपाली; dark mode; Forgot password; the Guide inside the app; nightly backup and data export (your data stays yours) | — | ALL |
+| ☑ | 54 | Notifications, settings & your data | Bell, push, email opt-out per topic; switch to नेपाली; dark mode; Forgot password; the Guide inside the app; nightly backup and data export (your data stays yours) | — | ALL |
 
 ### Act 11 · Your plan  (B = O; scenario script; filmed last because a suspended hostel blocks other takes, then `restore`)
 | ☐ | # | Chapter | What happens | Proof | Videos |
@@ -585,6 +585,7 @@ Open decisions:
 
 - **Phone A taken away by the owner (~19:20). Phone B = owner (sign-in done by the owner).** App lock reads "On" for the owner on B.
 - ch 54 → `54-settings-B` (177 s): More → bell → Show only one kind (Resident) → Needs you → All → Dark mode on → (an accidental tap opened a Guide article in dark mode: "Choose the bed and see the bill") → Guide list scroll → Dark mode off → Privacy & your data. ◐: no नेपाली / email opt-out / backup in the app (§10).
+- ch 54 → `54-settings-2-B` (119 s, day 7, after OTA 38357c8a): More → Guide (English) → नेपाली → list scroll → chapter "कोठा र बेड" in Nepali → back → Notification settings → Emails → Attendance alerts OFF (hold) → ON again → More → Backup ("Set up recovery key", "Connect Google Drive"; no longer "Does not include it"). Cut from 54-settings-B: bell filter, dark mode, Privacy. Guide put back to English off camera.
 - ch 09a (new, M5 opener) → `09a-finance-hub-B` (43 s): Home → Finance → Finance settings hub: room rates, festival discounts, late fine, move-out & days away, opening balance, khata, payment setup, bank & wallet statements, booking payouts (in review), online payment (not set up) → Room rates → back.
 - ch 52 part 1 → `52-branches-B` (125 s): Main chip → Switch hostel → Manage branches (0 of 20 on Max trial · no extra cost) → Add a branch: "Himalaya Boys Hostel Koteshwor", label Koteshwor → "Koteshwor added · complete its KYC" → Later → Branches lists it ("KYC to finish") → switcher still shows only Main (§10). Part 2 (switcher + Overall) after the token refresh: by 19:39 the switcher listed Koteshwor and "Overall · All 2 branches together"; switching into Koteshwor hit the public-Home bug (§10), so part 2 is re-filmed with Overall and Main only (after the owner's PIN). The branch stays an unapproved KYC draft (owner asked; approval is locked on the agreement anyway).
 - ch 39–40 (owner side, seeded residents) → `39-overdue-B` (327 s): Payments → Kartik (3 overdue, fines Rs 1,350) → **Nischal**: fine line "Rs 50 a day · 27 days late", tick Kartik + Mangsir → 2 months Rs 23,350 → Cash → collected · **Sujan**: Waive fine → confirm → "Fine waived" (sheet kept the stale Rs 12,350 total: closed and reopened → Rs 11,000, trim) → eSewa (hostel number shown, 2 s undo) → saved · **Dipesh**: Part payment Rs 3,000 cash (trim the amount fix) → Rs 2,850 left, still overdue. Kartik: 1 waiting. R's own late-bill story (39–40 with phone B as R) is still to film if wanted; this covers the owner side.
@@ -666,7 +667,7 @@ Still to do with the owner: sign-ins 2–8 (§2), ch 57 superadmin approve, ch 4
 **Left to film:**
 | Ch | What | Needs |
 |---|---|---|
-| 54 | Guide → EN/नेपाली switch; More → Notification settings → Emails (per topic); Backup | Built day 7 (server deploys itself; the More row needs the OTA). Film on B |
+| 54 | Guide → EN/नेपाली switch; More → Notification settings → Emails (per topic); Backup | ☑ filmed day 7: `54-settings-2-B` (OTA group `38357c8a-f957-4ac9-a35b-9e6aa14af404`) |
 | 35 (part) | Re-shoot only the **repeat send**: the refusal now names the earlier claim | A = Aarav; same `receipt-resident-rent.png` (already on A) |
 | 50a (part) | Optional: "Who sent this?" now prints Rs 14,000 with its comma | B |
 | 57, 58 | Buy a plan / unpaid plan bill → **web video** (Play Payments policy: the Android app may not sell the plan or link out to buy it) | Web session, owner approves as superadmin, then `plan-past-due`, then `restore` |
