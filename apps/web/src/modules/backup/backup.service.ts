@@ -74,9 +74,11 @@ async function ownerHostel(principal: ApiPrincipal, requestedHostelId?: string) 
 
 export async function backupPlanAllows(hostelId: Types.ObjectId) {
   const subscription = await HostelSubscriptionModel.findOne({ hostelId: await billingHostelId(hostelId) })
-    .select("planId")
-    .lean<{ planId?: string | null } | null>();
+    .select("planId trialEndsAt")
+    .lean<{ planId?: string | null; trialEndsAt?: Date | null } | null>();
 
+  // The trial is everything in Max (billing branchPlan), backup included.
+  if (subscription?.trialEndsAt && subscription.trialEndsAt.getTime() > Date.now()) return true;
   if (!subscription?.planId) return false;
 
   const catalog = await getSiteConfigSection("plans");

@@ -100,9 +100,14 @@ func (h *Handler) planAllows(ctx context.Context, hostelID bson.ObjectID) (bool,
 		return false, err
 	}
 	var sub struct {
-		PlanID string `bson:"planId"`
+		PlanID      string     `bson:"planId"`
+		TrialEndsAt *time.Time `bson:"trialEndsAt"`
 	}
-	err = h.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "hostelId", Value: billed}}, options.FindOne().SetProjection(bson.D{{Key: "planId", Value: 1}})).Decode(&sub)
+	err = h.DB.Collection("hostelsubscriptions").FindOne(ctx, bson.D{{Key: "hostelId", Value: billed}}, options.FindOne().SetProjection(bson.D{{Key: "planId", Value: 1}, {Key: "trialEndsAt", Value: 1}})).Decode(&sub)
+	// The trial is everything in Max (billing.branchPlan), backup included.
+	if err == nil && sub.TrialEndsAt != nil && sub.TrialEndsAt.After(time.Now()) {
+		return true, nil
+	}
 	if errors.Is(err, mongo.ErrNoDocuments) || (err == nil && sub.PlanID == "") {
 		return false, nil
 	}

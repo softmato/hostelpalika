@@ -159,7 +159,7 @@ function BranchAdminMoreScreen() {
             />
           </MenuGroup>
 
-          <AppRows />
+          <AppRows notificationSettings />
           <SupportContact />
           <SignOutRow />
         </MenuGroups>
