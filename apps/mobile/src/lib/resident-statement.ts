@@ -55,6 +55,7 @@ import { formatMoney } from "@/lib/format";
 import {
   byNewestFirst,
   rangeLabel,
+  splitByPayment,
   type StatementFilter,
   type StatementRow,
   UNKNOWN_METHOD,
@@ -92,7 +93,7 @@ export function statementDebits(
   return withRunningTotals(
     invoices
       .filter((invoice) => invoice.paidAmount > 0)
-      .map(toDebit)
+      .flatMap((invoice) => splitByPayment(toDebit(invoice), invoice.payments))
       .sort(byNewestFirst),
   );
 }

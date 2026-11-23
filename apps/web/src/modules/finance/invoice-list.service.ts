@@ -23,6 +23,7 @@ import { getRentConcession } from "@/modules/finance/rent-concession.service";
 import {
   listRecentInvoices,
   listResidentInvoices,
+  paymentsJson,
 } from "@/modules/finance/ledger-read.service";
 import type { LedgerInvoice } from "@/modules/finance/ledger-read.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
@@ -166,6 +167,8 @@ export type ResidentPortalInvoice = PortalInvoice & {
    * other here, because a paid invoice's lines still total the full amount.
    */
   lines: ResidentInvoiceLine[];
+  /** Every settled payment on the bill, newest first — one statement line each. */
+  payments: ReturnType<typeof paymentsJson>;
   receipts: ResidentInvoiceReceipt[];
   /**
    * The invoice's reference code (§5, ADR-7), so the payments page can show the
@@ -199,7 +202,7 @@ export async function getResidentFinanceView(
   const resident = await findCurrentResident(principal);
 
   const [invoices, claims, credit] = await Promise.all([
-    listResidentInvoices({ hostelId: resident.hostelId, residentId: resident._id }),
+    listResidentInvoices({ hostelId: resident.hostelId, residentId: resident._id, withPayments: true }),
     listResidentClaims(resident.hostelId, resident._id),
     getCreditAmount(resident.hostelId, resident._id),
   ]);
@@ -300,6 +303,7 @@ export async function getResidentFinanceView(
       return {
         ...portal,
         lines: linesByInvoice.get(portal.id) ?? [],
+        payments: paymentsJson(invoice.payments),
         receipts: receiptsByInvoice.get(portal.id) ?? [],
         referenceCode: codeByInvoice.get(portal.id) ?? null,
       };
@@ -699,6 +703,8 @@ export async function getInvoiceMatrix(
 export type HostelLedgerEntry = PortalInvoice & {
   createdAt?: Date;
   paymentMethod?: string;
+  /** Every settled payment on the bill, newest first — one statement line each. */
+  payments: ReturnType<typeof paymentsJson>;
   remarks?: string;
   residentId: string;
   residentName: string;
@@ -756,7 +762,7 @@ export async function getHostelLedger(
 
   const residentIds = await countableResidentIds(hostelId);
   const [invoices, spent, rules] = await Promise.all([
-    listRecentInvoices({ hostelId, residentIds }, LEDGER_LIMIT),
+    listRecentInvoices({ hostelId, residentIds, withPayments: true }, LEDGER_LIMIT),
     options.expensesFor
       ? listLedgerExpenses(hostelId, options.expensesFor, LEDGER_LIMIT, options.expensesMineOnly)
       : Promise.resolve(null),
@@ -779,6 +785,7 @@ export async function getHostelLedger(
       ...toPortalInvoice(invoice),
       createdAt: invoice.createdAt,
       paymentMethod: invoice.method,
+      payments: paymentsJson(invoice.payments),
       remarks: invoice.remarks,
       residentId: invoice.residentId,
       residentName: nameById.get(invoice.residentId) ?? "",

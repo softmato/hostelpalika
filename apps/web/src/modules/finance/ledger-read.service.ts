@@ -51,7 +51,17 @@ export type LedgerScope = {
   settledTo?: Date;
   /** Only invoices still owing something. */
   unsettledOnly?: boolean;
+  /** Carry every settled payment (`payments`), for the statements. */
+  withPayments?: boolean;
 };
+
+/** One settled payment against an invoice — a statement line. */
+export type LedgerPayment = { amount: number; method?: string; paidAt?: Date };
+
+/** `payments` as the statement routes send it (Go: same shape and order). */
+export function paymentsJson(payments: LedgerPayment[] | undefined) {
+  return (payments ?? []).map((p) => ({ amount: p.amount ?? 0, method: p.method ?? null, paidAt: p.paidAt ?? null }));
+}
 
 /**
  * An invoice as the rest of the product sees it.
@@ -69,6 +79,13 @@ export type LedgerInvoice = {
   method?: string;
   paidAmount: number;
   paidDate?: Date;
+  /**
+   * Every settled payment, newest first — only on reads that asked
+   * (`withPayments`). A statement draws one line per payment, dated when it
+   * landed; drawing the invoice's paid total at `paidDate` re-dated earlier
+   * part payments to the last one.
+   */
+  payments?: LedgerPayment[];
   /** The bill's lines (rent, discount, fine, khata), where the read carried them. */
   lines?: { amount: number; basis: string; description: string }[];
   /**
@@ -218,9 +235,9 @@ function ledgerPipeline(scope: LedgerScope): PipelineStage[] {
               status: "SETTLED",
             },
           },
-          { $sort: { settledAt: -1 } },
-          { $limit: 1 },
-          { $project: { provider: 1, settledAt: 1 } },
+          { $sort: { settledAt: -1, _id: -1 } },
+          ...(scope.withPayments ? [] : [{ $limit: 1 }]),
+          { $project: { amount: 1, provider: 1, settledAt: 1 } },
         ],
       },
     },
@@ -272,6 +289,7 @@ function ledgerPipeline(scope: LedgerScope): PipelineStage[] {
 
 type LedgerInvoiceRow = {
   _id: Types.ObjectId;
+  lastSettled?: { amount: number; provider?: string; settledAt?: Date }[];
   createdAt?: Date;
   dueDate?: Date;
   hasPendingClaim?: boolean;
@@ -301,7 +319,7 @@ export function legacyStatusFor(status: string, hasPendingClaim = false): string
     : mapped;
 }
 
-function fromLedgerRow(row: LedgerInvoiceRow): LedgerInvoice {
+function fromLedgerRow(row: LedgerInvoiceRow, withPayments = false): LedgerInvoice {
   return {
     createdAt: row.createdAt,
     dueAmount: row.totalAmount,
@@ -314,6 +332,15 @@ function fromLedgerRow(row: LedgerInvoiceRow): LedgerInvoice {
     method: row.method ? LEGACY_METHOD_BY_PROVIDER[row.method] : undefined,
     paidAmount: row.paidAmount ?? 0,
     paidDate: row.paidDate,
+    ...(withPayments
+      ? {
+          payments: (row.lastSettled ?? []).map((e) => ({
+            amount: e.amount,
+            method: e.provider ? LEGACY_METHOD_BY_PROVIDER[e.provider] : undefined,
+            paidAt: e.settledAt,
+          })),
+        }
+      : {}),
     period: row.period,
     residentId: row.residentId?.toString() ?? "",
     status: legacyStatusFor(row.status, row.hasPendingClaim),
@@ -342,7 +369,7 @@ export async function listResidentInvoices(
 
   const rows = await InvoiceModel.aggregate<LedgerInvoiceRow>(stages);
 
-  return rows.map(fromLedgerRow);
+  return rows.map((row) => fromLedgerRow(row, scope.withPayments));
 }
 
 /**
@@ -475,7 +502,7 @@ export async function listRecentInvoices(
     { $limit: limit },
   ]);
 
-  return rows.map(fromLedgerRow);
+  return rows.map((row) => fromLedgerRow(row, scope.withPayments));
 }
 
 /** Invoices by id, keyed for lookup. Used to attach an invoice to a claim. */

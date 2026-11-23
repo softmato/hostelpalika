@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "invoices bad period",
@@ -57,7 +57,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "invoices 2083-05",
@@ -206,7 +206,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "invoices 2083-06",
@@ -336,7 +336,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "invoices 2083-08",
@@ -466,7 +466,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "invoices current",
@@ -596,7 +596,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "ledger resident",
@@ -619,7 +619,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "ledger",
@@ -652,6 +652,13 @@
               "status": "PARTIAL",
               "createdAt": "2026-09-01T06:00:00.000Z",
               "paymentMethod": "ESEWA",
+              "payments": [
+                {
+                  "amount": 250,
+                  "method": "ESEWA",
+                  "paidAt": "2026-09-02T18:00:00.000Z"
+                }
+              ],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             },
@@ -663,6 +670,7 @@
               "paidAmount": 0,
               "status": "PENDING_PROOF",
               "createdAt": "2026-09-01T06:00:00.000Z",
+              "payments": [],
               "residentId": "6d090000000000000000000b",
               "residentName": "Bina Report"
             },
@@ -677,6 +685,13 @@
               "status": "PAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
               "paymentMethod": "ESEWA",
+              "payments": [
+                {
+                  "amount": 800,
+                  "method": "ESEWA",
+                  "paidAt": "2026-09-02T18:00:00.000Z"
+                }
+              ],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             },
@@ -688,6 +703,7 @@
               "paidAmount": 0,
               "status": "UNPAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
+              "payments": [],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             },
@@ -699,6 +715,7 @@
               "paidAmount": 0,
               "status": "UNPAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
+              "payments": [],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             },
@@ -710,6 +727,7 @@
               "paidAmount": 0,
               "status": "UNPAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
+              "payments": [],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             },
@@ -721,6 +739,7 @@
               "paidAmount": 1000,
               "status": "PAID",
               "createdAt": "2026-09-01T06:00:00.000Z",
+              "payments": [],
               "residentId": "6d090000000000000000000a",
               "residentName": "Asha Report"
             }
@@ -731,7 +750,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "periods",
@@ -808,7 +827,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "resident ledger",
@@ -906,7 +925,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "resident ledger own fee",
@@ -989,7 +1008,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "resident ledger bad id",
@@ -1012,7 +1031,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "resident ledger erased",
@@ -1035,6 +1054,6 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 e63b19c4"
+    "recorded": "http://localhost:3100 6334ce3e"
   }
 ]

@@ -428,6 +428,7 @@ func (h *Handler) ledger(ctx context.Context, hostel bson.ObjectID, asker string
 		if inv.Method != "" {
 			e = append(e, ordered.Pair{Key: "paymentMethod", Value: inv.Method})
 		}
+		e = append(e, ordered.Pair{Key: "payments", Value: finance.PaymentsJSON(inv.Payments)})
 		entries[i] = append(e, ordered.Pair{Key: "residentId", Value: inv.ResidentID}, ordered.Pair{Key: "residentName", Value: names[inv.ResidentID]})
 	}
 	return ordered.Map{{Key: "entries", Value: entries}, {Key: "expenses", Value: spent}, {Key: "openingBalance", Value: opening},

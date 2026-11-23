@@ -15,7 +15,16 @@ import (
 // each live hostel billed for the period with no actor, residents told, and a
 // hostel's failure reported in its row rather than stopping the rest.
 func (e *Engine) RunBillingCycleForAll(ctx context.Context, period string) ([]ordered.Map, error) {
-	cur, err := e.DB.Collection("hostels").Find(ctx, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}}, options.Find().SetProjection(bson.D{{Key: "name", Value: 1}}))
+	return e.RunBillingCycleFor(ctx, period, nil)
+}
+
+// RunBillingCycleFor is RunBillingCycleForAll kept to one hostel when only is set.
+func (e *Engine) RunBillingCycleFor(ctx context.Context, period string, only *bson.ObjectID) ([]ordered.Map, error) {
+	f := bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}}
+	if only != nil {
+		f = append(f, bson.E{Key: "_id", Value: *only})
+	}
+	cur, err := e.DB.Collection("hostels").Find(ctx, f, options.Find().SetProjection(bson.D{{Key: "name", Value: 1}}))
 	if err != nil {
 		return nil, err
 	}

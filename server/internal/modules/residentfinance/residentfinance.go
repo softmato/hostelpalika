@@ -203,7 +203,7 @@ func (h *Handler) invoices(c *gin.Context) {
 			got = []receiptOut{}
 		}
 		out.Invoices[i] = ordered.Map{{Key: "dueAmount", Value: x.DueAmount}, {Key: "dueDate", Value: due}, {Key: "id", Value: x.ID}, {Key: "method", Value: method}, {Key: "month", Value: month}, {Key: "paidAmount", Value: x.PaidAmount}, {Key: "paidDate", Value: paid}, {Key: "status", Value: x.Status},
-			{Key: "lines", Value: list}, {Key: "receipts", Value: got}, {Key: "referenceCode", Value: code}}
+			{Key: "lines", Value: list}, {Key: "payments", Value: finance.PaymentsJSON(x.Payments)}, {Key: "receipts", Value: got}, {Key: "referenceCode", Value: code}}
 	}
 	httpx.OK(c, out, "Payments")
 }

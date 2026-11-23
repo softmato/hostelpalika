@@ -125,6 +125,12 @@ type dunningItem struct {
 // marks the late ones OVERDUE, moves each one rung, one rent email per resident
 // per run, and mails each hostel's admins once about everyone escalated.
 func (e *Engine) RunPaymentReminders(ctx context.Context, now time.Time) (ordered.Map, error) {
+	return e.RunPaymentRemindersFor(ctx, now, nil)
+}
+
+// RunPaymentRemindersFor is RunPaymentReminders kept to one hostel when only is
+// set: the cron door's ?hostelId=, which the demo videos use (dev demo).
+func (e *Engine) RunPaymentRemindersFor(ctx context.Context, now time.Time, only *bson.ObjectID) (ordered.Map, error) {
 	cfg := e.Config.OperationsTyped(ctx)
 	var escalated, markedOverdue, overdueNotified, reminded, scanned, stopped int
 	_, _, err := recon.WithRun(ctx, e.DB, nil, "DUNNING", "CRON", func(rec *recon.Recorder) error {
@@ -136,6 +142,9 @@ func (e *Engine) RunPaymentReminders(ctx context.Context, now time.Time) (ordere
 		var cursor *bson.ObjectID
 		for {
 			f := bson.D{{Key: "status", Value: bson.D{{Key: "$in", Value: bson.A{"OPEN", "PARTIAL", "OVERDUE"}}}}}
+			if only != nil {
+				f = append(f, bson.E{Key: "hostelId", Value: *only})
+			}
 			if cursor != nil {
 				f = append(f, bson.E{Key: "_id", Value: bson.D{{Key: "$gt", Value: *cursor}}})
 			}

@@ -500,7 +500,8 @@ export async function notifyClaimReviewed(input: {
     resolveResidentContact(resident),
   ]);
 
-  const period = input.period ?? "your account";
+  // Named (Mangsir 2083 BS), never the raw 2083-08 key the push used to print.
+  const period = formatBsPeriod(input.period) || input.period || "your account";
   const points =
     input.outcome.kind === "verified" && input.outcome.eventId && input.invoiceId
       ? await pointsEarnedBy(resident._id, input.invoiceId, input.outcome.eventId).catch(() => 0)

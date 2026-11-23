@@ -24,6 +24,8 @@ import (
 // email, push or SMS, and `dev demo unseed` takes it all back out.
 //
 //	dev demo inspect <collection> [json filter]   read-only, scoped to the demo hostel
+//	dev demo seed-history | unseed                 the lived-in hostel (demo_seed.go)
+//	dev demo <scenario> | restore                  time states for the takes (demo_scenarios.go)
 //
 // The database is the repo root .env's MONGODB_URI (production): server/.env
 // points at the local dev Mongo, which has no demo hostel.
@@ -75,7 +77,30 @@ func runDemo(cmd string, args []string) error {
 	case "seed-history":
 		return d.seedHistory(ctx)
 	case "unseed":
+		if err := d.restore(ctx); err != nil {
+			return err
+		}
 		return d.unseed(ctx)
+	case "rent-due-soon":
+		return d.rentDueSoon(ctx)
+	case "rent-overdue":
+		return d.rentOverdue(ctx)
+	case "month-roll":
+		return d.monthRoll(ctx)
+	case "trial-ending":
+		return d.trialEnding(ctx)
+	case "trial-ended":
+		return d.trialEnded(ctx)
+	case "plan-past-due":
+		return d.planPastDue(ctx)
+	case "seed-bookings":
+		return d.seedBookings(ctx)
+	case "statement-file":
+		return d.statementFile(ctx, args)
+	case "check":
+		return d.check(ctx)
+	case "restore":
+		return d.restore(ctx)
 	}
 	return fmt.Errorf("unknown subcommand %q", cmd)
 }

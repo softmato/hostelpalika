@@ -692,6 +692,9 @@ export async function getAdminInvoices(period?: string) {
 /** The branch a row came from — set only on Overall's merged reads (`lib/overall-api.ts`). */
 export type LedgerBranch = { id: string; isBranch: boolean; name: string };
 
+/** One settled payment on a bill, newest first — one statement line each. */
+export type LedgerPayment = { amount: number; method: string | null; paidAt: string | null };
+
 export type AdminLedgerEntry = {
   branch?: LedgerBranch;
   /** ISO. When the invoice was raised, not when it was paid. */
@@ -706,6 +709,8 @@ export type AdminLedgerEntry = {
   /** ISO. Absent on an invoice nothing has been paid against. */
   paidDate?: string;
   paymentMethod?: string;
+  /** Absent from a server that predates per-payment statements. */
+  payments?: LedgerPayment[];
   remarks?: string;
   residentId: string;
   /** Empty string when the resident record could not be resolved. */

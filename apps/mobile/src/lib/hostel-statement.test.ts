@@ -55,6 +55,36 @@ function filter(overrides: Partial<StatementFilter> = {}): StatementFilter {
 }
 
 describe("statementCredits", () => {
+  it("draws one row per payment, each on the day its money landed", () => {
+    const credits = statementCredits(
+      ledger([
+        entry({
+          dueAmount: 11000,
+          id: "bill",
+          paidAmount: 11000,
+          paidDate: "2026-11-22T02:56:00.000Z",
+          payments: [
+            { amount: 5000, method: "FONEPAY", paidAt: "2026-11-22T02:56:00.000Z" },
+            { amount: 6000, method: "CASH", paidAt: "2026-10-20T02:50:00.000Z" },
+          ],
+        }),
+      ]),
+    );
+
+    expect(credits.map((c) => [c.key, c.amount, c.method, c.receivedAt, c.runningTotal])).toEqual([
+      ["bill:0", 5000, "FONEPAY", "2026-11-22T02:56:00.000Z", 11000],
+      ["bill:1", 6000, "CASH", "2026-10-20T02:50:00.000Z", 6000],
+    ]);
+  });
+
+  it("keeps the bill whole when its payments do not add up to what was paid", () => {
+    const credits = statementCredits(
+      ledger([entry({ id: "bill", paidAmount: 5000, payments: [{ amount: 3000, method: null, paidAt: null }] })]),
+    );
+
+    expect(credits.map((c) => [c.id, c.amount, c.key])).toEqual([["bill", 5000, undefined]]);
+  });
+
   it("keeps only the entries money actually arrived against", () => {
     const credits = statementCredits(
       ledger([

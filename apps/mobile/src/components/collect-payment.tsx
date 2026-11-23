@@ -51,7 +51,7 @@ export function CollectPayment({
   };
   onWaiveFine?: () => void;
   collectedBy: string;
-  onDone: (result: { amount: number; pending: boolean }) => void;
+  onDone: (result: { amount: number; method: DeskMethod; pending: boolean }) => void;
   residentId: string;
   slip: string;
 }) {
@@ -82,7 +82,9 @@ export function CollectPayment({
     return () => {
       active = false;
     };
-  }, [residentId]);
+    // The bill's total is a dependency on purpose: Waive fine lowers it, and the
+    // months below must be read again or Collect keeps offering the old total.
+  }, [residentId, bill?.dueAmount]);
 
   const months = useMemo(() => unpaidMonths(ledger), [ledger]);
   const chosen = ticked ?? months.slice(0, 1).map((month) => month.period);
@@ -158,7 +160,7 @@ export function CollectPayment({
         pending ||= result.pendingApproval;
         left -= pay;
       }
-      onDone({ amount, pending });
+      onDone({ amount, method, pending });
     } catch (caught) {
       setError(readApiError(caught));
       // A bill before the failed one may already be saved: read the ledger again
@@ -256,11 +258,15 @@ export function CollectPayment({
           keyboardType="number-pad"
           label="Amount"
           leading={<Text variant="subtitle">Rs</Text>}
+          autoFocus
           onChangeText={(value) => setAmountText(value.replace(/\D/g, ""))}
+          // Empty, with the full due as the hint: prefilled, typed digits were
+          // appended to it (5850 → 58503000).
+          placeholder={String(balance)}
           value={amountText}
         />
       ) : bills.length > 0 ? (
-        <Pressable accessibilityRole="button" className="min-h-11 justify-center self-start active:opacity-70" onPress={() => setAmountText(String(balance))}>
+        <Pressable accessibilityRole="button" className="min-h-11 justify-center self-start active:opacity-70" onPress={() => setAmountText("")}>
           <Text className="text-primary" variant="label">Part payment</Text>
         </Pressable>
       ) : null}

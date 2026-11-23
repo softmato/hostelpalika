@@ -6,6 +6,11 @@ export type Month = ResidentLedger["months"][number];
 
 export const LABEL: Record<DeskMethod, string> = { BANK: "Bank", CASH: "Cash", ESEWA: "eSewa", KHALTI: "Khalti", QR: "QR" };
 
+/** The success line after Collect / Save: money taken in hand, or a payment recorded. */
+export function collectedLine(method: DeskMethod): string {
+  return method === "CASH" ? "Cash collected" : `${LABEL[method]} payment saved`;
+}
+
 /** The cash endpoint's method: a QR is the bank network. */
 export const SERVER_METHOD: Record<DeskMethod, "CASH" | "ESEWA" | "KHALTI" | "BANK"> = {
   BANK: "BANK",

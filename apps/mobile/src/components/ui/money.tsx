@@ -114,7 +114,16 @@ export function Money({
   const prefix = text.startsWith("Rs ") ? "Rs" : null;
 
   return (
-    <Text className={`${inkClass} font-amount tabular-nums ${className}`} variant={VARIANTS[size]}>
+    <Text
+      className={`${inkClass} font-amount tabular-nums ${className}`}
+      /*
+       * Manrope's line box is ~1.37× its size; the display/title variants give
+       * 1.2×, and Android trims the overflow from below the baseline — which cut
+       * the comma's tail off and printed `Rs 5,000` as `Rs 5.000` (ch 33/34).
+       */
+      style={size === "inline" ? undefined : { lineHeight: Math.ceil(SIZE_PT[size] * 1.4) }}
+      variant={VARIANTS[size]}
+    >
       {prefix ? (
         <>
           {/*

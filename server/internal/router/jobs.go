@@ -119,7 +119,7 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 	mapsClient := maps.NewClient(s.Cfg.Google.MapsAPIKey, s.Cfg.AppURL)
 	const minute = time.Minute
 
-	billingCycle := func(period string) func(ctx context.Context) (any, error) {
+	billingCycle := func(period string, only *bson.ObjectID) func(ctx context.Context) (any, error) {
 		return func(ctx context.Context) (any, error) {
 			now := time.Now()
 			if period == "" {
@@ -129,11 +129,15 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 				}
 				period = p
 			}
-			hostels, err := j.Engine.RunBillingCycleForAll(ctx, period)
+			hostels, err := j.Engine.RunBillingCycleFor(ctx, period, only)
 			if err != nil {
 				return nil, err
 			}
-			fines, err := j.Finance.AccrueLateFines(ctx, s.Push, now)
+			accrue := func() (ordered.Map, error) { return j.Finance.AccrueLateFines(ctx, s.Push, now) }
+			if only != nil {
+				accrue = func() (ordered.Map, error) { return j.Finance.AccrueLateFinesFor(ctx, s.Push, now, *only) }
+			}
+			fines, err := accrue()
 			if err != nil {
 				return nil, err
 			}
@@ -216,13 +220,43 @@ func mountJobs(v1 *gin.RouterGroup, s *shared) {
 			Run: func(ctx context.Context) (any, error) { return hostels.RefreshStaleNearby(ctx, db, mapsClient) }},
 		&jobs.Job{Name: "customer-backup", Schedule: "5 * * * *", Deadline: 5 * minute, Heavy: true, Message: "Customer backups run",
 			Run: func(ctx context.Context) (any, error) { return j.Backup.RunScheduled(ctx) }},
-		&jobs.Job{Name: "billing-cycle", Schedule: "15 0 * * *", Deadline: minute, Message: "Billing cycle processed", Run: billingCycle(""),
+		&jobs.Job{Name: "billing-cycle", Schedule: "15 0 * * *", Deadline: minute, Message: "Billing cycle processed", Run: billingCycle("", nil),
 			Prepare: func(c *gin.Context) (*jobs.Job, error) {
+				only, err := onlyHostel(c)
+				if err != nil {
+					return nil, err
+				}
 				job := *r.Job("billing-cycle")
-				job.Run = billingCycle(c.Query("period"))
+				job.Run = billingCycle(c.Query("period"), only)
 				return &job, nil
 			}},
 		&jobs.Job{Name: "payment-reminders", Schedule: "45 7 * * *", Deadline: minute, Message: "Payment reminders processed",
+			// ?hostelId= runs the plan renewals, trial reminders and rent reminders for
+			// that hostel alone (no digest, no leaving reminders): dev demo's door.
+			Prepare: func(c *gin.Context) (*jobs.Job, error) {
+				only, err := onlyHostel(c)
+				if err != nil || only == nil {
+					return r.Job("payment-reminders"), err
+				}
+				job := *r.Job("payment-reminders")
+				job.Run = func(ctx context.Context) (any, error) {
+					now := time.Now()
+					renewals, err := j.Plans.RaiseDueRenewalsFor(ctx, now, only)
+					if err != nil {
+						return nil, err
+					}
+					trials, err := j.Plans.TrialEndingRemindersFor(ctx, s.Notify, now, only)
+					if err != nil {
+						return nil, err
+					}
+					out, err := j.Engine.RunPaymentRemindersFor(ctx, now, only)
+					if err != nil {
+						return nil, err
+					}
+					return append(out, ordered.Map{{Key: "hostelId", Value: only.Hex()}, {Key: "renewals", Value: renewals}, {Key: "trials", Value: trials}}...), nil
+				}
+				return &job, nil
+			},
 			Run: func(ctx context.Context) (any, error) {
 				now := time.Now()
 				renewals, err := j.Plans.RaiseDueRenewals(ctx, now)
@@ -350,4 +384,18 @@ var errNoReport = httpx.NewError(http.StatusBadRequest, "VALIDATION_ERROR", "pla
 
 func noticeTally(d noticepushes.DispatchResult) ordered.Map {
 	return ordered.Map{{Key: "due", Value: d.Due}, {Key: "failed", Value: d.Failed}, {Key: "sent", Value: d.Sent}, {Key: "skipped", Value: d.Skipped}}
+}
+
+// onlyHostel reads a cron door's optional ?hostelId=: nil when absent, a 400
+// when it is not an id.
+func onlyHostel(c *gin.Context) (*bson.ObjectID, error) {
+	raw := strings.TrimSpace(c.Query("hostelId"))
+	if raw == "" {
+		return nil, nil
+	}
+	id, err := bson.ObjectIDFromHex(raw)
+	if err != nil {
+		return nil, httpx.NewError(http.StatusBadRequest, "VALIDATION_ERROR", "hostelId must be a hostel id.", nil)
+	}
+	return &id, nil
 }

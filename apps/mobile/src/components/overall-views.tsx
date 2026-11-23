@@ -750,7 +750,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
             <Figure label="Net"><Money value={sums.in - sums.out} /></Figure>
           </View>
           <Preview empty="Nothing moved yet." items={credits.map((credit) =>
-            <ListRow icon={credit.transfer ? "swap-horizontal" : credit.debit ? "arrow-down" : "arrow-up"} key={credit.id}
+            <ListRow icon={credit.transfer ? "swap-horizontal" : credit.debit ? "arrow-down" : "arrow-up"} key={credit.key ?? credit.id}
               onPress={() => open(TOPIC_ROUTES.statement)} title={creditTitle(credit, "BS")}
               right={<Money tone={credit.transfer ? "default" : credit.debit ? "debit" : "credit"} value={credit.amount} />} />)} />
         </> : null}

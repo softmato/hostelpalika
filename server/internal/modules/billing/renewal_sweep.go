@@ -23,17 +23,31 @@ const (
 // live plan ending within a week gets its renewal bill; one already past its
 // end turns PAST_DUE and the hostel falls to the free tier (planState).
 func (s *Service) RaiseDueRenewals(ctx context.Context, now time.Time) (ordered.Map, error) {
+	return s.RaiseDueRenewalsFor(ctx, now, nil)
+}
+
+// RaiseDueRenewalsFor is RaiseDueRenewals kept to one hostel when only is set.
+func (s *Service) RaiseDueRenewalsFor(ctx context.Context, now time.Time, only *bson.ObjectID) (ordered.Map, error) {
+	blocked := bson.D{{Key: "suspension.reason", Value: bson.D{{Key: "$in", Value: bson.A{"TRIAL_ENDED", "PLAN_OVERDUE"}}}}}
+	due := bson.D{{Key: "currentPeriodEnd", Value: bson.D{{Key: "$lte", Value: bs.DayEnd(now, renewAheadDays)}, {Key: "$ne", Value: nil}}},
+		{Key: "lifetimeSince", Value: nil}, {Key: "planId", Value: bson.D{{Key: "$ne", Value: nil}}}, {Key: "status", Value: "ACTIVE"}}
+	limits := &Limits{DB: s.DB, Config: s.Config}
+	refresh := func() error { return limits.RefreshAll(ctx, now) }
+	if only != nil {
+		blocked = append(blocked, bson.E{Key: "_id", Value: *only})
+		due = append(due, bson.E{Key: "hostelId", Value: *only})
+		refresh = func() error { _, err := limits.Refresh(ctx, *only, now); return err }
+	}
 	// An unpaid trial or a lapsed plan ends on the free tier now; lift any automatic
 	// block left from before. A platform admin's PLAN_PAYMENT stays.
-	if _, err := s.DB.Collection("hostels").UpdateMany(ctx, bson.D{{Key: "suspension.reason", Value: bson.D{{Key: "$in", Value: bson.A{"TRIAL_ENDED", "PLAN_OVERDUE"}}}}},
+	if _, err := s.DB.Collection("hostels").UpdateMany(ctx, blocked,
 		bson.D{{Key: "$set", Value: bson.D{{Key: "suspension.graceEndsAt", Value: nil}, {Key: "suspension.reason", Value: nil}, {Key: "suspension.startedAt", Value: nil}, {Key: "suspension.startedBy", Value: nil}}}}); err != nil {
 		return nil, err
 	}
-	if err := (&Limits{DB: s.DB, Config: s.Config}).RefreshAll(ctx, now); err != nil {
+	if err := refresh(); err != nil {
 		return nil, err
 	}
-	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, bson.D{{Key: "currentPeriodEnd", Value: bson.D{{Key: "$lte", Value: bs.DayEnd(now, renewAheadDays)}, {Key: "$ne", Value: nil}}},
-		{Key: "lifetimeSince", Value: nil}, {Key: "planId", Value: bson.D{{Key: "$ne", Value: nil}}}, {Key: "status", Value: "ACTIVE"}})
+	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, due)
 	if err != nil {
 		return nil, err
 	}

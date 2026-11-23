@@ -30,6 +30,7 @@
  */
 
 import { API_BASE_URL, api } from "@/lib/api";
+import type { LedgerPayment } from "@/lib/admin-api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 
 /* -------------------------------------------------------------------------- */
@@ -71,6 +72,8 @@ export type ResidentInvoice = {
   month: string | null;
   paidAmount: number;
   paidDate?: string;
+  /** Absent from a server that predates per-payment statements. */
+  payments?: LedgerPayment[];
   receipts: {
     amount: number;
     /** Set when the receipt is certified under the Resident Offer Program. */

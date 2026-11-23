@@ -366,7 +366,7 @@ function CreditRow({
 
 /** The resident, or the expenses screen — in the row's own branch when Overall merged it in. */
 const dayKey = (day: { key: string }) => day.key;
-const creditKey = (credit: StatementCredit) => credit.id;
+const creditKey = (credit: StatementCredit) => credit.key ?? credit.id;
 
 function openBehind(credit: StatementCredit) {
   const route = credit.debit ? "/expenses" : `/manage/resident/${credit.residentId}`;

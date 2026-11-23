@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -30,6 +32,34 @@ type LedgerInvoice struct {
 	ResidentID string
 	Status     string
 	Lines      []LedgerLine
+	// Payments is every settled payment on the invoice, newest first, so a
+	// statement shows one line per payment on the day it landed instead of the
+	// invoice's paid total re-dated to its last payment.
+	Payments []LedgerPayment
+}
+
+// PaymentsJSON is `payments` as the statement routes send it (TS paymentsJson):
+// amount, method (null when the provider has no word), paidAt (null if unset).
+func PaymentsJSON(ps []LedgerPayment) []ordered.Map {
+	out := make([]ordered.Map, len(ps))
+	for i, p := range ps {
+		var method, at any
+		if p.Method != "" {
+			method = p.Method
+		}
+		if p.PaidAt != nil {
+			at = httpx.ISO(*p.PaidAt)
+		}
+		out[i] = ordered.Map{{Key: "amount", Value: p.Amount}, {Key: "method", Value: method}, {Key: "paidAt", Value: at}}
+	}
+	return out
+}
+
+// LedgerPayment is one settled payment against an invoice.
+type LedgerPayment struct {
+	Amount int64
+	Method string
+	PaidAt *time.Time
 }
 
 // LedgerLine is one line of an invoice.
@@ -75,7 +105,8 @@ const (
 	JoinBalance = 1 << iota // paidAmount
 	JoinSettled             // method, paidDate
 	JoinPending             // hasPendingClaim
-	JoinAll     = JoinBalance | JoinSettled | JoinPending
+	JoinPayments            // with JoinSettled: every settled payment, not only the last
+	JoinAll      = JoinBalance | JoinSettled | JoinPending
 )
 
 // LedgerStages is ledgerPipeline: invoices joined to their balance, last settlement and pending claim.
@@ -96,9 +127,14 @@ func ledgerJoinStages(joins int) bson.A {
 		return bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$invoiceId", "$$invoiceId"}}}}, {Key: "direction", Value: "CREDIT"}, {Key: "status", Value: status}}}}
 	}
 	balance := bson.D{{Key: "$lookup", Value: bson.D{{Key: "as", Value: "balance"}, {Key: "foreignField", Value: "invoiceId"}, {Key: "from", Value: "invoicebalances"}, {Key: "localField", Value: "_id"}}}}
+	// Newest first: element 0 is the last settlement (method, paidDate).
+	settledPipe := bson.A{eventFor("SETTLED"), bson.D{{Key: "$sort", Value: bson.D{{Key: "settledAt", Value: -1}, {Key: "_id", Value: -1}}}}}
+	if joins&JoinPayments == 0 {
+		settledPipe = append(settledPipe, bson.D{{Key: "$limit", Value: 1}})
+	}
+	settledPipe = append(settledPipe, bson.D{{Key: "$project", Value: bson.D{{Key: "amount", Value: 1}, {Key: "provider", Value: 1}, {Key: "settledAt", Value: 1}}}})
 	settled := bson.D{{Key: "$lookup", Value: bson.D{{Key: "as", Value: "lastSettled"}, {Key: "from", Value: "paymentevents"}, {Key: "let", Value: bson.D{{Key: "invoiceId", Value: "$_id"}}},
-		{Key: "pipeline", Value: bson.A{eventFor("SETTLED"), bson.D{{Key: "$sort", Value: bson.D{{Key: "settledAt", Value: -1}}}}, bson.D{{Key: "$limit", Value: 1}},
-			bson.D{{Key: "$project", Value: bson.D{{Key: "provider", Value: 1}, {Key: "settledAt", Value: 1}}}}}}}}}
+		{Key: "pipeline", Value: settledPipe}}}}
 	pending := bson.D{{Key: "$lookup", Value: bson.D{{Key: "as", Value: "pendingClaims"}, {Key: "from", Value: "paymentevents"}, {Key: "let", Value: bson.D{{Key: "invoiceId", Value: "$_id"}}},
 		{Key: "pipeline", Value: bson.A{eventFor("PENDING"), bson.D{{Key: "$limit", Value: 1}}, bson.D{{Key: "$project", Value: bson.D{{Key: "_id", Value: 1}}}}}}}}}
 	var out bson.A
@@ -136,7 +172,7 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 	if limit > 0 {
 		stages = append(stages, bson.D{{Key: "$limit", Value: limit}})
 	}
-	stages = append(stages, ledgerJoinStages(JoinAll)...)
+	stages = append(stages, ledgerJoinStages(JoinAll|JoinPayments)...)
 	cur, err := db.Collection("invoices").Aggregate(ctx, stages)
 	if err != nil {
 		return nil, err
@@ -148,6 +184,11 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 		HasPendingClaim bool          `bson:"hasPendingClaim"`
 		HostelID        bson.ObjectID `bson:"hostelId"`
 		Lines           []LedgerLine  `bson:"lines"`
+		Settled         []struct {
+			Amount    int64      `bson:"amount"`
+			Provider  string     `bson:"provider"`
+			SettledAt *time.Time `bson:"settledAt"`
+		} `bson:"lastSettled"`
 		Method          string        `bson:"method"`
 		PaidAmount      int64         `bson:"paidAmount"`
 		PaidDate        *time.Time    `bson:"paidDate"`
@@ -161,7 +202,11 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 	}
 	out := make([]LedgerInvoice, len(rows))
 	for i, r := range rows {
-		out[i] = LedgerInvoice{r.CreatedAt, r.TotalAmount, r.DueDate, r.HostelID.Hex(), r.ID.Hex(), legacyMethod[r.Method], r.PaidAmount, r.PaidDate, r.Period, r.ResidentID.Hex(), LegacyStatusFor(r.Status, r.HasPendingClaim), r.Lines}
+		pays := make([]LedgerPayment, len(r.Settled))
+		for j, e := range r.Settled {
+			pays[j] = LedgerPayment{e.Amount, legacyMethod[e.Provider], e.SettledAt}
+		}
+		out[i] = LedgerInvoice{r.CreatedAt, r.TotalAmount, r.DueDate, r.HostelID.Hex(), r.ID.Hex(), legacyMethod[r.Method], r.PaidAmount, r.PaidDate, r.Period, r.ResidentID.Hex(), LegacyStatusFor(r.Status, r.HasPendingClaim), r.Lines, pays}
 	}
 	return out, nil
 }

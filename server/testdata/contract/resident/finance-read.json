@@ -14,7 +14,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "cook refused",
@@ -34,7 +34,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "list",
@@ -48,6 +48,7 @@
     "masks": [
       "data.invoices.*.dueDate",
       "data.invoices.*.paidDate",
+      "data.invoices.*.payments.*.paidAt",
       "data.claims.*.occurredAt"
     ],
     "response": {
@@ -62,34 +63,36 @@
           "invoices": [
             {
               "dueAmount": 100000,
-              "dueDate": "2026-11-03T11:18:58.105Z",
+              "dueDate": "2026-11-25T02:48:24.798Z",
               "id": "6c0000000000000000000013",
               "month": null,
               "paidAmount": 0,
               "status": "PENDING_PROOF",
               "lines": [],
+              "payments": [],
               "receipts": [],
               "referenceCode": "HP-JOIN1"
             },
             {
               "dueAmount": 500000,
-              "dueDate": "2026-11-02T11:18:58.105Z",
+              "dueDate": "2026-11-24T02:48:24.798Z",
               "id": "6c0000000000000000000012",
               "month": "2083-06",
               "paidAmount": 100000,
               "status": "PARTIAL",
               "lines": [],
+              "payments": [],
               "receipts": [],
               "referenceCode": "HP-PART1"
             },
             {
               "dueAmount": 500000,
-              "dueDate": "2026-10-02T11:18:58.105Z",
+              "dueDate": "2026-10-24T02:48:24.798Z",
               "id": "6c0000000000000000000011",
               "method": "ESEWA",
               "month": "2083-05",
               "paidAmount": 500000,
-              "paidDate": "2026-10-03T07:18:58.105Z",
+              "paidDate": "2026-10-24T22:48:24.798Z",
               "status": "PAID",
               "lines": [
                 {
@@ -100,6 +103,13 @@
                   "prorationBasis": null
                 }
               ],
+              "payments": [
+                {
+                  "amount": 0,
+                  "method": "ESEWA",
+                  "paidAt": "2026-10-24T22:48:24.798Z"
+                }
+              ],
               "receipts": [],
               "referenceCode": "HP-PAID1"
             }
@@ -107,7 +117,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "pay anon",
@@ -124,7 +134,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "pay",
@@ -150,7 +160,7 @@
           "extras": [],
           "credit": 250,
           "displayName": "Contract Hostel Pvt",
-          "dueDate": "2026-11-02T11:18:58.105Z",
+          "dueDate": "2026-11-24T02:48:24.798Z",
           "instructions": "Quote the code",
           "invoiceId": "6c0000000000000000000012",
           "methods": [
@@ -193,7 +203,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "pay paid",
@@ -219,7 +229,7 @@
           "extras": [],
           "credit": 250,
           "displayName": "Contract Hostel Pvt",
-          "dueDate": "2026-10-02T11:18:58.105Z",
+          "dueDate": "2026-10-24T02:48:24.798Z",
           "instructions": "Quote the code",
           "invoiceId": "6c0000000000000000000011",
           "methods": [
@@ -262,7 +272,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "pay bad id",
@@ -282,7 +292,7 @@
         "errorCode": "INVOICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "pay foreign",
@@ -302,6 +312,6 @@
         "errorCode": "INVOICE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   }
 ]

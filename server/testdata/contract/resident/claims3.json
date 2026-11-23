@@ -17,7 +17,7 @@
         "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "read bad",
@@ -38,7 +38,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "read foreign",
@@ -59,7 +59,7 @@
         "errorCode": "NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "read unfinished",
@@ -80,7 +80,7 @@
         "errorCode": "ASSET_UPLOAD_INCOMPLETE"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "read no fetch",
@@ -112,7 +112,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "read stream",
@@ -140,7 +140,7 @@
         "text": false
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "submit",
@@ -172,12 +172,12 @@
         "message": "Payment proof submitted",
         "data": {
           "created": true,
-          "eventId": "6ae722b9e6822539292ba598",
+          "eventId": "6b03a97e8e34d9dec388305f",
           "status": "PENDING"
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "same asset",
@@ -204,7 +204,7 @@
         "errorCode": "EVIDENCE_ALREADY_USED"
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "same code",
@@ -236,7 +236,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "cash",
@@ -264,12 +264,12 @@
         "message": "Payment proof submitted",
         "data": {
           "created": true,
-          "eventId": "6ae722bae6822539292ba59c",
+          "eventId": "6b03a97f8e34d9dec3883063",
           "status": "PENDING"
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "list",
@@ -284,6 +284,7 @@
     "masks": [
       "data.invoices.*.dueDate",
       "data.invoices.*.paidDate",
+      "data.invoices.*.payments.*.paidAt",
       "data.claims.*.occurredAt",
       "data.claims.*.eventId"
     ],
@@ -336,12 +337,12 @@
                 }
               ],
               "confirmation": "UNCONFIRMED",
-              "eventId": "6ae722bae6822539292ba59c",
+              "eventId": "6b03a97f8e34d9dec3883063",
               "evidenceAssetId": "6c00000000000000000000e7",
               "evidenceMimeType": "image/png",
               "invoiceId": "6c0000000000000000000012",
               "method": "CASH",
-              "occurredAt": "2026-11-01T11:30:02.207Z",
+              "occurredAt": "2026-11-23T02:48:31.361Z",
               "period": "2083-06",
               "referenceNote": null,
               "rejectionReason": null,
@@ -394,7 +395,7 @@
                 }
               ],
               "confirmation": "UNCONFIRMED",
-              "eventId": "6ae722b9e6822539292ba598",
+              "eventId": "6b03a97e8e34d9dec388305f",
               "evidenceAssetId": "6c00000000000000000000e3",
               "evidenceMimeType": "image/png",
               "invoiceId": "6c0000000000000000000012",
@@ -421,34 +422,36 @@
           "invoices": [
             {
               "dueAmount": 100000,
-              "dueDate": "2026-11-03T11:29:59.840Z",
+              "dueDate": "2026-11-25T02:48:27.903Z",
               "id": "6c0000000000000000000013",
               "month": null,
               "paidAmount": 0,
               "status": "PENDING_PROOF",
               "lines": [],
+              "payments": [],
               "receipts": [],
               "referenceCode": "HP-JOIN1"
             },
             {
               "dueAmount": 500000,
-              "dueDate": "2026-11-02T11:29:59.840Z",
+              "dueDate": "2026-11-24T02:48:27.903Z",
               "id": "6c0000000000000000000012",
               "month": "2083-06",
               "paidAmount": 100000,
               "status": "PENDING_PROOF",
               "lines": [],
+              "payments": [],
               "receipts": [],
               "referenceCode": "HP-PART1"
             },
             {
               "dueAmount": 500000,
-              "dueDate": "2026-10-02T11:29:59.840Z",
+              "dueDate": "2026-10-24T02:48:27.903Z",
               "id": "6c0000000000000000000011",
               "method": "ESEWA",
               "month": "2083-05",
               "paidAmount": 500000,
-              "paidDate": "2026-10-03T07:29:59.840Z",
+              "paidDate": "2026-10-24T22:48:27.903Z",
               "status": "PAID",
               "lines": [
                 {
@@ -459,6 +462,13 @@
                   "prorationBasis": null
                 }
               ],
+              "payments": [
+                {
+                  "amount": 0,
+                  "method": "ESEWA",
+                  "paidAt": "2026-10-24T22:48:27.903Z"
+                }
+              ],
               "receipts": [],
               "referenceCode": "HP-PAID1"
             }
@@ -466,7 +476,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "admin bell",
@@ -497,7 +507,7 @@
             {
               "actions": [
                 {
-                  "endpoint": "/api/v1/hostel-admin/finance/events/6ae722bae6822539292ba59c/approve",
+                  "endpoint": "/api/v1/hostel-admin/finance/events/6b03a97f8e34d9dec3883063/approve",
                   "key": "approve",
                   "label": "Verify payment",
                   "method": "POST",
@@ -509,12 +519,12 @@
               "body": "Res Ident submitted proof of NPR 100 for 2083-06.",
               "category": "PAYMENT",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T11:30:02.246Z",
+              "createdAt": "2026-11-23T02:48:31.421Z",
               "data": {
-                "eventId": "6ae722bae6822539292ba59c"
+                "eventId": "6b03a97f8e34d9dec3883063"
               },
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae722bae6822539292ba59e",
+              "id": "6b03a97f8e34d9dec3883065",
               "isRead": false,
               "kind": "ACTION",
               "needsAction": true,
@@ -526,7 +536,7 @@
             {
               "actions": [
                 {
-                  "endpoint": "/api/v1/hostel-admin/finance/events/6ae722b9e6822539292ba598/approve",
+                  "endpoint": "/api/v1/hostel-admin/finance/events/6b03a97e8e34d9dec388305f/approve",
                   "key": "approve",
                   "label": "Verify payment",
                   "method": "POST",
@@ -538,12 +548,12 @@
               "body": "Res Ident submitted proof of NPR 100 for 2083-06.",
               "category": "PAYMENT",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T11:30:01.977Z",
+              "createdAt": "2026-11-23T02:48:31.073Z",
               "data": {
-                "eventId": "6ae722b9e6822539292ba598"
+                "eventId": "6b03a97e8e34d9dec388305f"
               },
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae722b9e6822539292ba59a",
+              "id": "6b03a97f8e34d9dec3883061",
               "isRead": false,
               "kind": "ACTION",
               "needsAction": true,
@@ -558,7 +568,7 @@
               "body": "Admin",
               "category": "NOTICE",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T11:29:59.840Z",
+              "createdAt": "2026-11-23T02:48:27.903Z",
               "data": {},
               "id": "6c0000000000000000000094",
               "isRead": false,
@@ -581,7 +591,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   },
   {
     "name": "my bell",
@@ -616,12 +626,12 @@
               "body": "Your proof of NPR 100 for 2083-06 was sent to your hostel to check. Nothing is credited until they verify it.",
               "category": "PAYMENT",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T11:30:02.263Z",
+              "createdAt": "2026-11-23T02:48:31.440Z",
               "data": {
                 "invoiceId": "6c0000000000000000000012"
               },
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae722bae6822539292ba59f",
+              "id": "6b03a97f8e34d9dec3883066",
               "isRead": false,
               "kind": "NORMAL",
               "needsAction": false,
@@ -637,12 +647,12 @@
               "body": "Your proof of NPR 100 for 2083-06 was sent to your hostel to check. Nothing is credited until they verify it.",
               "category": "PAYMENT",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T11:30:01.995Z",
+              "createdAt": "2026-11-23T02:48:31.091Z",
               "data": {
                 "invoiceId": "6c0000000000000000000012"
               },
               "hostelId": "6c00000000000000000000a1",
-              "id": "6ae722b9e6822539292ba59b",
+              "id": "6b03a97f8e34d9dec3883062",
               "isRead": false,
               "kind": "NORMAL",
               "needsAction": false,
@@ -657,7 +667,7 @@
               "body": "Pay soon",
               "category": "BILLING",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T10:29:59.840Z",
+              "createdAt": "2026-11-23T01:48:27.903Z",
               "data": {
                 "z": 1,
                 "a": "x"
@@ -687,7 +697,7 @@
               "body": "Answer",
               "category": "NIGHT_STATUS",
               "channel": "IN_APP",
-              "createdAt": "2026-11-01T09:29:59.840Z",
+              "createdAt": "2026-11-23T00:48:27.903Z",
               "data": {},
               "id": "6c0000000000000000000092",
               "isRead": false,
@@ -710,6 +720,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8e965ad8"
+    "recorded": "http://localhost:3100 6334ce3e"
   }
 ]

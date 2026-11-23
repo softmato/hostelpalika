@@ -1,5 +1,6 @@
 import { roomTypeLabel } from "@hostel/constants/room-types";
 import { CollectPayment } from "@/components/collect-payment";
+import { collectedLine, type DeskMethod } from "@/lib/desk-collect";
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { KycLockedScreen } from "@/components/kyc-frost";
@@ -395,7 +396,7 @@ function BranchAdminMoneyScreen() {
    * connection lands on the same payment instead of banking it twice.
    */
   const [slip, setSlip] = useState("");
-  const [done, setDone] = useState<{ amount: number; pending: boolean } | null>(null);
+  const [done, setDone] = useState<{ amount: number; method: DeskMethod; pending: boolean } | null>(null);
   const [voidOpen, setVoidOpen] = useState(false);
   const [voidReason, setVoidReason] = useState("");
   const [voidError, setVoidError] = useState<string | null>(null);
@@ -869,7 +870,7 @@ function BranchAdminMoneyScreen() {
             <Text className="text-center" variant="muted">
               {done.pending
                 ? "Saved. Another staff member has to approve it."
-                : "Cash collected"}
+                : collectedLine(done.method)}
             </Text>
             <View className="self-stretch pt-2">
               <Button label="Done" onPress={() => setOpen(null)} size="lg" />

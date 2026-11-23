@@ -12,6 +12,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -128,7 +129,11 @@ func (e *Engine) NotifyClaimReviewed(ctx context.Context, in ClaimReview) {
 	if r == nil {
 		return
 	}
+	// Named (Mangsir 2083 BS), never the raw 2083-08 key the push used to print.
 	period := periodText(in.Period, "your account")
+	if name := bs.FormatPeriod(period); name != "" {
+		period = name
+	}
 	var cert, number string
 	if in.Receipt != nil {
 		number = in.Receipt.ReceiptNumber

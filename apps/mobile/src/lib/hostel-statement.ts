@@ -35,14 +35,13 @@
  * of the filter logic, which would have drifted from this one the first time a
  * date range was fixed in only one of them.
  *
- * ## One invoice is one credit, not one payment
+ * ## One payment is one credit
  *
- * The ledger route serves invoices, so a resident who paid a month in two
- * instalments appears once, at the paid amount, dated by the **last**
- * settlement. That is what the server records — `paidDate` is a single field on
- * the invoice — and inventing two rows out of one would be inventing data. The
- * detail sheet says `NPR 3,000 of NPR 5,000` in that case rather than implying
- * the month is closed.
+ * A bill paid in two instalments is two rows, each dated when its money landed
+ * (`payments` on the ledger entry, see {@link splitByPayment}). Drawing the bill
+ * once at its paid total, dated by the **last** payment, moved earlier money
+ * into a later day and month. The detail sheet still says `NPR 3,000 of
+ * NPR 5,000`, so a part never reads as the month closed.
  *
  * ## Every function that spells a date takes the calendar
  *
@@ -63,7 +62,7 @@
 
 import { bsPeriodBounds } from "@hostel/calendar/bs";
 
-import type { AdminLedger, AdminLedgerEntry, LedgerBranch } from "@/lib/admin-api";
+import type { AdminLedger, AdminLedgerEntry, LedgerBranch, LedgerPayment } from "@/lib/admin-api";
 import { type ExpenseRow, expenseTitle } from "@/lib/expenses";
 import {
   type CalendarSystem,
@@ -129,8 +128,10 @@ export type StatementRow = {
   /** What the invoice asked for. Larger than `amount` on a part payment. */
   billed: number;
   dueDate: string | null;
-  /** The invoice id. Unique per row, because one invoice is one row. */
+  /** The invoice id. Several rows share it when a bill was paid in parts. */
   id: string;
+  /** The list key — `id` plus the payment's place on the bill; `id` when absent. */
+  key?: string;
   method: string;
   /** `2026-08`, or `null` for a one-off — an admission fee, a fine. */
   period: string | null;
@@ -233,7 +234,9 @@ function openingRow(opening: { amount: number; asOf: string }): StatementCredit 
 export function statementCredits(ledger: AdminLedger | null | undefined): StatementCredit[] {
   const entries = ledger?.entries ?? [];
   const credits = [
-    ...entries.filter((entry) => entry.paidAmount > 0).map(toCredit),
+    ...entries
+      .filter((entry) => entry.paidAmount > 0)
+      .flatMap((entry) => splitByPayment(toCredit(entry), entry.payments)),
     ...(ledger?.expenses ?? [])
       .filter(
         (expense) =>
@@ -264,6 +267,29 @@ export function withRunningTotals<T extends StatementRow>(rows: T[]): T[] {
   }
 
   return rows;
+}
+
+/**
+ * A bill's row split into one row per settled payment, each with its own
+ * amount, method and day. Left whole when the server sent no payments (an older
+ * server) or they do not add up to the paid total — better one honest row than
+ * parts that lose money.
+ */
+export function splitByPayment<T extends StatementRow>(
+  row: T,
+  payments: readonly LedgerPayment[] | undefined,
+): T[] {
+  const list = payments ?? [];
+  const sum = list.reduce((total, payment) => total + payment.amount, 0);
+  if (list.length === 0 || sum !== row.amount) return [row];
+
+  return list.map((payment, index) => ({
+    ...row,
+    amount: payment.amount,
+    key: `${row.id}:${index}`,
+    method: payment.method?.trim() || row.method,
+    receivedAt: payment.paidAt ?? row.receivedAt,
+  }));
 }
 
 function toCredit(entry: AdminLedgerEntry): StatementCredit {

@@ -755,7 +755,7 @@ export default function ResidentStatementScreen() {
                 <DebitRow
                   calendar={dates.calendar}
                   debit={debit}
-                  key={debit.id}
+                  key={debit.key ?? debit.id}
                   onInvoice={() => router.push(`/invoice/${debit.id}`)}
                   onOpen={() => setOpen(debit)}
                 />

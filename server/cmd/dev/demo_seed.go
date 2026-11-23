@@ -125,7 +125,7 @@ func monthExpenses(month int) []expenseLine {
 // demoCollections is everything a seed row can land in; unseed clears each by mark
 // or by a seeded resident.
 var demoCollections = []string{"residents", "invoices", "paymentevents", "invoicebalances", "receipts", "creditbalances",
-	"khataentries", "rentconcessions", "expenses", "notices", "complaints", "inquiries", "offerawards", "depositrecords"}
+	"khataentries", "rentconcessions", "expenses", "notices", "complaints", "inquiries", "offerawards", "depositrecords", "bookings"}
 
 func (d *demo) seededIDs(ctx context.Context) (bson.A, error) {
 	var ids []bson.ObjectID

@@ -32,8 +32,17 @@ func trialReminderMark(daysLeft int) (int, bool) {
 // job): a hostel on a trial with no plan hears three days out and on its last
 // day, by email and in the bell. The $push claim keeps each mark once.
 func (s *Service) TrialEndingReminders(ctx context.Context, n *notifications.Service, now time.Time) (ordered.Map, error) {
-	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, bson.D{{Key: "lifetimeSince", Value: nil}, {Key: "planId", Value: nil},
-		{Key: "trialEndsAt", Value: bson.D{{Key: "$gte", Value: now}, {Key: "$lte", Value: bs.DayEnd(now, 3)}}}},
+	return s.TrialEndingRemindersFor(ctx, n, now, nil)
+}
+
+// TrialEndingRemindersFor is TrialEndingReminders kept to one hostel when only is set.
+func (s *Service) TrialEndingRemindersFor(ctx context.Context, n *notifications.Service, now time.Time, only *bson.ObjectID) (ordered.Map, error) {
+	f := bson.D{{Key: "lifetimeSince", Value: nil}, {Key: "planId", Value: nil},
+		{Key: "trialEndsAt", Value: bson.D{{Key: "$gte", Value: now}, {Key: "$lte", Value: bs.DayEnd(now, 3)}}}}
+	if only != nil {
+		f = append(f, bson.E{Key: "hostelId", Value: *only})
+	}
+	cur, err := s.DB.Collection("hostelsubscriptions").Find(ctx, f,
 		options.Find().SetProjection(bson.D{{Key: "hostelId", Value: 1}, {Key: "trialEndsAt", Value: 1}, {Key: "trialReminded", Value: 1}}))
 	if err != nil {
 		return nil, err
