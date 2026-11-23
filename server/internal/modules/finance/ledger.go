@@ -102,10 +102,10 @@ func ledgerMatch(s LedgerScope) bson.D {
 // Joins a ledger read can ask for. Each is one $lookup per matched invoice, so a
 // read that spans a hostel's whole history asks only for what it uses (P10-3).
 const (
-	JoinBalance = 1 << iota // paidAmount
-	JoinSettled             // method, paidDate
-	JoinPending             // hasPendingClaim
-	JoinPayments            // with JoinSettled: every settled payment, not only the last
+	JoinBalance  = 1 << iota // paidAmount
+	JoinSettled              // method, paidDate
+	JoinPending              // hasPendingClaim
+	JoinPayments             // with JoinSettled: every settled payment, not only the last
 	JoinAll      = JoinBalance | JoinSettled | JoinPending
 )
 
@@ -189,13 +189,13 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 			Provider  string     `bson:"provider"`
 			SettledAt *time.Time `bson:"settledAt"`
 		} `bson:"lastSettled"`
-		Method          string        `bson:"method"`
-		PaidAmount      int64         `bson:"paidAmount"`
-		PaidDate        *time.Time    `bson:"paidDate"`
-		Period          *string       `bson:"period"`
-		ResidentID      bson.ObjectID `bson:"residentId"`
-		Status          string        `bson:"status"`
-		TotalAmount     int64         `bson:"totalAmount"`
+		Method      string        `bson:"method"`
+		PaidAmount  int64         `bson:"paidAmount"`
+		PaidDate    *time.Time    `bson:"paidDate"`
+		Period      *string       `bson:"period"`
+		ResidentID  bson.ObjectID `bson:"residentId"`
+		Status      string        `bson:"status"`
+		TotalAmount int64         `bson:"totalAmount"`
 	}
 	if err := cur.All(ctx, &rows); err != nil {
 		return nil, err

@@ -442,7 +442,7 @@ func (d *demo) seedBookings(ctx context.Context) error {
 		rent                          int64
 	}{
 		{"Bishal Karki", "9800000041", "Single Room", "AWAITING_HOSTEL", 14000},
-		{"Sandesh Lama", "9800000042", "Double Sharing Room", "CONFIRMED", 11000},
+		{"Sandesh Lama", "9800000042", "Double Sharing", "CONFIRMED", 11000},
 	}
 	for i, r := range rows {
 		if r.status == "CONFIRMED" {
