@@ -433,6 +433,8 @@ var (
 	DefaultAudioMIME    = []string{"audio/mp4", "audio/m4a", "audio/x-m4a", "audio/aac", "audio/webm"}
 	DefaultDocumentMIME = []string{
 		"application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain", "text/csv",
+		// Android labels a .csv text/comma-separated-values; same bytes as text/csv.
+		"text/comma-separated-values",
 		// application/octet-stream is deliberately absent: it would let any binary
 		// through every document upload, payment proofs and ID documents included.
 		"application/vnd.ms-excel",

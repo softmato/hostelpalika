@@ -49,6 +49,8 @@ export const DEFAULT_DOCUMENT_MIME_TYPES = [
    * and an owner should not have their monthly statement bounced over it.
    */
   "text/csv",
+  /** What Android reports for a `.csv` (the app picker passes it through). */
+  "text/comma-separated-values",
   /**
    * The formats the wallets actually hand out. eSewa's export is a legacy BIFF8
    * `.xls` and Khalti's is an `.xlsx`, so a CSV-only allowlist meant every owner

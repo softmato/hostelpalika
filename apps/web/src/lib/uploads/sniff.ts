@@ -65,6 +65,7 @@ const ALLOWED_FAMILIES: Record<string, Family[]> = {
   "image/jpeg": ["IMAGE_JPEG"],
   "image/png": ["IMAGE_PNG"],
   "image/webp": ["IMAGE_WEBP"],
+  "text/comma-separated-values": ["TEXT"],
   "text/csv": ["TEXT"],
   "text/plain": ["TEXT"],
   "video/mp4": ["ISO_MEDIA"],

@@ -176,7 +176,15 @@ const BUCKETS: Record<
 const BUCKET_ORDER: Bucket[] = ["tied", "action", "missing", "norecord"];
 
 /** What the picker hands back. Only the four fields the upload needs. */
-type PickedFile = { mimeType?: string; name: string; size?: number; uri: string };
+function statementMime(name: string, reported?: string | null): string {
+  const ext = name.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
+  if (ext === "csv") return "text/csv";
+  if (ext === "xls") return "application/vnd.ms-excel";
+  if (ext === "xlsx") return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  return reported || "text/csv";
+}
+
+type PickedFile ={ mimeType?: string; name: string; size?: number; uri: string };
 
 type DocumentPickerModule = {
   getDocumentAsync: (options: {
@@ -315,7 +323,10 @@ export default function ManageStatementsScreen() {
           {
             fileName: file.name,
             fileSize: file.size,
-            mimeType: file.mimeType ?? "text/csv",
+            // Android labels a .csv `text/comma-separated-values`, which the
+            // upload allowlist refuses: name the type from the extension, as
+            // the web does (`mimeTypeForStatement` in @hostel/shared).
+            mimeType: statementMime(file.name, file.mimeType),
             uri: file.uri,
           },
           { kind: "STATEMENT", label: `${providerLabel(as)} statement` },

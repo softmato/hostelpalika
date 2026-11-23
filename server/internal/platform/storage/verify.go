@@ -39,7 +39,7 @@ var allowedFamilies = map[string][]Family{
 	"application/vnd.ms-excel": {OLE, ZIP},
 	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {ZIP},
 	"image/jpeg": {JPEG}, "image/png": {PNG}, "image/webp": {WEBP},
-	"text/csv": {Text}, "text/plain": {Text},
+	"text/csv": {Text}, "text/comma-separated-values": {Text}, "text/plain": {Text},
 	"video/mp4": {ISOMedia}, "video/quicktime": {ISOMedia}, "video/webm": {Matroska},
 }
 

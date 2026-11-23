@@ -39,7 +39,7 @@ func TestParseDefaults(t *testing.T) {
 	if c.OTP.HashSecret != secret32 || c.Auth.ActivationCodeSecret != secret32 {
 		t.Error("OTP/activation secrets should fall back to JWT_ACCESS_SECRET")
 	}
-	if c.Uploads.MaxVideoBytes != 50<<20 || len(c.Uploads.DocumentMIME) != 8 {
+	if c.Uploads.MaxVideoBytes != 50<<20 || len(c.Uploads.DocumentMIME) != 9 {
 		t.Errorf("uploads: %+v", c.Uploads)
 	}
 	if c.Sandbox["ESEWA"].MerchantCode != "EPAYTEST" || c.Sandbox["ESEWA"].WebhookSecret != "8gBm/:&EnhH.1/q" {
