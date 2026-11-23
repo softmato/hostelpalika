@@ -87,7 +87,7 @@ func (e *Engine) VoidInvoice(ctx context.Context, rawID string, p *authz.Princip
 			slog.ErrorContext(ctx, "finance audit failed after voiding an invoice", "invoiceId", inv.ID.Hex(), "error", err)
 		}
 	}
-	e.NotifyResident(ctx, inv.HostelID, inv.ResidentID, "Bill cancelled", "Your bill of NPR "+money.GroupUS(inv.Total)+" was cancelled. "+strings.TrimSpace(reason),
+	e.NotifyResident(ctx, inv.HostelID, inv.ResidentID, "Bill cancelled", "Your bill of Rs "+money.GroupUS(inv.Total)+" was cancelled. "+strings.TrimSpace(reason),
 		ordered.Map{{Key: "invoiceId", Value: inv.ID.Hex()}, {Key: "type", Value: "INVOICE_VOIDED"}})
 	return &VoidedInvoice{inv.ID.Hex(), "VOID"}, nil
 }

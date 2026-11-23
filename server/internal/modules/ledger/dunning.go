@@ -351,7 +351,7 @@ func (e *Engine) deliverDunning(ctx context.Context, it dunningItem, hostelName 
 		if label == "" {
 			label = "an earlier period"
 		}
-		body := it.res.name() + " has not paid NPR " + money.GroupIN(it.outstanding) + " for " + label + " after " + strconv.Itoa(MaxChases) + " reminders. Automated reminders have stopped."
+		body := it.res.name() + " has not paid Rs " + money.GroupIN(it.outstanding) + " for " + label + " after " + strconv.Itoa(MaxChases) + " reminders. Automated reminders have stopped."
 		for _, a := range admins {
 			if a.UserID != "" && e.Notify != nil {
 				if _, err := e.Notify.CreateInApp(ctx, notifications.Input{Body: body, Category: "PAYMENT", Data: data, HostelID: it.inv.HostelID.Hex(), Title: "Unpaid fee needs your attention", UserID: a.UserID}); err != nil {

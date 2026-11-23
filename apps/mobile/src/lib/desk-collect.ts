@@ -11,15 +11,6 @@ export function collectedLine(method: DeskMethod): string {
   return method === "CASH" ? "Cash collected" : `${LABEL[method]} payment saved`;
 }
 
-/** The cash endpoint's method: a QR is the bank network. */
-export const SERVER_METHOD: Record<DeskMethod, "CASH" | "ESEWA" | "KHALTI" | "BANK"> = {
-  BANK: "BANK",
-  CASH: "CASH",
-  ESEWA: "ESEWA",
-  KHALTI: "KHALTI",
-  QR: "BANK",
-};
-
 /** Todo E3: Cash, plus only the online methods this hostel has saved. */
 export function deskMethods(profile: PaymentProfile | null): DeskMethod[] {
   if (!profile) return ["CASH"];

@@ -46,7 +46,20 @@ function showLive(payload: RealtimeNotification) {
 
 export function useRealtime() {
   const userId = useAppSelector((state) => state.auth.account?.id ?? null);
+  /*
+   * The channels are the server's answer for this account's role and hostels at
+   * connect time, so the socket follows those too. Keyed on the id alone, a
+   * resident added to a hostel (join link, staff add) never joined
+   * `private-hostel-<id>` until a restart, and a payment the warden took did
+   * not move their Home (ch 33–41).
+   */
+  const scope = useAppSelector((state) => {
+    const account = state.auth.account;
+    return account ? `${account.role}:${[...(account.hostelIds ?? [])].sort().join(",")}` : null;
+  });
   const connection = useRef<RealtimeConnection | null>(null);
+  /** Opens the socket again; set while signed in. */
+  const reopen = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -54,8 +67,11 @@ export function useRealtime() {
     }
 
     let cancelled = false;
+    let opening = false;
 
     async function open() {
+      if (opening || connection.current) return;
+      opening = true;
       const client = await connectRealtime({
         /*
          * A platform-wide broadcast arrives with no durable row behind it —
@@ -94,6 +110,8 @@ export function useRealtime() {
         },
       });
 
+      opening = false;
+
       if (cancelled) {
         // Signed out while the config request was in flight. Without this the
         // socket outlives the session it was opened for.
@@ -105,13 +123,15 @@ export function useRealtime() {
     }
 
     void open();
+    reopen.current = () => void open();
 
     return () => {
       cancelled = true;
+      reopen.current = null;
       connection.current?.disconnect();
       connection.current = null;
     };
-  }, [userId]);
+  }, [userId, scope]);
 
   useEffect(() => {
     if (!userId) {
@@ -120,7 +140,10 @@ export function useRealtime() {
 
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") {
-        connection.current?.reconnect();
+        // A config read that failed at sign-in (offline, a token mid-refresh)
+        // used to leave the whole session without realtime: ask again.
+        if (connection.current) connection.current.reconnect();
+        else reopen.current?.();
       }
     });
 

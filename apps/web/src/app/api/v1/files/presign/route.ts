@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import type { NextRequest } from "next/server";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
@@ -12,6 +13,8 @@ import {
 import { validateFileAssetMetadata } from "@/lib/file-assets";
 import { Role } from "@/lib/roles";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
+import { ResidentModel } from "@hostel/db/models/Resident";
+import { assertEvidenceUnused, CONTENT_HASH_RE } from "@/modules/finance/evidence-used";
 import { bucketForAccessLevel, getPresignedUploadUrl, generateFileKey } from "@/lib/r2";
 import {
   ResidentAccessError,
@@ -69,6 +72,8 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as {
       accessLevel?: "PUBLIC" | "PRIVATE" | "PROTECTED";
+      /** sha256 of the bytes, so a receipt already used here is refused before upload. */
+      contentHash?: string;
       fileName?: string;
       hostelId?: string;
       kind?: string;
@@ -120,6 +125,18 @@ export async function POST(request: NextRequest) {
         "HOSTEL_SCOPE_REQUIRED",
         422,
       );
+    }
+
+    // A receipt already behind a payment here is refused now, with the payment
+    // named, instead of after an upload the claim would refuse anyway (ch 35).
+    if (kind === "PAYMENT_PROOF" && hostelId && body.contentHash && CONTENT_HASH_RE.test(body.contentHash)) {
+      const resident = principal.userId
+        ? await ResidentModel.findOne({ hostelId, isDeleted: { $ne: true }, userId: principal.userId })
+            .select("_id")
+            .lean<{ _id: Types.ObjectId }>()
+        : null;
+
+      await assertEvidenceUnused(hostelId, body.contentHash, resident?._id ?? null);
     }
 
     // The bucket follows the access level, not the caller: a PRIVATE asset must

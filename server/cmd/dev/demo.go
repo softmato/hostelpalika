@@ -26,6 +26,7 @@ import (
 //	dev demo inspect <collection> [json filter]   read-only, scoped to the demo hostel
 //	dev demo seed-history | unseed                 the lived-in hostel (demo_seed.go)
 //	dev demo <scenario> | restore                  time states for the takes (demo_scenarios.go)
+//	dev demo fix-data                              the 2026-11-23 one-off repair (demo_scenarios.go)
 //
 // The database is the repo root .env's MONGODB_URI (production): server/.env
 // points at the local dev Mongo, which has no demo hostel.
@@ -101,6 +102,8 @@ func runDemo(cmd string, args []string) error {
 		return d.check(ctx)
 	case "restore":
 		return d.restore(ctx)
+	case "fix-data":
+		return d.fixData(ctx)
 	}
 	return fmt.Errorf("unknown subcommand %q", cmd)
 }

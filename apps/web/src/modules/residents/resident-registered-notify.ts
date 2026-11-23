@@ -149,7 +149,7 @@ async function notifyTheResident(input: {
 
   await createInAppNotification({
     body: input.firstMonth
-      ? `You are registered at ${input.hostelName}. Your rent for ${formatBsPeriod(input.firstMonth.period) || input.firstMonth.period} is NPR ${input.firstMonth.amount.toLocaleString("en-US")}.`
+      ? `You are registered at ${input.hostelName}. Your rent for ${formatBsPeriod(input.firstMonth.period) || input.firstMonth.period} is Rs ${input.firstMonth.amount.toLocaleString("en-US")}.`
       : `You are registered at ${input.hostelName}.`,
     category: input.firstMonth ? "PAYMENT" : "ACCOUNT",
     data: {

@@ -424,7 +424,7 @@ func (h *Handler) cash(c *gin.Context) {
 	amount, _ := f.Num("amount", valid.N{Int: true, Min: valid.P(1)})
 	slip, _ := f.Str("cashReceiptNumber", valid.S{Trim: true, Min: 1, Max: 64})
 	collector, _ := f.Str("collectedBy", valid.S{Trim: true, Min: 2, Max: 120})
-	method, _ := f.Enum("method", true, nil, "CASH", "ESEWA", "KHALTI", "BANK")
+	method, _ := f.Enum("method", true, nil, "CASH", "ESEWA", "KHALTI", "BANK", "QR")
 	note, hasNote := f.Str("note", valid.S{Opt: true, Trim: true, Max: 500})
 	received := nowMS()
 	if f.Present("receivedAt") {
@@ -476,9 +476,17 @@ func (h *Handler) cash(c *gin.Context) {
 	if hasNote {
 		noteVal = note
 	}
+	raw := bson.D{{Key: "cashReceiptNumber", Value: slip}, {Key: "collectedBy", Value: collector}, {Key: "note", Value: noteVal}, {Key: "recordedBy", Value: p.UserID}}
+	if method == "QR" {
+		// The hostel's QR pays into its bank account, so it stays a BANK event (the
+		// statement it reconciles against) and remembers how it came: it was listed
+		// as "Bank" in the resident's payment history (ch 34).
+		provider = "BANK"
+		raw = append(raw, bson.E{Key: "via", Value: finance.ViaQR})
+	}
 	event, created, err := h.Ledger.AppendEvent(c, ledger.AppendInput{Amount: int64(amount), Confirmation: "MANUAL_REVIEW", HostelID: inv.HostelID,
 		IdempotencyKey: "cash:" + inv.HostelID.Hex() + ":" + slip, InvoiceID: &inv.ID, OccurredAt: received, Provider: provider,
-		RawPayload: bson.D{{Key: "cashReceiptNumber", Value: slip}, {Key: "collectedBy", Value: collector}, {Key: "note", Value: noteVal}, {Key: "recordedBy", Value: p.UserID}},
+		RawPayload: raw,
 		ResidentID: &inv.ResidentID, Source: "CASH_ENTRY", Status: "PENDING"})
 	if err != nil {
 		httpx.Fail(c, err)

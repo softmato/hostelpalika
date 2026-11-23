@@ -1078,7 +1078,7 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     try {
       await createInAppNotification({
         actionUrl: "/app/expenses",
-        body: `Your shared receipt was saved as an expense of NPR ${doc.amount.toLocaleString("en-US")}.`,
+        body: `Your shared receipt was saved as an expense of Rs ${doc.amount.toLocaleString("en-US")}.`,
         category: "PAYMENT",
         data: { expenseId: doc._id.toString(), type: "SHARED_RECEIPT_SAVED" },
         hostelId: actor.hostelId.toString(),

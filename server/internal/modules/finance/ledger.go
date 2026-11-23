@@ -77,6 +77,18 @@ var (
 // LegacyMethodFor is the word the screens show for a provider, "" when it has none.
 func LegacyMethodFor(provider string) string { return legacyMethod[provider] }
 
+// ViaQR marks a desk payment taken on the hostel's QR (rawPayload.via): stored
+// as BANK, where the money lands, and shown as QR, how it was paid.
+const ViaQR = "QR"
+
+// MethodVia is the method a payment list shows: QR for a desk QR, else the provider.
+func MethodVia(provider, via string) string {
+	if via == ViaQR {
+		return ViaQR
+	}
+	return provider
+}
+
 // LegacyStatusFor is legacyStatusFor: a claim awaiting review reads PENDING_PROOF.
 func LegacyStatusFor(status string, pendingClaim bool) string {
 	mapped, ok := legacyStatus[status]
@@ -132,7 +144,7 @@ func ledgerJoinStages(joins int) bson.A {
 	if joins&JoinPayments == 0 {
 		settledPipe = append(settledPipe, bson.D{{Key: "$limit", Value: 1}})
 	}
-	settledPipe = append(settledPipe, bson.D{{Key: "$project", Value: bson.D{{Key: "amount", Value: 1}, {Key: "provider", Value: 1}, {Key: "settledAt", Value: 1}}}})
+	settledPipe = append(settledPipe, bson.D{{Key: "$project", Value: bson.D{{Key: "amount", Value: 1}, {Key: "provider", Value: 1}, {Key: "rawPayload.via", Value: 1}, {Key: "settledAt", Value: 1}}}})
 	settled := bson.D{{Key: "$lookup", Value: bson.D{{Key: "as", Value: "lastSettled"}, {Key: "from", Value: "paymentevents"}, {Key: "let", Value: bson.D{{Key: "invoiceId", Value: "$_id"}}},
 		{Key: "pipeline", Value: settledPipe}}}}
 	pending := bson.D{{Key: "$lookup", Value: bson.D{{Key: "as", Value: "pendingClaims"}, {Key: "from", Value: "paymentevents"}, {Key: "let", Value: bson.D{{Key: "invoiceId", Value: "$_id"}}},
@@ -185,8 +197,11 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 		HostelID        bson.ObjectID `bson:"hostelId"`
 		Lines           []LedgerLine  `bson:"lines"`
 		Settled         []struct {
-			Amount    int64      `bson:"amount"`
-			Provider  string     `bson:"provider"`
+			Amount   int64  `bson:"amount"`
+			Provider string `bson:"provider"`
+			Raw      struct {
+				Via string `bson:"via"`
+			} `bson:"rawPayload"`
 			SettledAt *time.Time `bson:"settledAt"`
 		} `bson:"lastSettled"`
 		Method      string        `bson:"method"`
@@ -204,7 +219,11 @@ func ListLedger(ctx context.Context, db *mongo.Database, match bson.D, sort bson
 	for i, r := range rows {
 		pays := make([]LedgerPayment, len(r.Settled))
 		for j, e := range r.Settled {
-			pays[j] = LedgerPayment{e.Amount, legacyMethod[e.Provider], e.SettledAt}
+			method := legacyMethod[e.Provider]
+			if e.Raw.Via == ViaQR {
+				method = ViaQR
+			}
+			pays[j] = LedgerPayment{e.Amount, method, e.SettledAt}
 		}
 		out[i] = LedgerInvoice{r.CreatedAt, r.TotalAmount, r.DueDate, r.HostelID.Hex(), r.ID.Hex(), legacyMethod[r.Method], r.PaidAmount, r.PaidDate, r.Period, r.ResidentID.Hex(), LegacyStatusFor(r.Status, r.HasPendingClaim), r.Lines, pays}
 	}

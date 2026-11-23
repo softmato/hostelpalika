@@ -324,7 +324,7 @@ func (s *Service) SaveMoveOut(ctx context.Context, id, hostelID string, in MoveO
 }
 
 func describeDeposit(decision string, amount float64) string {
-	m := "NPR " + money.GroupUS(int64(amount))
+	m := "Rs " + money.GroupUS(int64(amount))
 	switch decision {
 	case "APPROVED":
 		if amount > 0 {

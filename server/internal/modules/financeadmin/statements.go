@@ -599,6 +599,9 @@ func (h *Handler) settledAmong(ctx context.Context, ids []string) (map[string]bo
 	return out, nil
 }
 
+// assignedWhy is a tied row's reason when staff picked the resident by hand.
+const assignedWhy = "Assigned by hand"
+
 func (h *Handler) getReconciliation(ctx context.Context, rawID string, p *authz.Principal) (*reconciliation, bson.ObjectID, error) {
 	var zero bson.ObjectID
 	id, err := bson.ObjectIDFromHex(rawID)
@@ -707,7 +710,10 @@ func (h *Handler) getReconciliation(ctx context.Context, rawID string, p *authz.
 			txn = *e.ProviderTxnID
 		}
 		rows = append(rows, finance.StmtRow{Amount: e.Amount, CounterpartyName: party, Direction: "CREDIT", OccurredAt: e.OccurredAt, ProviderTxnID: txn, Remarks: remarks})
-		if tier == "B" || hasClaim {
+		// A row assigned from "Who sent this?" has a bill now: it is tied too. It used
+		// to drop out of both lists, so "0 of 8 payments matched" never moved (ch 50a).
+		assigned := tier != "B" && !hasClaim && e.InvoiceID != nil
+		if tier == "B" || hasClaim || assigned {
 			m := matchedRow{Amount: e.Amount, ConfirmsClaim: confirms || hasClaim && settledClaims[claimID], EventID: e.ID.Hex(), OccurredAt: httpx.ISO(e.OccurredAt), ProviderTxn: e.ProviderTxnID, ReferenceCode: e.ReferenceCode, Status: e.Status}
 			if hasClaim {
 				m.ClaimEventID = &claimID
@@ -719,6 +725,9 @@ func (h *Handler) getReconciliation(ctx context.Context, rawID string, p *authz.
 				m.ResidentName = names[e.ResidentID.Hex()]
 			}
 			m.Why, _ = str(e.Raw, "ladderWhy")
+			if assigned {
+				m.Why = assignedWhy
+			}
 			bk.Matched = append(bk.Matched, m)
 			continue
 		}
@@ -1056,7 +1065,7 @@ func (h *Handler) askResident(c *gin.Context) {
 		return
 	}
 	h.Ledger.NotifyResident(c, cl.HostelID, *cl.ResidentID, "Please confirm your payment details",
-		"We could not find your payment of NPR "+money.GroupIN(cl.Amount)+" in our account statement. Please check the transaction ID and send a clearer screenshot.", nil)
+		"We could not find your payment of Rs "+money.GroupIN(cl.Amount)+" in our account statement. Please check the transaction ID and send a clearer screenshot.", nil)
 	me, err := httpx.OID(p.UserID, "user id")
 	if err != nil {
 		httpx.Fail(c, err)

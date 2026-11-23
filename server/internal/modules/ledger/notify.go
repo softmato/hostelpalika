@@ -73,7 +73,7 @@ func (e *Engine) notifyAdminsOfStaffSettlement(ctx context.Context, ev *Event, s
 	if name == "" {
 		name = "A resident"
 	}
-	e.NotifyHostelAdmins(ctx, ev.HostelID, "/hostel-admin/payments", "Payment accepted", "A warden accepted NPR "+money.GroupUS(ev.Amount)+" from "+name+".",
+	e.NotifyHostelAdmins(ctx, ev.HostelID, "/hostel-admin/payments", "Payment accepted", "A warden accepted Rs "+money.GroupUS(ev.Amount)+" from "+name+".",
 		ordered.Map{{Key: "eventId", Value: ev.ID.Hex()}, {Key: "type", Value: "STAFF_PAYMENT_ACCEPTED"}}, staff)
 }
 
@@ -152,9 +152,9 @@ func (e *Engine) NotifyClaimReviewed(ctx context.Context, in ClaimReview) {
 			if in.Method == "CASH" {
 				title = "Cash collected"
 			}
-			body = "NPR " + money.GroupUS(in.Verified) + " received for " + period + "."
+			body = "Rs " + money.GroupUS(in.Verified) + " received for " + period + "."
 			if in.Remaining > 0 {
-				body += " NPR " + money.GroupUS(in.Remaining) + " still due."
+				body += " Rs " + money.GroupUS(in.Remaining) + " still due."
 			} else {
 				body += " Fully paid."
 			}
@@ -215,7 +215,7 @@ func (e *Engine) notifyPaymentReversed(ctx context.Context, ev *Event, outstandi
 		invoiceData = ev.InvoiceID.Hex()
 	}
 	if r.UserID != nil && e.Notify != nil {
-		_, err := e.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/resident/payments", Body: "A payment of NPR " + money.GroupUS(ev.Amount) + " was reversed: " + reason, Category: "PAYMENT",
+		_, err := e.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/resident/payments", Body: "A payment of Rs " + money.GroupUS(ev.Amount) + " was reversed: " + reason, Category: "PAYMENT",
 			Data: ordered.Map{{Key: "invoiceId", Value: invoiceData}}, HostelID: ev.HostelID.Hex(), Kind: "NORMAL", Title: "Payment reversed", UserID: r.UserID.Hex()})
 		e.warn(ctx, "reversal notification failed", err)
 	}

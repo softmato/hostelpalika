@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import type { PipelineStage } from "mongoose";
 
+import { VIA_QR } from "@/modules/finance/payment-via";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 
 /**
@@ -237,7 +238,7 @@ function ledgerPipeline(scope: LedgerScope): PipelineStage[] {
           },
           { $sort: { settledAt: -1, _id: -1 } },
           ...(scope.withPayments ? [] : [{ $limit: 1 }]),
-          { $project: { amount: 1, provider: 1, settledAt: 1 } },
+          { $project: { amount: 1, provider: 1, "rawPayload.via": 1, settledAt: 1 } },
         ],
       },
     },
@@ -289,7 +290,12 @@ function ledgerPipeline(scope: LedgerScope): PipelineStage[] {
 
 type LedgerInvoiceRow = {
   _id: Types.ObjectId;
-  lastSettled?: { amount: number; provider?: string; settledAt?: Date }[];
+  lastSettled?: {
+    amount: number;
+    provider?: string;
+    rawPayload?: { via?: string };
+    settledAt?: Date;
+  }[];
   createdAt?: Date;
   dueDate?: Date;
   hasPendingClaim?: boolean;
@@ -336,7 +342,12 @@ function fromLedgerRow(row: LedgerInvoiceRow, withPayments = false): LedgerInvoi
       ? {
           payments: (row.lastSettled ?? []).map((e) => ({
             amount: e.amount,
-            method: e.provider ? LEGACY_METHOD_BY_PROVIDER[e.provider] : undefined,
+            method:
+              e.rawPayload?.via === VIA_QR
+                ? VIA_QR
+                : e.provider
+                  ? LEGACY_METHOD_BY_PROVIDER[e.provider]
+                  : undefined,
             paidAt: e.settledAt,
           })),
         }

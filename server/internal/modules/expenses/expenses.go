@@ -932,7 +932,7 @@ func (h *Handler) Create(c context.Context, a *Actor, in *Input) (ordered.Map, b
 		h.notifyAdmins(c, a.hostelID, p.UserID, "New expense recorded", text+".", id.Hex(), "STAFF_EXPENSE_RECORDED")
 	}
 	if shared {
-		_, _ = h.Notify.CreateInApp(c, notifications.Input{ActionURL: "/app/expenses", Body: "Your shared receipt was saved as an expense of NPR " + money.GroupUS(in.amount) + ".", Category: "PAYMENT",
+		_, _ = h.Notify.CreateInApp(c, notifications.Input{ActionURL: "/app/expenses", Body: "Your shared receipt was saved as an expense of Rs " + money.GroupUS(in.amount) + ".", Category: "PAYMENT",
 			Data: ordered.Map{{Key: "expenseId", Value: id.Hex()}, {Key: "type", Value: "SHARED_RECEIPT_SAVED"}}, HostelID: a.hostelID.Hex(), Kind: "NORMAL", NoPush: in.notified, Title: "Receipt saved", UserID: p.UserID})
 	}
 	h.moneyMoved(c, a.hostelID)

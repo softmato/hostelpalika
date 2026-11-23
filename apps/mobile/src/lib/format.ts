@@ -848,10 +848,19 @@ export function greetingFor(now: Date = new Date()): string {
   return hour < 17 ? "Good afternoon" : "Good evening";
 }
 
+/** Words that are not shouted English: an acronym, and a brand's own spelling. */
+const ENUM_WORDS: Record<string, string> = { ESEWA: "eSewa", QR: "QR" };
+
 /** `PENDING_PROOF` → `Pending proof`. Server enums are shouted; screens are not. */
 export function humanizeEnum(value: string | null | undefined): string {
   if (!value) {
     return "—";
+  }
+
+  const word = ENUM_WORDS[value.trim()];
+
+  if (word) {
+    return word;
   }
 
   const words = value

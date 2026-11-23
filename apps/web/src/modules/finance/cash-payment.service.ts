@@ -3,6 +3,7 @@ import type { Types } from "mongoose";
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
+import { VIA_QR } from "@/modules/finance/payment-via";
 import { assertWholeRupees } from "@/modules/finance/money";
 import { appendEvent, settleEvent } from "@/modules/finance/payment-event.service";
 import type { InvoiceBalanceResult } from "@/modules/finance/payment-event.service";
@@ -44,7 +45,7 @@ export type RecordCashInput = {
   /** Who physically took the money — not necessarily who is typing. */
   collectedBy: string;
   invoiceId: Types.ObjectId | string;
-  method?: "CASH" | "ESEWA" | "KHALTI" | "BANK";
+  method?: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "QR";
   note?: string;
   receivedAt?: Date;
 };
@@ -128,12 +129,14 @@ export async function recordCashPayment(
     idempotencyKey: `cash:${invoice.hostelId.toString()}:${input.cashReceiptNumber.trim()}`,
     invoiceId: invoice._id,
     occurredAt: input.receivedAt ?? new Date(),
-    provider: input.method ?? "CASH",
+    // The hostel's QR pays into its bank account: a BANK event that remembers how it came.
+    provider: input.method === "QR" ? "BANK" : (input.method ?? "CASH"),
     rawPayload: {
       cashReceiptNumber: input.cashReceiptNumber.trim(),
       collectedBy: input.collectedBy.trim(),
       note: input.note ?? null,
       recordedBy: principal.userId?.toString(),
+      ...(input.method === "QR" ? { via: VIA_QR } : {}),
     },
     residentId: invoice.residentId,
     source: "CASH_ENTRY",

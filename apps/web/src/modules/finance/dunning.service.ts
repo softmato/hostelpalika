@@ -657,7 +657,7 @@ async function escalateToHostel(input: {
 function escalationLine(resident: ResidentRow, outstanding: number, period?: string | null) {
   const name = `${resident.firstName} ${resident.lastName}`.trim();
 
-  return `${name} has not paid NPR ${outstanding.toLocaleString("en-IN")} for ${
+  return `${name} has not paid Rs ${outstanding.toLocaleString("en-IN")} for ${
     period ?? "an earlier period"
   } after ${MAX_CHASES} reminders.`;
 }

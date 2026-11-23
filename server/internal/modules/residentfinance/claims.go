@@ -20,6 +20,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/money"
 	"github.com/softmato/hostelpalika/server/internal/platform/ordered"
@@ -495,18 +496,24 @@ func (h *Handler) submit(ctx context.Context, invoiceID string, in *claimInput, 
 	if err := h.Audit.WriteFinance(ctx, me, string(p.Role), audit.Finance{Action: "PAYMENT_CLAIM_SUBMITTED", EntityID: event.Hex(), EntityType: "PaymentEvent", EventID: event.Hex(), HostelID: inv.HostelID, InvoiceID: inv.ID.Hex(), Source: "RESIDENT_CLAIM"}); err != nil {
 		return nil, err
 	}
+	// The month by name ("Poush 2083 BS"), not its code: the owner's bell read
+	// "proof of NPR 5,000 for 2083-09" (ch 35).
 	forPeriod := ""
 	if inv.Period != nil && *inv.Period != "" {
-		forPeriod = " for " + *inv.Period
+		name := bs.FormatPeriod(*inv.Period)
+		if name == "" {
+			name = *inv.Period
+		}
+		forPeriod = " for " + name
 	}
 	amount := money.GroupUS(in.amount)
 	if admins, err := residents.HostelStaffUserIDs(ctx, h.DB, inv.HostelID, true); err == nil {
 		for _, admin := range admins {
 			_, _ = h.Notify.CreateInApp(ctx, notifications.Input{Actions: []notifications.Action{{Endpoint: "/api/v1/hostel-admin/finance/events/" + event.Hex() + "/approve", Key: "approve", Label: "Verify payment", Method: "POST"}}, ActionURL: "/hostel-admin/payments",
-				Body: strings.TrimSpace(r.FirstName+" "+r.LastName) + " submitted proof of NPR " + amount + forPeriod + ".", Category: "PAYMENT", Data: ordered.Map{{Key: "eventId", Value: event.Hex()}}, HostelID: inv.HostelID.Hex(), Title: "Payment proof submitted", UserID: admin})
+				Body: strings.TrimSpace(r.FirstName+" "+r.LastName) + " submitted proof of Rs " + amount + forPeriod + ".", Category: "PAYMENT", Data: ordered.Map{{Key: "eventId", Value: event.Hex()}}, HostelID: inv.HostelID.Hex(), Title: "Payment proof submitted", UserID: admin})
 		}
 	}
-	_, _ = h.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/resident/payments", Body: "Your proof of NPR " + amount + forPeriod + " was sent to your hostel to check. Nothing is credited until they verify it.", Category: "PAYMENT",
+	_, _ = h.Notify.CreateInApp(ctx, notifications.Input{ActionURL: "/resident/payments", Body: "Your proof of Rs " + amount + forPeriod + " was sent to your hostel to check. Nothing is credited until they verify it.", Category: "PAYMENT",
 		Data: ordered.Map{{Key: "invoiceId", Value: inv.ID.Hex()}}, HostelID: inv.HostelID.Hex(), Kind: "NORMAL", NoPush: in.notified, Title: "Payment proof sent", UserID: p.UserID})
 	realtime.PublishResourceChange(ctx, h.RT, h.Bump, realtime.Change{HostelIDs: []string{inv.HostelID.Hex()}, Topics: []realtime.Topic{realtime.Payments}, UserIDs: []string{p.UserID}})
 	return &claimResult{true, event.Hex(), "PENDING"}, nil

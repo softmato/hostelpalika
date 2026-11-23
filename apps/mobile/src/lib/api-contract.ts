@@ -128,10 +128,45 @@ export function readApiError(error: unknown, fallback = "Something went wrong.")
   }
 
   if (error instanceof Error && error.message) {
-    return error.message;
+    if (!isTechnicalError(error)) {
+      return error.message;
+    }
+
+    // For the logs only. A person holding the phone was shown "Call to function
+    // 'FileSystemUploadTask.start' has been rejected. → Caused by: …" (ch 35).
+    console.warn("[error]", error.message);
+
+    if (/time ?out|timed out/i.test(error.message)) {
+      return "The server took too long to respond. Check your connection and try again.";
+    }
+
+    if (/network|connect|unreachable|resolve host|socket/i.test(error.message)) {
+      return "Can't reach the server. Check your internet connection.";
+    }
   }
 
   return fallback;
+}
+
+/** Text a native module or the JS engine wrote for developers, not for people. */
+const TECHNICAL_TEXT =
+  /Call to function|Caused by|Exception|java\.|kotlin\.|undefined is not|is not a function|Cannot read propert|null is not an object|Request failed with status|^\s*\w*Error:/;
+
+/**
+ * Whether an error's message is for developers. Our own throws are a plain
+ * `Error` (or a named class like `UploadError`) with a sentence in it; a native
+ * module's rejection carries a string `code` (expo's `CodedError`), and the
+ * engine's own failures are `TypeError` and friends.
+ */
+export function isTechnicalError(error: Error): boolean {
+  return (
+    typeof (error as { code?: unknown }).code === "string" ||
+    error instanceof TypeError ||
+    error instanceof ReferenceError ||
+    error instanceof SyntaxError ||
+    error instanceof RangeError ||
+    TECHNICAL_TEXT.test(error.message)
+  );
 }
 
 /**

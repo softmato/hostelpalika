@@ -24,7 +24,7 @@ import {
   type ResidentLedger,
 } from "@/lib/admin-manage-api";
 import { formatMoney } from "@/lib/format";
-import { type DeskMethod, deskMethods, LABEL, SERVER_METHOD, unpaidMonths } from "@/lib/desk-collect";
+import { type DeskMethod, deskMethods, LABEL, unpaidMonths } from "@/lib/desk-collect";
 import { fileAssetUrl } from "@/lib/finance-api";
 
 /**
@@ -155,7 +155,9 @@ export function CollectPayment({
           amount: pay,
           cashReceiptNumber: bills.length > 1 ? `${slip}-${bill.period}` : slip,
           collectedBy,
-          method: SERVER_METHOD[method],
+          // As picked: the server files a QR as a bank payment and lists it as QR.
+          // It used to be sent as BANK, which the payment history then showed (ch 34).
+          method,
         });
         pending ||= result.pendingApproval;
         left -= pay;

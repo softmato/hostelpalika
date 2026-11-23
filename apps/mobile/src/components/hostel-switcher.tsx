@@ -106,7 +106,8 @@ export function useBranchesLock(): string | null | undefined {
   const query = adminQuery.subscription();
   const subscription = useResource(query.load, { cacheKey: query.key, topics: query.topics });
 
-  if (subscription.loading) return undefined;
+  // No answer is not "no plan": a failed read leaves the verdict open.
+  if (subscription.loading || (subscription.error && !subscription.data)) return undefined;
 
   const sub = subscription.data?.subscription;
   const now = Date.now();
@@ -260,11 +261,6 @@ export function HostelSwitcher({
   const { colors } = useAppTheme();
   const warden = useAppSelector((state) => state.auth.account?.role) === ROLE.WARDEN;
   const branches = useBranches(warden);
-  const subscriptionQuery = adminQuery.subscription();
-  const subscription = useResource(subscriptionQuery.load, {
-    cacheKey: subscriptionQuery.key,
-    topics: subscriptionQuery.topics,
-  });
   // The pick, ahead of the screens while its Home loads (`setActiveHostelId`).
   const active = useSyncExternalStore(subscribeActiveHostel, getChosenHostelId, getChosenHostelId);
   const switching = active !== useActiveHostel();
@@ -290,12 +286,9 @@ export function HostelSwitcher({
   }, [shown]);
 
   // Still shown in Overall whatever the plan says, so the way out never disappears.
-  // A warden's hostel with no branches has nothing to show.
-  if (
-    warden
-      ? rows.length < 2
-      : rows.length === 0 || (subscription.data?.subscription.planId !== "max" && !overall)
-  )
+  // A warden's hostel with no branches has nothing to show. The owner's chip follows
+  // `useBranchesLock`, so a trial (everything in Max) shows it too, not only a paid Max.
+  if (warden ? rows.length < 2 : rows.length === 0 || (lock !== null && !overall))
     return null;
 
   const current = warden

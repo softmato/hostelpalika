@@ -72,6 +72,11 @@ describe("reading money", () => {
     expect(readRupees("twelve thousand")).toBeUndefined();
     expect(readRupees("-500")).toBeUndefined();
   });
+
+  it("refuses a date typed into a money column (ch 23: Rs 500,020,260,515)", () => {
+    expect(readRupees("500020260515")).toBeUndefined();
+    expect(readRupees("10000000")).toBe(10_000_000);
+  });
 });
 
 describe("reading dates and phones", () => {

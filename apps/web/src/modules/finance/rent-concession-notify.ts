@@ -47,7 +47,7 @@ export type ConcessionChange = {
   residentId: Types.ObjectId;
 };
 
-const npr = (amount: number) => `NPR ${amount.toLocaleString("en-US")}`;
+const npr = (amount: number) => `Rs ${amount.toLocaleString("en-US")}`;
 
 export async function notifyRentConcession(input: {
   changes: ConcessionChange[];

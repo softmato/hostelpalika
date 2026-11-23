@@ -64,4 +64,22 @@ describe("readApiError", () => {
 
     expect(readApiError(error)).toBe("That hold has ended.");
   });
+
+  // ch 35: the upload card read "Call to function 'FileSystemUploadTask.start' has been rejected."
+  it("never shows a native or engine error's own text", () => {
+    const native = Object.assign(
+      new Error("Call to function 'FileSystemUploadTask.start' has been rejected.\n→ Caused by: Unable to upload a file: timeout"),
+      { code: "ERR_UPLOAD" },
+    );
+
+    expect(readApiError(native, "That upload did not go through.")).toBe(
+      "The server took too long to respond. Check your connection and try again.",
+    );
+    expect(readApiError(new TypeError("undefined is not a function"), "Something went wrong.")).toBe(
+      "Something went wrong.",
+    );
+    expect(readApiError(new Error("This backup belongs to another hostel."))).toBe(
+      "This backup belongs to another hostel.",
+    );
+  });
 });

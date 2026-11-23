@@ -153,7 +153,7 @@ async function notifyProvidersOfOpenJob(request: RequestLike) {
     const fee =
       request.minimumCharge === undefined
         ? ""
-        : ` Minimum fee NPR ${request.minimumCharge.toLocaleString("en-US")}.`;
+        : ` Minimum fee Rs ${request.minimumCharge.toLocaleString("en-US")}.`;
 
     await Promise.all(
       [...new Set(providers.map((provider) => provider.userId.toString()))].map((userId) =>

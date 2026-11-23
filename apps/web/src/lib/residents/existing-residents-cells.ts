@@ -28,7 +28,8 @@ export function readRupees(text: string): number | null | undefined {
     return null;
   }
 
-  if (!/^\d+(\.\d+)?$/.test(cleaned)) {
+  // Above Rs 1 crore is a date or a phone number in a money column, not an amount.
+  if (!/^\d+(\.\d+)?$/.test(cleaned) || Number(cleaned) > 10_000_000) {
     return undefined;
   }
 

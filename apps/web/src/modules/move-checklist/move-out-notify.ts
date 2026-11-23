@@ -75,7 +75,7 @@ export async function notifyMoveOutCompleted(input: {
 }
 
 function describeDeposit(decision: string, amount: number) {
-  const money = `NPR ${amount.toLocaleString("en-US")}`;
+  const money = `Rs ${amount.toLocaleString("en-US")}`;
 
   switch (decision) {
     case "APPROVED":

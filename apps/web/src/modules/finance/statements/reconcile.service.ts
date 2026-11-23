@@ -267,8 +267,11 @@ export async function getReconciliation(
   for (const event of events) {
     const tier = event.rawPayload?.ladderTier;
     const claimEventId = event.rawPayload?.claimEventId ?? null;
+    // A row assigned from "Who sent this?" has a bill now: it is tied too. It used
+    // to drop out of both lists, so "0 of 8 payments matched" never moved (ch 50a).
+    const assigned = tier !== "B" && !claimEventId && Boolean(event.invoiceId);
 
-    if (tier === "B" || claimEventId) {
+    if (tier === "B" || claimEventId || assigned) {
       matched.push({
         amount: event.amount,
         claimEventId,
@@ -286,7 +289,7 @@ export async function getReconciliation(
           ? (residentNames.get(event.residentId.toString())?.name ?? "")
           : "",
         status: event.status,
-        why: event.rawPayload?.ladderWhy ?? "",
+        why: assigned ? "Assigned by hand" : (event.rawPayload?.ladderWhy ?? ""),
       });
 
       continue;
@@ -545,7 +548,7 @@ export async function askResidentAboutClaim(
   }
 
   await createInAppNotification({
-    body: `We could not find your payment of NPR ${claim.amount.toLocaleString(
+    body: `We could not find your payment of Rs ${claim.amount.toLocaleString(
       "en-IN",
     )} in our account statement. Please check the transaction ID and send a clearer screenshot.`,
     category: "PAYMENT",

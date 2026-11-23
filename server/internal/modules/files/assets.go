@@ -141,6 +141,14 @@ func (a *Assets) presign(c *gin.Context) {
 		httpx.Fail(c, errResponse(422, "HOSTEL_SCOPE_REQUIRED", "A hostelId is required for payment-related uploads."))
 		return
 	}
+	// A receipt already behind a payment here is refused now, with the payment
+	// named, instead of after an upload the claim would refuse anyway (ch 35).
+	if hash := truthyString(body, "contentHash"); kind == "PAYMENT_PROOF" && finance.ContentHashRe.MatchString(hash) {
+		if err := a.receiptUnused(c, p, hostelID, hash); err != nil {
+			httpx.Fail(c, err)
+			return
+		}
+	}
 	level := truthyString(body, "accessLevel")
 	if level == "" {
 		level = "PRIVATE"
@@ -162,6 +170,25 @@ func (a *Assets) presign(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, presigned{id.Hex(), key, url}, "Presigned URL generated")
+}
+
+// receiptUnused is finance.EvidenceUsed for the signed-in resident of hostelID.
+func (a *Assets) receiptUnused(c *gin.Context, p *authz.Principal, hostelID, hash string) error {
+	hid, err := bson.ObjectIDFromHex(hostelID)
+	if err != nil {
+		return nil
+	}
+	var resident *bson.ObjectID
+	if uid, err := bson.ObjectIDFromHex(p.UserID); err == nil {
+		var r struct {
+			ID bson.ObjectID `bson:"_id"`
+		}
+		if a.DB.Collection("residents").FindOne(c, bson.D{{Key: "userId", Value: uid}, {Key: "hostelId", Value: hid}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}},
+			options.FindOne().SetProjection(bson.D{{Key: "_id", Value: 1}})).Decode(&r) == nil {
+			resident = &r.ID
+		}
+	}
+	return finance.EvidenceUsed(c, a.DB, hid, hash, resident)
 }
 
 func (a *Assets) insert(c *gin.Context, head bson.D, hostelID, kind, mime string, size float64, level, userID string, extra bson.D) (bson.ObjectID, error) {

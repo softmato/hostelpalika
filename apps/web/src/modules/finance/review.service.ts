@@ -305,6 +305,7 @@ type InvoiceForCheck = {
 function referenceCheck(
   event: {
     rawPayload?: { referenceNote?: string | null; transactionCode?: string | null };
+    reviewFlags?: string[];
   },
   invoice: InvoiceForCheck | null,
 ): ClaimCheck {
@@ -325,6 +326,13 @@ function referenceCheck(
 
   if (quoted.includes(expected)) {
     return { detail: `Resident quoted ${expected}`, key: "REFERENCE", ok: true };
+  }
+
+  // The receipt itself carries it (its remarks line): the claim form said
+  // "Reference … found" off the same read, while this card said "Did not quote"
+  // because it only looked at what the resident typed (ch 35).
+  if (event.reviewFlags?.includes("EVIDENCE_REFERENCE_ON_IMAGE")) {
+    return { detail: `Receipt shows ${expected}`, key: "REFERENCE", ok: true };
   }
 
   if (quoted.length > 0) {

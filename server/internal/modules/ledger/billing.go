@@ -975,7 +975,7 @@ func (e *Engine) NotifyInvoicesRaised(ctx context.Context, hostel bson.ObjectID,
 			continue
 		}
 		data := ordered.Map{{Key: "invoiceId", Value: b.InvoiceID}, {Key: "type", Value: "INVOICE_RAISED"}}
-		if _, err := e.Notify.CreateInApp(ctx, notifications.Input{Body: "Your rent for " + month + " is NPR " + money.GroupUS(b.Amount) + ".", Category: "PAYMENT", Data: data,
+		if _, err := e.Notify.CreateInApp(ctx, notifications.Input{Body: "Your rent for " + month + " is Rs " + money.GroupUS(b.Amount) + ".", Category: "PAYMENT", Data: data,
 			HostelID: hostel.Hex(), NoPush: true, Title: "Rent bill ready", UserID: user}); err != nil {
 			e.warn(ctx, "invoice raised notification", err)
 		}

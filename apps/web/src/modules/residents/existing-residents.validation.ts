@@ -12,7 +12,17 @@ import { residentDetailsSchema } from "@/modules/residents/resident-details";
  * and it answers in words the screen can show under the field.
  */
 
-const rupees = z.coerce.number().int("Write rupees without paisa.").min(0);
+/**
+ * Bounded like the register form's fees: a date typed into the deposit box was
+ * stored as Rs 500,020,260,515 (ch 23).
+ */
+export const MAX_ROW_RUPEES = 10_000_000;
+
+const rupees = z.coerce
+  .number()
+  .int("Write rupees without paisa.")
+  .min(0)
+  .max(MAX_ROW_RUPEES, "That is too much for one resident. Check the amount.");
 
 export const existingResidentRowSchema = z.object({
   /** The row's id when it already exists on the list; absent for a new row. */

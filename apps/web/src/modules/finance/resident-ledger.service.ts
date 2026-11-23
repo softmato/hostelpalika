@@ -4,6 +4,7 @@ import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { connectToDatabase } from "@/lib/db";
 import { bsPeriodsBetween, hostelPeriodOf } from "@/lib/hostel-day";
 import { listResidentInvoices } from "@/modules/finance/ledger-read.service";
+import { VIA_QR } from "@/modules/finance/payment-via";
 import { PaymentEventModel } from "@hostel/db/models/PaymentEvent";
 import { ReceiptModel } from "@hostel/db/models/Receipt";
 import { ResidentModel } from "@hostel/db/models/Resident";
@@ -153,7 +154,7 @@ export async function getResidentLedger(
         occurredAt: Date;
         provider?: string;
         providerTxnId?: string | null;
-        rawPayload?: { transactionCode?: string | null };
+        rawPayload?: { transactionCode?: string | null; via?: string };
         settledAt?: Date | null;
       }[]
     >();
@@ -183,7 +184,7 @@ export async function getResidentLedger(
 
     list.push({
       amount: event.amount,
-      method: event.provider ?? "NONE",
+      method: event.rawPayload?.via === VIA_QR ? VIA_QR : (event.provider ?? "NONE"),
       occurredAt: event.occurredAt.toISOString(),
       receiptNumber: receiptByEvent.get(event._id.toString()) ?? null,
       settledAt: event.settledAt?.toISOString() ?? null,

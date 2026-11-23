@@ -192,7 +192,7 @@ func (h *Handler) update(c *gin.Context) {
 	}
 	f := valid.NewForm(body)
 	var in UpdateIn
-	nn := valid.N{Opt: true, Coerce: true, Min: valid.P(0)}
+	nn := valid.N{Opt: true, Coerce: true, Min: valid.P(0), Max: valid.P(maxRowRupees)}
 	if n, ok := f.Num("depositAmount", nn); ok {
 		in.DepositAmount = &n
 	}

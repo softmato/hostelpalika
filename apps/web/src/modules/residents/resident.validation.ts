@@ -138,11 +138,11 @@ export const residentCreateSchema = z.object({
 
 export const residentUpdateSchema = z.object({
   ...optionalHostelScopeSchema,
-  depositAmount: z.coerce.number().nonnegative().optional(),
+  depositAmount: z.coerce.number().nonnegative().max(10_000_000).optional(),
   email: z.string().trim().email().optional(),
   firstName: z.string().trim().min(1).max(80).optional(),
   lastName: z.string().trim().min(1).max(80).optional(),
-  monthlyFee: z.coerce.number().nonnegative().optional(),
+  monthlyFee: z.coerce.number().nonnegative().max(10_000_000).optional(),
   moveInDate: calendarDateSchema.optional(),
   phone: z.string().trim().min(7).max(24).optional(),
   residentType: residentTypeSchema.optional(),

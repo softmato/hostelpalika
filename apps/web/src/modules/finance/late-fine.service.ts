@@ -277,7 +277,7 @@ export async function accrueLateFines(now = new Date()) {
 
       if (result.modifiedCount > 0 && !invoice.lines.some((line) => line.basis === "FINE")) {
         firstFined.push({
-          body: `A late fine was added. Your bill is now NPR ${next.totalAmount.toLocaleString("en-US")}.`,
+          body: `A late fine was added. Your bill is now Rs ${next.totalAmount.toLocaleString("en-US")}.`,
           data: { invoiceId: invoice._id.toString(), type: "LATE_FINE_ADDED" },
           residentId: invoice.residentId.toString(),
         });

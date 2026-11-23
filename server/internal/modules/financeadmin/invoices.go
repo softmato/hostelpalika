@@ -625,6 +625,7 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 		TxnID      *string        `bson:"providerTxnId"`
 		Raw        struct {
 			Code *string `bson:"transactionCode"`
+			Via  string  `bson:"via"`
 		} `bson:"rawPayload"`
 		SettledAt *time.Time `bson:"settledAt"`
 	}
@@ -661,7 +662,7 @@ func (h *Handler) residentLedgerOf(ctx context.Context, hostel bson.ObjectID, ra
 		}
 		method := "NONE"
 		if e.Provider != nil {
-			method = *e.Provider
+			method = finance.MethodVia(*e.Provider, e.Raw.Via)
 		}
 		var number any
 		if n, ok := receipts[e.ID]; ok {

@@ -17,8 +17,8 @@ export const recordCashSchema = z.object({
   cashReceiptNumber: z.string().trim().min(1).max(64),
   /** Who physically took the money — frequently not the person typing. */
   collectedBy: z.string().trim().min(2).max(120),
-  /** How the money arrived; defaults to cash. */
-  method: z.enum(["CASH", "ESEWA", "KHALTI", "BANK"]).optional(),
+  /** How the money arrived; defaults to cash. `QR` is the hostel's QR: a BANK payment. */
+  method: z.enum(["CASH", "ESEWA", "KHALTI", "BANK", "QR"]).optional(),
   note: z.string().trim().max(500).optional(),
   receivedAt: z.coerce.date().optional(),
 });

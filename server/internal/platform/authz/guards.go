@@ -81,6 +81,10 @@ type Guards struct {
 	// refused (billing.Limits.ReadOnly), so paying or a move-out lifts it at once.
 	// nil = trust the stored clock.
 	PlanLimitRecheck func(ctx context.Context, hostel bson.ObjectID) (bool, error)
+	// Announce tells the hostels' open screens which topics a signed-in write
+	// moved (realtime.TopicsForWrite → PublishResourceChange; a hook because
+	// realtime imports this package). nil = no realtime.
+	Announce func(ctx context.Context, method, path string, hostelIDs []string)
 }
 
 type gateMemo struct {
@@ -255,17 +259,34 @@ func (g *Guards) Require(c *gin.Context) (*Principal, error) {
 	return q, nil
 }
 
-// announceWrite's cache half: every signed-in write to hostel data skips that
-// hostel's cached reads — now, and again after the response, so a read landing
-// mid-write can't cache the old answer under the new version. Its realtime
-// topics half (topicsForWrite → publishResourceChange) arrives with Realtime.
+// announceWrite is TS's: every signed-in write to hostel data skips that hostel's
+// cached reads — now, and again after the response, so a read landing mid-write
+// can't cache the old answer under the new version — and then tells the hostel's
+// open screens which topics moved. The topics half was left out of the port, so
+// a desk payment moved no open Home, staff or resident, until a pull (ch 33–41).
 func (g *Guards) announceWrite(c *gin.Context, hostelIDs []string) {
-	if g.Cache == nil || len(hostelIDs) == 0 || isRead(c.Request.Method) || NotHostelData(c.Request.URL.Path) {
+	if len(hostelIDs) == 0 || isRead(c.Request.Method) {
 		return
 	}
 	ids := slices.Clone(hostelIDs)
-	g.Cache.Bump(c, ids...)
-	g.Background.After(c, func(ctx context.Context) error { g.Cache.Bump(ctx, ids...); return nil })
+	method, path := c.Request.Method, c.Request.URL.Path
+	bump := g.Cache != nil && !NotHostelData(path)
+	if bump {
+		g.Cache.Bump(c, ids...)
+	}
+	if g.Background == nil || !bump && g.Announce == nil {
+		return
+	}
+	g.Background.After(c, func(ctx context.Context) error {
+		if bump {
+			g.Cache.Bump(ctx, ids...)
+		}
+		// After the bump, so the refetch it prompts reads past the old answer.
+		if g.Announce != nil {
+			g.Announce(ctx, method, path, ids)
+		}
+		return nil
+	})
 }
 
 // notHostelDataWrites are signed-in writes that change no cached hostel read:

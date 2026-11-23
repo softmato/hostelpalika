@@ -189,7 +189,7 @@ func (e *Engine) notifyConcession(ctx context.Context, hostel bson.ObjectID, cha
 		slog.WarnContext(ctx, "rent_concession_notification_failed", "hostelId", hostel.Hex(), "err", err)
 		return
 	}
-	npr := func(n int64) string { return "NPR " + money.GroupUS(n) }
+	npr := func(n int64) string { return "Rs " + money.GroupUS(n) }
 	for _, ch := range changes {
 		user, ok := users[ch.resident]
 		if !ok {

@@ -754,7 +754,7 @@ export async function voidInvoice(
   });
 
   await notifyResident({
-    body: `Your bill of NPR ${invoice.totalAmount.toLocaleString("en-US")} was cancelled. ${options.reason.trim()}`,
+    body: `Your bill of Rs ${invoice.totalAmount.toLocaleString("en-US")} was cancelled. ${options.reason.trim()}`,
     data: { invoiceId: invoice._id.toString(), type: "INVOICE_VOIDED" },
     hostelId: invoice.hostelId,
     residentId: invoice.residentId,

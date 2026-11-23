@@ -36,7 +36,15 @@ func (h *Handler) registerExisting(a *gin.RouterGroup, reg gin.HandlerFunc) {
 	a.POST("/join-requests/:requestId", reg, h.joinDecide)
 }
 
-// rupees is `z.coerce.number().int("Write rupees without paisa.").min(0)`.
+// maxRowRupees bounds every amount on an existing-resident row, as the
+// register form bounds its fees: a date typed into the deposit box was stored
+// as Rs 500,020,260,515 (ch 23).
+const maxRowRupees = 10_000_000
+
+// tooMuchMsg is the row's answer above maxRowRupees.
+const tooMuchMsg = "That is too much for one resident. Check the amount."
+
+// rupees is `z.coerce.number().int("Write rupees without paisa.").min(0).max(…)`.
 func rupees(f *valid.Form, key string, nullable bool) *int64 {
 	if v, present := f.M[key]; !present || (nullable && v == nil) {
 		if !nullable {
@@ -45,7 +53,7 @@ func rupees(f *valid.Form, key string, nullable bool) *int64 {
 		}
 		return nil
 	}
-	n, ok := f.Num(key, valid.N{Coerce: true, Int: true, IntMsg: "Write rupees without paisa.", Min: valid.P(0)})
+	n, ok := f.Num(key, valid.N{Coerce: true, Int: true, IntMsg: "Write rupees without paisa.", Min: valid.P(0), Max: valid.P(maxRowRupees), MaxMsg: tooMuchMsg})
 	if !ok {
 		return nil
 	}

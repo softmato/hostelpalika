@@ -154,7 +154,7 @@ function rewardNotice(input: {
    * reward is routinely recorded with `amount` left at its default of 0, and
    * "your reward of NPR 0" reads as a bug or an insult depending on the reader.
    */
-  const worth = input.amount > 0 ? ` of NPR ${input.amount.toLocaleString("en-US")}` : "";
+  const worth = input.amount > 0 ? ` of Rs ${input.amount.toLocaleString("en-US")}` : "";
   const kind = describeReward(input.rewardType);
 
   if (input.status === "APPROVED") {

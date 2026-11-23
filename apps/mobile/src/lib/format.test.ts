@@ -116,6 +116,9 @@ describe("labels", () => {
   it("turns a shouted server enum into a sentence", () => {
     expect(humanizeEnum("PENDING_PROOF")).toBe("Pending proof");
     expect(humanizeEnum("PAID")).toBe("Paid");
+    // A desk QR payment's method, and the wallet's own spelling (ch 34).
+    expect(humanizeEnum("QR")).toBe("QR");
+    expect(humanizeEnum("ESEWA")).toBe("eSewa");
     expect(humanizeEnum(null)).toBe("—");
   });
 

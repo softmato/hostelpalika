@@ -64,7 +64,7 @@ func (s *Service) notifyRegistered(ctx context.Context, n registeredNotice) {
 			if label == "" {
 				label = n.first.Period
 			}
-			body = fmt.Sprintf("You are registered at %s. Your rent for %s is NPR %s.", hostelName, label, money.GroupUS(n.first.Amount))
+			body = fmt.Sprintf("You are registered at %s. Your rent for %s is Rs %s.", hostelName, label, money.GroupUS(n.first.Amount))
 			category = "PAYMENT"
 			data = ordered.Map{{Key: "type", Value: "RESIDENT_REGISTERED"}, {Key: "invoiceId", Value: n.first.InvoiceID}}
 		}

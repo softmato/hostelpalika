@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -290,6 +291,34 @@ func TestAnnounceWriteBumps(t *testing.T) {
 	_ = bg.Wait(ctx)
 	if v, _ := rdb.Get(ctx, "v:hostel:"+hostel).Int(); v != 2 {
 		t.Fatalf("a write bumps now and after the response (a read never): version %d", v)
+	}
+}
+
+// The topics half: a write tells its hostels after the response, a read never.
+func TestAnnounceWritePublishes(t *testing.T) {
+	gin.SetMode(gin.ReleaseMode)
+	tokens := auth.NewTokens("s", "r", time.Hour, time.Hour)
+	var bg background.Runner
+	g := New(tokens, &auth.Cookies{Tokens: tokens}, nil, nil, &bg)
+	var mu sync.Mutex
+	var got []string
+	g.Announce = func(_ context.Context, method, path string, ids []string) {
+		mu.Lock()
+		defer mu.Unlock()
+		got = append(got, method+" "+path+" "+strings.Join(ids, ","))
+	}
+	tok, _ := tokens.SignAccess(auth.TokenInput{UserID: "u", Role: string(Superadmin), HostelIDs: []string{"h1"}})
+	e := gin.New()
+	e.Use(bg.Middleware(), Use(g.Require))
+	e.Any("/api/v1/hostel-admin/finance/invoices/i/cash", func(c *gin.Context) { c.Status(201) })
+	for _, m := range []string{"GET", "POST"} {
+		req := httptest.NewRequest(m, "/api/v1/hostel-admin/finance/invoices/i/cash", nil)
+		req.Header.Set("Authorization", "Bearer "+tok)
+		e.ServeHTTP(httptest.NewRecorder(), req)
+	}
+	_ = bg.Wait(context.Background())
+	if len(got) != 1 || got[0] != "POST /api/v1/hostel-admin/finance/invoices/i/cash h1" {
+		t.Fatalf("announced %q", got)
 	}
 }
 

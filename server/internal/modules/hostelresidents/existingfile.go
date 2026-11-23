@@ -47,6 +47,9 @@ func readRupees(text string) (v *int64, ok bool) {
 		return nil, false
 	}
 	f, _ := strconv.ParseFloat(cleaned, 64)
+	if f > maxRowRupees {
+		return nil, false // a date or a phone number in a money column, not an amount
+	}
 	n := int64(math.Floor(f + 0.5))
 	return &n, true
 }

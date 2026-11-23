@@ -2906,7 +2906,7 @@ export async function recordCashPayment(
     cashReceiptNumber: string;
     collectedBy: string;
     /** Cash, or online at the desk (todo E3). Absent means cash. */
-    method?: "CASH" | "ESEWA" | "KHALTI" | "BANK";
+    method?: "CASH" | "ESEWA" | "KHALTI" | "BANK" | "QR";
     note?: string;
     receivedAt?: string;
   },

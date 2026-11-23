@@ -123,8 +123,8 @@ export async function notifyRateCardChanged(input: {
         await createInAppNotification({
           body:
             current === undefined
-              ? `From ${month}, ${roomTypeLabel(roomType)} at ${hostelName} is NPR ${next.toLocaleString("en-US")} a month.`
-              : `From ${month}, your rent ${next > current ? "rises" : "falls"} from NPR ${current.toLocaleString("en-US")} to NPR ${next.toLocaleString("en-US")} a month.`,
+              ? `From ${month}, ${roomTypeLabel(roomType)} at ${hostelName} is Rs ${next.toLocaleString("en-US")} a month.`
+              : `From ${month}, your rent ${next > current ? "rises" : "falls"} from Rs ${current.toLocaleString("en-US")} to Rs ${next.toLocaleString("en-US")} a month.`,
           category: "PAYMENT",
           data: { effectiveFrom: input.effectiveFrom.toISOString(), roomType },
           hostelId: input.hostelId.toString(),

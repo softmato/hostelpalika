@@ -590,13 +590,14 @@ export const adminQuery = {
    * Keyed on `PAYMENTS` so settling the due from the banner repaints it without
    * a pull-to-refresh, and on `HOSTELS` because a subscription that activates
    * changes the listing's own state alongside it.
+   *
+   * A failed read stays a failure. It used to `.catch(() => null)`, which filed
+   * the failure in the cache (and on disk) as "this hostel has no plan" — and
+   * `useBranchesLock` read that as a verdict and hid the owner's branch chip.
+   * Rejecting keeps the last good answer where it was (`fetchQuery`).
    */
   subscription: (): AdminQuery<AdminSubscription | null> =>
-    define(
-      "admin:subscription",
-      [REALTIME_TOPIC.PAYMENTS, REALTIME_TOPIC.HOSTELS],
-      () => getAdminSubscription().catch(() => null),
-    ),
+    define("admin:subscription", [REALTIME_TOPIC.PAYMENTS, REALTIME_TOPIC.HOSTELS], getAdminSubscription),
 
   money: (period: string): AdminQuery<AdminMoneyData> =>
     define(

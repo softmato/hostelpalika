@@ -514,13 +514,13 @@ func (h *Handler) notifyRateCard(ctx context.Context, hostel bson.ObjectID, from
 		if !ok || (had && next == current) {
 			continue
 		}
-		body := "From " + month + ", " + residents.RoomTypeLabel(r.RoomType) + " at " + name + " is NPR " + money.GroupUS(next) + " a month."
+		body := "From " + month + ", " + residents.RoomTypeLabel(r.RoomType) + " at " + name + " is Rs " + money.GroupUS(next) + " a month."
 		if had {
 			way := "falls"
 			if next > current {
 				way = "rises"
 			}
-			body = "From " + month + ", your rent " + way + " from NPR " + money.GroupUS(current) + " to NPR " + money.GroupUS(next) + " a month."
+			body = "From " + month + ", your rent " + way + " from Rs " + money.GroupUS(current) + " to Rs " + money.GroupUS(next) + " a month."
 		}
 		title := "Your rent is changing"
 		if next > current {

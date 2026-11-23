@@ -229,6 +229,14 @@ export function uploadRejection(
 ): ClaimRejection | null {
   switch (errorCode) {
     /*
+     * Refused at presign, before a byte moved: these bytes are already behind a
+     * payment here. The server's sentence names it ("You already sent this
+     * receipt for Rs 5,000 for Poush 2083 BS"), which no fixed copy can (ch 35).
+     */
+    case "EVIDENCE_ALREADY_USED":
+      return { detail: message, title: "This receipt was already used" };
+
+    /*
      * A file with an image extension whose bytes are not a decodable image —
      * a truncated download, a half-copied file, a renamed document. Worth its
      * own sentence because "damaged" is a thing the resident can check, and

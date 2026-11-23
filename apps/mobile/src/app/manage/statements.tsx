@@ -794,7 +794,8 @@ export default function ManageStatementsScreen() {
                           </>
                         ) : (
                           <Text className="text-right" variant="caption">
-                            No name on it
+                            {/* A named stranger is not "no name" (ch 50a: Ramila Basnet). */}
+                            {row.counterpartyName ? "No resident by that name" : "No name on it"}
                           </Text>
                         )}
                       </View>

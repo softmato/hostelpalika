@@ -195,7 +195,7 @@ export async function notifyInvoicesRaised(input: {
     rows: input.billed
       .filter((invoice) => invoice.amount > 0)
       .map((invoice) => ({
-        body: `Your rent for ${month} is NPR ${invoice.amount.toLocaleString("en-US")}.`,
+        body: `Your rent for ${month} is Rs ${invoice.amount.toLocaleString("en-US")}.`,
         data: { invoiceId: invoice.invoiceId, type: "INVOICE_RAISED" },
         residentId: invoice.residentId,
       })),
@@ -219,7 +219,7 @@ export async function notifyAdminsOfStaffSettlement(input: {
 
   await notifyHostelAdmins({
     actionUrl: "/hostel-admin/payments",
-    body: `A warden accepted NPR ${input.amount.toLocaleString("en-US")} from ${name}.`,
+    body: `A warden accepted Rs ${input.amount.toLocaleString("en-US")} from ${name}.`,
     data: { eventId: input.eventId, type: "STAFF_PAYMENT_ACCEPTED" },
     exceptUserId: input.staffUserId,
     hostelId: input.hostelId,
@@ -274,8 +274,8 @@ export async function notifyAdminsOfClaim(input: {
             ],
             // Clicking the row opens the review queue; the button decides in place.
             actionUrl: "/hostel-admin/payments",
-            body: `${residentName} submitted proof of NPR ${input.amount.toLocaleString("en-US")}${
-              input.period ? ` for ${input.period}` : ""
+            body: `${residentName} submitted proof of Rs ${input.amount.toLocaleString("en-US")}${
+              input.period ? ` for ${formatBsPeriod(input.period) || input.period}` : ""
             }.`,
             category: "PAYMENT",
             data: { eventId: input.eventId },
@@ -343,8 +343,8 @@ export async function notifyResidentOfClaim(input: {
         actionUrl: "/resident/payments",
         // "Sent for checking", never "received" on its own: the resident's
         // question is whether the money counted yet, and it has not.
-        body: `Your proof of NPR ${input.amount.toLocaleString("en-US")}${
-          input.period ? ` for ${input.period}` : ""
+        body: `Your proof of Rs ${input.amount.toLocaleString("en-US")}${
+          input.period ? ` for ${formatBsPeriod(input.period) || input.period}` : ""
         } was sent to your hostel to check. Nothing is credited until they verify it.`,
         category: "PAYMENT",
         data: { invoiceId: input.invoiceId ?? undefined },
@@ -512,9 +512,9 @@ export async function notifyClaimReviewed(input: {
       actionUrl: "/resident/payments",
       body:
         input.outcome.kind === "verified"
-          ? `NPR ${input.outcome.verifiedAmount.toLocaleString("en-US")} received for ${period}.${
+          ? `Rs ${input.outcome.verifiedAmount.toLocaleString("en-US")} received for ${period}.${
               input.outcome.remainingAmount > 0
-                ? ` NPR ${input.outcome.remainingAmount.toLocaleString("en-US")} still due.`
+                ? ` Rs ${input.outcome.remainingAmount.toLocaleString("en-US")} still due.`
                 : " Fully paid."
             }${
               input.outcome.certificationCode
@@ -773,7 +773,7 @@ export async function notifyPaymentReversed(input: {
   if (resident.userId) {
     await createInAppNotification({
       actionUrl: "/resident/payments",
-      body: `A payment of NPR ${input.amount.toLocaleString("en-US")} was reversed: ${input.reason}`,
+      body: `A payment of Rs ${input.amount.toLocaleString("en-US")} was reversed: ${input.reason}`,
       category: "PAYMENT",
       data: { invoiceId: input.invoiceId ?? undefined },
       hostelId: input.hostelId.toString(),

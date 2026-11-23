@@ -25,7 +25,9 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
+	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 	"github.com/softmato/hostelpalika/server/internal/router"
 )
 
@@ -55,13 +57,30 @@ type jobFn func(job string, q url.Values) error
 // and hands back a runner for its cron doors. Built before a scenario writes
 // anything, so a config problem stops it with the hostel untouched.
 func (d *demo) jobs(ctx context.Context) (jobFn, error) {
-	env, err := rootEnvFile()
+	cfg, cronSecret, err := liveConfig()
 	if err != nil {
 		return nil, err
 	}
-	mongoURL, err := url.Parse(env["MONGODB_URI"])
+	bg := &background.Runner{}
+	h, err := router.New(cfg, router.Deps{DB: d.db, Background: bg, Jobs: jobs.New(ctx, d.db, nil)})
 	if err != nil {
 		return nil, err
+	}
+	return func(job string, q url.Values) error {
+		return serveJob(ctx, h, bg, cronSecret, d.hostel, job, q)
+	}, nil
+}
+
+// liveConfig is the in-process server's config: the root .env, Atlas allowed for
+// its host, no Redis, no scheduler, a throwaway cron secret.
+func liveConfig() (*config.Config, string, error) {
+	env, err := rootEnvFile()
+	if err != nil {
+		return nil, "", err
+	}
+	mongoURL, err := url.Parse(env["MONGODB_URI"])
+	if err != nil {
+		return nil, "", err
 	}
 	secret := make([]byte, 24)
 	_, _ = rand.Read(secret)
@@ -82,17 +101,31 @@ func (d *demo) jobs(ctx context.Context) (jobFn, error) {
 		v, ok := env[k]
 		return v, ok
 	})
+	return cfg, over["CRON_SECRET"], err
+}
+
+// nudgeApps makes open apps re-read the demo hostel after a write the live API
+// never saw. That API caches each read for cache.TTL under a hostel version only
+// it can bump (its Redis is private to the VPS), and an app holding the old answer
+// has no reason to ask again: after trial-ended → restore the owner's branch chip
+// stayed hidden, across a cold start too, on the cached trial-ended plan. So the
+// TTL is waited out first, then the hostel's plan and money topics are published.
+func (d *demo) nudgeApps(ctx context.Context) error {
+	cfg, _, err := liveConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	bg := &background.Runner{}
-	h, err := router.New(cfg, router.Deps{DB: d.db, Background: bg, Jobs: jobs.New(ctx, d.db, nil)})
-	if err != nil {
-		return nil, err
+	fmt.Printf("waiting %s for the live API's cached reads to lapse, then telling open apps…\n", cache.TTL)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(cache.TTL + 2*time.Second):
 	}
-	return func(job string, q url.Values) error {
-		return serveJob(ctx, h, bg, over["CRON_SECRET"], d.hostel, job, q)
-	}, nil
+	realtime.PublishResourceChange(ctx, realtime.New(cfg.Pusher), nil, realtime.Change{
+		Topics:    []realtime.Topic{realtime.Hostels, realtime.Payments},
+		HostelIDs: []string{d.hostel.Hex()},
+	})
+	return nil
 }
 
 func serveJob(ctx context.Context, h http.Handler, bg *background.Runner, secret string, hostel bson.ObjectID, job string, q url.Values) error {
@@ -336,7 +369,7 @@ func (d *demo) trialEnding(ctx context.Context) error {
 	if err := keepOrig(ctx, subs, id, subFields...); err != nil {
 		return err
 	}
-	if _, err := subs.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: bson.D{{Key: "trialEndsAt", Value: bs.DayEnd(time.Now(), 2)}, {Key: "trialReminded", Value: bson.A{}}}}}); err != nil {
+	if _, err := subs.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: bson.D{{Key: "trialEndsAt", Value: bs.DayEnd(time.Now(), 2)}, {Key: "currentPeriodEnd", Value: bs.DayEnd(time.Now(), 2)}, {Key: "trialReminded", Value: bson.A{}}}}}); err != nil {
 		return err
 	}
 	return run("payment-reminders", url.Values{})
@@ -358,7 +391,7 @@ func (d *demo) trialEnded(ctx context.Context) error {
 	if err := keepOrig(ctx, subs, id, subFields...); err != nil {
 		return err
 	}
-	if _, err := subs.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: bson.D{{Key: "trialEndsAt", Value: time.Now().Add(-time.Hour)}}}}); err != nil {
+	if _, err := subs.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: bson.D{{Key: "trialEndsAt", Value: time.Now().Add(-time.Hour)}, {Key: "currentPeriodEnd", Value: time.Now().Add(-time.Hour)}}}}); err != nil {
 		return err
 	}
 	return run("payment-reminders", url.Values{})
@@ -513,8 +546,10 @@ func (d *demo) restore(ctx context.Context) error {
 		return err
 	}
 	// Recompute the plan limits for the restored dates (no job: no reminders go out).
-	_, err = (&billing.Limits{DB: d.db, Config: platformconfig.New(d.db)}).Refresh(ctx, d.hostel, time.Now())
-	return err
+	if _, err = (&billing.Limits{DB: d.db, Config: platformconfig.New(d.db)}).Refresh(ctx, d.hostel, time.Now()); err != nil {
+		return err
+	}
+	return d.nudgeApps(ctx)
 }
 
 // check builds the in-process server and stops: proof the config and the
@@ -524,5 +559,38 @@ func (d *demo) check(ctx context.Context) error {
 		return err
 	}
 	fmt.Println("ok:", d.name, d.hostel.Hex(), "— jobs ready")
+	return nil
+}
+
+// fixData is the one-off repair of 2026-11-23 (demo-video.md §10). Bibek
+// Shrestha's deposit was typed together with his joined date (5000 + 2026-05-15)
+// before existing-resident rows had a bound; Aarav's two ch 34 desk QR payments
+// were saved as BANK before the app sent QR. Every filter names the demo hostel
+// and the old value, so a second run changes nothing. The rows are marked
+// demoFixed, not demoSeed: unseed must not delete a resident made on camera.
+func (d *demo) fixData(ctx context.Context) error {
+	now := time.Now().UTC()
+	res, err := d.db.Collection("residents").UpdateOne(ctx,
+		bson.D{{Key: "hostelId", Value: d.hostel}, {Key: "firstName", Value: "Bibek"}, {Key: "lastName", Value: "Shrestha"}, {Key: "depositAmount", Value: float64(500020260515)}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "depositAmount", Value: float64(5000)}, {Key: "updatedAt", Value: now}, {Key: "demoFixed", Value: "2026-11-23: deposit 500020260515 → 5000"}}}})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("residents: %d deposit fixed (Bibek Shrestha → Rs 5,000)\n", res.ModifiedCount)
+	qr := 0
+	for _, hex := range []string{"6b01085c29f537901c583b5b", "6b03ed027936ad1b7783c17e"} {
+		id, err := bson.ObjectIDFromHex(hex)
+		if err != nil {
+			return err
+		}
+		res, err := d.db.Collection("paymentevents").UpdateOne(ctx,
+			bson.D{{Key: "_id", Value: id}, {Key: "hostelId", Value: d.hostel}, {Key: "source", Value: "CASH_ENTRY"}, {Key: "provider", Value: "BANK"}, {Key: "rawPayload.via", Value: bson.D{{Key: "$exists", Value: false}}}},
+			bson.D{{Key: "$set", Value: bson.D{{Key: "rawPayload.via", Value: "QR"}, {Key: "demoFixed", Value: "2026-11-23: desk QR saved as BANK"}}}})
+		if err != nil {
+			return err
+		}
+		qr += int(res.ModifiedCount)
+	}
+	fmt.Printf("paymentevents: %d desk QR payment(s) marked QR\n", qr)
 	return nil
 }

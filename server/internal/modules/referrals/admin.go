@@ -590,7 +590,7 @@ func (a *Admin) notifyReward(ctx context.Context, r *referralRow, amount float64
 	}
 	worth := ""
 	if amount > 0 {
-		worth = " of NPR " + thousands(amount)
+		worth = " of Rs " + thousands(amount)
 	}
 	var body func(string) string
 	title := ""

@@ -113,15 +113,17 @@ export function Money({
    */
   const prefix = text.startsWith("Rs ") ? "Rs" : null;
 
+  /*
+   * Manrope's line box is ~1.37× its size; the display/title variants give
+   * 1.2×, and Android trims the overflow from below the baseline — which cut
+   * the comma's tail off and printed `Rs 5,000` as `Rs 5.000` (ch 33/34).
+   */
+  const lineBox = size === "inline" ? undefined : { lineHeight: Math.ceil(SIZE_PT[size] * 1.4) };
+
   return (
     <Text
       className={`${inkClass} font-amount tabular-nums ${className}`}
-      /*
-       * Manrope's line box is ~1.37× its size; the display/title variants give
-       * 1.2×, and Android trims the overflow from below the baseline — which cut
-       * the comma's tail off and printed `Rs 5,000` as `Rs 5.000` (ch 33/34).
-       */
-      style={size === "inline" ? undefined : { lineHeight: Math.ceil(SIZE_PT[size] * 1.4) }}
+      style={lineBox}
       variant={VARIANTS[size]}
     >
       {prefix ? (
@@ -132,8 +134,18 @@ export function Money({
             same tone as its digits and only the size changes. `fontSize` has to
             be a style: the parent's size comes from a class, so there is no
             number here to write a class against.
+
+            `variant={null}` is what makes "inherits" true. Our `<Text>` defaults
+            to `body`, whose `text-base` carries its own 24pt line height (and
+            `text-foreground`): that put a second, shorter line box inside the
+            display line, and Android let it win on some phones — the comma was
+            still clipped to "Rs 14.000" in the reconcile sheet with the 1.4× box
+            on the parent (ch 50a). `<PaintedAmount>` hands its prefix the same
+            line height for the same reason, which is why Home never showed it.
           */}
-          <Text style={{ fontSize: SIZE_PT[size] * CURRENCY_SCALE }}>{prefix} </Text>
+          <Text style={{ fontSize: SIZE_PT[size] * CURRENCY_SCALE, ...lineBox }} variant={null}>
+            {prefix}{" "}
+          </Text>
           {text.slice(3)}
         </>
       ) : (

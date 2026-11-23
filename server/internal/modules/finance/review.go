@@ -251,6 +251,12 @@ func referenceCheck(e *claimEvent, inv *checkInvoice) ClaimCheck {
 	if slices.Contains(quoted, expected) {
 		return ClaimCheck{"Resident quoted " + expected, "REFERENCE", true}
 	}
+	// The receipt itself carries it (its remarks line): the claim form told the
+	// resident "Reference … found" off the same read, and this card said "Did not
+	// quote" because it only looked at what they typed (ch 35).
+	if has(e.Flags, flagOnImage) {
+		return ClaimCheck{"Receipt shows " + expected, "REFERENCE", true}
+	}
 	if len(quoted) > 0 {
 		return ClaimCheck{"Quoted " + quoted[0] + ", but this invoice is " + expected, "REFERENCE", false}
 	}

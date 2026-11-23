@@ -156,6 +156,9 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	sender.PrefSecret, sender.Outbound = cfg.Auth.AccessSecret, cfg.OutboundURL()
 	log := audit.New(d.DB)
 	rt := realtime.New(cfg.Pusher)
+	guards.Announce = func(ctx context.Context, method, path string, hostelIDs []string) {
+		realtime.PublishResourceChange(ctx, rt, nil, realtime.Change{HostelIDs: hostelIDs, Topics: realtime.TopicsForWrite(method, path)})
+	}
 	pushSender := push.New(d.DB, cfg.Push, notifications.Hooks(d.DB))
 	notify := &notifications.Service{DB: d.DB, Push: pushSender, RT: rt, Cache: ch, BG: bg}
 

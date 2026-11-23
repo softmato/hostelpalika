@@ -146,7 +146,7 @@ func (h *Handler) accrueLateFines(ctx context.Context, p *push.Sender, now time.
 			}
 			changed += res.ModifiedCount
 			if res.ModifiedCount > 0 && existing == nil {
-				first = append(first, row{"A late fine was added. Your bill is now NPR " + money.GroupUS(total) + ".",
+				first = append(first, row{"A late fine was added. Your bill is now Rs " + money.GroupUS(total) + ".",
 					ordered.Map{{Key: "invoiceId", Value: inv.ID.Hex()}, {Key: "type", Value: "LATE_FINE_ADDED"}}, inv.ResidentID})
 			}
 		}

@@ -24,6 +24,8 @@
  * against — so the client never sends one.
  */
 
+import { sha256 } from "@noble/hashes/sha2";
+import { bytesToHex } from "@noble/hashes/utils";
 import { File, UploadType } from "expo-file-system";
 import type { ImagePickerAsset } from "expo-image-picker";
 
@@ -189,6 +191,10 @@ async function runUpload(
   const presigned = unwrap(
     await api.post<ApiEnvelope<PresignResponse>>("/files/presign", {
       accessLevel,
+      // A receipt already behind a payment is refused here, with the payment
+      // named, before a byte moves. Sent without it, the second send of one
+      // receipt uploaded in full and then stalled into a timeout (ch 35).
+      contentHash: kind === "PAYMENT_PROOF" ? await contentHash(file) : undefined,
       fileName,
       kind,
       mimeType,
@@ -258,6 +264,20 @@ async function runUpload(
   );
 
   return presigned.assetId;
+}
+
+/**
+ * The sha256 the server stores as `FileAsset.contentHash`. Pure JS (no native
+ * module, so any installed build has it); a receipt is under a megabyte by the
+ * time it gets here (`prepareEvidenceForUpload`). Undefined when the bytes
+ * cannot be read: the claim's own check still catches a duplicate.
+ */
+async function contentHash(file: File): Promise<string | undefined> {
+  try {
+    return bytesToHex(sha256(await file.bytes()));
+  } catch {
+    return undefined;
+  }
 }
 
 /** Variants `files/[assetId]/url` will serve. Falls back to the original if absent. */

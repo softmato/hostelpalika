@@ -790,7 +790,7 @@ func (s *Service) notifyProvidersOfOpen(ctx context.Context, r *request) {
 	}
 	fee := ""
 	if r.MinimumCharge != nil {
-		fee = " Minimum fee NPR " + thousands(int64(*r.MinimumCharge)) + "."
+		fee = " Minimum fee Rs " + thousands(int64(*r.MinimumCharge)) + "."
 	}
 	seen := map[bson.ObjectID]bool{}
 	for _, x := range rows {
