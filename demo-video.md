@@ -313,7 +313,7 @@ Tags: ADM WAR RES COOK GUA. ★ = Duo (the other phone is the point); everything
 | ☑ | 14 | Warden permissions ★ | A: View payments off → on | Payments leaves / returns in B's menu | ADM WAR |
 | ☑ | 15 | Petty cash ★ | A gives Rs 5,000 → B bell → Got it | B My cash Rs 5,000; A sees "Got it" | ADM WAR |
 | ☑ | 16 | Warden expense | B: Add expense, vegetables Rs 1,200, bill photo, cash | B My cash Rs 3,800; A Expenses shows it with the photo | ADM WAR |
-| ◐ | 17 | **Share a receipt** ★ | B: open an old receipt (gallery / eSewa history) → Share → HostelPalika → the sheet reads the amount → Save. Share the **same** receipt again | A Expenses shows it with the receipt; the second share says it is **already added** (no double count). "Don't ask next time" → saves in the background | ADM WAR |
+| ☑ | 17 | **Share a receipt** ★ | B: open an old receipt (gallery / eSewa history) → Share → HostelPalika → the sheet reads the amount → Save. Share the **same** receipt again | A Expenses shows it with the receipt; the second share says it is **already added** (no double count). "Don't ask next time" → saves in the background | ADM WAR |
 | ☑ | 18 | Inventory | B records Bought + a stock Count → A approves the count | Count approved | ADM WAR |
 | ☑ | 19 | Add a cook | A: Cooks → invite C's email; switches: cook enters stock used / cook adds expenses | Cook listed | ADM COOK |
 | ☐ | 20 | Temporary login & audit log | A: one-day login; Audit log | Who changed what | ADM |
@@ -324,8 +324,8 @@ B logs out W; R signs in (sign-in 3) — still a public account.
 |---|---|---|---|---|---|
 | ☑ | 21 | Find a hostel | B: listings, map + directions, near a college, compare, save | — | RES |
 | ☑ | 21a | Ask the hostel ★ | B: Inquiry on the hostel page (name, phone, question) → A: Inquiries → call / reply | Inquiry lands on A | ADM RES |
-| ◐ | 21b | Book a bed online ★ | B: hostel page → Book → room type, move-in date → sees the advance and what happens next → **stops at the payment screen**. A: Bookings (seeded ones) → confirm. A short motion diagram shows the money path: visitor → HostelPalika → the hostel's payout | Booking waiting on A | ADM RES |
-| ◐ | 22 | Join link ★ | A shares the join link/QR → B sends room + rent + ID card → A Join requests → Add | B's app turns into the resident Home | ADM RES |
+| ☑ | 21b | Book a bed online ★ | B: hostel page → Book → room type, move-in date → sees the advance and what happens next → **stops at the payment screen**. A: Bookings (seeded ones) → confirm. A short motion diagram shows the money path: visitor → HostelPalika → the hostel's payout | Booking waiting on A | ADM RES |
+| ☑ | 22 | Join link ★ | A shares the join link/QR → B sends room + rent + ID card → A Join requests → Add | B's app turns into the resident Home | ADM RES |
 | ☑ | 23 | Add a resident by form | A only, R2: Scan ID / Form QR / by hand (fast), room, special fee; which form fields the hostel asks for (Form details); the existing-residents list with "paid till" | Bill shown before saving | ADM WAR |
 | ☑ | 24 | The resident's Home & first bill ★ | B: Home, digital ID card, joining bill Rs 18,000, month code | Same bill on A's resident detail | ADM RES |
 | ☑ | 23a | Admission forms (Form QR) | A: Residents → "Filled your Form QR" → Admission forms → open one → pick a bed → register. Needs a filled form: a signed-out phone scans the Form QR (film when a phone is public, e.g. after ch 48) | Resident registered from the form | ADM WAR |
@@ -348,18 +348,18 @@ receipt lane is the alternative.
 | ☑ | 32 | The warden's Home | Leaving today, alerts, daily routines, My cash | — | WAR |
 | ☑ | 33 | **Collect rent at the desk** ★ | A: resident → Take payment → Rs 10,000 cash | B receipt arrives at once (HP- code, QR); balance Rs 8,000 on both. Scanning the receipt's QR opens the "real receipt" check | ADM WAR RES |
 | ☑ | 34 | **Paid by QR at the desk** ★ | R pays the hostel QR at the desk; A records it as eSewa / bank with the reference | Bill cleared on both phones | ADM WAR RES |
-| ☐ | 35 | Or the resident sends a receipt ★ | B: old receipt → Share → HostelPalika → claim on the bill → A bell → Payments → check → Approve. Send the same receipt again. Then show Pay online (eSewa / Khalti) up to the wallet's own screen and back out — no money moves | B certified receipt + points; the repeat is refused | ADM WAR RES |
-| ☐ | 36 | One statement, both sides ★ | A resident ledger beside B Statement | Same running balance (note: ____) | ADM WAR RES |
+| ☑ | 35 | Or the resident sends a receipt ★ | B: old receipt → Share → HostelPalika → claim on the bill → A bell → Payments → check → Approve. Send the same receipt again. Then show Pay online (eSewa / Khalti) up to the wallet's own screen and back out — no money moves | B certified receipt + points; the repeat is refused | ADM WAR RES |
+| ☑ | 36 | One statement, both sides ★ | A resident ledger beside B Statement | Same running balance (note: ____) | ADM WAR RES |
 | ☑ | 36a | Void a wrong bill | Money → a seeded resident's bill → Void invoice → reason → gone from what they owe | Balance drops on the resident's record | ADM WAR |
 | ☑ | 37 | The warden's daily checks ★ | B complaint + night status → A (warden) updates | B told | WAR RES |
 
 ### Act 6 · When rent is late  (A = W, B = R; scenario script)
 | ☐ | # | Chapter | What happens | Proof | Videos |
 |---|---|---|---|---|---|
-| ☐ | 38 | A reminder before the due date | `rent-due-soon` | B push + email | ADM RES |
-| ◐ | 39 | Overdue and the late fine ★ | `rent-overdue` | FINE lines on B's bill; A's overdue list | ADM WAR RES |
-| ◐ | 40 | Collecting a late bill ★ | A takes the payment, fine included (or waives it) | Cleared on both | ADM WAR RES |
-| ☐ | 41 | Next month's bill makes itself | `month-roll` | New BS-month bill on B | ADM RES |
+| ☑ | 38 | A reminder before the due date | `rent-due-soon` | B push + email | ADM RES |
+| ☑ | 39 | Overdue and the late fine ★ | `rent-overdue` | FINE lines on B's bill; A's overdue list | ADM WAR RES |
+| ☑ | 40 | Collecting a late bill ★ | A takes the payment, fine included (or waives it) | Cleared on both | ADM WAR RES |
+| ☑ | 41 | Next month's bill makes itself | `month-roll` | New BS-month bill on B | ADM RES |
 
 ### Act 7 · The kitchen  (A = W then R, B = C)
 B logs out R; C signs in (sign-in 5).
@@ -387,19 +387,19 @@ B logs out G; O signs in (sign-in 8). Set the notice days so the last day can be
 ### Act 10 · Your numbers  (B = O)
 | ☐ | # | Chapter | What happens | Proof | Videos |
 |---|---|---|---|---|---|
-| ◐ | 50 | Hostel statement & expenses | Everything in and out this month, balance after each line; Transactions list | Matches the takes above | ADM |
-| ☐ | 50a | Bank & wallet statements | A: import the `statement-file` → payments matched to residents on their own; the odd one left for a tap | Matched list | ADM |
+| ☑ | 50 | Hostel statement & expenses | Everything in and out this month, balance after each line; Transactions list | Matches the takes above | ADM |
+| ☑ | 50a | Bank & wallet statements | A: import the `statement-file` → payments matched to residents on their own; the odd one left for a tap | Matched list | ADM |
 | ☑ | 51 | Reports & PDF exports | Charts, date range, PDF download | PDF opens | ADM |
-| ◐ | 52 | Branches & Overall | Add a branch (name + label), switcher, Overall view, stock Send → Got it | — | ADM |
+| ☑ | 52 | Branches & Overall | Add a branch (name + label), switcher, Overall view, stock Send → Got it | — | ADM |
 | ☑ | 53 | Referrals & supply store | Referral code, invite other hostels, what it earns; browse the supply store catalogue (no order) | — | ADM |
 | ◐ | 54 | Notifications, settings & your data | Bell, push, email opt-out per topic; switch to नेपाली; dark mode; Forgot password; the Guide inside the app; nightly backup and data export (your data stays yours) | — | ALL |
 
 ### Act 11 · Your plan  (B = O; scenario script; filmed last because a suspended hostel blocks other takes, then `restore`)
 | ☐ | # | Chapter | What happens | Proof | Videos |
 |---|---|---|---|---|---|
-| ☐ | 55 | Your free trial | `trial-ending`: days left, what's included, the reminder | Banner + bell | ADM |
-| ☐ | 56 | If the trial ends unpaid | `trial-ended`: Free plan, which screens lock | Locked tiles | ADM |
-| ☐ | 57 | Buy a plan | Plan billing → choose → pay by QR + proof image → owner approves as superadmin (hand) | Plan active, features open | ADM |
+| ☑ | 55 | Your free trial | `trial-ending`: days left, what's included, the reminder | Banner + bell | ADM |
+| ☑ | 56 | If the trial ends unpaid | `trial-ended`: Free plan, which screens lock | Locked tiles | ADM |
+| ☐ | 57 | Buy a plan (**web video**: Play policy bars selling the plan in the Android app) | Plan billing → choose → pay by QR + proof image → owner approves as superadmin (hand) | Plan active, features open | ADM |
 | ☐ | 58 | If a plan bill goes unpaid | `plan-past-due`: renewal bill, past due, back on the Free plan (locked tiles); pay the renewal to restore | Back to active | ADM |
 | ☐ | 59 | Get started | Outro: install, register, WhatsApp | — | ALL |
 
@@ -508,6 +508,24 @@ Open decisions:
 
 - **Fixed 2026-11-23 (uncommitted, needs deploy + OTA):** ch 36/50 statement rows merged per bill → one row per payment, dated when paid (Go + TS + app); ch 33/34 "Rs 6.000" (clipped comma) and "Cash collected" for QR/eSewa; ch 40 Waive fine leaving the old total on Collect, and Part payment digits appending to a prefilled due; "received for 2083-08" in the payment push. The server still lets a desk payment exceed what is owed: the extra becomes the resident's credit, and the app caps it at the balance.
 
+- **Go deploy was failing since 6334ce3e** (gofmt gate on `finance/ledger.go` + `hostelrooms/rooms.go`), so step 1's server half (per-payment statements, scenarios on the cron door) was never live. Fixed b09b6882.
+- **ch 50a (bug)** — statement CSV import refused on Android: picker hands `text/comma-separated-values`, not in the allowlist. Fixed e164853f (Go + TS allowlist; app maps .csv/.xls/.xlsx itself — OTA).
+- **app lock** — returning from the system file picker asks for the PIN again (the picker counts as leaving the app).
+- **ch 52/56 (counts)** — Overall says 12 residents, Main alone 13; the Free banner also says 12 while the card says 13.
+- **ch 55 (copy)** — bell "ends in 2 days" vs Billing "3 days left" for the same end (Mangsir 9; one counts today).
+- **ch 56 / 21b (dates)** — "Read-only from 30 Nov" and booking "Plans to arrive 2026-12-01" are AD; the app's one date format is BS.
+- **data** — Bibek Shrestha's deposit is stored as **Rs 500,020,260,515** (a date typed into the deposit box on the existing-residents form); needs a cap/validation and a data fix.
+- **ch 33/34/40 (app)** — in the payment sheet the first tap on Collect/Save after typing only blurred the amount box (Sheet's scroll view used the default `keyboardShouldPersistTaps`). Fixed in `ui/sheet.tsx` (`"handled"`) → OTA.
+- **ch 38 (copy)** — the due-soon bell printed "Your 2083-08 fee is due on Wed Nov 25 2026". Fixed Go + TS (`bs.FormatPeriod` + `bs.FormatDate`).
+- **ch 33–41 (A)** — A's Home and bell badge don't update live after a payment (needs a pull; badge said 7 while 11 unread), and no push reaches A's shade. The amounts eye turns itself off each time A comes back to Home.
+- **ch 34 (data)** — a payment taken with **QR** is listed as **Bank** in the profile's payment history.
+- **ch 41 (copy)** — bills say "NPR 11,000" in bell text, "Rs 11,000" everywhere else.
+- **owner chip** — after `trial-ended` → `restore`, the owner's branch chip stays hidden (even after a cold start) though the subscription is back on trial (trialEndsAt Dec 2). `useBranchesLock` reads `/hostel-admin/subscription` with `.catch(() => null)`: check whether that GET fails or serves a cached copy.
+- **ch 50a (money text)** — the "Who sent this?" sheet still prints **Rs 14.000**: `Money size="display"` clips the comma's tail there even with the 1.4× line box (Home is fine).
+- **ch 50a (copy)** — a stranger's row "Ramila Basnet" is labelled "No name on it"; and the header stays "0 of 8 payments matched" after a suggestion is assigned.
+- **ch 50 (data)** — an expense row reads "Code · Of Payment · Ramesh Thapa, Rs 220": the ch 17 eSewa receipt parse took label words as the item.
+- **ch 35 (raw error)** — the uploader's notification printed "Call to function 'FileSystemUploadTask.start' has been rejected → Caused by: Unable to upload a file: timeout" (2nd send of the same receipt). Raw native text must never reach the user; sent to the fix session.
+- **More search** — "plan" finds nothing; only "billing" finds Billing.
 ### Takes log
 - ch 02 → `02-get-the-app-A` (57 s): Play search → page → Install → Open → splash. Blur: Play account avatar, recent-search suggestions. B idle.
 - ch 03 → `03-register-A1` (21 s: Home → Register hostel → Sign in, email typed; password by owner off-camera) + `03-register-A2` (68 s: notifications already granted; form: owner Suresh Adhikari (account's own name), phone 9800000101, Himalaya Boys Hostel, referral EDUC309CF → "Referred by Education Light Hostel · 1 month extra" → portal: Awaiting verification, KYC 8%). Idle 34–41 s to trim. Accounts already existed, so no Create account.
@@ -585,6 +603,27 @@ Open decisions:
 - ch 23a → only `23a-form-qr-A/B` (~35 s: owner's Form QR link `hostelpalika.com/join/apply/…`; A opens the form, no account needed: photo, ID, guardian ID, personal). Superseded by the retake below.
 - ch 23a retake → `23a-form-qr-3-A/B` (~440 s, 3 parts): A opens the Form QR link (no account) → Upload photo (sample silhouette, crop) → ID `applicant-citizenship-front.jpg` (new sample: **Bikash Karki**, 05-01-79-04321, Kaski) → Bikash Karki, 9800000108, bikash.karki.demo@example.com, DOB 15 Poush 2062 BS, Male, B+, Non-veg, Kaski-8 Pokhara Lakeside, father Hari Karki 9800000109 Farmer → finger signature → agree → **Sent**: "They will choose your bed and call you on 9800000108"; B Residents "1 wants to live here · Filled your Form QR" → Bikash's form → Next — bed and money → Double Sharing, **Room 102**, calendar month: rent Rs 11,000, this month (24 of 29 days) Rs 9,103, deposit Rs 5,000, admission Rs 2,000, "Due at move-in Rs 7,000" → Register them → Payments sheet: Mangsir bill HIM-00EK-MAN83 **Rs 9,103** (not collected). Trim: the first room tap that didn't take (tile under the header). Bikash is a new demo resident (example.com email, no real inbox); `unseed` should remove him.
 
+- **Day 6 (2026-11-23), B = owner; A dropped off adb ("offline", no serial) after the first restart.** Aarav on A turned out to be linked to "Bikash Karki" (the ch 23a Form QR was filled on A while signed in as Aarav) → owner removed Bikash Karki so Aarav is public again for ch 22.
+- ch 21b owner half → `21b-confirm-B` (48 s): Home → Bookings (1 waiting) → Bishal Karki, Single Sitter, BK-DEMO01, share Rs 588 → Confirm → "Confirm this booking?" → Confirm booking → Confirmed tab: bed held until Mangsir 14, Admit by ID card / Cancel booking; Sandesh Lama confirmed below.
+- ch 52 part 2 → `52-overall-B` (52 s): Main chip → Switch hostel (Main · Koteshwor · Overall · Show label · Manage branches) → Overall ("Your hostels · Every hostel you manage", eye → amounts) → scroll → All chip → Main → eye.
+- ch 55 → `55-trial-ending-B` (43 s): bell → "Your free trial ends in 2 days" → Billing: Free trial, **3 days left**, Mangsir 4 → Mangsir 9, usage. (First take `.55-trial-ending-B-bad` showed 39 days: scenario fixed to move `currentPeriodEnd` too.)
+- ch 56 → `56-trial-ended-B` (61 s): Billing → Refresh → Free, "This plan has run out" → Home: branch chip gone, banner "Read-only from 30 Nov · 12 residents (covers 10), 2 cook accounts (covers 1) on Free. Choose a plan" → tap → Billing. Then `restore`.
+- ch 50a attempt → `.50a-import-B-bad` (240 s, unusable): DocumentsUI ignores injected taps on files (owner tapped), then the import failed "File MIME type is not allowed" (Android reports `text/comma-separated-values`). Fixed e164853f (server accepts it; app names the type from the extension → needs OTA). Re-shoot after deploy.
+- ch 22 re-join → `22-rejoin-A/B` (A 137 s, B 144 s): B Join link (QR + https://hostelpalika.com/join/…) · A opens the link (adb VIEW at ~3 s: cut to "A scans the QR") → Join your hostel (ID card already there) → Double Sharing Rs 11,000 → "1 month due" → Send → "Sent to Himalaya Boys Hostel" · B back → 1 waiting → card (Bill on add Rs 11,000) → Add → room sheet 1st floor → 103 → "Add Aarav Sherestha? … Bills of Rs 11,000" → Yes, add → "Aarav Sherestha added" · **A turns into the resident Home on its own** (no restart: §10 ch 22 restart issue gone). A still says "Since Kartik 1" (§10 ch 22 data).
+- ch 33 re-shoot → `33-desk-cash-v2-A/B` (A 264 s, B 281 s; **trim** the search fumble "AaravAarav" / Aswin chip, and the dead first tap): B Payments → search Aarav → Rs 11,000 Unpaid → Cash → Part payment (box empty) → 5000 → **Collect Rs 5,000** → "Cash collected" (comma right) · A pull → **Rs 6,000** → bell "Cash collected. NPR 5,000 received for Mangsir 2083 BS. NPR 6,000 still due" → Payments → invoice: paid Rs 5,000, outstanding Rs 6,000, receipt RCP-HIM-2083-08-00013.
+- ch 34 re-shoot → `34-desk-qr-v2-A/B` (A 140 s, B 150 s): B Aarav (Partial, Rs 6,000 left) → **QR** (SAMPLE hostel QR full-size) → Part payment 3000 → Save Rs 3,000 (2nd tap; 1st only blurred the box) → row Rs 3,000 Partial · A pull → **Rs 3,000**.
+- ch 38 → `38-reminder-A` (36 s): `rent-due-soon` → A pull: "Mangsir 2083 BS · Due in 2 days" → bell **"Payment due soon. Your Mangsir 2083 BS fee is due on Mangsir 9, 2083 BS."** (text fixed this session; it printed "2083-08 … Wed Nov 25 2026") → Payments Rs 3,000 due Mangsir 9.
+- ch 39 → `39-overdue-A/B` (A 90 s, B 94 s): `rent-overdue` → A "8 days overdue", eye → **Rs 3,400** → bell "Payment overdue. Your Mangsir 2083 BS fee is overdue." → invoice OVERDUE: **Late fine Rs 50 a day · 8 days late = Rs 400** · B pull → Aarav Rs 3,400 · "Fine Rs 400".
+- ch 40 → `40-late-collect-A/B` (A 73 s, B 84 s): B sheet: Month rent 11,000 + Late fine 400 (Waive fine link), paid 8,000, total Rs 3,400 → Cash → **Collect Rs 3,400** → Mangsir 4 waiting · A pull → **Nothing outstanding**.
+- ch 41 → `41-month-roll-A` (67 s): `month-roll` (13 Poush bills, Rs 125,000) → A bell **"Rent bill ready. Your rent for Poush 2083 BS is NPR 11,000."** → Payments: Monthly rent — Poush Rs 11,000, due Poush 5. (B's Payments strip has no Poush chip until Poush.)
+- ch 36 → `36-one-statement-A/B` (A 33 s, B 40 s): A Statement: "Rs 11,400 paid in total", one row per payment (3,400 · 3,000 · 5,000) with running total · B Aarav's profile: Paid so far **Rs 11,400**, Nothing outstanding, Months settled 1 of 1, Payment history (5,000 Cash · 3,000 Bank · 3,400 Cash, each with its RCP number). Same Rs 11,400 on both.
+- ch 50 re-shoot → `50-statement-v2-B` (71 s): Home → Statement "Rs 131,750 in · Rs 37,720 out" → Aarav's three payments as **three lines** (3,400 · 3,000 · 5,000, balance after each) → scroll → Expenses: Money In **Rs 131,750** (now equals the Statement), Out 37,720, Left 94,030, staff cash.
+- ch 50a → `50a-import-B` (222 s; **trim** the picker + PIN): Finance → Bank and wallet statements → eSewa → (owner taps `esewa-statement.csv`) → "0 of 8 payments matched · Who paid? 6" → Prabin Gurung Rs 14,000 "High match · name matches, owes exactly this amount" → Assign to Prabin Gurung → Who paid? 5. (Auto "Matched" needs the bill's reference code in the remark; name + amount is a suggestion by design.)
+- **Left after day 6:** 17 (◐, receipt), 57 + 58 (plan proof image + superadmin approve), then `restore`; 54 waits on the app features (§10).
+- **Sample receipts** (owner, day 6): no real receipt on A, so `marketing/video/demo-film/make_sample_receipts.py` draws a wallet-app "Transaction Details" screenshot for a made-up **Demo Pay** (no real wallet's name or marks) with a light SAMPLE · DEMO ONLY stamp → `assets/samples/receipt-resident-rent.png` (ch 35: Rs 5,000, Txn 7KQ2M9X, Remarks HIM-00FS-POU83) and `receipt-expense-grocery.png` (ch 17: Rs 850, Khanal Kirana Store). Reusable in the guide. Pushed to `/sdcard/Pictures/HostelPalika-demo/`.
+- ch 35 → `35-receipt-claim-A/B` (A 564 s, 4 parts; **trim** the two failed share-intent tries at the start and **blur the photo-picker grid** beside the receipt: the owner's own photos): A Payments → I've paid → Photos → receipt → Done → form fills **Amount 5000 · Txn 7KQ2M9X · "Reference HIM-00FS-POU83 found" · Payment receipt Checked** → Method eSewa → Submit → "Waiting for approval" · B bell "Payment proof submitted…" → Payments Poush → Aarav "Pending proof" → **1 claim to verify** (thumbnail, Claims Rs 5,000 · Esewa, Txn 7KQ2M9X, 5 checks passed) → **Approve** · A pull → Rs 6,000 → bell **"Payment verified. NPR 5,000 received for Poush 2083 BS… added to the Resident Offer Program"** · A sends the same receipt again → **refused, but as "Upload failed — check your internet connection"** (§10). Pay online not shown (online gateway not set up).
+- ch 17 re-shoot → `17-share-sample-B` (173 s): B photo viewer (just the sample, no grid) → Share → HostelPalika → **Add expense** reads **Rs 850**, Paid by Bank → Save → "Saved" · same receipt again → **"Already added · Rs. 850 · added by Suresh Adhikari"**. Then `demo restore` (day 6 end).
+- **57 + 58 → web video.** The Android app may not sell the plan or point to another way to pay (Play Payments policy, memory 2026-09-15; app Billing has no buy button by design). Buy on the web, owner approves as superadmin, then `plan-past-due` (the app may show 58's Pay-by block, without a pay link), then `restore`. 54 waits on the app features. Phone A is free.
 ### Seed (2026-11-20) — what `seed-history` wrote
 Run from PowerShell in `server/` (Git Bash can't start the exe): `.in\dev.exe demo seed-history` · `unseed` · `inspect <collection> [json filter] [limit]`. It reads the repo root `.env` MONGODB_URI (production) and refuses any hostel but slug `himalaya-boys-hostel-2` with `_id` ending `ba1f794d`.
 - 11 residents, desk-registered, **no login, no email** (no job can reach them), phones 9800000020–30: 001 Prabin Gurung · 002 Sagar Basnet · 003 Rohan Shrestha, Nischal Adhikari · 004 Bibash Maharjan, Anish Tamang, Kiran Bhandari · 103 Sujan Thapa, Roshan KC · 104 Dipesh Rai (joined Ashwin 12), Manish Poudel (joined Kartik 10). **102 stays free for R**, one bed free in 104. Home: 13 residents · 3 beds free · 81% full.
