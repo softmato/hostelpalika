@@ -357,6 +357,10 @@ export function Sheet({
 
             <KeyboardAwareScrollView
               ScrollViewComponent={SheetScrollView}
+              // A tap on a button while a field still has focus presses the button;
+              // the default ("never") spent that first tap on blurring the field, so
+              // Collect / Save in the payment sheet needed two taps.
+              keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={!fitContent}
               // Room for the field's label and a line under it, not flush to the keys.
               bottomOffset={24}

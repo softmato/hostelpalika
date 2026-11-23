@@ -1,7 +1,7 @@
 import type { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
-import { hostelDaysBetween } from "@/lib/hostel-day";
+import { formatBsDate, formatBsPeriod, hostelDaysBetween } from "@/lib/hostel-day";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { withRun } from "@/modules/finance/reconciliation/run-recorder";
@@ -558,10 +558,10 @@ async function deliver(input: {
     if (resident.userId) {
       await createInAppNotification({
         body: overdue
-          ? `Your ${period} fee is overdue.`
+          ? `Your ${formatBsPeriod(period) || period} fee is overdue.`
           : reminderStage === "TODAY"
-            ? `Your ${period} fee is due today.`
-            : `Your ${period} fee is due on ${invoice.dueDate.toDateString()}.`,
+            ? `Your ${formatBsPeriod(period) || period} fee is due today.`
+            : `Your ${formatBsPeriod(period) || period} fee is due on ${formatBsDate(invoice.dueDate)}.`,
         category: "PAYMENT",
         data: { invoiceId: invoice._id.toString() },
         hostelId: hostelKey,

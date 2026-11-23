@@ -370,12 +370,18 @@ func (e *Engine) deliverDunning(ctx context.Context, it dunningItem, hostelName 
 		stage = "SOON"
 	}
 	if it.res.UserID != nil && e.Notify != nil {
-		title, body := "Payment due soon", "Your "+period+" fee is due on "+it.inv.DueDate.UTC().Format("Mon Jan 02 2006")+"."
+		// Named month and BS date ("Mangsir 2083 BS", "Mangsir 9, 2083 BS"), never
+		// the raw 2083-08 key or an AD date: the one date format is BS.
+		label := bs.FormatPeriod(period)
+		if label == "" {
+			label = period
+		}
+		title, body := "Payment due soon", "Your "+label+" fee is due on "+bs.FormatDate(it.inv.DueDate)+"."
 		switch {
 		case overdue:
-			title, body = "Payment overdue", "Your "+period+" fee is overdue."
+			title, body = "Payment overdue", "Your "+label+" fee is overdue."
 		case stage == "TODAY":
-			title, body = "Payment due today", "Your "+period+" fee is due today."
+			title, body = "Payment due today", "Your "+label+" fee is due today."
 		}
 		// The bell row only: the resident's push is the automatic fee reminder.
 		if _, err := e.Notify.CreateInApp(ctx, notifications.Input{Body: body, Category: "PAYMENT", Data: data, HostelID: it.inv.HostelID.Hex(), NoPush: true, Title: title, UserID: it.res.UserID.Hex()}); err != nil {
