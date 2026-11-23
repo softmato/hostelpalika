@@ -98,10 +98,11 @@ export default function GuideChapterScreen() {
   return (
     <Screen header={header} onRefresh={guide.refresh} refreshing={guide.refreshing} scroll>
       <View className="gap-4">
-        <View className="flex-row items-start justify-between gap-3">
-          <Text className="flex-1 text-sm text-muted-foreground">{ne?.summary ?? c.summary}</Text>
-          <Segmented onChange={setLang} options={GUIDE_LANG_OPTIONS} value={lang} />
-        </View>
+        {/* Stacked, not side by side: Segmented's ScrollView grows to the full row and a
+            flex-1 summary beside it was squeezed to ~0 px, one letter per line — a screen
+            of blank space above the chapter. */}
+        <Segmented onChange={setLang} options={GUIDE_LANG_OPTIONS} value={lang} />
+        <Text className="text-sm text-muted-foreground">{ne?.summary ?? c.summary}</Text>
 
         {c.flow ? <Picture caption={(ne && g.ne.chapters[c.id]?.flow) || c.flow.caption} picture={c.flow} /> : null}
         {c.widget === "share-receipt" ? <ShareReceiptGuide /> : null}
