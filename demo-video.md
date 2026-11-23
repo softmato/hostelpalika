@@ -675,6 +675,8 @@ Still to do with the owner: sign-ins 2–8 (§2), ch 57 superadmin approve, ch 4
 | 57, 58 | Buy a plan / unpaid plan bill → **web video** (Play Payments policy: the Android app may not sell the plan or link out to buy it) | Web session, owner approves as superadmin, then `plan-past-due`, then `restore` |
 | 30 | Attendance check-ins | Only once background check-ins ship in a store build |
 
+**M9 closing line (owner, day 7):** after 56 ends on Billing, one voice line, no new footage: "प्लान किन्न वा रिन्यु गर्न hostelpalika.com मा आफ्नो पोर्टलमा लगइन गरेर प्लान बिलिङमा जानुहोस्। मद्दत चाहियो भने More को तल रहेको टेक्निकल सपोर्टलाई सम्पर्क गर्नुहोस्।" Video only: never on an app screen, and keep this line out of any cut used as the Play Store listing video (Play payments policy covers the app and its listing).
+
 **Then the edit** (§9, §8b module order): narration per module, 01 intro + 59 outro. Trims and blurs are listed per take (search fumbles in 33, picker grids in 35/50a, PINs).
 
 **Tooling learnt on day 6:** DocumentsUI (Android's file picker) ignores injected taps on files: the owner taps the file. A shell `SEND` intent can't grant a MediaStore URI, so to share a sample, open it with `am start -a android.intent.action.VIEW -d content://media/external/images/media/<id>` and use the viewer's own Share. On Samsung A, sticky footers sit at y≈2134: tap at y≈2085 (inside the button, above the nav bar). Sample receipts: `marketing/video/demo-film/make_sample_receipts.py`.
