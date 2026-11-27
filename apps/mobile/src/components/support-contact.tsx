@@ -5,19 +5,13 @@ import { MenuGroup, MenuRow } from "@/components/more-menu";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSelector } from "@/hooks/redux";
 import { useSiteConfig } from "@/hooks/use-site-config";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 /**
  * The website's footer contact column, shown at the foot of every More/Profile
  * tab. Tappable rather than printed: on a phone a support number is a call,
  * not a string to memorise.
  */
-/** `wa.me` takes digits with the country code; a local 98… number gets Nepal's 977. */
-function whatsappUrl(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-
-  return `https://wa.me/${digits.length === 10 && digits.startsWith("9") ? `977${digits}` : digits}`;
-}
-
 export function SupportContact() {
   const { identity } = useSiteConfig().config;
   // Feedback is filed against an account, so a signed-out visitor sees only the contacts.

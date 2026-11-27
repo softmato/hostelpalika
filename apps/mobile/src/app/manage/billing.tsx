@@ -1,13 +1,14 @@
 import { planRank } from "@hostel/plans/catalog";
 import { PlanLimitBanner, PlanUsageSection, usePlanUsage } from "@/components/plan-usage-section";
-import { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
+import { useCallback, useContext, useMemo, useState } from "react";
+import { Linking, View } from "react-native";
 
 import { PlanMark } from "@/components/plan-mark";
 import { PaintedAmount } from "@/components/portal-shared";
 import { FreeMonthCard } from "@/components/subscription-due";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
@@ -31,6 +32,8 @@ import type {
   PlanBillingPayment,
   PlanBillingPlan,
 } from "@/lib/admin-manage-api";
+import { ShownHostelContext } from "@/lib/active-hostel";
+import { hostelCode } from "@/lib/admin-home";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { downloadToDevice } from "@/lib/documents";
@@ -38,6 +41,7 @@ import { formatMoney } from "@/lib/format";
 import type { SitePlans } from "@/lib/site-config-api";
 import type { BadgeTone } from "@/lib/status";
 import { toastError } from "@/lib/toast";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 /**
  * Billing — what this hostel pays the platform, and how long it has left.
@@ -256,7 +260,10 @@ export default function ManageBillingScreen() {
         />
         <PlanLimitBanner usage={planUsage} />
         {plan ? (
-          <Standing dates={dates} plan={plan} />
+          <>
+            <Standing dates={dates} plan={plan} />
+            <PlanSupport plan={plan} />
+          </>
         ) : (
           <EmptyCard
             description="No plan yet, so nothing to bill."
@@ -434,6 +441,45 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
  * date. Now the plan starts when the hostel goes live, the bar opens full, and
  * the deadline keeps to its own block.
  */
+const DAY_MS = 86_400_000;
+
+/**
+ * WhatsApp help when the trial is ending or over, or the plan is past due or
+ * run out. Help only — no buy/pay/renew wording or prices (Play payments rule:
+ * no in-app call to action to pay outside Play). Never on a running paid plan.
+ */
+function PlanSupport({ plan }: { plan: PlanBillingPlan }) {
+  const { identity } = useSiteConfig().config;
+  const hostelId = useContext(ShownHostelContext);
+  const [now] = useState(() => Date.now());
+  const trialEnd = plan.trialEndsAt ? Date.parse(plan.trialEndsAt) : null;
+  const onFree = !plan.planName && trialEnd !== null && trialEnd < now;
+  const trialDays = trialEnd === null ? null : plan.daysRemaining ?? Math.ceil((trialEnd - now) / DAY_MS);
+  const show =
+    onFree ||
+    (trialDays !== null && trialDays <= 7) ||
+    plan.status === "PAST_DUE" ||
+    plan.daysRemaining === 0;
+  const phone = identity.supportLines?.[0]?.phone || identity.supportPhone;
+
+  if (!show || !phone) return null;
+
+  const code = hostelCode(hostelId ? { id: hostelId } : null);
+  const message = `Hello HostelPalika, please help me renew the plan for my hostel.${code ? ` Hostel ID: ${code}` : ""}`;
+
+  return (
+    <Card className="gap-3">
+      <Text variant="body">Need help with your plan? Our team will help you on WhatsApp.</Text>
+      <Button
+        icon="logo-whatsapp"
+        label="Contact support"
+        onPress={() => void Linking.openURL(whatsappUrl(phone, message))}
+        variant="outline"
+      />
+    </Card>
+  );
+}
+
 function Standing({
   dates,
   plan,
