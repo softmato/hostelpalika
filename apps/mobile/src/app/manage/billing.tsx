@@ -455,8 +455,11 @@ function PlanSupport({ plan }: { plan: PlanBillingPlan }) {
   const trialEnd = plan.trialEndsAt ? Date.parse(plan.trialEndsAt) : null;
   const onFree = !plan.planName && trialEnd !== null && trialEnd < now;
   const trialDays = trialEnd === null ? null : plan.daysRemaining ?? Math.ceil((trialEnd - now) / DAY_MS);
+  // The server can keep an unpaid plan ACTIVE; a passed pay-by with money owed is past due all the same.
+  const overdue = Boolean(plan.dueBy) && (plan.amountDue ?? 0) > 0 && Date.parse(plan.dueBy!) < now;
   const show =
     onFree ||
+    overdue ||
     (trialDays !== null && trialDays <= 7) ||
     plan.status === "PAST_DUE" ||
     plan.daysRemaining === 0;
