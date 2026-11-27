@@ -54,8 +54,8 @@ export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 export type ApplicantDocuments = Partial<Record<DocumentKind, ApplicantPhoto>>;
 
 export const DOCUMENT_LABELS: Record<DocumentKind, string> = {
-  APPLICANT_ID: "ID (Citizenship or ID Card, NID, Nagrikta)",
-  GUARDIAN_ID: "Guardian's ID (Citizenship or ID Card, NID, Nagrikta)",
+  APPLICANT_ID: "ID (Citizenship, NID, Birth Certificate, or ID Card)",
+  GUARDIAN_ID: "Guardian's ID (Citizenship, NID, Birth Certificate, or ID Card)",
 };
 
 /**
@@ -67,8 +67,8 @@ export function documentsProblem(documents: ApplicantDocuments, guardianRequired
   if (Object.values(documents).some((document) => document && !document.fileAssetId)) {
     return "A document is still uploading.";
   }
-  if (!documents.APPLICANT_ID) return "Add a photo of the ID (Citizenship, ID Card, NID or Nagrikta).";
-  if (guardianRequired && !documents.GUARDIAN_ID) return "This hostel needs the guardian's ID (Citizenship, ID Card, NID or Nagrikta) too.";
+  if (!documents.APPLICANT_ID) return "Add a photo of the ID (Citizenship, NID, Birth Certificate, or ID Card).";
+  if (guardianRequired && !documents.GUARDIAN_ID) return "This hostel needs the guardian's ID (Citizenship, NID, Birth Certificate, or ID Card) too.";
 
   return null;
 }

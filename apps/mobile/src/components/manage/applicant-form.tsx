@@ -207,7 +207,7 @@ export function ApplicantForm({
       <View>
         <SectionHeader title="Identification ID" />
         <Card className="gap-3">
-          {box("citizenshipNo", "ID (Citizenship or ID Card, NID, Nagrikta)")}
+          {box("citizenshipNo", "ID (Citizenship, NID, Birth Certificate, or ID Card)")}
           {pair(
             box("citizenshipIssuedOn", "Date of issue", { keyboard: "numbers-and-punctuation", placeholder: "2078-04-12" }),
             box("citizenshipIssuedAt", "Place of issue", { words: true }),
