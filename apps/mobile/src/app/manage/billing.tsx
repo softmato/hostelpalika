@@ -9,6 +9,7 @@ import { FreeMonthCard } from "@/components/subscription-due";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FloatingButton } from "@/components/ui/floating-button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
@@ -17,6 +18,7 @@ import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -248,6 +250,7 @@ export default function ManageBillingScreen() {
 
   return (
     <Screen
+      floating={plan ? <PlanSupport plan={plan} /> : undefined}
       header={header}
       onRefresh={billing.refresh}
       refreshing={billing.refreshing}
@@ -260,10 +263,7 @@ export default function ManageBillingScreen() {
         />
         <PlanLimitBanner usage={planUsage} />
         {plan ? (
-          <>
-            <Standing dates={dates} plan={plan} />
-            <PlanSupport plan={plan} />
-          </>
+          <Standing dates={dates} plan={plan} />
         ) : (
           <EmptyCard
             description="No plan yet, so nothing to bill."
@@ -450,7 +450,11 @@ const DAY_MS = 86_400_000;
  */
 function PlanSupport({ plan }: { plan: PlanBillingPlan }) {
   const { identity } = useSiteConfig().config;
-  const hostelId = useContext(ShownHostelContext);
+  // Billing sits outside the tabs' ShownHostelContext; the overview (cached by Home) names the hostel.
+  const shownId = useContext(ShownHostelContext);
+  const overviewQuery = adminQuery.overview();
+  const overview = useResource(overviewQuery.load, { cacheKey: overviewQuery.key, topics: overviewQuery.topics });
+  const [open, setOpen] = useState(false);
   const [now] = useState(() => Date.now());
   const trialEnd = plan.trialEndsAt ? Date.parse(plan.trialEndsAt) : null;
   const onFree = !plan.planName && trialEnd !== null && trialEnd < now;
@@ -467,19 +471,31 @@ function PlanSupport({ plan }: { plan: PlanBillingPlan }) {
 
   if (!show || !phone) return null;
 
-  const code = hostelCode(hostelId ? { id: hostelId } : null);
+  const code = hostelCode(overview.data?.hostel ?? (shownId ? { id: shownId } : null));
   const message = `Hello HostelPalika, please help me renew the plan for my hostel.${code ? ` Hostel ID: ${code}` : ""}`;
 
   return (
-    <Card className="gap-3">
-      <Text variant="body">Need help with your plan? Our team will help you on WhatsApp.</Text>
-      <Button
-        icon="logo-whatsapp"
-        label="Contact support"
-        onPress={() => void Linking.openURL(whatsappUrl(phone, message))}
-        variant="outline"
-      />
-    </Card>
+    <View className="items-end">
+      <FloatingButton iconOnly icon="logo-whatsapp" label="Contact support" onPress={() => setOpen(true)} />
+      <Sheet
+        footer={
+          <Button
+            icon="logo-whatsapp"
+            label="Send message"
+            onPress={() => {
+              setOpen(false);
+              void Linking.openURL(whatsappUrl(phone, message));
+            }}
+          />
+        }
+        fitContent
+        onClose={() => setOpen(false)}
+        open={open}
+        title="Technical support"
+      >
+        <Text variant="body">Send a message to our technical support for plan renewal. They will help you on WhatsApp.</Text>
+      </Sheet>
+    </View>
   );
 }
 

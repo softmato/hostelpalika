@@ -23,6 +23,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 export function FloatingButton({
   compact = false,
   icon,
+  iconOnly = false,
   label,
   loading = false,
   onPress,
@@ -31,6 +32,8 @@ export function FloatingButton({
   /** Shrink to fit the label — for a secondary action sharing the row. */
   compact?: boolean;
   icon?: GlyphName;
+  /** A round icon button; `label` becomes its accessibility label. */
+  iconOnly?: boolean;
   label: string;
   loading?: boolean;
   onPress: () => void;
@@ -45,7 +48,7 @@ export function FloatingButton({
       // Spans the screen's content width by default. A primary action is easier
       // to hit and reads as the way forward when it is the full width of the
       // page, rather than a small pill floating in the middle of it.
-      className={`overflow-hidden rounded-full ${compact ? "" : "w-full"}`}
+      className={`overflow-hidden rounded-full ${compact || iconOnly ? "" : "w-full"}`}
       style={{
         // A soft lift so the pill separates from whatever scrolls behind it;
         // without it a translucent button on a busy list looks like part of the
@@ -59,9 +62,10 @@ export function FloatingButton({
     >
       <BlurView intensity={28} tint={isDark ? "dark" : "light"}>
         <Pressable
+          accessibilityLabel={label}
           accessibilityRole="button"
           accessibilityState={{ busy: loading, disabled: loading }}
-          className="h-14 flex-row items-center justify-center gap-2 px-6 active:opacity-85"
+          className={`h-14 flex-row items-center justify-center gap-2 active:opacity-85 ${iconOnly ? "w-14" : "px-6"}`}
           disabled={loading}
           onPress={() => {
             onPress();
@@ -71,10 +75,10 @@ export function FloatingButton({
           {loading ? (
             <ActivityIndicator color="#ffffff" size="small" />
           ) : icon ? (
-            <Glyph color="#ffffff" name={icon} size={19} />
+            <Glyph color="#ffffff" name={icon} size={iconOnly ? 26 : 19} />
           ) : null}
 
-          <Text className="text-base font-semibold text-white">{label}</Text>
+          {iconOnly ? null : <Text className="text-base font-semibold text-white">{label}</Text>}
         </Pressable>
       </BlurView>
     </View>
