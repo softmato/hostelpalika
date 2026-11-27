@@ -30,8 +30,8 @@ type PageView = {
 
 /** Citizenship / ID scans. Their own is always required; the guardian's per the hostel. */
 const DOCUMENT_KINDS = [
-  ["APPLICANT_ID", "Your citizenship or ID"],
-  ["GUARDIAN_ID", "Guardian's citizenship or ID"],
+  ["APPLICANT_ID", "Your ID (Citizenship or ID Card, NID, Nagrikta)"],
+  ["GUARDIAN_ID", "Guardian's ID (Citizenship or ID Card, NID, Nagrikta)"],
 ] as const;
 
 type DocumentKind = (typeof DOCUMENT_KINDS)[number][0];
@@ -91,9 +91,9 @@ const SECTIONS: { fields: Field[]; title: string }[] = [
     ],
   },
   {
-    title: "Citizenship",
+    title: "Identification ID",
     fields: [
-      { key: "citizenshipNo", label: "Citizenship no." },
+      { key: "citizenshipNo", label: "ID (Citizenship or ID Card, NID, Nagrikta)" },
       { key: "citizenshipIssuedOn", label: "Date of issue", placeholder: "e.g. 2078-04-12" },
       { key: "citizenshipIssuedAt", full: true, label: "Place of issue" },
     ],
@@ -267,9 +267,9 @@ export function AdmissionFormPage({ token }: { token: string }) {
     if (Object.values(scans).some((scan) => scan && !scan.fileAssetId)) {
       return setError("A document is still uploading.");
     }
-    if (!scans.APPLICANT_ID) return setError("Add a photo of your citizenship or ID.");
+    if (!scans.APPLICANT_ID) return setError("Add a photo of your ID (Citizenship, ID Card, NID or Nagrikta).");
     if (guardianDocRequired && !scans.GUARDIAN_ID) {
-      return setError("This hostel needs your guardian's citizenship or ID too.");
+      return setError("This hostel needs your guardian's ID (Citizenship, ID Card, NID or Nagrikta) too.");
     }
     // The rest of what their ID card prints: registering them makes the card from this form.
     if (!/^\S+@\S+\.\S+$/.test(draft.email?.trim() ?? "")) return setError("Write your email — you log in with it.");

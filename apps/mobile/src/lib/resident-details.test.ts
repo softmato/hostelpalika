@@ -71,7 +71,7 @@ describe("documents on the form", () => {
   const up = { claimToken: "t".repeat(20), fileAssetId: "a".repeat(24), uri: "file://x" };
 
   it("always wants their own ID, the guardian's only when the hostel says so", () => {
-    expect(documentsProblem({}, false)).toMatch(/citizenship or ID/);
+    expect(documentsProblem({}, false)).toMatch(/photo of the ID/);
     expect(documentsProblem({ APPLICANT_ID: up }, false)).toBeNull();
     expect(documentsProblem({ APPLICANT_ID: up }, true)).toMatch(/guardian/);
     expect(documentsProblem({ APPLICANT_ID: up, GUARDIAN_ID: { uri: "file://y" } }, false)).toMatch(/uploading/);

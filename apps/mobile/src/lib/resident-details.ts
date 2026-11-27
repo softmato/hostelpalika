@@ -54,8 +54,8 @@ export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 export type ApplicantDocuments = Partial<Record<DocumentKind, ApplicantPhoto>>;
 
 export const DOCUMENT_LABELS: Record<DocumentKind, string> = {
-  APPLICANT_ID: "Citizenship or ID",
-  GUARDIAN_ID: "Guardian's citizenship or ID",
+  APPLICANT_ID: "ID (Citizenship or ID Card, NID, Nagrikta)",
+  GUARDIAN_ID: "Guardian's ID (Citizenship or ID Card, NID, Nagrikta)",
 };
 
 /**
@@ -67,8 +67,8 @@ export function documentsProblem(documents: ApplicantDocuments, guardianRequired
   if (Object.values(documents).some((document) => document && !document.fileAssetId)) {
     return "A document is still uploading.";
   }
-  if (!documents.APPLICANT_ID) return "Add a photo of the citizenship or ID.";
-  if (guardianRequired && !documents.GUARDIAN_ID) return "This hostel needs the guardian's citizenship or ID too.";
+  if (!documents.APPLICANT_ID) return "Add a photo of the ID (Citizenship, ID Card, NID or Nagrikta).";
+  if (guardianRequired && !documents.GUARDIAN_ID) return "This hostel needs the guardian's ID (Citizenship, ID Card, NID or Nagrikta) too.";
 
   return null;
 }
@@ -317,11 +317,11 @@ export function detailsSections(details: ResidentDetails | null | undefined) {
     },
     {
       facts: facts([
-        ["Citizenship no.", details.citizenshipNo],
+        ["ID no.", details.citizenshipNo],
         ["Issued on", details.citizenshipIssuedOn],
         ["Issued at", details.citizenshipIssuedAt],
       ]),
-      title: "Citizenship",
+      title: "Identification ID",
     },
     {
       facts: facts([

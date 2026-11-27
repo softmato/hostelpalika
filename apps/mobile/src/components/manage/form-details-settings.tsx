@@ -54,7 +54,7 @@ export function FormDetailsSettings() {
         <ListRow
           icon="card"
           right={<Badge label="Required" tone="success" />}
-          subtitle="Their citizenship or ID — always asked"
+          subtitle="Their ID (Citizenship, ID Card, NID, Nagrikta) — always asked"
           title="Resident's ID document"
         />
         <RowDivider inset />

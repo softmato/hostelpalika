@@ -421,8 +421,8 @@ function AdmissionFields() {
         <FormInput label="Street / Tole / Chowk" name="d.tole" />
       </FormSection>
 
-      <FormSection description="From their citizenship certificate." title="Citizenship">
-        <FormInput label="Citizenship no." name="d.citizenshipNo" />
+      <FormSection description="From their Citizenship, ID Card, NID or Nagrikta." title="Identification ID">
+        <FormInput label="ID (Citizenship or ID Card, NID, Nagrikta)" name="d.citizenshipNo" />
         <FormInput label="Date of issue" name="d.citizenshipIssuedOn" placeholder="2078-04-12" />
         <FormInput label="Place of issue" name="d.citizenshipIssuedAt" />
       </FormSection>
